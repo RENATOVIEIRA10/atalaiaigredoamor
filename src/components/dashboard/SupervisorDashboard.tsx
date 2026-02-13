@@ -76,7 +76,12 @@ export function SupervisorDashboard() {
             <Select value={selectedSupervisor} onValueChange={setSelectedSupervisor} disabled={!selectedCoordenacao}>
               <SelectTrigger><SelectValue placeholder={selectedCoordenacao ? "Selecione seu perfil" : "Selecione a coordenação primeiro"} /></SelectTrigger>
               <SelectContent>
-                {filteredSupervisores.map(sup => (<SelectItem key={sup.id} value={sup.id}>{sup.profile?.name || 'Supervisor'}</SelectItem>))}
+                {filteredSupervisores.map(sup => {
+                  const displayName = sup.leadership_couple 
+                    ? `${sup.leadership_couple.spouse1?.name || ''} & ${sup.leadership_couple.spouse2?.name || ''}`
+                    : sup.profile?.name || 'Supervisor';
+                  return <SelectItem key={sup.id} value={sup.id}>{displayName}</SelectItem>;
+                })}
               </SelectContent>
             </Select>
             {selectedCoordenacao && filteredSupervisores.length === 0 && (

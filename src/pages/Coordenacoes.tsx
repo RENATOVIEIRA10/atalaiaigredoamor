@@ -7,7 +7,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Plus, Search, Loader2, MoreVertical, Pencil, Trash2, Home } from 'lucide-react';
+import { Plus, Search, Loader2, MoreVertical, Pencil, Trash2, Home, Heart } from 'lucide-react';
+import { getCoupleDisplayName } from '@/hooks/useLeadershipCouples';
 import { useCoordenacoes, Coordenacao } from '@/hooks/useCoordenacoes';
 import { CoordenacaoFormDialog } from '@/components/coordenacoes/CoordenacaoFormDialog';
 import { DeleteCoordenacaoDialog } from '@/components/coordenacoes/DeleteCoordenacaoDialog';
@@ -90,7 +91,12 @@ export default function Coordenacoes() {
                         <Badge variant="outline">{coordenacao.rede?.name}</Badge>
                       </TableCell>
                       <TableCell>
-                        {coordenacao.leader ? (
+                        {coordenacao.leadership_couple ? (
+                          <div className="flex items-center gap-2">
+                            <Heart className="h-4 w-4 text-primary" />
+                            <span className="text-sm">{getCoupleDisplayName(coordenacao.leadership_couple)}</span>
+                          </div>
+                        ) : coordenacao.leader ? (
                           <div className="flex items-center gap-2">
                             <Avatar className="h-6 w-6">
                               <AvatarImage src={coordenacao.leader.avatar_url || undefined} />
@@ -101,7 +107,7 @@ export default function Coordenacoes() {
                             <span className="text-sm">{coordenacao.leader.name}</span>
                           </div>
                         ) : (
-                          <span className="text-muted-foreground text-sm">-</span>
+                          <span className="text-muted-foreground text-sm">Não definido</span>
                         )}
                       </TableCell>
                       <TableCell>
