@@ -1,202 +1,172 @@
 
 
-## Plano de Redesign - Identidade Visual "Ano da Santidade 2026"
+# Plano: Importacao Completa + Organograma com Pastores Seniores
 
-Transformacao completa do sistema para tema escuro premium com destaques em dourado, mantendo toda a estrutura funcional intacta.
+## Resumo
 
----
-
-### FASE 1: Design System (Paleta Escura + Dourado)
-
-**Arquivo: `src/index.css`**
-
-Substituir TODA a paleta de cores (`:root` e `.dark`) por uma unica paleta escura. O sistema nao tera mais modo claro -- sera exclusivamente escuro.
-
-Cores principais (convertidas para HSL):
-- `--background`: #0B0B0D → `240 12% 4%`
-- `--foreground`: #F5F5F5 → `0 0% 96%`
-- `--card`: #1B1E24 → `220 14% 12%`
-- `--card-foreground`: #F5F5F5
-- `--popover`: #14161B → `225 14% 10%`
-- `--primary`: #D89A3C (dourado) → `37 65% 54%`
-- `--primary-foreground`: #0B0B0D
-- `--secondary`: #14161B
-- `--secondary-foreground`: #B5B5B5 → `0 0% 71%`
-- `--muted`: #14161B
-- `--muted-foreground`: #B5B5B5
-- `--accent`: dourado com baixa opacidade → `37 30% 16%`
-- `--accent-foreground`: #D89A3C
-- `--border`: `220 10% 18%`
-- `--input`: `220 10% 18%`
-- `--ring`: #D89A3C
-- `--destructive`: vermelho discreto
-- `--success`: verde esmeralda discreto
-- `--warning`: dourado mais claro
-
-Sidebar:
-- `--sidebar-background`: `220 14% 8%`
-- `--sidebar-foreground`: #F5F5F5
-- `--sidebar-primary`: #D89A3C
-- `--sidebar-accent`: `37 30% 14%`
-- `--sidebar-border`: `220 10% 15%`
-
-Remover bloco `.dark` (nao necessario, tudo e escuro).
-
-Adicionar classes utilitarias:
-- `.glow-gold` - box-shadow dourado sutil no hover
-- `.glass-card` - atualizar para fundo escuro translucido com borda dourada/15%
-- `.card-hover:hover` - adicionar glow dourado sutil
-- `.gold-gradient` - gradiente de texto dourado para titulos de destaque
-
-**Arquivo: `tailwind.config.ts`**
-
-- Remover `darkMode: ["class"]` (nao aplicavel)
-- Manter cores `success` e `warning` atualizadas
-- Adicionar keyframe `glow-pulse` para efeito sutil em elementos destaque
+Este plano cobre 4 grandes frentes: migracao de banco de dados, importacao completa dos dados da Rede Amor A 2, reestruturacao do organograma com Pastores Seniores no topo, e ajustes no frontend para suportar a hierarquia Supervisor -> Celulas.
 
 ---
 
-### FASE 2: Componentes Base (Adaptar ao tema escuro)
+## Parte 1 -- Migracao de Banco de Dados
 
-**Arquivo: `src/components/ui/stat-card.tsx`**
+Alteracoes necessarias nas tabelas:
 
-- Background do icone: usar `bg-primary/10` (dourado translucido)
-- Icone: `text-primary` (dourado)
-- Valor: `text-foreground` (branco)
-- Label: `text-muted-foreground` (cinza claro)
-- Hover: adicionar glow dourado sutil via `card-hover`
+### 1.1 Tabela `supervisores`
+- Adicionar `leadership_couple_id UUID` (FK para `leadership_couples`)
+- Adicionar `ordem INTEGER DEFAULT 0`
 
-**Arquivo: `src/components/ui/page-header.tsx`**
+### 1.2 Tabela `coordenacoes`
+- Adicionar `ordem INTEGER DEFAULT 0`
 
-- Icone container: `bg-primary/10` com icone `text-primary` (dourado)
-- Titulo: branco
-- Subtitulo: `text-muted-foreground`
+### 1.3 Tabela `celulas`
+- Adicionar `ordem INTEGER DEFAULT 0`
+- Adicionar `supervisor_id UUID` (FK para `supervisores`) -- vincula celula ao seu supervisor
 
-**Arquivo: `src/components/ui/empty-state.tsx`**
-
-- Icone container: `bg-muted` (escuro)
-- Borda: `border-dashed border-border`
-
-**Arquivo: `src/components/ui/data-table.tsx`**
-
-- Header da tabela: `bg-card` com texto muted
-- Hover nas linhas: `hover:bg-primary/5` (glow dourado muito sutil)
-
-**Arquivo: `src/components/ui/card.tsx`**
-
-- Nenhuma mudanca estrutural necessaria (herda das CSS variables)
+### 1.4 RLS
+- Manter as politicas atuais (tudo publico).
 
 ---
 
-### FASE 3: Tela Home (Selecao de Papel)
+## Parte 2 -- Importacao de Dados (Idempotente)
 
-**Arquivo: `src/pages/Home.tsx`**
+A importacao sera feita via chamadas SQL sequenciais. Para cada coordenacao:
 
-- Background: gradiente escuro (`from-background via-card to-background`)
-- Logo container: `bg-primary/15` com icone dourado
-- Titulo "Igreja do Amor": branco com possivel detalhe dourado
-- Subtitulo "Rede Amor a 2": `text-muted-foreground`
-- Cards de role: fundo `bg-card`, borda `border-border`, hover com glow dourado
-- Icone container no hover: `bg-primary text-primary-foreground` (dourado solido)
-- Botoes: primary dourado, outline com borda dourada
-- Rodape: texto muted
+1. Atualizar nome da coordenacao (se necessario) e definir `ordem`
+2. Criar casais (profiles + leadership_couples) para supervisores e lideres de celula
+3. Criar/atualizar supervisores com `leadership_couple_id`
+4. Criar/atualizar celulas com `leadership_couple_id`, `supervisor_id` e `ordem`
 
----
+### Dados a importar:
 
-### FASE 4: Layout e Sidebar
+**Renomeacoes de coordenacoes:**
+- "Ilimitada" -> "Ilimitados"
+- "RECOMEÇO" -> "Recomeço"
 
-**Arquivo: `src/components/layout/AppSidebar.tsx`**
+**Coordenacao 1: Aceleracao** (Davidson e Cassia, ordem 1)
+- 2 supervisores: Jose Roberto e Ana Carolina; Renato e Mayara
+- 14 celulas com respectivos casais lideres
 
-- Sidebar com fundo escuro profundo (via CSS variable `--sidebar-background`)
-- Logo area: icone dourado, texto branco
-- Menu items ativos: borda lateral dourada (`border-l-2 border-primary`) + fundo `bg-primary/10`
-- Items inativos: hover com `bg-sidebar-accent`
-- Footer: avatar com borda dourada sutil
-- Separadores: `border-sidebar-border`
+**Coordenacao 2: Ilimitados** (Kleber e Kesia, ordem 2)
+- 2 supervisores: Brivaldo e Naara; Junior e Karol
+- 12 celulas
 
-**Arquivo: `src/components/layout/AppLayout.tsx`**
+**Coordenacao 3: Recomeco** (Renato e Fabiana, ordem 3)
+- 2 supervisores: Renan e Thaisa; Tulio e Keity
+- 12 celulas + celula base Monte Siao
 
-- Header/topbar: fundo escuro (`bg-background/90`) com blur
-- Separador: `border-border/30`
+**Coordenacao 4: Consolidacao** (Thomaz e Dan, ordem 4)
+- 2 supervisores: Silas e Midian; Shelton e Karla
+- 20 celulas
 
----
+**Coordenacao 5: Porcao Dobrada** (Paulo Vitor e Fran, ordem 5)
+- Sem supervisores listados na importacao
+- Sem celulas listadas (a definir futuramente)
 
-### FASE 5: Dashboards
+### Celulas existentes no Recomeco
+As 13 celulas ja cadastradas serao reutilizadas (atualizando nomes/casais conforme necessario) e novas serao criadas para as demais coordenacoes.
 
-**Todos os dashboards** herdam automaticamente as novas cores via CSS variables. Ajustes especificos:
-
-**5.1 CellLeaderDashboard.tsx**
-- Cards de celula: `bg-card`, borda lateral `border-l-primary` (dourada)
-- Casal lider: texto dourado sutil
-- Busca: input escuro com borda
-
-**5.2 CoordinatorDashboard.tsx**
-- Card de lideranca: borda lateral dourada
-- Badges de status: dourado para positivo, vermelho discreto para negativo
-- Tabelas: header escuro, hover dourado sutil
-
-**5.3 SupervisorDashboard.tsx**
-- Cards de selecao: `bg-card`
-- Historico: borda `border-l-success` (realizada) ou `border-l-destructive` (nao realizada)
-- Badge "Realizada": usando cores success/destructive atualizadas
-
-**5.4 NetworkLeaderDashboard.tsx**
-- StatCards: icones dourados
-- Collapsible: borda lateral dourada
-- Tabs: estilo escuro com indicador dourado
-
-**5.5 AdminDashboard.tsx**
-- Grid de stats: icones dourados
-- Tabela por Rede: badges com dourado/verde/vermelho por faixa
-- Total geral: fundo `bg-primary/10`
+### Logica de supervisor + celula
+Um mesmo casal pode ser supervisor E lider de celula. O vinculo e feito por `supervisor_id` na celula. As primeiras 1-2 celulas de cada coordenacao sao as que tem supervisores nomeados -- o campo `supervisor_id` nelas aponta para o registro do supervisor correspondente.
 
 ---
 
-### FASE 6: Central de Dados (Dados.tsx)
+## Parte 3 -- Organograma com Pastores Seniores
 
-- Filtros: container `bg-card`
-- KPI cards: icones dourados
-- Tabs: indicador dourado
-- Tabelas: header `bg-card`, hover `bg-primary/5`
-- Ranking Top 3: medalhas com fundo dourado (`bg-primary/10`, `bg-primary/5`)
-- Badges de milestones: cores diferenciadas em tons escuros
-- Badges de % envio: dourado para bom, vermelho para baixo
+### 3.1 Topo visual (hardcoded)
+- Adicionar um no fixo "Pastores Seniores: Pr. Arthur e Pra. Talitha" no topo do organograma
+- Tipo novo no `OrgNode`: `'pastor'`
+- Estilo diferenciado (icone de coroa/igreja, cor dourada)
+- NAO vai para o banco de dados, e apenas visual
+
+### 3.2 Hierarquia correta no organograma
+Reorganizar a arvore para:
+
+```text
+Pastores Seniores (Pr. Arthur e Pra. Talitha)
+  |
+  Rede Amor A 2 (Kleber e Kesia)
+    |
+    Coordenacao: Aceleracao (Davidson e Cassia)
+      |
+      Supervisor: Jose Roberto e Ana Carolina
+        |-- Celula: Aquieta Minh'Alma (Jose Roberto e Ana Carolina)
+        |-- Celula: Amor Eterno (Aurelino e Raquel)
+        |-- ...
+      Supervisor: Renato e Mayara
+        |-- Celula: Familia (Renato e Mayara)
+        |-- ...
+```
+
+### 3.3 Logica de agrupamento
+- No `useOrganograma`, agrupar celulas por `supervisor_id`
+- Celulas sem supervisor aparecem diretamente sob a coordenacao
+- Supervisores mostram seus casais via `leadership_couple`
+- Ordenar por campo `ordem`
 
 ---
 
-### FASE 7: Modal de Relatorio (CelulaDetailsDialog.tsx)
+## Parte 4 -- Ajustes no Frontend
 
-- Dialog: fundo `bg-popover` (escuro)
-- Tabs: indicador dourado
-- Inputs: fundo escuro com borda `border-input`
-- Botao enviar: dourado solido `bg-primary`
+### 4.1 Hook `useOrganograma.ts`
+- Adicionar tipo `'pastor'` ao `OrgNode`
+- Inserir no pastor fixo como raiz
+- Agrupar celulas dentro dos seus supervisores
+- Respeitar campo `ordem` para ordenacao
+
+### 4.2 Componente `OrgNode.tsx`
+- Adicionar configuracao visual para tipo `'pastor'` (icone Crown, cor dourada)
+- Ajustar nivel de indentacao
+
+### 4.3 Hook `useSupervisoes.ts`
+- Atualizar interface `Supervisor` para incluir `leadership_couple_id` e dados do casal
+- Atualizar queries para buscar `leadership_couple` com `spouse1` e `spouse2`
+
+### 4.4 Hook `useCelulas.ts`
+- Incluir `supervisor_id` e `ordem` nas queries
+
+### 4.5 Hook `useCoordenacoes.ts`
+- Incluir `ordem` nas queries, ordenar por `ordem`
 
 ---
 
-### Resumo Tecnico
+## Secao Tecnica -- Ordem de Execucao
 
-| Item | Arquivos Editados |
-|------|-------------------|
-| Design System | 2 (index.css, tailwind.config.ts) |
-| Componentes Base | 4 (stat-card, page-header, empty-state, data-table) |
-| Tela Home | 1 |
-| Layout/Sidebar | 2 |
-| Dashboards (5) | 5 |
-| Central de Dados | 1 |
-| Modal Relatorio | 1 |
-| **Total** | **16 arquivos editados** |
+1. Executar migracao SQL (adicionar colunas `ordem`, `supervisor_id`, `leadership_couple_id`)
+2. Atualizar coordenacoes existentes (nomes, ordem, casais)
+3. Criar casais para todos os supervisores e lideres de celula (usando `useCreateCoupleFromNames` pattern)
+4. Inserir supervisores com `leadership_couple_id` e `ordem`
+5. Inserir celulas com `leadership_couple_id`, `supervisor_id` e `ordem`
+6. Limpar celulas/supervisores antigos que nao fazem parte da estrutura final
+7. Atualizar `useOrganograma` para nova hierarquia
+8. Atualizar `OrgNode` para tipo pastor
+9. Atualizar queries nos hooks
 
-**0 arquivos novos. 0 migracoes de banco.**
+### SQL de Migracao (resumo):
 
-A maior parte da transformacao acontece em `src/index.css` (paleta de cores). Os demais arquivos recebem ajustes pontuais de classes para garantir que icones, bordas e destaques usem a cor dourada (`text-primary`, `border-l-primary`, `bg-primary/10`).
+```sql
+-- Supervisores: adicionar couple e ordem
+ALTER TABLE supervisores ADD COLUMN IF NOT EXISTS leadership_couple_id UUID REFERENCES leadership_couples(id);
+ALTER TABLE supervisores ADD COLUMN IF NOT EXISTS ordem INTEGER DEFAULT 0;
 
-### Ordem de implementacao
+-- Coordenacoes: adicionar ordem
+ALTER TABLE coordenacoes ADD COLUMN IF NOT EXISTS ordem INTEGER DEFAULT 0;
 
-1. Design System (index.css + tailwind.config.ts) -- transforma tudo de uma vez
-2. Componentes base (ajustes de classes para dourado)
-3. Layout e Sidebar
-4. Home
-5. Dashboards
-6. Central de Dados
-7. Modal de Relatorio
+-- Celulas: adicionar ordem e supervisor
+ALTER TABLE celulas ADD COLUMN IF NOT EXISTS ordem INTEGER DEFAULT 0;
+ALTER TABLE celulas ADD COLUMN IF NOT EXISTS supervisor_id UUID REFERENCES supervisores(id);
+```
+
+### Importacao de dados
+Sera feita em lotes via SQL INSERT/UPDATE, criando primeiro os profiles e casais, depois os supervisores, e por fim as celulas com todos os vinculos corretos.
+
+---
+
+## Resultado Esperado
+
+- Organograma completo com Pastores Seniores no topo
+- Todas as 5 coordenacoes com seus supervisores e celulas importadas
+- Supervisores exibidos como casais com suas celulas vinculadas abaixo
+- Ordem visual preservada conforme especificado
+- Um mesmo casal pode ser supervisor e lider de celula simultaneamente
 
