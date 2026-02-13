@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { ChevronDown, ChevronRight, Network, FolderTree, ClipboardCheck, Home, Users, Crown } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { CoupleAvatars } from '@/components/profile/CoupleAvatars';
+import { ProfileViewerDialog } from '@/components/profile/ProfileViewerDialog';
 import type { OrgNode as OrgNodeType } from '@/hooks/useOrganograma';
 
 const typeConfig = {
@@ -28,6 +30,7 @@ function matchesSearch(node: OrgNodeType, query: string): boolean {
 
 export function OrgNodeComponent({ node, level, searchQuery }: OrgNodeProps) {
   const [expanded, setExpanded] = useState(level < 2);
+  const [showProfile, setShowProfile] = useState(false);
   const config = typeConfig[node.type];
   const Icon = config.icon;
   const hasChildren = node.children.length > 0;
@@ -60,13 +63,22 @@ export function OrgNodeComponent({ node, level, searchQuery }: OrgNodeProps) {
           )}
         </div>
 
-        {/* Icon */}
-        <div className={cn(
-          "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg",
-          node.type === 'pastor' ? "bg-amber-500/20" : level === 0 ? "bg-primary/15" : "bg-accent"
-        )}>
-          <Icon className={cn("h-4 w-4", node.type === 'pastor' ? "text-amber-600" : level === 0 ? "text-primary" : "text-accent-foreground")} />
-        </div>
+        {/* Avatar / Icon */}
+        {(node.spouse1 || node.spouse2) && node.type !== 'pastor' ? (
+          <CoupleAvatars
+            spouse1={node.spouse1}
+            spouse2={node.spouse2}
+            size="sm"
+            onClick={(e?: any) => { e?.stopPropagation(); setShowProfile(true); }}
+          />
+        ) : (
+          <div className={cn(
+            "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg",
+            node.type === 'pastor' ? "bg-amber-500/20" : level === 0 ? "bg-primary/15" : "bg-accent"
+          )}>
+            <Icon className={cn("h-4 w-4", node.type === 'pastor' ? "text-amber-600" : level === 0 ? "text-primary" : "text-accent-foreground")} />
+          </div>
+        )}
 
         {/* Content */}
         <div className="flex-1 min-w-0">
@@ -80,7 +92,10 @@ export function OrgNodeComponent({ node, level, searchQuery }: OrgNodeProps) {
           </div>
           <h4 className="font-semibold text-sm text-foreground mt-0.5 truncate">{node.name}</h4>
           {node.coupleName && (
-            <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+            <p
+              className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5 cursor-pointer hover:text-primary transition-colors"
+              onClick={(e) => { e.stopPropagation(); setShowProfile(true); }}
+            >
               <Users className="h-3 w-3" />
               {node.coupleName}
             </p>
@@ -99,6 +114,17 @@ export function OrgNodeComponent({ node, level, searchQuery }: OrgNodeProps) {
             <OrgNodeComponent key={child.id} node={child} level={level + 1} searchQuery={searchQuery} />
           ))}
         </div>
+      )}
+
+      {showProfile && node.coupleName && (
+        <ProfileViewerDialog
+          open={showProfile}
+          onOpenChange={setShowProfile}
+          person1={node.spouse1}
+          person2={node.spouse2}
+          entityType={node.type === 'pastor' ? 'rede' : node.type}
+          entityName={node.name}
+        />
       )}
     </div>
   );
