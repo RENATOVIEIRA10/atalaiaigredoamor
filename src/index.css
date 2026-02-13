@@ -51,6 +51,51 @@
     --sidebar-border: 220 10% 15%;
     --sidebar-ring: 37 65% 54%;
   }
+
+  .theme-amor {
+    --background: 30 25% 97%;
+    --foreground: 20 15% 18%;
+
+    --card: 30 20% 98%;
+    --card-foreground: 20 15% 18%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 20 15% 18%;
+
+    --primary: 350 45% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 30 15% 92%;
+    --secondary-foreground: 20 15% 35%;
+
+    --muted: 30 12% 92%;
+    --muted-foreground: 20 10% 45%;
+
+    --accent: 350 25% 93%;
+    --accent-foreground: 350 45% 45%;
+
+    --destructive: 0 55% 48%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 160 40% 42%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 75% 55%;
+    --warning-foreground: 20 15% 18%;
+
+    --border: 30 15% 88%;
+    --input: 30 15% 88%;
+    --ring: 350 45% 50%;
+
+    --sidebar-background: 350 20% 96%;
+    --sidebar-foreground: 20 15% 18%;
+    --sidebar-primary: 350 45% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 350 25% 90%;
+    --sidebar-accent-foreground: 20 15% 18%;
+    --sidebar-border: 30 15% 88%;
+    --sidebar-ring: 350 45% 50%;
+  }
 }
 
 @layer base {
