@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, UserCheck, Heart, UserPlus, Baby, Loader2, LayoutGrid, Eye, ClipboardCheck, Image, FileSpreadsheet, Sparkles, History } from 'lucide-react';
+import { Users, UserCheck, Heart, UserPlus, Baby, Loader2, LayoutGrid, Eye, ClipboardCheck, Image, FileSpreadsheet, Sparkles, History, Plus } from 'lucide-react';
 import { useCoordenacoes } from '@/hooks/useCoordenacoes';
 import { useCelulas } from '@/hooks/useCelulas';
 import { useWeeklyReportsByCoordenacao, useUpdateWeeklyReport, useDeleteWeeklyReport } from '@/hooks/useWeeklyReports';
@@ -26,6 +26,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { StatCard } from '@/components/ui/stat-card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { useRole } from '@/contexts/RoleContext';
+import { SupervisorFormDialog } from '@/components/settings/SupervisorFormDialog';
 
 export function CoordinatorDashboard() {
   const { toast } = useToast();
@@ -36,6 +37,7 @@ export function CoordinatorDashboard() {
   const { scopeId, scopeType } = useRole();
   const [dateRange, setDateRange] = useState<DateRangeValue>({ from: subDays(new Date(), 6), to: new Date() });
   const [selectedCelula, setSelectedCelula] = useState<{ id: string; name: string } | null>(null);
+  const [showSupervisorForm, setShowSupervisorForm] = useState(false);
   
   const dateRangeFilter = { from: getDateString(dateRange.from), to: getDateString(dateRange.to) };
   const { data: reports, isLoading: reportsLoading } = useWeeklyReportsByCoordenacao(selectedCoordenacao, dateRangeFilter);
@@ -175,9 +177,7 @@ export function CoordinatorDashboard() {
               <TabsTrigger value="historico" className="gap-1.5"><History className="h-4 w-4" />Histórico</TabsTrigger>
               <TabsTrigger value="insights" className="gap-1.5"><Sparkles className="h-4 w-4" />Insights IA</TabsTrigger>
               <TabsTrigger value="fotos" className="gap-1.5"><Image className="h-4 w-4" />Fotos</TabsTrigger>
-              {supervisoes && supervisoes.length > 0 && (
-                <TabsTrigger value="supervisoes" className="gap-1.5"><ClipboardCheck className="h-4 w-4" />Supervisões</TabsTrigger>
-              )}
+              <TabsTrigger value="supervisoes" className="gap-1.5"><ClipboardCheck className="h-4 w-4" />Supervisões</TabsTrigger>
             </TabsList>
 
             <TabsContent value="insights">
@@ -247,7 +247,18 @@ export function CoordinatorDashboard() {
             </TabsContent>
 
             <TabsContent value="supervisoes">
-              <SupervisoesList supervisoes={supervisoes || []} />
+              <div className="space-y-4">
+                <div className="flex justify-end">
+                  <Button onClick={() => setShowSupervisorForm(true)} size="sm">
+                    <Plus className="h-4 w-4 mr-2" />Adicionar Supervisor
+                  </Button>
+                </div>
+                {supervisoes && supervisoes.length > 0 ? (
+                  <SupervisoesList supervisoes={supervisoes} />
+                ) : (
+                  <EmptyState icon={ClipboardCheck} title="Nenhuma supervisão" description="Adicione supervisores para começar" />
+                )}
+              </div>
             </TabsContent>
           </Tabs>
         </>
@@ -260,6 +271,13 @@ export function CoordinatorDashboard() {
       {selectedCelula && (
         <CelulaDetailsDialog open={!!selectedCelula} onOpenChange={(open) => !open && setSelectedCelula(null)} celulaId={selectedCelula.id} celulaName={selectedCelula.name} />
       )}
+
+      <SupervisorFormDialog 
+        open={showSupervisorForm} 
+        onOpenChange={setShowSupervisorForm} 
+        defaultCoordenacaoId={selectedCoordenacao} 
+        lockCoordenacao 
+      />
     </div>
   );
 }

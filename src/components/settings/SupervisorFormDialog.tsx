@@ -27,9 +27,10 @@ interface SupervisorFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   defaultCoordenacaoId?: string;
+  lockCoordenacao?: boolean;
 }
 
-export function SupervisorFormDialog({ open, onOpenChange, defaultCoordenacaoId }: SupervisorFormDialogProps) {
+export function SupervisorFormDialog({ open, onOpenChange, defaultCoordenacaoId, lockCoordenacao = false }: SupervisorFormDialogProps) {
   const { data: coordenacoes } = useCoordenacoes();
   const { createOrUpdateCouple } = useCreateCoupleFromNames();
   const { toast } = useToast();
@@ -95,16 +96,24 @@ export function SupervisorFormDialog({ open, onOpenChange, defaultCoordenacaoId 
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Coordenação</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {coordenacoes?.map(c => (
-                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  {lockCoordenacao ? (
+                    <Input 
+                      value={coordenacoes?.find(c => c.id === field.value)?.name || 'Coordenação'} 
+                      disabled 
+                      className="bg-muted"
+                    />
+                  ) : (
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {coordenacoes?.map(c => (
+                          <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
