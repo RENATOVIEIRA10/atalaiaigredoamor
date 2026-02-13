@@ -6,6 +6,8 @@ export interface Supervisor {
   id: string;
   profile_id: string;
   coordenacao_id: string;
+  leadership_couple_id?: string | null;
+  ordem?: number;
   created_at: string;
   updated_at: string;
   profile?: {
@@ -16,6 +18,13 @@ export interface Supervisor {
     id: string;
     name: string;
   };
+  leadership_couple?: {
+    id: string;
+    spouse1_id: string;
+    spouse2_id: string;
+    spouse1?: { id: string; name: string; avatar_url: string | null; email: string | null };
+    spouse2?: { id: string; name: string; avatar_url: string | null; email: string | null };
+  } | null;
 }
 
 export interface Supervisao {
@@ -101,10 +110,16 @@ export function useSupervisoresByCoordenacao(coordenacaoId: string) {
         .from('supervisores')
         .select(`
           *,
-          profile:profiles(id, name),
-          coordenacao:coordenacoes(id, name)
+          profile:profiles!supervisores_profile_id_fkey(id, name),
+          coordenacao:coordenacoes(id, name),
+          leadership_couple:leadership_couples(
+            id, spouse1_id, spouse2_id,
+            spouse1:profiles!leadership_couples_spouse1_id_fkey(id, name, avatar_url, email),
+            spouse2:profiles!leadership_couples_spouse2_id_fkey(id, name, avatar_url, email)
+          )
         `)
-        .eq('coordenacao_id', coordenacaoId);
+        .eq('coordenacao_id', coordenacaoId)
+        .order('ordem');
       if (error) throw error;
       return data as Supervisor[];
     },
@@ -121,9 +136,15 @@ export function useSupervisores() {
         .from('supervisores')
         .select(`
           *,
-          profile:profiles(id, name),
-          coordenacao:coordenacoes(id, name)
-        `);
+          profile:profiles!supervisores_profile_id_fkey(id, name),
+          coordenacao:coordenacoes(id, name),
+          leadership_couple:leadership_couples(
+            id, spouse1_id, spouse2_id,
+            spouse1:profiles!leadership_couples_spouse1_id_fkey(id, name, avatar_url, email),
+            spouse2:profiles!leadership_couples_spouse2_id_fkey(id, name, avatar_url, email)
+          )
+        `)
+        .order('ordem');
       if (error) throw error;
       return data as Supervisor[];
     },

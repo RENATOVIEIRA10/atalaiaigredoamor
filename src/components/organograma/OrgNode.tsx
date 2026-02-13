@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { ChevronDown, ChevronRight, Network, FolderTree, ClipboardCheck, Home, Users } from 'lucide-react';
+import { ChevronDown, ChevronRight, Network, FolderTree, ClipboardCheck, Home, Users, Crown } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import type { OrgNode as OrgNodeType } from '@/hooks/useOrganograma';
 
 const typeConfig = {
+  pastor: { icon: Crown, label: 'Pastores', badgeClass: 'bg-amber-500/20 text-amber-700 border-amber-500/40' },
   rede: { icon: Network, label: 'Rede', badgeClass: 'bg-primary/15 text-primary border-primary/30' },
   coordenacao: { icon: FolderTree, label: 'Coordenação', badgeClass: 'bg-primary/10 text-primary border-primary/20' },
   supervisor: { icon: ClipboardCheck, label: 'Supervisor', badgeClass: 'bg-accent text-accent-foreground border-border' },
@@ -39,8 +40,9 @@ export function OrgNodeComponent({ node, level, searchQuery }: OrgNodeProps) {
         className={cn(
           "group flex items-start gap-3 p-3 rounded-xl border bg-card transition-all duration-200 cursor-pointer",
           "hover:shadow-md hover:border-primary/30",
-          level === 0 && "border-primary/40 shadow-sm",
-          level > 0 && "border-border/60"
+          node.type === 'pastor' && "border-amber-500/50 shadow-md bg-gradient-to-r from-amber-50 to-amber-100/50 dark:from-amber-950/30 dark:to-amber-900/20",
+          level === 0 && node.type !== 'pastor' && "border-primary/40 shadow-sm",
+          level > 0 && node.type !== 'pastor' && "border-border/60"
         )}
         style={{ marginLeft: level > 0 ? `${Math.min(level * 16, 48)}px` : 0 }}
         onClick={() => hasChildren && setExpanded(!expanded)}
@@ -61,9 +63,9 @@ export function OrgNodeComponent({ node, level, searchQuery }: OrgNodeProps) {
         {/* Icon */}
         <div className={cn(
           "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg",
-          level === 0 ? "bg-primary/15" : "bg-accent"
+          node.type === 'pastor' ? "bg-amber-500/20" : level === 0 ? "bg-primary/15" : "bg-accent"
         )}>
-          <Icon className={cn("h-4 w-4", level === 0 ? "text-primary" : "text-accent-foreground")} />
+          <Icon className={cn("h-4 w-4", node.type === 'pastor' ? "text-amber-600" : level === 0 ? "text-primary" : "text-accent-foreground")} />
         </div>
 
         {/* Content */}
