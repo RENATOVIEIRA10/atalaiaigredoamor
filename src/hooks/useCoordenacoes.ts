@@ -27,7 +27,7 @@ export function useCoordenacoes() {
           ),
           rede:redes!coordenacoes_rede_id_fkey(id, name)
         `)
-        .order('name');
+        .order('ordem');
       
       if (error) throw error;
       
