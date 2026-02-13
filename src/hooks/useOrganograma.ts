@@ -9,6 +9,8 @@ export interface OrgNode {
   type: 'pastor' | 'rede' | 'coordenacao' | 'supervisor' | 'celula';
   name: string;
   coupleName: string | null;
+  spouse1?: { name?: string; avatar_url?: string | null } | null;
+  spouse2?: { name?: string; avatar_url?: string | null } | null;
   childrenCount: number;
   children: OrgNode[];
 }
@@ -19,6 +21,13 @@ function getCoupleDisplayName(couple: any): string | null {
   const s2 = couple.spouse2?.name;
   if (s1 && s2) return `${s1} & ${s2}`;
   return s1 || s2 || null;
+}
+
+function getCoupleSpouses(couple: any) {
+  return {
+    spouse1: couple?.spouse1 ? { name: couple.spouse1.name, avatar_url: couple.spouse1.avatar_url } : null,
+    spouse2: couple?.spouse2 ? { name: couple.spouse2.name, avatar_url: couple.spouse2.avatar_url } : null,
+  };
 }
 
 export function useOrganograma() {
@@ -68,6 +77,7 @@ export function useOrganograma() {
             type: 'celula',
             name: cel.name,
             coupleName: getCoupleDisplayName(cel.leadership_couple),
+            ...getCoupleSpouses(cel.leadership_couple),
             childrenCount: 0,
             children: [],
           }));
@@ -77,6 +87,7 @@ export function useOrganograma() {
             type: 'supervisor',
             name: getCoupleDisplayName(sup.leadership_couple) || sup.profile?.name || 'Supervisor',
             coupleName: getCoupleDisplayName(sup.leadership_couple),
+            ...getCoupleSpouses(sup.leadership_couple),
             childrenCount: celulaChildren.length,
             children: celulaChildren,
           };
@@ -88,6 +99,7 @@ export function useOrganograma() {
           type: 'celula',
           name: cel.name,
           coupleName: getCoupleDisplayName(cel.leadership_couple),
+          ...getCoupleSpouses(cel.leadership_couple),
           childrenCount: 0,
           children: [],
         }));
@@ -99,6 +111,7 @@ export function useOrganograma() {
           type: 'coordenacao',
           name: coord.name,
           coupleName: getCoupleDisplayName(coord.leadership_couple),
+          ...getCoupleSpouses(coord.leadership_couple),
           childrenCount: allChildren.length,
           children: allChildren,
         };
@@ -109,6 +122,7 @@ export function useOrganograma() {
         type: 'rede',
         name: rede.name,
         coupleName: getCoupleDisplayName(rede.leadership_couple),
+        ...getCoupleSpouses(rede.leadership_couple),
         childrenCount: coordNodes.length,
         children: coordNodes,
       };

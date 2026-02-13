@@ -12,6 +12,8 @@ import { getCoupleDisplayName } from '@/hooks/useLeadershipCouples';
 import { useCoordenacoes, Coordenacao } from '@/hooks/useCoordenacoes';
 import { CoordenacaoFormDialog } from '@/components/coordenacoes/CoordenacaoFormDialog';
 import { DeleteCoordenacaoDialog } from '@/components/coordenacoes/DeleteCoordenacaoDialog';
+import { CoupleAvatars } from '@/components/profile/CoupleAvatars';
+import { ProfileViewerDialog } from '@/components/profile/ProfileViewerDialog';
 
 export default function Coordenacoes() {
   const { data: coordenacoes, isLoading } = useCoordenacoes();
@@ -19,6 +21,7 @@ export default function Coordenacoes() {
   const [formOpen, setFormOpen] = useState(false);
   const [editingCoordenacao, setEditingCoordenacao] = useState<Coordenacao | null>(null);
   const [deletingCoordenacao, setDeletingCoordenacao] = useState<Coordenacao | null>(null);
+  const [viewingCouple, setViewingCouple] = useState<Coordenacao | null>(null);
   
   const filteredCoordenacoes = coordenacoes?.filter(c => 
     c.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -92,14 +95,18 @@ export default function Coordenacoes() {
                       </TableCell>
                       <TableCell>
                         {coordenacao.leadership_couple ? (
-                          <div className="flex items-center gap-2">
-                            <Heart className="h-4 w-4 text-primary" />
-                            <span className="text-sm">{getCoupleDisplayName(coordenacao.leadership_couple)}</span>
+                          <div className="flex items-center gap-2 cursor-pointer" onClick={() => setViewingCouple(coordenacao)}>
+                            <CoupleAvatars
+                              spouse1={coordenacao.leadership_couple.spouse1}
+                              spouse2={coordenacao.leadership_couple.spouse2}
+                              size="sm"
+                            />
+                            <span className="text-sm hover:text-primary transition-colors">{getCoupleDisplayName(coordenacao.leadership_couple)}</span>
                           </div>
                         ) : coordenacao.leader ? (
                           <div className="flex items-center gap-2">
                             <Avatar className="h-6 w-6">
-                              <AvatarImage src={coordenacao.leader.avatar_url || undefined} />
+                              <AvatarImage src={coordenacao.leader.avatar_url || undefined} crossOrigin="anonymous" />
                               <AvatarFallback className="text-xs">
                                 {coordenacao.leader.name?.charAt(0).toUpperCase()}
                               </AvatarFallback>
@@ -159,6 +166,18 @@ export default function Coordenacoes() {
         coordenacaoId={deletingCoordenacao?.id || null}
         coordenacaoName={deletingCoordenacao?.name || ''}
       />
+
+      {viewingCouple?.leadership_couple && (
+        <ProfileViewerDialog
+          open={!!viewingCouple}
+          onOpenChange={(open) => !open && setViewingCouple(null)}
+          person1={viewingCouple.leadership_couple.spouse1}
+          person2={viewingCouple.leadership_couple.spouse2}
+          entityType="coordenacao"
+          entityName={viewingCouple.name}
+          parentName={viewingCouple.rede?.name}
+        />
+      )}
     </AppLayout>
   );
 }

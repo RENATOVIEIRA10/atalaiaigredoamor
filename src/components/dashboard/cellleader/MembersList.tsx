@@ -16,6 +16,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { format, parseISO, differenceInYears, differenceInMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { ProfileViewerDialog } from '@/components/profile/ProfileViewerDialog';
+import { AvatarUpload } from '@/components/profile/AvatarUpload';
 
 interface MembersListProps {
   celulaId: string;
@@ -56,6 +58,7 @@ export function MembersList({ celulaId }: MembersListProps) {
   const [expandedMembers, setExpandedMembers] = useState<Set<string>>(new Set());
   const [editingDates, setEditingDates] = useState<Record<string, { birth_date: string; joined_church_at: string }>>({});
   const [savingProfile, setSavingProfile] = useState<string | null>(null);
+  const [viewingProfile, setViewingProfile] = useState<Member | null>(null);
 
   const toggleExpanded = (memberId: string) => {
     setExpandedMembers(prev => {
@@ -206,8 +209,11 @@ export function MembersList({ celulaId }: MembersListProps) {
                       <div className="flex items-center justify-between cursor-pointer hover:bg-muted/50 rounded-md p-2 -m-2">
                         <div className="flex items-center gap-3">
                           <div className="flex -space-x-3">
-                            <Avatar className="h-10 w-10 border-2 border-background">
-                              <AvatarImage src={profile?.avatar_url || undefined} />
+                            <Avatar 
+                              className="h-10 w-10 border-2 border-background cursor-pointer"
+                              onClick={(e) => { e.stopPropagation(); setViewingProfile(member); }}
+                            >
+                              <AvatarImage src={profile?.avatar_url || undefined} crossOrigin="anonymous" />
                               <AvatarFallback>
                                 {profile?.name?.charAt(0) || 'M'}
                               </AvatarFallback>
@@ -220,7 +226,9 @@ export function MembersList({ celulaId }: MembersListProps) {
                             )}
                           </div>
                           <div>
-                            <p className="font-medium">{profile?.name || 'Sem nome'}</p>
+                            <p className="font-medium cursor-pointer hover:text-primary transition-colors" onClick={(e) => { e.stopPropagation(); setViewingProfile(member); }}>
+                              {profile?.name || 'Sem nome'}
+                            </p>
                             <div className="flex items-center gap-2 text-xs text-muted-foreground">
                               {profile?.joined_church_at && (
                                 <span className="flex items-center gap-1">
@@ -251,6 +259,24 @@ export function MembersList({ celulaId }: MembersListProps) {
                     </CollapsibleTrigger>
                     
                     <CollapsibleContent className="pt-4 space-y-4">
+                      {/* Avatar Upload */}
+                      <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                        <AvatarUpload
+                          currentUrl={profile?.avatar_url}
+                          onUploaded={async (url) => {
+                            if (profile?.id) {
+                              await supabase.from('profiles').update({ avatar_url: url }).eq('id', profile.id);
+                              queryClient.invalidateQueries({ queryKey: ['members'] });
+                            }
+                          }}
+                          fallbackText={profile?.name?.charAt(0) || 'M'}
+                          size="lg"
+                        />
+                        <div>
+                          <p className="text-sm font-medium">Foto de Perfil</p>
+                          <p className="text-xs text-muted-foreground">Clique para alterar</p>
+                        </div>
+                      </div>
                       {/* Dates Section */}
                       <div className="p-3 bg-muted/50 rounded-lg space-y-3">
                         <p className="text-sm font-medium text-muted-foreground">Datas Importantes:</p>
@@ -346,6 +372,16 @@ export function MembersList({ celulaId }: MembersListProps) {
         onOpenChange={setDialogOpen}
         celulaId={celulaId}
       />
+
+      {viewingProfile && (
+        <ProfileViewerDialog
+          open={!!viewingProfile}
+          onOpenChange={(open) => !open && setViewingProfile(null)}
+          person1={(viewingProfile.profile as any) || undefined}
+          entityType="membro"
+          entityName={viewingProfile.celula?.name}
+        />
+      )}
     </>
   );
 }

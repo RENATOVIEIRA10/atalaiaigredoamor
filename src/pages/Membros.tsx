@@ -12,6 +12,7 @@ import { Plus, Search, Loader2, MoreVertical, UserMinus } from 'lucide-react';
 import { useMembers, useRemoveMember } from '@/hooks/useMembers';
 import { useCelulas } from '@/hooks/useCelulas';
 import { MemberFormDialog } from '@/components/members/MemberFormDialog';
+import { ProfileViewerDialog } from '@/components/profile/ProfileViewerDialog';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useRole } from '@/contexts/RoleContext';
@@ -20,6 +21,7 @@ export default function Membros() {
   const [search, setSearch] = useState('');
   const [selectedCelula, setSelectedCelula] = useState<string>('all');
   const [formOpen, setFormOpen] = useState(false);
+  const [viewingMember, setViewingMember] = useState<any>(null);
   const { scopeType, scopeId } = useRole();
   
   const { data: allCelulas } = useCelulas();
@@ -117,15 +119,15 @@ export default function Membros() {
                   {filteredMembers.map((member) => (
                     <TableRow key={member.id}>
                       <TableCell>
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 cursor-pointer" onClick={() => setViewingMember(member)}>
                           <Avatar className="h-8 w-8">
-                            <AvatarImage src={member.profile?.avatar_url || undefined} />
+                            <AvatarImage src={member.profile?.avatar_url || undefined} crossOrigin="anonymous" />
                             <AvatarFallback>
                               {member.profile?.name?.charAt(0).toUpperCase()}
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <div className="font-medium">{member.profile?.name}</div>
+                            <div className="font-medium hover:text-primary transition-colors">{member.profile?.name}</div>
                             <div className="text-sm text-muted-foreground">
                               {member.profile?.email}
                             </div>
@@ -166,6 +168,16 @@ export default function Membros() {
       </div>
       
       <MemberFormDialog open={formOpen} onOpenChange={setFormOpen} />
+
+      {viewingMember && (
+        <ProfileViewerDialog
+          open={!!viewingMember}
+          onOpenChange={(open) => !open && setViewingMember(null)}
+          person1={viewingMember.profile}
+          entityType="membro"
+          entityName={viewingMember.celula?.name}
+        />
+      )}
     </AppLayout>
   );
 }
