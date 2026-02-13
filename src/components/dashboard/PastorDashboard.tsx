@@ -24,6 +24,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { format, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import ReactMarkdown from 'react-markdown';
+import { PastoralGrowthCharts } from './PastoralGrowthCharts';
 
 export function PastorDashboard() {
   const { data: stats, isLoading: statsLoading } = usePastoralStats();
@@ -228,7 +229,13 @@ export function PastorDashboard() {
         )}
       </section>
 
-      {/* 5. Visão de Governo */}
+      {/* 5. Evolução Temporal */}
+      <section>
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">📈 Evolução dos Últimos 6 Meses</h2>
+        <PastoralGrowthCharts />
+      </section>
+
+      {/* 6. Visão de Governo */}
       <section>
         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">📊 Visão de Governo</h2>
         {redeGrowth && redeGrowth.length > 0 ? (
