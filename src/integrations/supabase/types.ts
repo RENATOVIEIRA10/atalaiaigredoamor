@@ -116,6 +116,8 @@ export type Database = {
           meeting_day: string | null
           meeting_time: string | null
           name: string
+          ordem: number | null
+          supervisor_id: string | null
           updated_at: string
         }
         Insert: {
@@ -128,6 +130,8 @@ export type Database = {
           meeting_day?: string | null
           meeting_time?: string | null
           name: string
+          ordem?: number | null
+          supervisor_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -140,6 +144,8 @@ export type Database = {
           meeting_day?: string | null
           meeting_time?: string | null
           name?: string
+          ordem?: number | null
+          supervisor_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -164,6 +170,13 @@ export type Database = {
             referencedRelation: "leadership_couples"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "celulas_supervisor_id_fkey"
+            columns: ["supervisor_id"]
+            isOneToOne: false
+            referencedRelation: "supervisores"
+            referencedColumns: ["id"]
+          },
         ]
       }
       coordenacoes: {
@@ -173,6 +186,7 @@ export type Database = {
           leader_id: string | null
           leadership_couple_id: string | null
           name: string
+          ordem: number | null
           rede_id: string
           updated_at: string
         }
@@ -182,6 +196,7 @@ export type Database = {
           leader_id?: string | null
           leadership_couple_id?: string | null
           name: string
+          ordem?: number | null
           rede_id: string
           updated_at?: string
         }
@@ -191,6 +206,7 @@ export type Database = {
           leader_id?: string | null
           leadership_couple_id?: string | null
           name?: string
+          ordem?: number | null
           rede_id?: string
           updated_at?: string
         }
@@ -582,6 +598,8 @@ export type Database = {
           coordenacao_id: string
           created_at: string
           id: string
+          leadership_couple_id: string | null
+          ordem: number | null
           profile_id: string
           updated_at: string
         }
@@ -589,6 +607,8 @@ export type Database = {
           coordenacao_id: string
           created_at?: string
           id?: string
+          leadership_couple_id?: string | null
+          ordem?: number | null
           profile_id: string
           updated_at?: string
         }
@@ -596,6 +616,8 @@ export type Database = {
           coordenacao_id?: string
           created_at?: string
           id?: string
+          leadership_couple_id?: string | null
+          ordem?: number | null
           profile_id?: string
           updated_at?: string
         }
@@ -605,6 +627,13 @@ export type Database = {
             columns: ["coordenacao_id"]
             isOneToOne: false
             referencedRelation: "coordenacoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supervisores_leadership_couple_id_fkey"
+            columns: ["leadership_couple_id"]
+            isOneToOne: false
+            referencedRelation: "leadership_couples"
             referencedColumns: ["id"]
           },
           {
