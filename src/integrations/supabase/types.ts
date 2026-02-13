@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      access_keys: {
+        Row: {
+          active: boolean | null
+          code: string
+          created_at: string | null
+          expires_at: string | null
+          failed_attempts: number | null
+          id: string
+          last_used_at: string | null
+          scope_id: string | null
+          scope_type: string
+        }
+        Insert: {
+          active?: boolean | null
+          code: string
+          created_at?: string | null
+          expires_at?: string | null
+          failed_attempts?: number | null
+          id?: string
+          last_used_at?: string | null
+          scope_id?: string | null
+          scope_type: string
+        }
+        Update: {
+          active?: boolean | null
+          code?: string
+          created_at?: string | null
+          expires_at?: string | null
+          failed_attempts?: number | null
+          id?: string
+          last_used_at?: string | null
+          scope_id?: string | null
+          scope_type?: string
+        }
+        Relationships: []
+      }
       attendances: {
         Row: {
           created_at: string
