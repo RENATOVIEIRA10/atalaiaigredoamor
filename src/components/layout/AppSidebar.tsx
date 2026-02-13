@@ -33,12 +33,17 @@ import {
 '@/components/ui/sidebar';
 
 const roleLabels: Record<string, string> = {
+  pastor: 'Pastor Sênior',
   admin: 'Administrador',
   rede_leader: 'Líder de Rede',
   coordenador: 'Coordenador',
   supervisor: 'Supervisor',
   celula_leader: 'Líder de Célula'
 };
+
+const pastorNavItems = [
+{ title: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+{ title: 'Organograma', href: '/organograma', icon: GitBranch }];
 
 const cellLeaderNavItems = [
 { title: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -60,13 +65,15 @@ const adminNavItems = [
 export function AppSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { selectedRole, clearAccess, isAdmin, isRedeLeader, isCoordenador, isSupervisor, isCelulaLeader } = useRole();
+  const { selectedRole, clearAccess, isAdmin, isRedeLeader, isCoordenador, isSupervisor, isCelulaLeader, isPastor } = useRole();
   const { theme, toggleTheme } = useTheme();
   const showAdminItems = isAdmin || isRedeLeader;
 
-  const mainNavItems = (isCelulaLeader || isSupervisor) && !isCoordenador && !isRedeLeader && !isAdmin ?
-  cellLeaderNavItems :
-  fullNavItems;
+  const mainNavItems = isPastor
+    ? pastorNavItems
+    : (isCelulaLeader || isSupervisor) && !isCoordenador && !isRedeLeader && !isAdmin
+    ? cellLeaderNavItems
+    : fullNavItems;
 
   const handleLogout = () => {
     clearAccess();

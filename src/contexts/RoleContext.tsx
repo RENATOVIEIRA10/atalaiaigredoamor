@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
 
-type UserRole = 'admin' | 'rede_leader' | 'coordenador' | 'supervisor' | 'celula_leader';
-type ScopeType = 'admin' | 'rede' | 'coordenacao' | 'supervisor' | 'celula';
+type UserRole = 'pastor' | 'admin' | 'rede_leader' | 'coordenador' | 'supervisor' | 'celula_leader';
+type ScopeType = 'pastor' | 'admin' | 'rede' | 'coordenacao' | 'supervisor' | 'celula';
 
 interface RoleContextType {
   selectedRole: UserRole | null;
@@ -10,6 +10,7 @@ interface RoleContextType {
   scopeId: string | null;
   setScopeAccess: (scopeType: ScopeType, scopeId: string | null) => void;
   clearAccess: () => void;
+  isPastor: boolean;
   isAdmin: boolean;
   isRedeLeader: boolean;
   isCoordenador: boolean;
@@ -21,6 +22,7 @@ const RoleContext = createContext<RoleContextType | undefined>(undefined);
 
 function scopeTypeToRole(scopeType: ScopeType): UserRole {
   switch (scopeType) {
+    case 'pastor': return 'pastor';
     case 'admin': return 'admin';
     case 'rede': return 'rede_leader';
     case 'coordenacao': return 'coordenador';
@@ -53,6 +55,7 @@ export function RoleProvider({ children }: { children: ReactNode }) {
     scopeId,
     setScopeAccess,
     clearAccess,
+    isPastor: selectedRole === 'pastor',
     isAdmin: selectedRole === 'admin',
     isRedeLeader: selectedRole === 'rede_leader',
     isCoordenador: selectedRole === 'coordenador',
