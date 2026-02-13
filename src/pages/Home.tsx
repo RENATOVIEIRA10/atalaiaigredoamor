@@ -60,7 +60,7 @@ export default function HomePage() {
         .eq('id', match.id);
 
       // Set scope access
-      const scopeType = match.scope_type as 'admin' | 'rede' | 'coordenacao' | 'supervisor' | 'celula';
+      const scopeType = match.scope_type as 'pastor' | 'admin' | 'rede' | 'coordenacao' | 'supervisor' | 'celula';
       setScopeAccess(scopeType, match.scope_id);
       navigate('/dashboard');
     } catch (err: any) {
