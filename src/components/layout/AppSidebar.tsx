@@ -41,7 +41,6 @@ const cellLeaderNavItems = [
 { title: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
 { title: 'Organograma', href: '/organograma', icon: GitBranch }];
 
-
 const fullNavItems = [
 { title: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
 { title: 'Dados', href: '/dados', icon: Database },
@@ -50,17 +49,15 @@ const fullNavItems = [
 { title: 'Presença', href: '/presenca', icon: ClipboardCheck },
 { title: 'Organograma', href: '/organograma', icon: GitBranch }];
 
-
 const adminNavItems = [
 { title: 'Redes', href: '/redes', icon: Network },
 { title: 'Coordenações', href: '/coordenacoes', icon: FolderTree },
 { title: 'Configurações', href: '/configuracoes', icon: Settings }];
 
-
 export function AppSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { selectedRole, setSelectedRole, isAdmin, isRedeLeader, isCoordenador, isSupervisor, isCelulaLeader } = useRole();
+  const { selectedRole, clearAccess, isAdmin, isRedeLeader, isCoordenador, isSupervisor, isCelulaLeader } = useRole();
 
   const showAdminItems = isAdmin || isRedeLeader;
 
@@ -69,7 +66,7 @@ export function AppSidebar() {
   fullNavItems;
 
   const handleLogout = () => {
-    setSelectedRole(null);
+    clearAccess();
     navigate('/');
   };
 
@@ -141,12 +138,10 @@ export function AppSidebar() {
             size="icon"
             onClick={handleLogout}
             className="h-9 w-9 shrink-0 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
-            title="Voltar à seleção de papel">
-
+            title="Sair">
             <LogOut className="h-4 w-4" />
           </Button>
         </div>
       </SidebarFooter>
     </Sidebar>);
-
 }

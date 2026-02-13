@@ -13,18 +13,34 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
+import { useRole } from '@/contexts/RoleContext';
 
 export function SupervisorDashboard() {
   const { data: coordenacoes, isLoading: coordenacoesLoading } = useCoordenacoes();
   const { data: supervisores, isLoading: supervisoresLoading } = useSupervisores();
+  const { scopeId, scopeType } = useRole();
   
-  const [selectedCoordenacao, setSelectedCoordenacao] = useState<string>('');
-  const [selectedSupervisor, setSelectedSupervisor] = useState<string>('');
+  // Auto-set from scope
+  const autoSupervisor = scopeType === 'supervisor' && scopeId ? supervisores?.find(s => s.id === scopeId) : null;
+  const defaultCoord = autoSupervisor?.coordenacao_id || '';
+  const defaultSup = autoSupervisor?.id || '';
+
+  const [selectedCoordenacao, setSelectedCoordenacao] = useState<string>(defaultCoord);
+  const [selectedSupervisor, setSelectedSupervisor] = useState<string>(defaultSup);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedSupervisao, setSelectedSupervisao] = useState<Supervisao | null>(null);
   
   const { data: celulas } = useCelulas();
   const { data: supervisoes, isLoading: supervisoesLoading } = useSupervisoesBySupervisor(selectedSupervisor);
+
+  // Auto-select when data loads
+  if (scopeType === 'supervisor' && scopeId && !selectedSupervisor && supervisores) {
+    const sup = supervisores.find(s => s.id === scopeId);
+    if (sup) {
+      setSelectedCoordenacao(sup.coordenacao_id);
+      setSelectedSupervisor(sup.id);
+    }
+  }
 
   const filteredSupervisores = supervisores?.filter(s => !selectedCoordenacao || s.coordenacao_id === selectedCoordenacao) || [];
   const filteredCelulas = celulas?.filter(c => c.coordenacao_id === selectedCoordenacao) || [];

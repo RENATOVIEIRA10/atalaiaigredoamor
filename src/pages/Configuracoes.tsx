@@ -3,8 +3,9 @@ import { useRole } from '@/contexts/RoleContext';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { UserRolesManager } from '@/components/settings/UserRolesManager';
+import { AccessKeysManager } from '@/components/settings/AccessKeysManager';
 import { WeeklyReportsHistory } from '@/components/reports/WeeklyReportsHistory';
-import { User, Shield, History } from 'lucide-react';
+import { User, Shield, History, KeyRound } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 const roleLabels: Record<string, { label: string; variant: 'default' | 'secondary' | 'outline' }> = {
@@ -30,6 +31,12 @@ export default function Configuracoes() {
             <TabsTrigger value="roles" className="flex items-center gap-2">
               <Shield className="h-4 w-4" />
               Gestão de Papéis
+            </TabsTrigger>
+          )}
+          {isAdmin && (
+            <TabsTrigger value="access-keys" className="flex items-center gap-2">
+              <KeyRound className="h-4 w-4" />
+              Códigos de Acesso
             </TabsTrigger>
           )}
           <TabsTrigger value="history" className="flex items-center gap-2">
@@ -70,6 +77,12 @@ export default function Configuracoes() {
         {isAdmin && (
           <TabsContent value="roles">
             <UserRolesManager />
+          </TabsContent>
+        )}
+
+        {isAdmin && (
+          <TabsContent value="access-keys">
+            <AccessKeysManager />
           </TabsContent>
         )}
 
