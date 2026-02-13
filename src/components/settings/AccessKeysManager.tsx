@@ -20,6 +20,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 
 const scopeLabels: Record<string, string> = {
+  pastor: 'Pastor Sênior',
   admin: 'Admin',
   rede: 'Rede',
   coordenacao: 'Coordenação',
