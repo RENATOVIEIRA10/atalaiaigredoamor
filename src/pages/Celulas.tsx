@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,19 +8,38 @@ import { useCelulas, Celula } from '@/hooks/useCelulas';
 import { CelulaCard } from '@/components/celulas/CelulaCard';
 import { CelulaFormDialog } from '@/components/celulas/CelulaFormDialog';
 import { DeleteCelulaDialog } from '@/components/celulas/DeleteCelulaDialog';
+import { useRole } from '@/contexts/RoleContext';
+import { useSupervisores } from '@/hooks/useSupervisoes';
 
 export default function Celulas() {
   const { data: celulas, isLoading } = useCelulas();
+  const { scopeType, scopeId } = useRole();
+  const { data: supervisores } = useSupervisores();
   const [search, setSearch] = useState('');
   const [formOpen, setFormOpen] = useState(false);
   const [editingCelula, setEditingCelula] = useState<Celula | null>(null);
   const [deletingCelula, setDeletingCelula] = useState<Celula | null>(null);
   
-  const filteredCelulas = celulas?.filter(c => 
-    c.name.toLowerCase().includes(search.toLowerCase()) ||
-    c.coordenacao?.name.toLowerCase().includes(search.toLowerCase()) ||
-    c.leader?.name.toLowerCase().includes(search.toLowerCase())
-  ) || [];
+  const filteredCelulas = useMemo(() => {
+    let list = celulas || [];
+    
+    // Apply scope filtering
+    if (scopeType === 'celula' && scopeId) {
+      list = list.filter(c => c.id === scopeId);
+    } else if (scopeType === 'supervisor' && scopeId) {
+      list = list.filter(c => (c as any).supervisor_id === scopeId);
+    } else if (scopeType === 'coordenacao' && scopeId) {
+      list = list.filter(c => c.coordenacao_id === scopeId);
+    }
+    // rede and admin see everything
+    
+    // Apply search filter
+    return list.filter(c => 
+      c.name.toLowerCase().includes(search.toLowerCase()) ||
+      c.coordenacao?.name.toLowerCase().includes(search.toLowerCase()) ||
+      c.leader?.name.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [celulas, scopeType, scopeId, search]);
   
   function handleEdit(celula: Celula) {
     setEditingCelula(celula);

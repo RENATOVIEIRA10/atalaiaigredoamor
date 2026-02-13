@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,23 +14,45 @@ import { useCelulas } from '@/hooks/useCelulas';
 import { MemberFormDialog } from '@/components/members/MemberFormDialog';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useRole } from '@/contexts/RoleContext';
 
 export default function Membros() {
   const [search, setSearch] = useState('');
   const [selectedCelula, setSelectedCelula] = useState<string>('all');
   const [formOpen, setFormOpen] = useState(false);
+  const { scopeType, scopeId } = useRole();
   
-  const { data: celulas } = useCelulas();
+  const { data: allCelulas } = useCelulas();
+  
+  // Filter celulas by scope
+  const celulas = useMemo(() => {
+    const list = allCelulas || [];
+    if (scopeType === 'celula' && scopeId) return list.filter(c => c.id === scopeId);
+    if (scopeType === 'supervisor' && scopeId) return list.filter(c => (c as any).supervisor_id === scopeId);
+    if (scopeType === 'coordenacao' && scopeId) return list.filter(c => c.coordenacao_id === scopeId);
+    return list;
+  }, [allCelulas, scopeType, scopeId]);
+  
   const { data: members, isLoading } = useMembers(
     selectedCelula !== 'all' ? selectedCelula : undefined
   );
   const removeMember = useRemoveMember();
   
-  const filteredMembers = members?.filter(m => 
-    m.profile?.name.toLowerCase().includes(search.toLowerCase()) ||
-    m.profile?.email?.toLowerCase().includes(search.toLowerCase()) ||
-    m.celula?.name.toLowerCase().includes(search.toLowerCase())
-  ) || [];
+  const filteredMembers = useMemo(() => {
+    let list = members || [];
+    
+    // Scope filtering
+    const allowedCelulaIds = new Set(celulas.map(c => c.id));
+    if (scopeType && scopeType !== 'admin' && scopeType !== 'rede') {
+      list = list.filter(m => allowedCelulaIds.has(m.celula_id));
+    }
+    
+    return list.filter(m => 
+      m.profile?.name.toLowerCase().includes(search.toLowerCase()) ||
+      m.profile?.email?.toLowerCase().includes(search.toLowerCase()) ||
+      m.celula?.name.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [members, search, celulas, scopeType]);
   
   return (
     <AppLayout title="Membros">

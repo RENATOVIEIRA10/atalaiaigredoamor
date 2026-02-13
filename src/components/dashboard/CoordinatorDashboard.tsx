@@ -25,6 +25,7 @@ import { ptBR } from 'date-fns/locale';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatCard } from '@/components/ui/stat-card';
 import { EmptyState } from '@/components/ui/empty-state';
+import { useRole } from '@/contexts/RoleContext';
 
 export function CoordinatorDashboard() {
   const { toast } = useToast();
@@ -32,6 +33,7 @@ export function CoordinatorDashboard() {
   const { data: celulas } = useCelulas();
   
   const [selectedCoordenacao, setSelectedCoordenacao] = useState<string>('');
+  const { scopeId, scopeType } = useRole();
   const [dateRange, setDateRange] = useState<DateRangeValue>({ from: subDays(new Date(), 6), to: new Date() });
   const [selectedCelula, setSelectedCelula] = useState<{ id: string; name: string } | null>(null);
   
@@ -65,7 +67,15 @@ export function CoordinatorDashboard() {
     toast({ title: 'Sucesso!', description: 'Excel exportado' });
   };
 
-  const userCoordenacoes = coordenacoes || [];
+  const userCoordenacoes = scopeType === 'coordenacao' && scopeId 
+    ? (coordenacoes || []).filter(c => c.id === scopeId)
+    : coordenacoes || [];
+  
+  // Auto-select if scoped
+  if (scopeType === 'coordenacao' && scopeId && !selectedCoordenacao && userCoordenacoes.length > 0) {
+    setSelectedCoordenacao(scopeId);
+  }
+
   const selectedCoordData = userCoordenacoes.find(c => c.id === selectedCoordenacao);
   const currentReports = reports || [];
 

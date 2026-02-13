@@ -6,9 +6,11 @@ import { useCelulas } from '@/hooks/useCelulas';
 import { CelulaDetailsDialog } from './CelulaDetailsDialog';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
+import { useRole } from '@/contexts/RoleContext';
 
 export function CellLeaderDashboard() {
   const { data: celulas, isLoading } = useCelulas();
+  const { scopeId } = useRole();
   const [selectedCelula, setSelectedCelula] = useState<{ id: string; name: string } | null>(null);
   const [search, setSearch] = useState('');
 
@@ -20,9 +22,11 @@ export function CellLeaderDashboard() {
     );
   }
 
-  const userCelulas = (celulas || []).filter(c =>
-    c.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const userCelulas = (celulas || []).filter(c => {
+    // If scopeId is set, only show that specific cell
+    if (scopeId && c.id !== scopeId) return false;
+    return c.name.toLowerCase().includes(search.toLowerCase());
+  });
 
   return (
     <div className="space-y-6">

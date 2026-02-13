@@ -29,6 +29,7 @@ import { ptBR } from 'date-fns/locale';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatCard } from '@/components/ui/stat-card';
 import { EmptyState } from '@/components/ui/empty-state';
+import { useRole } from '@/contexts/RoleContext';
 
 export function NetworkLeaderDashboard() {
   const { toast } = useToast();
@@ -37,6 +38,7 @@ export function NetworkLeaderDashboard() {
   const { data: celulas } = useCelulas();
   
   const [selectedRede, setSelectedRede] = useState<string>('');
+  const { scopeId, scopeType } = useRole();
   const [dateRange, setDateRange] = useState<DateRangeValue>({ from: subDays(new Date(), 6), to: new Date() });
   const [expandedCoords, setExpandedCoords] = useState<Set<string>>(new Set());
   const [selectedCelula, setSelectedCelula] = useState<{ id: string; name: string } | null>(null);
@@ -79,6 +81,11 @@ export function NetworkLeaderDashboard() {
   }
 
   const userRedes = redes || [];
+  
+  // Auto-select if scoped
+  if (scopeType === 'rede' && scopeId && !selectedRede && userRedes.length > 0) {
+    setSelectedRede(scopeId);
+  }
   const currentReports = redeData?.reports || [];
   const redeCelulas = redeData?.celulas || [];
   const redeCoordenacoes = redeData?.coordenacoes || [];
