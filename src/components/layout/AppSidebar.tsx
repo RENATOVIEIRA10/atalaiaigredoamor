@@ -10,10 +10,13 @@ import {
   LogOut,
   Database,
   GitBranch,
-  Heart } from
+  Heart,
+  Sun,
+  Moon } from
 'lucide-react';
 import logoIgreja from '@/assets/logo-igreja-do-amor.png';
 import { useRole } from '@/contexts/RoleContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -58,7 +61,7 @@ export function AppSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { selectedRole, clearAccess, isAdmin, isRedeLeader, isCoordenador, isSupervisor, isCelulaLeader } = useRole();
-
+  const { theme, toggleTheme } = useTheme();
   const showAdminItems = isAdmin || isRedeLeader;
 
   const mainNavItems = (isCelulaLeader || isSupervisor) && !isCoordenador && !isRedeLeader && !isAdmin ?
@@ -121,7 +124,18 @@ export function AppSidebar() {
         }
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-sidebar-border/50 p-4">
+      <SidebarFooter className="border-t border-sidebar-border/50 p-4 space-y-3">
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={toggleTheme}
+            className="flex-1 h-9 text-xs font-medium text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent gap-2"
+          >
+            {theme === 'padrao' ? <Heart className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            {theme === 'padrao' ? 'Tema Amor' : 'Tema Padrão'}
+          </Button>
+        </div>
         <div className="flex items-center gap-3">
           <Avatar className="h-9 w-9 border-2 border-sidebar-foreground/20">
             <AvatarFallback className="bg-sidebar-primary/15 text-sidebar-foreground text-xs font-semibold">
