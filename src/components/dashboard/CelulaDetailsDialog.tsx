@@ -14,7 +14,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Users, Users2, Link2, Loader2, Plus, Trash2, ChevronDown, ChevronUp, FileText, History, Image, Send } from 'lucide-react';
 import { Member, useMembers, useUpdateMember, useRemoveMember } from '@/hooks/useMembers';
 import { useCasais, useDeleteCasal } from '@/hooks/useCasais';
-import { useWeeklyReports, useCreateWeeklyReport, useUpdateWeeklyReport, useDeleteWeeklyReport, getCurrentWeekStart } from '@/hooks/useWeeklyReports';
+import { useWeeklyReports, useCreateWeeklyReport, useUpdateWeeklyReport, useDeleteWeeklyReport, getWeekStartFromDate } from '@/hooks/useWeeklyReports';
 import { useCelula } from '@/hooks/useCelulas';
 import { MemberFormDialogSimple } from './cellleader/MemberFormDialogSimple';
 import { CasalFormDialog } from './cellleader/CasalFormDialog';
@@ -61,7 +61,7 @@ export function CelulaDetailsDialog({ open, onOpenChange, celulaId, celulaName }
   const [whatsappDialogOpen, setWhatsappDialogOpen] = useState(false);
   const [lastReportData, setLastReportData] = useState<any>(null);
 
-  const weekStart = getCurrentWeekStart();
+  // week_start is now derived from meetingDate at submission time
   const [meetingDate, setMeetingDate] = useState('');
   const [membersPresent, setMembersPresent] = useState(0);
   const [leadersInTraining, setLeadersInTraining] = useState(0);
@@ -107,6 +107,7 @@ export function CelulaDetailsDialog({ open, onOpenChange, celulaId, celulaName }
   const handleSubmitReport = async () => {
     if (!meetingDate) { toast({ title: 'Informe a data da reunião', variant: 'destructive' }); return; }
     try {
+      const weekStart = getWeekStartFromDate(meetingDate);
       await createReport.mutateAsync({
         celula_id: celulaId, week_start: weekStart, meeting_date: meetingDate,
         members_present: membersPresent, leaders_in_training: leadersInTraining,
@@ -252,7 +253,7 @@ export function CelulaDetailsDialog({ open, onOpenChange, celulaId, celulaName }
                     <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Notas sobre a reunião..." rows={3} className="text-base" />
                   </div>
 
-                  <CelulaPhotoUpload photoUrl={photoUrl} onPhotoChange={setPhotoUrl} celulaId={celulaId} weekStart={weekStart} />
+                  <CelulaPhotoUpload photoUrl={photoUrl} onPhotoChange={setPhotoUrl} celulaId={celulaId} weekStart={meetingDate ? getWeekStartFromDate(meetingDate) : ''} />
 
                   <div className="sticky bottom-0 bg-background pt-3 pb-1 -mx-4 px-4 sm:-mx-6 sm:px-6 border-t border-border/50">
                     <Button onClick={handleSubmitReport} disabled={createReport.isPending} className="w-full h-12 text-base font-semibold" size="lg">
