@@ -138,8 +138,8 @@ export function CelulaDetailsDialog({ open, onOpenChange, celulaId, celulaName }
         leaders_in_training: leadersInTraining,
         discipleships,
         mensagem: mensagemWa,
-        paixao: paixaoWa,
-        cultura: culturaWa,
+        paixao: 'PESSOAS',
+        cultura: 'AMOR',
       });
       setWhatsappDialogOpen(true);
       
@@ -248,19 +248,12 @@ export function CelulaDetailsDialog({ open, onOpenChange, celulaId, celulaName }
 
                   {/* WhatsApp fields */}
                   <div className="space-y-3 rounded-lg border border-green-200 dark:border-green-900 bg-green-50/50 dark:bg-green-950/20 p-4">
-                    <p className="text-xs font-medium uppercase tracking-wider text-green-700 dark:text-green-400">📱 Mensagem do WhatsApp (opcional)</p>
+                    <p className="text-xs font-medium uppercase tracking-wider text-green-700 dark:text-green-400">📱 Mensagem do WhatsApp</p>
                     <div className="space-y-2">
-                      <Label className="text-xs">📖 Nossa Mensagem</Label>
+                      <Label className="text-xs">📖 Nossa Mensagem *</Label>
                       <Input value={mensagemWa} onChange={(e) => setMensagemWa(e.target.value)} placeholder="Ex: A fé que transforma" />
                     </div>
-                    <div className="space-y-2">
-                      <Label className="text-xs">❤️ Nossa Paixão</Label>
-                      <Input value={paixaoWa} onChange={(e) => setPaixaoWa(e.target.value)} placeholder="Ex: Ganhar almas" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-xs">🫶🏾 Nossa Cultura</Label>
-                      <Input value={culturaWa} onChange={(e) => setCulturaWa(e.target.value)} placeholder="Ex: Amor e acolhimento" />
-                    </div>
+                    <p className="text-xs text-muted-foreground">❤️ Nossa Paixão: <strong>PESSOAS</strong> (fixo) · 🫶🏾 Nossa Cultura: <strong>AMOR</strong> (fixo)</p>
                   </div>
 
                   <CelulaPhotoUpload photoUrl={photoUrl} onPhotoChange={setPhotoUrl} celulaId={celulaId} weekStart={weekStart} />
