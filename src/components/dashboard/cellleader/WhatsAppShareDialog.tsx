@@ -1,10 +1,11 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { MessageSquare, Check, ImageIcon, ArrowRight, RotateCcw } from 'lucide-react';
-import { useState, useCallback } from 'react';
+import { MessageSquare, Check, ImageIcon, ArrowRight, RotateCcw, Copy } from 'lucide-react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { Progress } from '@/components/ui/progress';
 
 interface WhatsAppShareDialogProps {
   open: boolean;
@@ -75,26 +76,79 @@ function buildBloco3(data: WhatsAppShareDialogProps['reportData']): string {
 
 type FlowStep = 'idle' | 'photo' | 'bloco2' | 'bloco3' | 'done';
 
+const AUTO_ADVANCE_SECONDS = 5;
+
 export function WhatsAppShareDialog({ open, onOpenChange, reportData }: WhatsAppShareDialogProps) {
   const { toast } = useToast();
   const [step, setStep] = useState<FlowStep>('idle');
+  const [countdown, setCountdown] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const hasPhoto = !!reportData.photo_url;
   const bloco2 = buildBloco2(reportData);
   const bloco3 = buildBloco3(reportData);
 
-  const getStepLabel = (s: FlowStep) => {
-    switch (s) {
-      case 'photo': return 'Enviando foto...';
-      case 'bloco2': return 'Enviando informações da célula...';
-      case 'bloco3': return 'Enviando relatório semanal...';
-      case 'done': return 'Relatório enviado com sucesso!';
-      default: return '';
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, []);
+
+  const clearTimer = () => {
+    if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
+  };
+
+  const startCountdown = (onComplete: () => void) => {
+    clearTimer();
+    setCountdown(AUTO_ADVANCE_SECONDS);
+    const start = Date.now();
+    timerRef.current = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - start) / 1000);
+      const remaining = AUTO_ADVANCE_SECONDS - elapsed;
+      if (remaining <= 0) {
+        clearTimer();
+        setCountdown(0);
+        onComplete();
+      } else {
+        setCountdown(remaining);
+      }
+    }, 200);
+  };
+
+  const openWhatsApp = (text: string) => {
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+  };
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast({ title: 'Texto copiado!' });
+    } catch {
+      toast({ title: 'Erro ao copiar', variant: 'destructive' });
     }
   };
 
-  const sharePhoto = useCallback(async (): Promise<boolean> => {
-    if (!reportData.photo_url) return false;
+  const goToBloco2 = useCallback(() => {
+    clearTimer();
+    setStep('bloco2');
+    openWhatsApp(bloco2);
+    startCountdown(goToBloco3Ref.current);
+  }, [bloco2]);
+
+  // Use refs to avoid stale closures in timers
+  const goToBloco3Ref = useRef(() => {});
+  const goToBloco3 = useCallback(() => {
+    clearTimer();
+    setStep('bloco3');
+    openWhatsApp(bloco3);
+    startCountdown(() => {
+      setStep('done');
+      toast({ title: '✅ Relatório enviado!', description: 'Os 3 blocos foram encaminhados no WhatsApp.' });
+    });
+  }, [bloco3, toast]);
+  goToBloco3Ref.current = goToBloco3;
+
+  const sharePhoto = useCallback(async () => {
+    if (!reportData.photo_url) return;
     try {
       const response = await fetch(reportData.photo_url);
       const blob = await response.blob();
@@ -102,9 +156,11 @@ export function WhatsAppShareDialog({ open, onOpenChange, reportData }: WhatsApp
 
       if (navigator.share && navigator.canShare?.({ files: [file] })) {
         await navigator.share({ files: [file] });
-        return true;
+        // After share sheet closes, auto-advance
+        goToBloco2();
+        return;
       }
-      // Fallback: download + instruct
+      // Fallback: download
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -113,54 +169,32 @@ export function WhatsAppShareDialog({ open, onOpenChange, reportData }: WhatsApp
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      toast({ title: 'Foto salva!', description: 'Envie a foto no grupo do WhatsApp e depois clique em "Continuar".' });
-      return true;
+      toast({ title: 'Foto salva!', description: 'Envie a foto no grupo e depois toque em "Continuar".' });
     } catch {
-      toast({ title: 'Não foi possível compartilhar a foto', description: 'Pule este passo ou tente novamente.', variant: 'destructive' });
-      return false;
+      // User cancelled share or error — still allow advancing
+      toast({ title: 'Foto não enviada', description: 'Você pode enviar depois. Continuando...', variant: 'default' });
+      goToBloco2();
     }
-  }, [reportData.photo_url, toast]);
-
-  const openWhatsApp = (text: string) => {
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
-  };
+  }, [reportData.photo_url, toast, goToBloco2]);
 
   const startFlow = useCallback(async () => {
     if (hasPhoto) {
       setStep('photo');
-      const shared = await sharePhoto();
-      // If native share was used (returns after share sheet closes), auto-advance
-      if (shared && navigator.share) {
-        setStep('bloco2');
-        openWhatsApp(bloco2);
-      }
-      // If fallback download, user needs to click "Continuar"
+      await sharePhoto();
     } else {
+      // Skip photo, go straight to bloco2
       setStep('bloco2');
       openWhatsApp(bloco2);
+      startCountdown(goToBloco3Ref.current);
     }
   }, [hasPhoto, sharePhoto, bloco2]);
 
-  const advanceFromPhoto = () => {
-    setStep('bloco2');
-    openWhatsApp(bloco2);
-  };
+  const resetFlow = () => { clearTimer(); setStep('idle'); setCountdown(0); };
 
-  const advanceFromBloco2 = () => {
-    setStep('bloco3');
-    openWhatsApp(bloco3);
-  };
-
-  const advanceFromBloco3 = () => {
-    setStep('done');
-    toast({ title: '✅ Relatório enviado!', description: 'Os 3 blocos foram encaminhados no WhatsApp.' });
-  };
-
-  const resetFlow = () => setStep('idle');
-
-  // Determine which steps are complete
   const stepIndex = { idle: -1, photo: 0, bloco2: 1, bloco3: 2, done: 3 };
   const currentIdx = stepIndex[step];
+
+  const progressPercent = step === 'idle' ? 0 : step === 'photo' ? 15 : step === 'bloco2' ? 45 : step === 'bloco3' ? 75 : 100;
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) resetFlow(); onOpenChange(o); }}>
@@ -171,65 +205,88 @@ export function WhatsAppShareDialog({ open, onOpenChange, reportData }: WhatsApp
             Enviar pelo WhatsApp
           </DialogTitle>
           <DialogDescription>
-            Relatório está pronto para ser encaminhado no grupo da coordenação.
+            Relatório pronto para encaminhar no grupo da coordenação.
           </DialogDescription>
         </DialogHeader>
 
-        {/* Step indicator */}
+        {/* Global progress bar */}
         {step !== 'idle' && (
-          <div className="flex items-center gap-2 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 p-3">
-            {step === 'done' ? <Check className="h-5 w-5 text-green-600" /> : <div className="h-4 w-4 rounded-full border-2 border-green-500 border-t-transparent animate-spin" />}
-            <span className="text-sm font-medium text-green-700 dark:text-green-300">{getStepLabel(step)}</span>
+          <div className="space-y-1.5">
+            <Progress value={progressPercent} className="h-2" />
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-muted-foreground">
+                {step === 'done' ? '✅ Concluído!' : `Passo ${currentIdx + 1} de 3`}
+              </span>
+              {countdown > 0 && step !== 'done' && (
+                <span className="text-xs text-green-600 font-medium animate-pulse">
+                  Próximo em {countdown}s...
+                </span>
+              )}
+            </div>
           </div>
         )}
 
         {/* Preview blocks */}
         <div className="space-y-3">
           {/* Block 1 - Photo */}
-          <div className={`rounded-lg border p-3 transition-opacity ${currentIdx > 0 ? 'opacity-50' : ''}`}>
+          <div className={`rounded-lg border p-3 transition-all ${currentIdx > 0 ? 'opacity-40 scale-[0.98]' : ''} ${step === 'photo' ? 'ring-2 ring-green-500/50' : ''}`}>
             <div className="flex items-center gap-2 mb-2">
               <StepBadge n={1} done={currentIdx > 0} active={step === 'photo'} />
               <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Foto da Célula</span>
             </div>
             {hasPhoto ? (
-              <img src={reportData.photo_url!} alt="Foto da célula" className="w-full h-32 object-cover rounded-md" />
+              <img src={reportData.photo_url!} alt="Foto da célula" className="w-full h-28 object-cover rounded-md" />
             ) : (
-              <div className="flex items-center gap-2 text-muted-foreground text-sm py-3 justify-center">
-                <ImageIcon className="h-5 w-5" />
-                <span>Sem foto — será pulado automaticamente</span>
+              <div className="flex items-center gap-2 text-muted-foreground text-sm py-2 justify-center">
+                <ImageIcon className="h-4 w-4" />
+                <span>Sem foto — pulado automaticamente</span>
               </div>
             )}
             {step === 'photo' && !navigator.share && (
-              <Button size="sm" className="w-full mt-2 bg-green-600 hover:bg-green-700 text-white" onClick={advanceFromPhoto}>
+              <Button size="sm" className="w-full mt-2 bg-green-600 hover:bg-green-700 text-white" onClick={goToBloco2}>
                 Foto enviada — Continuar <ArrowRight className="h-4 w-4 ml-1" />
               </Button>
             )}
           </div>
 
           {/* Block 2 - Fixed info */}
-          <div className={`rounded-lg border p-3 transition-opacity ${currentIdx > 1 ? 'opacity-50' : ''}`}>
-            <div className="flex items-center gap-2 mb-2">
-              <StepBadge n={2} done={currentIdx > 1} active={step === 'bloco2'} />
-              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Informações da Célula</span>
+          <div className={`rounded-lg border p-3 transition-all ${currentIdx > 1 ? 'opacity-40 scale-[0.98]' : ''} ${step === 'bloco2' ? 'ring-2 ring-green-500/50' : ''}`}>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <StepBadge n={2} done={currentIdx > 1} active={step === 'bloco2'} />
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Informações da Célula</span>
+              </div>
+              {step === 'bloco2' && (
+                <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={() => copyToClipboard(bloco2)}>
+                  <Copy className="h-3 w-3 mr-1" />Copiar
+                </Button>
+              )}
             </div>
-            <pre className="text-xs whitespace-pre-wrap font-sans leading-relaxed bg-muted/30 rounded-md p-2 max-h-28 overflow-y-auto">{bloco2}</pre>
+            <pre className="text-xs whitespace-pre-wrap font-sans leading-relaxed bg-muted/30 rounded-md p-2 max-h-24 overflow-y-auto">{bloco2}</pre>
             {step === 'bloco2' && (
-              <Button size="sm" className="w-full mt-2 bg-green-600 hover:bg-green-700 text-white" onClick={advanceFromBloco2}>
-                Enviado — Continuar <ArrowRight className="h-4 w-4 ml-1" />
+              <Button size="sm" className="w-full mt-2 bg-green-600 hover:bg-green-700 text-white" onClick={() => { clearTimer(); goToBloco3(); }}>
+                Já enviei — Próximo <ArrowRight className="h-4 w-4 ml-1" />
               </Button>
             )}
           </div>
 
           {/* Block 3 - Report */}
-          <div className={`rounded-lg border p-3 transition-opacity ${currentIdx > 2 ? 'opacity-50' : ''}`}>
-            <div className="flex items-center gap-2 mb-2">
-              <StepBadge n={3} done={currentIdx > 2} active={step === 'bloco3'} />
-              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Relatório da Semana</span>
+          <div className={`rounded-lg border p-3 transition-all ${currentIdx > 2 ? 'opacity-40 scale-[0.98]' : ''} ${step === 'bloco3' ? 'ring-2 ring-green-500/50' : ''}`}>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <StepBadge n={3} done={currentIdx > 2} active={step === 'bloco3'} />
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Relatório da Semana</span>
+              </div>
+              {step === 'bloco3' && (
+                <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={() => copyToClipboard(bloco3)}>
+                  <Copy className="h-3 w-3 mr-1" />Copiar
+                </Button>
+              )}
             </div>
-            <pre className="text-xs whitespace-pre-wrap font-sans leading-relaxed bg-muted/30 rounded-md p-2 max-h-28 overflow-y-auto">{bloco3}</pre>
+            <pre className="text-xs whitespace-pre-wrap font-sans leading-relaxed bg-muted/30 rounded-md p-2 max-h-24 overflow-y-auto">{bloco3}</pre>
             {step === 'bloco3' && (
-              <Button size="sm" className="w-full mt-2 bg-green-600 hover:bg-green-700 text-white" onClick={advanceFromBloco3}>
-                Enviado — Concluir <Check className="h-4 w-4 ml-1" />
+              <Button size="sm" className="w-full mt-2 bg-green-600 hover:bg-green-700 text-white" onClick={() => { clearTimer(); setStep('done'); toast({ title: '✅ Relatório enviado!' }); }}>
+                Já enviei — Concluir <Check className="h-4 w-4 ml-1" />
               </Button>
             )}
           </div>
@@ -247,7 +304,7 @@ export function WhatsAppShareDialog({ open, onOpenChange, reportData }: WhatsApp
           <div className="flex gap-2">
             <Button variant="outline" className="flex-1" onClick={resetFlow}>
               <RotateCcw className="h-4 w-4 mr-1.5" />
-              Enviar novamente
+              Reenviar
             </Button>
             <Button className="flex-1" onClick={() => onOpenChange(false)}>
               Fechar
