@@ -15,11 +15,13 @@ import { Users, Users2, Link2, Loader2, Plus, Trash2, ChevronDown, ChevronUp, Fi
 import { Member, useMembers, useUpdateMember, useRemoveMember } from '@/hooks/useMembers';
 import { useCasais, useDeleteCasal } from '@/hooks/useCasais';
 import { useWeeklyReports, useCreateWeeklyReport, useUpdateWeeklyReport, useDeleteWeeklyReport, getCurrentWeekStart } from '@/hooks/useWeeklyReports';
+import { useCelula } from '@/hooks/useCelulas';
 import { MemberFormDialogSimple } from './cellleader/MemberFormDialogSimple';
 import { CasalFormDialog } from './cellleader/CasalFormDialog';
 import { CelulaPhotoUpload } from './cellleader/CelulaPhotoUpload';
 import { CelulaPhotoGallery } from './CelulaPhotoGallery';
 import { ReportsHistoryTable } from '@/components/reports/ReportsHistoryTable';
+import { WhatsAppShareDialog } from './cellleader/WhatsAppShareDialog';
 import { useToast } from '@/hooks/use-toast';
 import { isSameWeek } from 'date-fns';
 
@@ -45,6 +47,7 @@ export function CelulaDetailsDialog({ open, onOpenChange, celulaId, celulaName }
   const { data: members, isLoading: membersLoading } = useMembers(celulaId);
   const { data: casais, isLoading: casaisLoading } = useCasais(celulaId);
   const { data: reports, isLoading: reportsLoading } = useWeeklyReports(celulaId);
+  const { data: celulaData } = useCelula(celulaId);
   const updateMember = useUpdateMember();
   const removeMember = useRemoveMember();
   const deleteCasal = useDeleteCasal();
@@ -55,6 +58,8 @@ export function CelulaDetailsDialog({ open, onOpenChange, celulaId, celulaName }
   const [memberDialogOpen, setMemberDialogOpen] = useState(false);
   const [casalDialogOpen, setCasalDialogOpen] = useState(false);
   const [expandedMembers, setExpandedMembers] = useState<Set<string>>(new Set());
+  const [whatsappDialogOpen, setWhatsappDialogOpen] = useState(false);
+  const [lastReportData, setLastReportData] = useState<any>(null);
 
   const weekStart = getCurrentWeekStart();
   const [meetingDate, setMeetingDate] = useState('');
@@ -65,6 +70,9 @@ export function CelulaDetailsDialog({ open, onOpenChange, celulaId, celulaName }
   const [children, setChildren] = useState(0);
   const [notes, setNotes] = useState('');
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [mensagemWa, setMensagemWa] = useState('');
+  const [paixaoWa, setPaixaoWa] = useState('');
+  const [culturaWa, setCulturaWa] = useState('');
 
   const isLoading = membersLoading || casaisLoading;
 
@@ -103,10 +111,41 @@ export function CelulaDetailsDialog({ open, onOpenChange, celulaId, celulaName }
         celula_id: celulaId, week_start: weekStart, meeting_date: meetingDate,
         members_present: membersPresent, leaders_in_training: leadersInTraining,
         discipleships, visitors, children, notes: notes || undefined, photo_url: photoUrl,
+        mensagem_whatsapp: mensagemWa || undefined,
+        paixao_whatsapp: paixaoWa || undefined,
+        cultura_whatsapp: culturaWa || undefined,
       });
       toast({ title: 'Relatório enviado com sucesso!' });
+      
+      // Prepare WhatsApp share data
+      const cel = celulaData as any;
+      setLastReportData({
+        celula_name: celulaName,
+        lider1_name: cel?.leadership_couple?.spouse1?.name || '',
+        lider2_name: cel?.leadership_couple?.spouse2?.name || '',
+        meeting_day: cel?.meeting_day || '',
+        meeting_time: cel?.meeting_time || '',
+        address: cel?.address || '',
+        bairro: cel?.bairro || '',
+        cidade: cel?.cidade || '',
+        instagram_lider1: cel?.instagram_lider1 || '',
+        instagram_lider2: cel?.instagram_lider2 || '',
+        instagram_celula: cel?.instagram_celula || '',
+        meeting_date: meetingDate,
+        members_present: membersPresent,
+        visitors,
+        children,
+        leaders_in_training: leadersInTraining,
+        discipleships,
+        mensagem: mensagemWa,
+        paixao: paixaoWa,
+        cultura: culturaWa,
+      });
+      setWhatsappDialogOpen(true);
+      
       setMeetingDate(''); setMembersPresent(0); setLeadersInTraining(0);
       setDiscipleships(0); setVisitors(0); setChildren(0); setNotes(''); setPhotoUrl(null);
+      setMensagemWa(''); setPaixaoWa(''); setCulturaWa('');
     } catch { toast({ title: 'Erro ao enviar relatório', variant: 'destructive' }); }
   };
 
@@ -205,6 +244,23 @@ export function CelulaDetailsDialog({ open, onOpenChange, celulaId, celulaName }
                   <div className="space-y-2">
                     <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Observações</Label>
                     <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Notas sobre a reunião..." rows={3} />
+                  </div>
+
+                  {/* WhatsApp fields */}
+                  <div className="space-y-3 rounded-lg border border-green-200 dark:border-green-900 bg-green-50/50 dark:bg-green-950/20 p-4">
+                    <p className="text-xs font-medium uppercase tracking-wider text-green-700 dark:text-green-400">📱 Mensagem do WhatsApp (opcional)</p>
+                    <div className="space-y-2">
+                      <Label className="text-xs">📖 Nossa Mensagem</Label>
+                      <Input value={mensagemWa} onChange={(e) => setMensagemWa(e.target.value)} placeholder="Ex: A fé que transforma" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs">❤️ Nossa Paixão</Label>
+                      <Input value={paixaoWa} onChange={(e) => setPaixaoWa(e.target.value)} placeholder="Ex: Ganhar almas" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs">🫶🏾 Nossa Cultura</Label>
+                      <Input value={culturaWa} onChange={(e) => setCulturaWa(e.target.value)} placeholder="Ex: Amor e acolhimento" />
+                    </div>
                   </div>
 
                   <CelulaPhotoUpload photoUrl={photoUrl} onPhotoChange={setPhotoUrl} celulaId={celulaId} weekStart={weekStart} />
@@ -342,6 +398,9 @@ export function CelulaDetailsDialog({ open, onOpenChange, celulaId, celulaName }
 
       <MemberFormDialogSimple open={memberDialogOpen} onOpenChange={setMemberDialogOpen} celulaId={celulaId} />
       <CasalFormDialog open={casalDialogOpen} onOpenChange={setCasalDialogOpen} celulaId={celulaId} availableMembers={availableMembers} />
+      {lastReportData && (
+        <WhatsAppShareDialog open={whatsappDialogOpen} onOpenChange={setWhatsappDialogOpen} reportData={lastReportData} />
+      )}
     </>
   );
 }
