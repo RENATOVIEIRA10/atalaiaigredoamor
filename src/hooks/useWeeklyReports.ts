@@ -53,13 +53,20 @@ export interface DateRangeFilter {
   to: string;
 }
 
-// Get current week's Monday
+// Get the Monday of the week that contains the given date
+export function getWeekStartFromDate(dateStr: string): string {
+  const date = new Date(dateStr + 'T12:00:00'); // noon to avoid timezone shifts
+  const dayOfWeek = date.getDay();
+  const diff = date.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+  const monday = new Date(date);
+  monday.setDate(diff);
+  return monday.toISOString().split('T')[0];
+}
+
+// Get current week's Monday (convenience wrapper)
 export function getCurrentWeekStart(): string {
   const now = new Date();
-  const dayOfWeek = now.getDay();
-  const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
-  const monday = new Date(now.setDate(diff));
-  return monday.toISOString().split('T')[0];
+  return getWeekStartFromDate(now.toISOString().split('T')[0]);
 }
 
 export function useWeeklyReports(celulaId?: string, dateRange?: DateRangeFilter) {
