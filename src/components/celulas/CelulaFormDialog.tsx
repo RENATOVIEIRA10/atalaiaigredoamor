@@ -21,6 +21,11 @@ const formSchema = z.object({
   address: z.string().optional(),
   meeting_day: z.string().optional(),
   meeting_time: z.string().optional(),
+  bairro: z.string().optional(),
+  cidade: z.string().optional(),
+  instagram_lider1: z.string().optional(),
+  instagram_lider2: z.string().optional(),
+  instagram_celula: z.string().optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -58,6 +63,11 @@ export function CelulaFormDialog({ open, onOpenChange, celula }: CelulaFormDialo
       address: celula?.address || '',
       meeting_day: celula?.meeting_day || '',
       meeting_time: celula?.meeting_time || '',
+      bairro: (celula as any)?.bairro || '',
+      cidade: (celula as any)?.cidade || '',
+      instagram_lider1: (celula as any)?.instagram_lider1 || '',
+      instagram_lider2: (celula as any)?.instagram_lider2 || '',
+      instagram_celula: (celula as any)?.instagram_celula || '',
     },
   });
   
@@ -77,6 +87,11 @@ export function CelulaFormDialog({ open, onOpenChange, celula }: CelulaFormDialo
         address: data.address || null,
         meeting_day: data.meeting_day || null,
         meeting_time: data.meeting_time || null,
+        bairro: data.bairro || null,
+        cidade: data.cidade || null,
+        instagram_lider1: data.instagram_lider1 || null,
+        instagram_lider2: data.instagram_lider2 || null,
+        instagram_celula: data.instagram_celula || null,
       };
       
       if (celula) {
@@ -185,7 +200,75 @@ export function CelulaFormDialog({ open, onOpenChange, celula }: CelulaFormDialo
                   </FormItem>
                 )}
               />
-              
+            
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="bairro"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Bairro</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: Centro" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="cidade"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Cidade</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: São Paulo" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-sm font-medium">Instagram (opcional)</p>
+              <div className="space-y-3">
+                <FormField
+                  control={form.control}
+                  name="instagram_lider1"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input placeholder="@instagram do líder 1" {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="instagram_lider2"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input placeholder="@instagram do líder 2" {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="instagram_celula"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input placeholder="@instagram da célula" {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+            
               <FormField
                 control={form.control}
                 name="meeting_time"

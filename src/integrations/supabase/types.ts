@@ -144,9 +144,14 @@ export type Database = {
       celulas: {
         Row: {
           address: string | null
+          bairro: string | null
+          cidade: string | null
           coordenacao_id: string
           created_at: string
           id: string
+          instagram_celula: string | null
+          instagram_lider1: string | null
+          instagram_lider2: string | null
           leader_id: string | null
           leadership_couple_id: string | null
           meeting_day: string | null
@@ -158,9 +163,14 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          bairro?: string | null
+          cidade?: string | null
           coordenacao_id: string
           created_at?: string
           id?: string
+          instagram_celula?: string | null
+          instagram_lider1?: string | null
+          instagram_lider2?: string | null
           leader_id?: string | null
           leadership_couple_id?: string | null
           meeting_day?: string | null
@@ -172,9 +182,14 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          bairro?: string | null
+          cidade?: string | null
           coordenacao_id?: string
           created_at?: string
           id?: string
+          instagram_celula?: string | null
+          instagram_lider1?: string | null
+          instagram_lider2?: string | null
           leader_id?: string | null
           leadership_couple_id?: string | null
           meeting_day?: string | null
@@ -754,12 +769,15 @@ export type Database = {
           children: number
           created_at: string
           created_by: string | null
+          cultura_whatsapp: string | null
           discipleships: number
           id: string
           leaders_in_training: number
           meeting_date: string | null
           members_present: number
+          mensagem_whatsapp: string | null
           notes: string | null
+          paixao_whatsapp: string | null
           photo_url: string | null
           updated_at: string
           visitors: number
@@ -770,12 +788,15 @@ export type Database = {
           children?: number
           created_at?: string
           created_by?: string | null
+          cultura_whatsapp?: string | null
           discipleships?: number
           id?: string
           leaders_in_training?: number
           meeting_date?: string | null
           members_present?: number
+          mensagem_whatsapp?: string | null
           notes?: string | null
+          paixao_whatsapp?: string | null
           photo_url?: string | null
           updated_at?: string
           visitors?: number
@@ -786,12 +807,15 @@ export type Database = {
           children?: number
           created_at?: string
           created_by?: string | null
+          cultura_whatsapp?: string | null
           discipleships?: number
           id?: string
           leaders_in_training?: number
           meeting_date?: string | null
           members_present?: number
+          mensagem_whatsapp?: string | null
           notes?: string | null
+          paixao_whatsapp?: string | null
           photo_url?: string | null
           updated_at?: string
           visitors?: number

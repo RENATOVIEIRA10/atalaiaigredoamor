@@ -43,6 +43,9 @@ export interface WeeklyReportInput {
   children: number;
   notes?: string;
   photo_url?: string | null;
+  mensagem_whatsapp?: string;
+  paixao_whatsapp?: string;
+  cultura_whatsapp?: string;
 }
 
 export interface DateRangeFilter {
@@ -222,6 +225,9 @@ export function useCreateWeeklyReport() {
             children: input.children,
             notes: input.notes,
             photo_url: input.photo_url,
+            mensagem_whatsapp: input.mensagem_whatsapp,
+            paixao_whatsapp: input.paixao_whatsapp,
+            cultura_whatsapp: input.cultura_whatsapp,
           })
           .eq('id', existingReport.id)
           .select()
