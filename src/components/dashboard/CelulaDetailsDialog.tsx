@@ -140,6 +140,7 @@ export function CelulaDetailsDialog({ open, onOpenChange, celulaId, celulaName }
         mensagem: mensagemWa,
         paixao: 'PESSOAS',
         cultura: 'AMOR',
+        photo_url: photoUrl,
       });
       setWhatsappDialogOpen(true);
       
