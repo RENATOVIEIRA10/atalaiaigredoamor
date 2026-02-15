@@ -91,44 +91,51 @@ export function useAttendanceByCell() {
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
       
-      const { data: celulas } = await supabase
-        .from('celulas')
-        .select('id, name');
+      // Single query: get all meetings with their attendances in one go
+      const { data: meetings } = await supabase
+        .from('meetings')
+        .select('id, celula_id, celulas(name)')
+        .gte('date', thirtyDaysAgo.toISOString().split('T')[0]);
       
-      if (!celulas || celulas.length === 0) return [];
+      if (!meetings || meetings.length === 0) return [];
       
-      const result = await Promise.all(celulas.map(async (celula) => {
-        const { data: meetings } = await supabase
-          .from('meetings')
-          .select('id')
-          .eq('celula_id', celula.id)
-          .gte('date', thirtyDaysAgo.toISOString().split('T')[0]);
-        
-        if (!meetings || meetings.length === 0) {
-          return { name: celula.name, presenca: 0 };
+      const meetingIds = meetings.map(m => m.id);
+      
+      // Single query for all attendances
+      const { data: attendances } = await supabase
+        .from('attendances')
+        .select('meeting_id, present')
+        .in('meeting_id', meetingIds);
+      
+      // Group by celula
+      const celulaMap = new Map<string, { name: string; total: number; present: number }>();
+      
+      for (const meeting of meetings) {
+        const celula = meeting.celulas as any;
+        const celulaId = meeting.celula_id;
+        if (!celulaMap.has(celulaId)) {
+          celulaMap.set(celulaId, { name: celula?.name || 'Sem nome', total: 0, present: 0 });
         }
-        
-        const meetingIds = meetings.map(m => m.id);
-        
-        const { count: totalAttendances } = await supabase
-          .from('attendances')
-          .select('*', { count: 'exact', head: true })
-          .in('meeting_id', meetingIds);
-        
-        const { count: presentAttendances } = await supabase
-          .from('attendances')
-          .select('*', { count: 'exact', head: true })
-          .in('meeting_id', meetingIds)
-          .eq('present', true);
-        
-        const rate = totalAttendances && totalAttendances > 0 
-          ? Math.round(((presentAttendances || 0) / totalAttendances) * 100)
-          : 0;
-        
-        return { name: celula.name, presenca: rate };
-      }));
+      }
       
-      return result;
+      if (attendances) {
+        // Build meeting -> celula lookup
+        const meetingToCelula = new Map(meetings.map(m => [m.id, m.celula_id]));
+        
+        for (const att of attendances) {
+          const celulaId = meetingToCelula.get(att.meeting_id);
+          if (celulaId) {
+            const entry = celulaMap.get(celulaId)!;
+            entry.total++;
+            if (att.present) entry.present++;
+          }
+        }
+      }
+      
+      return Array.from(celulaMap.values()).map(({ name, total, present }) => ({
+        name,
+        presenca: total > 0 ? Math.round((present / total) * 100) : 0,
+      }));
     },
   });
 }

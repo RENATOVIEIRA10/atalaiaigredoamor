@@ -5,6 +5,7 @@ import { Camera, Loader2, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { compressImage } from '@/utils/imageCompression';
 
 interface AvatarUploadProps {
   currentUrl?: string | null;
@@ -44,12 +45,13 @@ export function AvatarUpload({ currentUrl, onUploaded, fallbackText = '?', size 
 
     setUploading(true);
     try {
-      const fileExt = file.name.split('.').pop();
+      const compressed = await compressImage(file, { maxDimension: 512, targetSizeKB: 200 });
+      const fileExt = 'jpg';
       const filePath = `${crypto.randomUUID()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(filePath, file, { upsert: true });
+        .upload(filePath, compressed, { upsert: true });
 
       if (uploadError) throw uploadError;
 
