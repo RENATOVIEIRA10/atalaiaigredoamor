@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Camera, X, Loader2, Upload } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { compressImage } from '@/utils/imageCompression';
 
 interface CelulaPhotoUploadProps {
   photoUrl?: string | null;
@@ -45,14 +46,17 @@ export function CelulaPhotoUpload({ photoUrl, onPhotoChange, celulaId, weekStart
     setIsUploading(true);
 
     try {
+      // Compress image before upload
+      const compressed = await compressImage(file, { maxDimension: 1920, targetSizeKB: 800 });
+      
       // Generate unique filename
-      const fileExt = file.name.split('.').pop();
+      const fileExt = 'jpg';
       const fileName = `${celulaId}/${weekStart}/${Date.now()}.${fileExt}`;
 
       // Upload to Supabase Storage
       const { error: uploadError } = await supabase.storage
         .from('celula-photos')
-        .upload(fileName, file, { upsert: true });
+        .upload(fileName, compressed, { upsert: true });
 
       if (uploadError) throw uploadError;
 
