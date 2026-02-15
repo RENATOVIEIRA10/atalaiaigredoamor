@@ -143,6 +143,13 @@
   .fade-in {
     animation: fadeIn 0.3s ease-out;
   }
+
+  /* Mobile-first touch targets */
+  @media (max-width: 640px) {
+    .card-hover:active {
+      transform: scale(0.98);
+    }
+  }
 }
 
 @keyframes fadeIn {

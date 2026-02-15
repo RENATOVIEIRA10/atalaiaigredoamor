@@ -81,7 +81,7 @@ export function MemberFormDialogSimple({ open, onOpenChange, celulaId }: MemberF
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Adicionar Novo Membro</DialogTitle>
         </DialogHeader>
@@ -95,7 +95,7 @@ export function MemberFormDialogSimple({ open, onOpenChange, celulaId }: MemberF
                 <FormItem>
                   <FormLabel>Nome Completo *</FormLabel>
                   <FormControl>
-                    <Input placeholder="Digite o nome do membro" {...field} />
+                    <Input placeholder="Digite o nome do membro" className="h-12 text-base" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -109,7 +109,7 @@ export function MemberFormDialogSimple({ open, onOpenChange, celulaId }: MemberF
                 <FormItem>
                   <FormLabel>Email (opcional)</FormLabel>
                   <FormControl>
-                    <Input placeholder="email@exemplo.com" type="email" {...field} />
+                    <Input placeholder="email@exemplo.com" type="email" className="h-12 text-base" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -152,12 +152,12 @@ export function MemberFormDialogSimple({ open, onOpenChange, celulaId }: MemberF
               />
             </div>
             
-            <div className="flex justify-end gap-2 pt-4">
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <div className="sticky bottom-0 bg-background pt-3 pb-1 -mx-4 px-4 border-t border-border/50 flex gap-3">
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="flex-1 h-12 text-base">
                 Cancelar
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              <Button type="submit" disabled={isSubmitting} className="flex-1 h-12 text-base font-semibold">
+                {isSubmitting && <Loader2 className="h-5 w-5 mr-2 animate-spin" />}
                 Adicionar
               </Button>
             </div>
