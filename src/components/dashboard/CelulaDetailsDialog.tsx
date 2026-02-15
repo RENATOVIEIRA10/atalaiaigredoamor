@@ -247,15 +247,6 @@ export function CelulaDetailsDialog({ open, onOpenChange, celulaId, celulaName }
                     <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Notas sobre a reunião..." rows={3} />
                   </div>
 
-                  {/* WhatsApp fields */}
-                  <div className="space-y-3 rounded-lg border border-green-200 dark:border-green-900 bg-green-50/50 dark:bg-green-950/20 p-4">
-                    <p className="text-xs font-medium uppercase tracking-wider text-green-700 dark:text-green-400">📱 Mensagem do WhatsApp</p>
-                    <div className="space-y-2">
-                      <Label className="text-xs">📖 Nossa Mensagem *</Label>
-                      <Input value={mensagemWa} onChange={(e) => setMensagemWa(e.target.value)} placeholder="Ex: A fé que transforma" />
-                    </div>
-                    <p className="text-xs text-muted-foreground">❤️ Nossa Paixão: <strong>PESSOAS</strong> (fixo) · 🫶🏾 Nossa Cultura: <strong>AMOR</strong> (fixo)</p>
-                  </div>
 
                   <CelulaPhotoUpload photoUrl={photoUrl} onPhotoChange={setPhotoUrl} celulaId={celulaId} weekStart={weekStart} />
 
