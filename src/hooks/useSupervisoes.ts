@@ -358,7 +358,7 @@ export function useCreateSupervisor() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (input: { profile_id: string; coordenacao_id: string }) => {
+    mutationFn: async (input: { profile_id: string; coordenacao_id: string; leadership_couple_id?: string }) => {
       const { data, error } = await supabase
         .from('supervisores')
         .insert(input)
