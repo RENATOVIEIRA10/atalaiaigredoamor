@@ -30,7 +30,7 @@ export default function Configuracoes() {
           {isAdmin && (
             <TabsTrigger value="roles" className="flex items-center gap-2">
               <Shield className="h-4 w-4" />
-              Gestão de Papéis
+              Gestão de Perfis
             </TabsTrigger>
           )}
           {isAdmin && (
