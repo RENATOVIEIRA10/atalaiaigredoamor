@@ -1,7 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { MessageSquare, Copy, Check, QrCode } from 'lucide-react';
+import { MessageSquare, Copy, Check, QrCode, Download, ImageIcon } from 'lucide-react';
 import { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useToast } from '@/hooks/use-toast';
@@ -32,10 +31,11 @@ interface WhatsAppShareDialogProps {
     mensagem: string;
     paixao: string;
     cultura: string;
+    photo_url?: string | null;
   };
 }
 
-function buildBloco1(data: WhatsAppShareDialogProps['reportData']): string {
+function buildBloco2(data: WhatsAppShareDialogProps['reportData']): string {
   const lines: string[] = [];
 
   lines.push(`*Célula ${data.celula_name}* ❤️`);
@@ -64,7 +64,7 @@ function buildBloco1(data: WhatsAppShareDialogProps['reportData']): string {
   return lines.join('\n');
 }
 
-function buildBloco2(data: WhatsAppShareDialogProps['reportData']): string {
+function buildBloco3(data: WhatsAppShareDialogProps['reportData']): string {
   const dateFormatted = data.meeting_date
     ? format(new Date(data.meeting_date + 'T12:00:00'), "dd/MM/yyyy", { locale: ptBR })
     : '';
@@ -80,20 +80,20 @@ function buildBloco2(data: WhatsAppShareDialogProps['reportData']): string {
   lines.push(`▪️Líder em treinamento: ${data.leaders_in_training}`);
   lines.push(`▪️Discipulados: ${data.discipleships}`);
   lines.push('');
-  lines.push(`📖 NOSSA MENSAGEM: *${data.mensagem || '—'}*`);
+  lines.push(`📖 NOSSA MENSAGEM: *JESUS*`);
   lines.push(`❤️ NOSSA PAIXÃO: *PESSOAS*`);
   lines.push(`🫶🏾 NOSSA CULTURA: *AMOR*`);
 
   return lines.join('\n');
 }
 
-interface BlocoSectionProps {
+interface TextBlocoSectionProps {
   title: string;
   text: string;
   waUrl: string;
 }
 
-function BlocoSection({ title, text, waUrl }: BlocoSectionProps) {
+function TextBlocoSection({ title, text, waUrl }: TextBlocoSectionProps) {
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
 
@@ -138,11 +138,73 @@ function BlocoSection({ title, text, waUrl }: BlocoSectionProps) {
   );
 }
 
+interface PhotoBlocoSectionProps {
+  photoUrl: string;
+}
+
+function PhotoBlocoSection({ photoUrl }: PhotoBlocoSectionProps) {
+  const { toast } = useToast();
+
+  const handleDownload = async () => {
+    try {
+      const response = await fetch(photoUrl);
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `foto-celula-${Date.now()}.jpg`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast({ title: 'Foto baixada!', description: 'Agora envie no grupo do WhatsApp.' });
+    } catch {
+      toast({ title: 'Erro ao baixar', description: 'Tente salvar a imagem manualmente.', variant: 'destructive' });
+    }
+  };
+
+  return (
+    <div className="rounded-lg border p-4 space-y-3">
+      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Bloco 1 — Foto da Célula</p>
+      <img
+        src={photoUrl}
+        alt="Foto da célula"
+        crossOrigin="anonymous"
+        className="w-full h-48 object-cover rounded-lg border"
+      />
+      <Button
+        className="w-full bg-green-600 hover:bg-green-700 text-white"
+        size="sm"
+        onClick={handleDownload}
+      >
+        <Download className="h-4 w-4 mr-1.5" />
+        Baixar foto e enviar no WhatsApp
+      </Button>
+      <p className="text-xs text-center text-muted-foreground">
+        Baixe a foto e envie como imagem no grupo do WhatsApp.
+      </p>
+    </div>
+  );
+}
+
+function PhotoPlaceholder() {
+  return (
+    <div className="rounded-lg border border-dashed p-4 space-y-2 text-center">
+      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Bloco 1 — Foto da Célula</p>
+      <div className="flex flex-col items-center gap-2 py-4 text-muted-foreground">
+        <ImageIcon className="h-8 w-8" />
+        <p className="text-sm">Nenhuma foto cadastrada esta semana.</p>
+        <p className="text-xs">Cadastre a foto da célula para manter o padrão.</p>
+      </div>
+    </div>
+  );
+}
+
 export function WhatsAppShareDialog({ open, onOpenChange, reportData }: WhatsAppShareDialogProps) {
-  const bloco1 = buildBloco1(reportData);
   const bloco2 = buildBloco2(reportData);
-  const waUrl1 = `https://wa.me/?text=${encodeURIComponent(bloco1)}`;
+  const bloco3 = buildBloco3(reportData);
   const waUrl2 = `https://wa.me/?text=${encodeURIComponent(bloco2)}`;
+  const waUrl3 = `https://wa.me/?text=${encodeURIComponent(bloco3)}`;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -158,8 +220,14 @@ export function WhatsAppShareDialog({ open, onOpenChange, reportData }: WhatsApp
         </DialogHeader>
 
         <div className="space-y-4">
-          <BlocoSection title="Bloco 1 — Apresentação da Célula" text={bloco1} waUrl={waUrl1} />
-          <BlocoSection title="Bloco 2 — Relatório da Semana" text={bloco2} waUrl={waUrl2} />
+          {reportData.photo_url ? (
+            <PhotoBlocoSection photoUrl={reportData.photo_url} />
+          ) : (
+            <PhotoPlaceholder />
+          )}
+
+          <TextBlocoSection title="Bloco 2 — Apresentação da Célula" text={bloco2} waUrl={waUrl2} />
+          <TextBlocoSection title="Bloco 3 — Relatório da Semana" text={bloco3} waUrl={waUrl3} />
         </div>
       </DialogContent>
     </Dialog>
