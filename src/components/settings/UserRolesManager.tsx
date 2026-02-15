@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -16,6 +16,7 @@ import { Loader2, Plus, Trash2, Shield, Network, FolderTree, Home, ClipboardChec
 import { toast } from '@/hooks/use-toast';
 import { useCoordenacoes } from '@/hooks/useCoordenacoes';
 import { useSupervisores, useCreateSupervisor, useDeleteSupervisor } from '@/hooks/useSupervisoes';
+import { SupervisorFormDialog } from '@/components/settings/SupervisorFormDialog';
 import { Database } from '@/integrations/supabase/types';
 
 type AppRole = Database['public']['Enums']['app_role'];
@@ -45,10 +46,9 @@ interface ProfileWithRoles extends Profile {
 export function UserRolesManager() {
   const queryClient = useQueryClient();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isSupervisorFormOpen, setIsSupervisorFormOpen] = useState(false);
   const [newProfileName, setNewProfileName] = useState('');
   const [newProfileEmail, setNewProfileEmail] = useState('');
-  const [selectedProfileForSupervisor, setSelectedProfileForSupervisor] = useState<string>('');
-  const [selectedCoordenacao, setSelectedCoordenacao] = useState<string>('');
   const [pendingRoleChanges, setPendingRoleChanges] = useState<Record<string, AppRole[]>>({});
   const [isSaving, setIsSaving] = useState(false);
 
@@ -250,30 +250,7 @@ export function UserRolesManager() {
     setPendingRoleChanges({});
   };
 
-  const handleAddSupervisor = async () => {
-    if (!selectedProfileForSupervisor || !selectedCoordenacao) return;
-    
-    const exists = supervisores?.some(
-      s => s.profile_id === selectedProfileForSupervisor && s.coordenacao_id === selectedCoordenacao
-    );
-    
-    if (exists) {
-      toast({
-        title: 'Aviso',
-        description: 'Este perfil já é supervisor desta coordenação.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    await createSupervisor.mutateAsync({
-      profile_id: selectedProfileForSupervisor,
-      coordenacao_id: selectedCoordenacao,
-    });
-    
-    setSelectedProfileForSupervisor('');
-    setSelectedCoordenacao('');
-  };
+  // handleAddSupervisor removed - now using SupervisorFormDialog
 
   if (profilesLoading) {
     return (
@@ -424,75 +401,16 @@ export function UserRolesManager() {
                     Gestão de Supervisores
                   </CardTitle>
                   <CardDescription>
-                    Vincule perfis como supervisores de coordenações específicas
+                    Vincule casais como supervisores de coordenações específicas
                   </CardDescription>
                 </div>
-                <div className="flex items-center gap-2">
-                  {hasUnsavedChanges && (
-                    <>
-                      <Button variant="outline" onClick={cancelChanges}>
-                        Cancelar
-                      </Button>
-                      <Button onClick={saveRoleChanges} disabled={isSaving}>
-                        {isSaving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                        <Save className="h-4 w-4 mr-2" />
-                        Salvar Alterações
-                      </Button>
-                    </>
-                  )}
-                </div>
+                <Button onClick={() => setIsSupervisorFormOpen(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Novo Supervisor (Casal)
+                </Button>
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Add Supervisor Form */}
-              <Card className="bg-muted/50">
-                <CardContent className="py-4">
-                  <div className="grid gap-4 md:grid-cols-3">
-                    <div className="space-y-2">
-                      <Label>Perfil</Label>
-                      <Select value={selectedProfileForSupervisor} onValueChange={setSelectedProfileForSupervisor}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione um perfil" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {profilesWithRoles?.map(profile => (
-                            <SelectItem key={profile.id} value={profile.id}>
-                              {profile.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Coordenação</Label>
-                      <Select value={selectedCoordenacao} onValueChange={setSelectedCoordenacao}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione uma coordenação" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {coordenacoes?.map(coord => (
-                            <SelectItem key={coord.id} value={coord.id}>
-                              {coord.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="flex items-end">
-                      <Button 
-                        onClick={handleAddSupervisor}
-                        disabled={!selectedProfileForSupervisor || !selectedCoordenacao || createSupervisor.isPending}
-                        className="w-full"
-                      >
-                        {createSupervisor.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                        <Plus className="h-4 w-4 mr-2" />
-                        Adicionar Supervisor
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
               {/* Supervisors List */}
               {supervisoresLoading ? (
                 <div className="flex items-center justify-center py-8">
@@ -502,45 +420,68 @@ export function UserRolesManager() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Supervisor</TableHead>
+                      <TableHead>Casal Supervisor</TableHead>
                       <TableHead>Coordenação</TableHead>
                       <TableHead className="text-right">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {supervisores?.map((supervisor) => (
-                      <TableRow key={supervisor.id}>
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            <Avatar className="h-8 w-8">
-                              <AvatarFallback>
-                                {supervisor.profile?.name?.charAt(0).toUpperCase() || 'S'}
-                              </AvatarFallback>
-                            </Avatar>
-                            <span className="font-medium">{supervisor.profile?.name || 'N/A'}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="flex w-fit items-center gap-1">
-                            <FolderTree className="h-3 w-3" />
-                            {supervisor.coordenacao?.name || 'N/A'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              if (confirm('Remover supervisor?')) {
-                                deleteSupervisor.mutate(supervisor.id);
-                              }
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    {supervisores?.map((supervisor) => {
+                      const coupleName = supervisor.leadership_couple
+                        ? `${supervisor.leadership_couple.spouse1?.name || ''} & ${supervisor.leadership_couple.spouse2?.name || ''}`
+                        : supervisor.profile?.name || 'N/A';
+                      
+                      return (
+                        <TableRow key={supervisor.id}>
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              {supervisor.leadership_couple ? (
+                                <div className="flex -space-x-2">
+                                  <Avatar className="h-8 w-8 border-2 border-background">
+                                    <AvatarImage src={supervisor.leadership_couple.spouse1?.avatar_url || undefined} crossOrigin="anonymous" />
+                                    <AvatarFallback className="text-xs">
+                                      {supervisor.leadership_couple.spouse1?.name?.charAt(0) || 'S'}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <Avatar className="h-8 w-8 border-2 border-background">
+                                    <AvatarImage src={supervisor.leadership_couple.spouse2?.avatar_url || undefined} crossOrigin="anonymous" />
+                                    <AvatarFallback className="text-xs">
+                                      {supervisor.leadership_couple.spouse2?.name?.charAt(0) || 'S'}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                </div>
+                              ) : (
+                                <Avatar className="h-8 w-8">
+                                  <AvatarFallback>
+                                    {supervisor.profile?.name?.charAt(0)?.toUpperCase() || 'S'}
+                                  </AvatarFallback>
+                                </Avatar>
+                              )}
+                              <span className="font-medium">{coupleName}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="flex w-fit items-center gap-1">
+                              <FolderTree className="h-3 w-3" />
+                              {supervisor.coordenacao?.name || 'N/A'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                if (confirm(`Remover supervisor "${coupleName}"?`)) {
+                                  deleteSupervisor.mutate(supervisor.id);
+                                }
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                     {(!supervisores || supervisores.length === 0) && (
                       <TableRow>
                         <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
@@ -589,6 +530,11 @@ export function UserRolesManager() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <SupervisorFormDialog
+        open={isSupervisorFormOpen}
+        onOpenChange={setIsSupervisorFormOpen}
+      />
     </div>
   );
 }
