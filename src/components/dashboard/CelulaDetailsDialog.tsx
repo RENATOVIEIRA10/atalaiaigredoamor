@@ -172,7 +172,7 @@ export function CelulaDetailsDialog({ open, onOpenChange, celulaId, celulaName }
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-4xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
@@ -187,73 +187,79 @@ export function CelulaDetailsDialog({ open, onOpenChange, celulaId, celulaName }
             <div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
           ) : (
             <Tabs defaultValue="relatorio" className="space-y-4">
-              <TabsList className="grid w-full grid-cols-5">
-                <TabsTrigger value="relatorio" className="text-xs sm:text-sm gap-1">
-                  <FileText className="h-3.5 w-3.5 hidden sm:inline" />Relatório
+              <TabsList className="grid w-full grid-cols-5 h-auto p-1">
+                <TabsTrigger value="relatorio" className="text-xs sm:text-sm gap-1 py-2.5 px-1">
+                  <FileText className="h-4 w-4" />
+                  <span className="hidden sm:inline">Relatório</span>
                 </TabsTrigger>
-                <TabsTrigger value="historico" className="text-xs sm:text-sm gap-1">
-                  <History className="h-3.5 w-3.5 hidden sm:inline" />Histórico
+                <TabsTrigger value="historico" className="text-xs sm:text-sm gap-1 py-2.5 px-1">
+                  <History className="h-4 w-4" />
+                  <span className="hidden sm:inline">Histórico</span>
                 </TabsTrigger>
-                <TabsTrigger value="fotos" className="text-xs sm:text-sm gap-1">
-                  <Image className="h-3.5 w-3.5 hidden sm:inline" />Fotos
+                <TabsTrigger value="fotos" className="text-xs sm:text-sm gap-1 py-2.5 px-1">
+                  <Image className="h-4 w-4" />
+                  <span className="hidden sm:inline">Fotos</span>
                 </TabsTrigger>
-                <TabsTrigger value="membros" className="text-xs sm:text-sm">
-                  Membros ({members?.length || 0})
+                <TabsTrigger value="membros" className="text-xs sm:text-sm py-2.5 px-1">
+                  <Users className="h-4 w-4 sm:hidden" />
+                  <span className="hidden sm:inline">Membros ({members?.length || 0})</span>
                 </TabsTrigger>
-                <TabsTrigger value="casais" className="text-xs sm:text-sm">
-                  Casais ({casais?.length || 0})
+                <TabsTrigger value="casais" className="text-xs sm:text-sm py-2.5 px-1">
+                  <Users2 className="h-4 w-4 sm:hidden" />
+                  <span className="hidden sm:inline">Casais ({casais?.length || 0})</span>
                 </TabsTrigger>
               </TabsList>
 
               {/* RELATÓRIO SEMANAL */}
               <TabsContent value="relatorio">
-                <div className="space-y-5">
+                <div className="space-y-6">
                   {/* Data */}
                   <div className="space-y-2">
-                    <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Data da Reunião *</Label>
-                    <Input type="date" value={meetingDate} onChange={(e) => setMeetingDate(e.target.value)} />
+                    <Label className="text-sm font-medium text-muted-foreground">Data da Reunião *</Label>
+                    <Input type="date" value={meetingDate} onChange={(e) => setMeetingDate(e.target.value)} className="h-12 text-base" />
                   </div>
 
                   {/* Números */}
                   <div>
-                    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-3">Presença</p>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    <p className="text-sm font-medium text-muted-foreground mb-3">Presença</p>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                       <div className="space-y-1.5">
-                        <Label className="text-xs">Membros Presentes</Label>
-                        <Input type="number" min={0} value={membersPresent} onChange={(e) => setMembersPresent(Number(e.target.value))} />
+                        <Label className="text-sm">Membros Presentes</Label>
+                        <Input type="number" min={0} value={membersPresent} onChange={(e) => setMembersPresent(Number(e.target.value))} className="h-12 text-base text-center" inputMode="numeric" />
                       </div>
                       <div className="space-y-1.5">
-                        <Label className="text-xs">Líd. em Trein.</Label>
-                        <Input type="number" min={0} value={leadersInTraining} onChange={(e) => setLeadersInTraining(Number(e.target.value))} />
+                        <Label className="text-sm">Líd. em Trein.</Label>
+                        <Input type="number" min={0} value={leadersInTraining} onChange={(e) => setLeadersInTraining(Number(e.target.value))} className="h-12 text-base text-center" inputMode="numeric" />
                       </div>
                       <div className="space-y-1.5">
-                        <Label className="text-xs">Discipulados</Label>
-                        <Input type="number" min={0} value={discipleships} onChange={(e) => setDiscipleships(Number(e.target.value))} />
+                        <Label className="text-sm">Discipulados</Label>
+                        <Input type="number" min={0} value={discipleships} onChange={(e) => setDiscipleships(Number(e.target.value))} className="h-12 text-base text-center" inputMode="numeric" />
                       </div>
                       <div className="space-y-1.5">
-                        <Label className="text-xs">Visitantes</Label>
-                        <Input type="number" min={0} value={visitors} onChange={(e) => setVisitors(Number(e.target.value))} />
+                        <Label className="text-sm">Visitantes</Label>
+                        <Input type="number" min={0} value={visitors} onChange={(e) => setVisitors(Number(e.target.value))} className="h-12 text-base text-center" inputMode="numeric" />
                       </div>
                       <div className="space-y-1.5">
-                        <Label className="text-xs">Crianças</Label>
-                        <Input type="number" min={0} value={children} onChange={(e) => setChildren(Number(e.target.value))} />
+                        <Label className="text-sm">Crianças</Label>
+                        <Input type="number" min={0} value={children} onChange={(e) => setChildren(Number(e.target.value))} className="h-12 text-base text-center" inputMode="numeric" />
                       </div>
                     </div>
                   </div>
 
                   {/* Observações */}
                   <div className="space-y-2">
-                    <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Observações</Label>
-                    <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Notas sobre a reunião..." rows={3} />
+                    <Label className="text-sm font-medium text-muted-foreground">Observações</Label>
+                    <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Notas sobre a reunião..." rows={3} className="text-base" />
                   </div>
-
 
                   <CelulaPhotoUpload photoUrl={photoUrl} onPhotoChange={setPhotoUrl} celulaId={celulaId} weekStart={weekStart} />
 
-                  <Button onClick={handleSubmitReport} disabled={createReport.isPending} className="w-full" size="lg">
-                    {createReport.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Send className="h-4 w-4 mr-2" />}
-                    Enviar Relatório
-                  </Button>
+                  <div className="sticky bottom-0 bg-background pt-3 pb-1 -mx-4 px-4 sm:-mx-6 sm:px-6 border-t border-border/50">
+                    <Button onClick={handleSubmitReport} disabled={createReport.isPending} className="w-full h-12 text-base font-semibold" size="lg">
+                      {createReport.isPending ? <Loader2 className="h-5 w-5 mr-2 animate-spin" /> : <Send className="h-5 w-5 mr-2" />}
+                      Enviar Relatório
+                    </Button>
+                  </div>
                 </div>
               </TabsContent>
 
@@ -274,7 +280,7 @@ export function CelulaDetailsDialog({ open, onOpenChange, celulaId, celulaName }
               {/* MEMBROS */}
               <TabsContent value="membros" className="space-y-4">
                 <div className="flex justify-end">
-                  <Button onClick={() => setMemberDialogOpen(true)} size="sm"><Plus className="h-4 w-4 mr-2" />Adicionar Membro</Button>
+                  <Button onClick={() => setMemberDialogOpen(true)} size="default" className="h-11"><Plus className="h-4 w-4 mr-2" />Adicionar Membro</Button>
                 </div>
                 <ScrollArea className="h-[350px] pr-4">
                   <div className="space-y-2">

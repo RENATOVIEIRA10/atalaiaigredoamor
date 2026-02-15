@@ -57,32 +57,32 @@ export function CellLeaderDashboard() {
           {userCelulas.map(celula => (
             <Card
               key={celula.id}
-              className="cursor-pointer card-hover group border-l-4 border-l-primary/30 hover:border-l-primary"
+              className="cursor-pointer card-hover group border-l-4 border-l-primary/30 hover:border-l-primary active:scale-[0.98] transition-all"
               onClick={() => setSelectedCelula({ id: celula.id, name: celula.name })}
             >
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base flex items-center gap-2">
+              <CardHeader className="pb-2 p-4">
+                <CardTitle className="text-lg flex items-center gap-2">
                   {celula.name}
                 </CardTitle>
-                <CardDescription className="flex items-center gap-1.5 text-xs">
+                <CardDescription className="flex items-center gap-1.5 text-sm">
                   {celula.meeting_day && (
                     <>
-                      <Calendar className="h-3 w-3" />
+                      <Calendar className="h-3.5 w-3.5" />
                       {celula.meeting_day}
                       {celula.meeting_time && ` às ${celula.meeting_time}`}
                     </>
                   )}
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-1.5">
+              <CardContent className="space-y-2 p-4 pt-0">
                 {celula.leadership_couple && (
                   <p className="text-sm font-medium text-foreground">
                     👫 {celula.leadership_couple.spouse1?.name} & {celula.leadership_couple.spouse2?.name}
                   </p>
                 )}
                 {celula.address && (
-                  <p className="text-xs text-muted-foreground flex items-center gap-1">
-                    <MapPin className="h-3 w-3" />
+                  <p className="text-sm text-muted-foreground flex items-center gap-1.5">
+                    <MapPin className="h-3.5 w-3.5 shrink-0" />
                     {celula.address}
                   </p>
                 )}
