@@ -6,36 +6,39 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Loader2, Home, Users, AlertTriangle, Heart, Sparkles, PartyPopper,
-  GitBranch, Eye, Cake, Clock, ShieldAlert, TrendingUp, RefreshCw, X, ChevronRight
+  GitBranch, Eye, Cake, ShieldAlert, TrendingUp, RefreshCw, X,
+  Activity, BookOpen, GraduationCap, ChevronDown, ChevronUp, Droplets, Church
 } from 'lucide-react';
 import {
   usePastoralStats,
-  useAbsentMembers,
-  useSpiritualStagnation,
   useWeeklyBirthdays,
   usePastoralAlerts,
   usePastoralCelebrations,
   useRedeGrowthData,
+  useSpiritualStagnation,
 } from '@/hooks/usePastoralData';
+import { usePulsoPastoral, CelulaReportStatus } from '@/hooks/usePulsoPastoral';
 import { useAIInsights } from '@/hooks/useAIInsights';
 import { useWeeklyReports } from '@/hooks/useWeeklyReports';
 import { StatCard } from '@/components/ui/stat-card';
 import { PageHeader } from '@/components/ui/page-header';
 import { format, subDays } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import ReactMarkdown from 'react-markdown';
 import { PastoralGrowthCharts } from './PastoralGrowthCharts';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 export function PastorDashboard() {
   const { data: stats, isLoading: statsLoading } = usePastoralStats();
-  const { data: absent, isLoading: absentLoading } = useAbsentMembers();
+  const { data: pulso, isLoading: pulsoLoading } = usePulsoPastoral();
   const { data: stagnation } = useSpiritualStagnation();
   const { data: birthdays } = useWeeklyBirthdays();
   const { data: alerts } = usePastoralAlerts();
   const { data: celebrations } = usePastoralCelebrations();
   const { data: redeGrowth } = useRedeGrowthData();
 
-  // AI Pastoral Summary
+  const [showAlertCells, setShowAlertCells] = useState(false);
+
+  // AI
   const { isLoading: aiLoading, insight: aiInsight, generateInsight, clearInsight } = useAIInsights();
   const dateRange = { from: format(subDays(new Date(), 30), 'yyyy-MM-dd'), to: format(new Date(), 'yyyy-MM-dd') };
   const { data: allReports } = useWeeklyReports(undefined, dateRange);
@@ -64,7 +67,7 @@ export function PastorDashboard() {
     await generateInsight('executive_summary', Object.values(grouped), 'Últimos 30 dias');
   };
 
-  if (statsLoading || absentLoading) {
+  if (statsLoading || pulsoLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -72,9 +75,11 @@ export function PastorDashboard() {
     );
   }
 
+  const engajamentoDiff = (pulso?.percentualEngajamento || 0) - (pulso?.percentualSemanaAnterior || 0);
+  const totalAlertas = (pulso?.celulasAlerta1Semana.length || 0) + (pulso?.celulasAlerta2Semanas.length || 0) + (pulso?.celulasAlerta3Semanas.length || 0);
+
   return (
     <div className="space-y-8">
-      {/* Header */}
       <PageHeader
         title="Visão Pastoral"
         subtitle="Saúde espiritual e cuidado do rebanho"
@@ -93,67 +98,160 @@ export function PastorDashboard() {
         </div>
       </section>
 
-      {/* 2. Saúde do Rebanho */}
+      {/* 2. Pulso Pastoral da Rede */}
       <section>
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">🩺 Saúde do Rebanho</h2>
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">🫀 Pulso Pastoral da Rede</h2>
         <div className="grid gap-4 md:grid-cols-2">
-          {/* Ausências */}
+          {/* Engajamento das Células */}
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
-                <Clock className="h-4 w-4 text-primary" />
-                Membros Ausentes
+                <Activity className="h-4 w-4 text-primary" />
+                Engajamento das Células
               </CardTitle>
-              <CardDescription>Tempo sem presença registrada</CardDescription>
+              <CardDescription>Relatórios enviados esta semana</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                <span className="text-sm">Sem presença há 30 dias</span>
-                <Badge variant="secondary">{absent?.thirty || 0}</Badge>
+            <CardContent>
+              <div className="flex items-end gap-3 mb-3">
+                <span className="text-4xl font-bold text-primary">{pulso?.percentualEngajamento || 0}%</span>
+                <span className="text-sm text-muted-foreground mb-1">
+                  ({pulso?.celulasComRelatorio || 0} de {pulso?.totalCelulas || 0})
+                </span>
               </div>
-              <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                <span className="text-sm">Sem presença há 60 dias</span>
-                <Badge variant="outline" className="border-amber-500/50 text-amber-600">{absent?.sixty || 0}</Badge>
+              <div className="w-full bg-muted rounded-full h-2.5 mb-2">
+                <div
+                  className="bg-primary h-2.5 rounded-full transition-all"
+                  style={{ width: `${pulso?.percentualEngajamento || 0}%` }}
+                />
               </div>
-              <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                <span className="text-sm">Sem presença há 90 dias</span>
-                <Badge variant="outline" className="border-destructive/50 text-destructive">{absent?.ninety || 0}</Badge>
+              <div className="flex items-center gap-1 text-xs">
+                {engajamentoDiff >= 0 ? (
+                  <Badge variant="secondary" className="text-xs bg-green-500/10 text-green-600">
+                    ↑ +{engajamentoDiff}pp vs semana anterior
+                  </Badge>
+                ) : (
+                  <Badge variant="secondary" className="text-xs bg-destructive/10 text-destructive">
+                    ↓ {engajamentoDiff}pp vs semana anterior
+                  </Badge>
+                )}
               </div>
             </CardContent>
           </Card>
 
-          {/* Aniversários */}
-          <Card>
+          {/* Células em Alerta */}
+          <Card className={totalAlertas > 0 ? 'border-amber-500/30' : ''}>
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
-                <Cake className="h-4 w-4 text-primary" />
-                Aniversários da Semana
+                <AlertTriangle className="h-4 w-4 text-amber-600" />
+                Células em Alerta
               </CardTitle>
-              <CardDescription>Para cuidado e oração</CardDescription>
+              <CardDescription>Sem envio de relatório</CardDescription>
             </CardHeader>
-            <CardContent>
-              {birthdays && birthdays.length > 0 ? (
-                <div className="space-y-2 max-h-48 overflow-y-auto">
-                  {birthdays.map((b) => (
-                    <div key={b.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={b.avatar_url || undefined} />
-                        <AvatarFallback className="text-xs">{b.name.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{b.name}</p>
-                        <p className="text-xs text-muted-foreground">{b.role} · {b.celula_name}</p>
-                      </div>
-                      {b.is_today && <Badge className="bg-primary/10 text-primary text-xs">Hoje! 🎂</Badge>}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground text-center py-4">Nenhum aniversário nesta semana</p>
+            <CardContent className="space-y-2">
+              <div className="flex items-center justify-between p-2.5 rounded-lg bg-muted/50">
+                <span className="text-sm">🟢 1 semana</span>
+                <Badge variant="secondary">{pulso?.celulasAlerta1Semana.length || 0}</Badge>
+              </div>
+              <div className="flex items-center justify-between p-2.5 rounded-lg bg-amber-500/5">
+                <span className="text-sm">🟡 2 semanas</span>
+                <Badge variant="outline" className="border-amber-500/50 text-amber-600">{pulso?.celulasAlerta2Semanas.length || 0}</Badge>
+              </div>
+              <div className="flex items-center justify-between p-2.5 rounded-lg bg-destructive/5">
+                <span className="text-sm">🔴 3+ semanas</span>
+                <Badge variant="outline" className="border-destructive/50 text-destructive">{pulso?.celulasAlerta3Semanas.length || 0}</Badge>
+              </div>
+              {totalAlertas > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full mt-1 text-xs"
+                  onClick={() => setShowAlertCells(!showAlertCells)}
+                >
+                  {showAlertCells ? <ChevronUp className="h-3 w-3 mr-1" /> : <ChevronDown className="h-3 w-3 mr-1" />}
+                  {showAlertCells ? 'Ocultar detalhes' : 'Ver células em risco'}
+                </Button>
               )}
             </CardContent>
           </Card>
+
+          {/* Movimento de Discipulado */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <BookOpen className="h-4 w-4 text-primary" />
+                Movimento de Discipulado
+              </CardTitle>
+              <CardDescription>Discipulados ativos na rede</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-end gap-3">
+                <span className="text-4xl font-bold text-primary">{pulso?.totalDiscipulados || 0}</span>
+                <span className="text-sm text-muted-foreground mb-1">discipulados ativos</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Movimento de Liderança */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <GraduationCap className="h-4 w-4 text-primary" />
+                Movimento de Liderança
+              </CardTitle>
+              <CardDescription>Futuros líderes em formação</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-end gap-3">
+                <span className="text-4xl font-bold text-primary">{pulso?.lideresEmTreinamento || 0}</span>
+                <span className="text-sm text-muted-foreground mb-1">líderes em treinamento</span>
+              </div>
+            </CardContent>
+          </Card>
         </div>
+
+        {/* Detalhes das células em alerta */}
+        {showAlertCells && totalAlertas > 0 && (
+          <Card className="mt-4">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Detalhes – Células sem Relatório</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ScrollArea className="max-h-64">
+                <div className="space-y-4">
+                  {(pulso?.celulasAlerta3Semanas.length || 0) > 0 && (
+                    <AlertCellGroup label="🔴 3+ semanas sem relatório" cells={pulso!.celulasAlerta3Semanas} severity="critical" />
+                  )}
+                  {(pulso?.celulasAlerta2Semanas.length || 0) > 0 && (
+                    <AlertCellGroup label="🟡 2 semanas sem relatório" cells={pulso!.celulasAlerta2Semanas} severity="warning" />
+                  )}
+                  {(pulso?.celulasAlerta1Semana.length || 0) > 0 && (
+                    <AlertCellGroup label="🟢 1 semana sem relatório" cells={pulso!.celulasAlerta1Semana} severity="info" />
+                  )}
+                </div>
+              </ScrollArea>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Marcos Espirituais */}
+        <Card className="mt-4">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Church className="h-4 w-4 text-primary" />
+              Marcos Espirituais (Visão Pastoral)
+            </CardTitle>
+            <CardDescription>Crescimento espiritual real do rebanho</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+              <MarcoCard label="Encontro c/ Deus" value={pulso?.marcosEncontro || 0} icon="🔥" />
+              <MarcoCard label="Batismo" value={pulso?.marcosBatismo || 0} icon="💧" />
+              <MarcoCard label="Discipulado" value={pulso?.marcosDiscipulado || 0} icon="📖" />
+              <MarcoCard label="Curso Lidere" value={pulso?.marcosCursoLidere || 0} icon="🎓" />
+              <MarcoCard label="Renovo" value={pulso?.marcosRenovo || 0} icon="🌿" />
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Estagnação espiritual */}
         {stagnation && stagnation.count > 0 && (
@@ -163,7 +261,7 @@ export function PastorDashboard() {
               <div>
                 <p className="text-sm font-medium">Atenção Pastoral</p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Há <strong>{stagnation.count} pessoa(s)</strong> com mais de {stagnation.yearsThreshold} anos de igreja 
+                  Há <strong>{stagnation.count} pessoa(s)</strong> com mais de {stagnation.yearsThreshold} anos de igreja
                   que ainda não avançaram em marcos espirituais básicos (Encontro com Deus, Batismo ou Curso Lidere).
                 </p>
               </div>
@@ -172,7 +270,35 @@ export function PastorDashboard() {
         )}
       </section>
 
-      {/* 3. Radar Pastoral */}
+      {/* Aniversários */}
+      <section>
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">🎂 Aniversários da Semana</h2>
+        <Card>
+          <CardContent className="p-4">
+            {birthdays && birthdays.length > 0 ? (
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {birthdays.map((b) => (
+                  <div key={b.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={b.avatar_url || undefined} />
+                      <AvatarFallback className="text-xs">{b.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{b.name}</p>
+                      <p className="text-xs text-muted-foreground">{b.role} · {b.celula_name}</p>
+                    </div>
+                    {b.is_today && <Badge className="bg-primary/10 text-primary text-xs">Hoje! 🎂</Badge>}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground text-center py-4">Nenhum aniversário nesta semana</p>
+            )}
+          </CardContent>
+        </Card>
+      </section>
+
+      {/* Radar Pastoral */}
       <section>
         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">⚠️ Radar Pastoral</h2>
         {alerts && alerts.length > 0 ? (
@@ -181,7 +307,7 @@ export function PastorDashboard() {
               <Card key={i} className={alert.severity === 'critical' ? 'border-destructive/30 bg-destructive/5' : 'border-amber-500/20 bg-amber-500/5'}>
                 <CardContent className="p-4 flex items-start gap-3">
                   <ShieldAlert className={`h-5 w-5 mt-0.5 shrink-0 ${alert.severity === 'critical' ? 'text-destructive' : 'text-amber-600'}`} />
-                  <div>
+                  <div className="flex-1">
                     <p className="text-sm font-medium">{alert.title}</p>
                     <p className="text-sm text-muted-foreground mt-1">{alert.description}</p>
                   </div>
@@ -202,7 +328,7 @@ export function PastorDashboard() {
         )}
       </section>
 
-      {/* 4. Frutos e Celebrações */}
+      {/* Frutos e Celebrações */}
       <section>
         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">🎉 Frutos e Celebrações</h2>
         {celebrations && celebrations.length > 0 ? (
@@ -229,13 +355,13 @@ export function PastorDashboard() {
         )}
       </section>
 
-      {/* 5. Evolução Temporal */}
+      {/* Evolução Temporal */}
       <section>
         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">📈 Evolução dos Últimos 6 Meses</h2>
         <PastoralGrowthCharts />
       </section>
 
-      {/* 6. Visão de Governo */}
+      {/* Visão de Governo */}
       <section>
         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">📊 Visão de Governo</h2>
         {redeGrowth && redeGrowth.length > 0 ? (
@@ -276,7 +402,7 @@ export function PastorDashboard() {
         )}
       </section>
 
-      {/* 6. Resumo Pastoral com IA */}
+      {/* Resumo Pastoral com IA */}
       <section>
         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">🤖 Resumo Pastoral com IA</h2>
         <Card className="border-primary/20 bg-gradient-to-br from-background to-primary/5">
@@ -343,6 +469,52 @@ export function PastorDashboard() {
           </CardContent>
         </Card>
       </section>
+    </div>
+  );
+}
+
+function MarcoCard({ label, value, icon }: { label: string; value: number; icon: string }) {
+  return (
+    <div className="rounded-xl border bg-card p-3 text-center">
+      <div className="text-2xl mb-1">{icon}</div>
+      <div className="text-2xl font-bold text-foreground">{value}</div>
+      <div className="text-xs text-muted-foreground mt-0.5">{label}</div>
+    </div>
+  );
+}
+
+function AlertCellGroup({ label, cells, severity }: { label: string; cells: CelulaReportStatus[]; severity: 'critical' | 'warning' | 'info' }) {
+  // Group by coordenação
+  const grouped = cells.reduce((acc, c) => {
+    const key = c.coordenacao_name || 'Sem Coordenação';
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(c);
+    return acc;
+  }, {} as Record<string, CelulaReportStatus[]>);
+
+  return (
+    <div>
+      <p className="text-sm font-medium mb-2">{label}</p>
+      {Object.entries(grouped).map(([coord, cels]) => (
+        <div key={coord} className="ml-2 mb-2">
+          <p className="text-xs font-medium text-muted-foreground mb-1">{coord}</p>
+          <div className="flex flex-wrap gap-1.5 ml-2">
+            {cels.map(c => (
+              <Badge
+                key={c.celula_id}
+                variant="outline"
+                className={`text-xs ${
+                  severity === 'critical' ? 'border-destructive/50 text-destructive' :
+                  severity === 'warning' ? 'border-amber-500/50 text-amber-600' :
+                  ''
+                }`}
+              >
+                {c.celula_name}
+              </Badge>
+            ))}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
