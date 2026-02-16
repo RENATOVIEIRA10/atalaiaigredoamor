@@ -24,6 +24,7 @@ import { subDays, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatCard } from '@/components/ui/stat-card';
+import { MissionVerse } from './MissionVerse';
 import { EmptyState } from '@/components/ui/empty-state';
 import { useRole } from '@/contexts/RoleContext';
 import { SupervisorFormDialog } from '@/components/settings/SupervisorFormDialog';
@@ -110,6 +111,8 @@ export function CoordinatorDashboard() {
           </div>
         }
       />
+
+      <MissionVerse role="coordenador" />
 
       <Card>
         <CardContent className="p-5">

@@ -12,6 +12,7 @@ import { SupervisaoDetailsDialog } from './supervisor/SupervisaoDetailsDialog';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { PageHeader } from '@/components/ui/page-header';
+import { MissionVerse } from './MissionVerse';
 import { EmptyState } from '@/components/ui/empty-state';
 import { useRole } from '@/contexts/RoleContext';
 
@@ -56,6 +57,8 @@ export function SupervisorDashboard() {
         subtitle="Registre e acompanhe suas supervisões de células"
         icon={ClipboardCheck}
       />
+
+      <MissionVerse role="supervisor" />
 
       <div className="grid gap-4 md:grid-cols-2">
         <Card>

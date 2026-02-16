@@ -25,6 +25,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { format, subDays } from 'date-fns';
 import ReactMarkdown from 'react-markdown';
 import { PastoralGrowthCharts } from './PastoralGrowthCharts';
+import { MissionVerse } from './MissionVerse';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 export function PastorDashboard() {
@@ -85,6 +86,8 @@ export function PastorDashboard() {
         subtitle="Saúde espiritual e cuidado do rebanho"
         icon={Heart}
       />
+
+      <MissionVerse role="pastor" />
 
       {/* 1. Visão Geral */}
       <section>

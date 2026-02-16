@@ -5,6 +5,7 @@ import { Loader2, Users, Search, MapPin, Calendar } from 'lucide-react';
 import { useCelulas } from '@/hooks/useCelulas';
 import { CelulaDetailsDialog } from './CelulaDetailsDialog';
 import { PageHeader } from '@/components/ui/page-header';
+import { MissionVerse } from './MissionVerse';
 import { EmptyState } from '@/components/ui/empty-state';
 import { useRole } from '@/contexts/RoleContext';
 
@@ -35,6 +36,8 @@ export function CellLeaderDashboard() {
         subtitle="Gerencie suas células e relatórios semanais"
         icon={Users}
       />
+
+      <MissionVerse role="celula_leader" />
 
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />

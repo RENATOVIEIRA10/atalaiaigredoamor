@@ -17,6 +17,7 @@ import { format, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatCard } from '@/components/ui/stat-card';
+import { MissionVerse } from './MissionVerse';
 
 export function AdminDashboard() {
   const { toast } = useToast();
@@ -114,6 +115,8 @@ export function AdminDashboard() {
           </div>
         }
       />
+
+      <MissionVerse role="admin" />
 
       <div className="grid gap-4 grid-cols-2 lg:grid-cols-5">
         <StatCard icon={Network} label="Redes" value={redes?.length || 0} />
