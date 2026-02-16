@@ -1,6 +1,7 @@
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from './AppSidebar';
 import { Separator } from '@/components/ui/separator';
+import { useDemoMode } from '@/contexts/DemoModeContext';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -8,10 +9,12 @@ interface AppLayoutProps {
 }
 
 export function AppLayout({ children, title }: AppLayoutProps) {
+  const { isDemoActive } = useDemoMode();
+
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset>
+      <SidebarInset className={isDemoActive ? 'pt-10' : ''}>
         <header className="flex h-14 shrink-0 items-center gap-2 border-b border-border/30 px-4 bg-background/90 backdrop-blur-sm sticky top-0 z-10">
           <SidebarTrigger className="-ml-1" />
           {title && (
