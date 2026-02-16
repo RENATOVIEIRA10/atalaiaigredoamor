@@ -10,6 +10,7 @@ import { RoleProtectedRoute } from "@/components/RoleProtectedRoute";
 import { DemoModeBanner } from "@/components/demo/DemoModeBanner";
 
 import Home from "./pages/Home";
+import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
 import Celulas from "./pages/Celulas";
 import Membros from "./pages/Membros";
@@ -35,6 +36,7 @@ const App = () => (
               <DemoModeBanner />
               <Routes>
                 <Route path="/" element={<Home />} />
+                <Route path="/onboarding" element={<Onboarding />} />
                 <Route path="/dashboard" element={<RoleProtectedRoute><Dashboard /></RoleProtectedRoute>} />
                 <Route path="/celulas" element={<RoleProtectedRoute><Celulas /></RoleProtectedRoute>} />
                 <Route path="/membros" element={<RoleProtectedRoute><Membros /></RoleProtectedRoute>} />
