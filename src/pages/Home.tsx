@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRole } from '@/contexts/RoleContext';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Lock, AlertCircle, KeyRound, Loader2 } from 'lucide-react';
+import { Lock, AlertCircle, Loader2 } from 'lucide-react';
+import logoRedeAmor from '@/assets/logo-rede-amor-a2.png';
 import logoAnoSantidade from '@/assets/logo-ano-santidade.png';
-import { useValidateAccessCode } from '@/hooks/useAccessKeys';
 import { supabase } from '@/integrations/supabase/client';
 
 export default function HomePage() {
@@ -28,7 +27,6 @@ export default function HomePage() {
     try {
       const normalizedCode = code.trim();
 
-      // Query access_keys
       const { data, error: queryError } = await supabase
         .from('access_keys')
         .select('*')
@@ -36,7 +34,6 @@ export default function HomePage() {
 
       if (queryError) throw new Error('Erro ao validar código');
 
-      // Find matching code (case-insensitive)
       const match = data?.find(k => k.code.toLowerCase() === normalizedCode.toLowerCase());
 
       if (!match) {
@@ -46,27 +43,23 @@ export default function HomePage() {
         return;
       }
 
-      // Check blocked
       if (match.failed_attempts >= 5) {
         setError('Código bloqueado por tentativas excessivas. Contate o administrador.');
         setIsLoading(false);
         return;
       }
 
-      // Update last_used_at
       await supabase
         .from('access_keys')
         .update({ last_used_at: new Date().toISOString(), failed_attempts: 0 })
         .eq('id', match.id);
 
-      // Set scope access
       const scopeType = match.scope_type as 'pastor' | 'admin' | 'rede' | 'coordenacao' | 'supervisor' | 'celula';
       setScopeAccess(scopeType, match.scope_id);
       navigate('/dashboard');
     } catch (err: any) {
       setError(err.message || 'Erro ao validar código');
 
-      // Increment failed attempts for the code if it exists
       const { data: keys } = await supabase
         .from('access_keys')
         .select('id, failed_attempts')
@@ -85,75 +78,189 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-accent via-background to-secondary flex items-center justify-center p-4">
-      <div className="w-full max-w-md animate-fade-in">
-        <div className="text-center mb-8">
-          <div className="flex justify-center mb-5">
-            <img src={logoAnoSantidade} alt="Igreja do Amor – Ano da Santidade 2026" className="h-32 w-auto object-contain" />
-          </div>
-          <p className="text-muted-foreground mt-1 text-lg tracking-wide">REDE AMOR A 2</p>
+    <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden"
+      style={{
+        background: 'linear-gradient(160deg, #0e0e10 0%, #1a0a0b 40%, #121212 100%)',
+      }}
+    >
+      {/* Subtle radial glow */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: 'radial-gradient(ellipse at 50% 20%, rgba(140,15,20,0.15) 0%, transparent 60%)',
+        }}
+      />
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: 'radial-gradient(ellipse at 50% 80%, rgba(201,162,77,0.06) 0%, transparent 50%)',
+        }}
+      />
+
+      <div className="relative z-10 w-full max-w-md px-5 py-8 flex flex-col items-center">
+        {/* Logo */}
+        <div className="mb-6 flex flex-col items-center">
+          <img
+            src={logoRedeAmor}
+            alt="Rede Amor a 2"
+            className="h-28 w-28 rounded-full object-cover shadow-2xl ring-2 ring-[#C9A24D]/30"
+          />
         </div>
 
-        <Card className="shadow-lg">
-          <CardHeader className="text-center pb-4">
-            <div className="flex justify-center mb-3">
-              <div className="p-3 rounded-2xl bg-primary/10">
-                <KeyRound className="h-7 w-7 text-primary" />
+        {/* Welcome text */}
+        <div className="text-center mb-8">
+          <h1
+            className="text-2xl sm:text-3xl mb-2"
+            style={{
+              fontFamily: "'DM Serif Display', serif",
+              color: '#F6F4F1',
+              letterSpacing: '-0.01em',
+              lineHeight: 1.2,
+            }}
+          >
+            Bem-vindo à Rede Amor a 2
+          </h1>
+          <p
+            className="text-sm sm:text-base max-w-xs mx-auto"
+            style={{
+              color: '#B8B6B3',
+              fontFamily: "'Inter', sans-serif",
+              lineHeight: 1.6,
+            }}
+          >
+            Uma ferramenta para servir, cuidar e organizar vidas no Reino.
+          </p>
+        </div>
+
+        {/* Login card */}
+        <div
+          className="w-full rounded-2xl p-6 sm:p-8"
+          style={{
+            background: 'linear-gradient(180deg, #1e1e22 0%, #1a1a1e 100%)',
+            border: '1px solid rgba(201,162,77,0.18)',
+            boxShadow: '0 16px 48px rgba(0,0,0,0.5), 0 0 0 1px rgba(201,162,77,0.06)',
+          }}
+        >
+          <div className="text-center mb-6">
+            <p
+              className="text-xs sm:text-sm"
+              style={{
+                color: '#B8B6B3',
+                fontFamily: "'Inter', sans-serif",
+              }}
+            >
+              Acesse com o código fornecido pela liderança e caminhe conosco no cuidado do rebanho.
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="space-y-2">
+              <Label
+                htmlFor="access-code"
+                className="text-xs font-medium uppercase tracking-widest"
+                style={{ color: '#C9A24D', fontFamily: "'Inter', sans-serif" }}
+              >
+                Código de Acesso
+              </Label>
+              <div className="relative">
+                <Lock
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4"
+                  style={{ color: '#C9A24D' }}
+                />
+                <Input
+                  id="access-code"
+                  type="text"
+                  placeholder="Ex: redeamor-4K7P2A"
+                  value={code}
+                  onChange={(e) => {
+                    setCode(e.target.value);
+                    setError('');
+                  }}
+                  className="pl-10 h-12 text-base border-0 focus-visible:ring-1"
+                  style={{
+                    background: 'rgba(255,255,255,0.04)',
+                    color: '#F6F4F1',
+                    borderRadius: '12px',
+                    border: error
+                      ? '1px solid #D32F2F'
+                      : '1px solid rgba(201,162,77,0.15)',
+                    fontFamily: "'Inter', sans-serif",
+                  }}
+                  autoFocus
+                  autoComplete="off"
+                />
               </div>
-            </div>
-            <CardTitle className="text-xl">Entrar com Código</CardTitle>
-            <CardDescription>
-              Digite o código de acesso fornecido pelo seu líder ou administrador.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="access-code">Código de Acesso</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="access-code"
-                    type="text"
-                    placeholder="Ex: redeamor-4K7P2A"
-                    value={code}
-                    onChange={(e) => {
-                      setCode(e.target.value);
-                      setError('');
-                    }}
-                    className={`pl-10 ${error ? 'border-destructive focus-visible:ring-destructive' : ''}`}
-                    autoFocus
-                    autoComplete="off"
-                  />
+              {error && (
+                <div className="flex items-center gap-2 text-sm" style={{ color: '#D32F2F' }}>
+                  <AlertCircle className="h-4 w-4 shrink-0" />
+                  <span>{error}</span>
                 </div>
-                {error && (
-                  <div className="flex items-center gap-2 text-sm text-destructive">
-                    <AlertCircle className="h-4 w-4 shrink-0" />
-                    <span>{error}</span>
-                  </div>
-                )}
-                {attempts >= 3 && (
-                  <p className="text-xs text-muted-foreground">
-                    💡 Não tem um código? Entre em contato com o administrador ou líder da sua rede.
-                  </p>
-                )}
-              </div>
+              )}
+              {!error && (
+                <p className="text-xs" style={{ color: '#B8B6B3', fontFamily: "'Inter', sans-serif" }}>
+                  Seu acesso define o nível de informações que você poderá visualizar.
+                </p>
+              )}
+              {attempts >= 3 && (
+                <p className="text-xs" style={{ color: '#B8B6B3' }}>
+                  💡 Não tem um código? Entre em contato com o administrador ou líder da sua rede.
+                </p>
+              )}
+            </div>
 
-              <Button type="submit" className="w-full" disabled={!code.trim() || isLoading}>
-                {isLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                ) : (
-                  <Lock className="h-4 w-4 mr-2" />
-                )}
-                Entrar
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+            <Button
+              type="submit"
+              className="w-full h-12 text-base font-semibold tracking-wide transition-all duration-200"
+              disabled={!code.trim() || isLoading}
+              style={{
+                background: !code.trim() || isLoading
+                  ? '#B8B6B3'
+                  : 'linear-gradient(135deg, #C9A24D 0%, #D4B366 100%)',
+                color: '#121212',
+                borderRadius: '12px',
+                fontFamily: "'Inter', sans-serif",
+                boxShadow: code.trim() && !isLoading
+                  ? '0 4px 20px rgba(201,162,77,0.25)'
+                  : 'none',
+              }}
+            >
+              {isLoading ? (
+                <Loader2 className="h-5 w-5 animate-spin mr-2" />
+              ) : (
+                <Lock className="h-4 w-4 mr-2" />
+              )}
+              Entrar no Sistema
+            </Button>
+          </form>
+        </div>
 
-        <p className="text-center text-xs text-muted-foreground mt-6">
-          🔒 Cada código dá acesso ao nível correspondente da hierarquia
-        </p>
+        {/* Ano da Santidade badge */}
+        <div className="mt-6 flex justify-center">
+          <img
+            src={logoAnoSantidade}
+            alt="Ano da Santidade 2026"
+            className="h-14 w-auto object-contain opacity-60"
+          />
+        </div>
+
+        {/* Scripture footer */}
+        <div className="mt-6 text-center">
+          <p
+            className="text-xs italic"
+            style={{
+              color: 'rgba(201,162,77,0.5)',
+              fontFamily: "'DM Serif Display', serif",
+            }}
+          >
+            "Tudo seja feito com decência e ordem."
+          </p>
+          <p
+            className="text-[10px] mt-0.5"
+            style={{ color: 'rgba(184,182,179,0.4)', fontFamily: "'Inter', sans-serif" }}
+          >
+            1 Coríntios 14:40
+          </p>
+        </div>
       </div>
     </div>
   );
