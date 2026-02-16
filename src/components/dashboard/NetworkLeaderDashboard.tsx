@@ -28,6 +28,7 @@ import { format, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatCard } from '@/components/ui/stat-card';
+import { MissionVerse } from './MissionVerse';
 import { EmptyState } from '@/components/ui/empty-state';
 import { useRole } from '@/contexts/RoleContext';
 
@@ -130,6 +131,8 @@ export function NetworkLeaderDashboard() {
           </div>
         }
       />
+
+      <MissionVerse role="rede_leader" />
 
       <Card>
         <CardContent className="p-5">
