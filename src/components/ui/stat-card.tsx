@@ -14,11 +14,13 @@ interface StatCardProps {
 
 export function StatCard({ icon: Icon, label, value, subtitle, trend, className }: StatCardProps) {
   return (
-    <Card className={cn("card-hover", className)}>
+    <Card className={cn("card-hover glass-card", className)}>
       <CardContent className="p-5">
         <div className="flex items-start justify-between">
           <div className="space-y-1">
-            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
+            <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground"
+              style={{ fontFamily: "'Inter', sans-serif", letterSpacing: '0.08em' }}
+            >{label}</p>
             <p className="text-3xl font-bold tracking-tight text-foreground">{value}</p>
             {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
             {trend && (
@@ -33,7 +35,7 @@ export function StatCard({ icon: Icon, label, value, subtitle, trend, className 
               </Badge>
             )}
           </div>
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/8 ring-1 ring-primary/15">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 ring-1 ring-primary/20">
             <Icon className="h-5 w-5 text-primary" />
           </div>
         </div>

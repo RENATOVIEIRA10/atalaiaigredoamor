@@ -161,6 +161,14 @@
     animation: fadeIn 0.22s ease-out;
   }
 
+  /* Internal pages background depth */
+  .internal-page-bg {
+    background:
+      radial-gradient(ellipse at 20% 0%, hsl(var(--primary) / 0.03) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 100%, hsl(var(--primary) / 0.02) 0%, transparent 40%),
+      hsl(var(--background));
+  }
+
   /* Mobile touch targets */
   @media (max-width: 640px) {
     .card-hover:active {
