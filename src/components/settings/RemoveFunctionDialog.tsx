@@ -24,25 +24,58 @@ export function RemoveFunctionDialog({ open, onOpenChange, couple, fn }: Props) 
     setIsSubmitting(true);
     try {
       if (fn.role === 'celula_leader') {
-        await supabase.from('celulas').update({ leadership_couple_id: null }).eq('id', fn.entityId);
+        const { error } = await supabase.from('celulas').update({ leadership_couple_id: null }).eq('id', fn.entityId);
+        if (error) throw error;
       } else if (fn.role === 'supervisor') {
-        await supabase.from('supervisores').delete().eq('id', fn.entityId);
+        // 1. Clear supervisor_id from all cells supervised by this supervisor
+        const { error: celClearError } = await supabase
+          .from('celulas')
+          .update({ supervisor_id: null })
+          .eq('supervisor_id', fn.entityId);
+        if (celClearError) throw celClearError;
+
+        // 2. Delete any supervisão records linked to this supervisor
+        const { error: supVisitError } = await supabase
+          .from('supervisoes')
+          .delete()
+          .eq('supervisor_id', fn.entityId);
+        if (supVisitError) throw supVisitError;
+
+        // 3. Delete the supervisor record itself
+        const { error: supError } = await supabase
+          .from('supervisores')
+          .delete()
+          .eq('id', fn.entityId);
+        if (supError) throw supError;
       } else if (fn.role === 'coordenador') {
-        await supabase.from('coordenacoes').update({ leadership_couple_id: null }).eq('id', fn.entityId);
+        const { error } = await supabase.from('coordenacoes').update({ leadership_couple_id: null }).eq('id', fn.entityId);
+        if (error) throw error;
       } else if (fn.role === 'rede_leader') {
-        await supabase.from('redes').update({ leadership_couple_id: null }).eq('id', fn.entityId);
+        const { error } = await supabase.from('redes').update({ leadership_couple_id: null }).eq('id', fn.entityId);
+        if (error) throw error;
       }
 
-      queryClient.invalidateQueries({ queryKey: ['celulas'] });
-      queryClient.invalidateQueries({ queryKey: ['supervisores'] });
-      queryClient.invalidateQueries({ queryKey: ['coordenacoes'] });
-      queryClient.invalidateQueries({ queryKey: ['redes'] });
-      queryClient.invalidateQueries({ queryKey: ['leadership_couples'] });
+      // 4. Deactivate the access_key for this specific function/scope
+      await deactivateAccessKey(fn);
+
+      // 5. Force re-fetch all related data
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['celulas'] }),
+        queryClient.invalidateQueries({ queryKey: ['supervisores'] }),
+        queryClient.invalidateQueries({ queryKey: ['coordenacoes'] }),
+        queryClient.invalidateQueries({ queryKey: ['redes'] }),
+        queryClient.invalidateQueries({ queryKey: ['leadership_couples'] }),
+        queryClient.invalidateQueries({ queryKey: ['access_keys'] }),
+      ]);
+
+      // Wait for refetch to settle
+      await queryClient.refetchQueries({ queryKey: ['supervisores'] });
 
       toast({ title: 'Função removida', description: `${fn.roleLabel} removido de ${coupleName}.` });
       onOpenChange(false);
     } catch (error: any) {
-      toast({ variant: 'destructive', title: 'Erro', description: error.message });
+      console.error('Erro ao remover função:', error);
+      toast({ variant: 'destructive', title: 'Erro ao remover', description: error.message });
     } finally {
       setIsSubmitting(false);
     }
@@ -51,7 +84,7 @@ export function RemoveFunctionDialog({ open, onOpenChange, couple, fn }: Props) 
   const warningMessage = fn.role === 'celula_leader'
     ? `A célula "${fn.entityName}" ficará sem liderança.`
     : fn.role === 'supervisor'
-    ? `As células supervisionadas ficarão sem supervisão.`
+    ? `As células supervisionadas ficarão sem supervisão e os registros de supervisão serão removidos.`
     : fn.role === 'coordenador'
     ? `A coordenação "${fn.entityName}" ficará sem coordenador.`
     : `A rede "${fn.entityName}" ficará sem líder.`;
@@ -72,6 +105,7 @@ export function RemoveFunctionDialog({ open, onOpenChange, couple, fn }: Props) 
             <div>
               <p className="text-sm font-medium">Atenção</p>
               <p className="text-sm text-muted-foreground mt-1">{warningMessage}</p>
+              <p className="text-sm text-muted-foreground mt-1">O código de acesso desta função será desativado.</p>
             </div>
           </div>
 
@@ -88,4 +122,21 @@ export function RemoveFunctionDialog({ open, onOpenChange, couple, fn }: Props) 
       </DialogContent>
     </Dialog>
   );
+}
+
+async function deactivateAccessKey(fn: CoupleFunction) {
+  const scopeTypeMap: Record<string, string> = {
+    celula_leader: 'celula',
+    supervisor: 'supervisor',
+    coordenador: 'coordenacao',
+    rede_leader: 'rede',
+  };
+  const scopeType = scopeTypeMap[fn.role];
+  if (!scopeType) return;
+
+  await supabase
+    .from('access_keys')
+    .update({ active: false })
+    .eq('scope_type', scopeType)
+    .eq('scope_id', fn.entityId);
 }

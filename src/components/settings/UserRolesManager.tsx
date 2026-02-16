@@ -3,9 +3,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Loader2, UserPlus, Users, Search, Network, FolderTree, ClipboardCheck, Home, MoreVertical, Pencil, Trash2, Plus, Filter } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
+import { Loader2, UserPlus, Users, Search, Network, FolderTree, ClipboardCheck, Home, MoreVertical, Pencil, Trash2, Plus, Filter, KeyRound } from 'lucide-react';
 import { useCoupleFunctions, CoupleWithFunctions, CoupleFunction } from '@/hooks/useCoupleFunctions';
+import { useAccessKeys } from '@/hooks/useAccessKeys';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -27,10 +27,18 @@ const roleColors: Record<string, string> = {
   celula_leader: 'bg-orange-500/10 text-orange-600',
 };
 
+const scopeTypeMap: Record<string, string> = {
+  celula_leader: 'celula',
+  supervisor: 'supervisor',
+  coordenador: 'coordenacao',
+  rede_leader: 'rede',
+};
+
 type FilterType = 'all' | 'rede_leader' | 'coordenador' | 'supervisor' | 'celula_leader' | 'multi' | 'no_function';
 
 export function UserRolesManager() {
   const { couples, isLoading } = useCoupleFunctions();
+  const { data: accessKeys } = useAccessKeys();
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<FilterType>('all');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -38,10 +46,27 @@ export function UserRolesManager() {
   const [removingFunction, setRemovingFunction] = useState<{ couple: CoupleWithFunctions; fn: CoupleFunction } | null>(null);
   const [addingFunctionCouple, setAddingFunctionCouple] = useState<CoupleWithFunctions | null>(null);
 
+  // Build a map of scope_type+scope_id -> access key info
+  const accessKeyMap = useMemo(() => {
+    const map = new Map<string, { code: string; active: boolean }>();
+    if (accessKeys) {
+      for (const key of accessKeys) {
+        if (key.scope_id) {
+          const mapKey = `${key.scope_type}:${key.scope_id}`;
+          // Only keep active ones, or the latest
+          const existing = map.get(mapKey);
+          if (!existing || (key.active && !existing.active)) {
+            map.set(mapKey, { code: key.code, active: key.active ?? false });
+          }
+        }
+      }
+    }
+    return map;
+  }, [accessKeys]);
+
   const filtered = useMemo(() => {
     let result = couples;
 
-    // Filter by role
     if (filter === 'multi') {
       result = result.filter(c => c.functions.length > 1);
     } else if (filter === 'no_function') {
@@ -50,7 +75,6 @@ export function UserRolesManager() {
       result = result.filter(c => c.functions.some(f => f.role === filter));
     }
 
-    // Search
     if (search.trim()) {
       const s = search.toLowerCase();
       result = result.filter(c => {
@@ -131,6 +155,7 @@ export function UserRolesManager() {
                 <CoupleCard
                   key={couple.coupleId}
                   couple={couple}
+                  accessKeyMap={accessKeyMap}
                   onAddFunction={() => setAddingFunctionCouple(couple)}
                   onEditFunction={(fn, i) => setEditingFunction({ couple, fn, index: i })}
                   onRemoveFunction={(fn) => setRemovingFunction({ couple, fn })}
@@ -141,13 +166,8 @@ export function UserRolesManager() {
         </CardContent>
       </Card>
 
-      {/* Create Couple Dialog */}
-      <CreateCoupleDialog
-        open={isCreateDialogOpen}
-        onOpenChange={setIsCreateDialogOpen}
-      />
+      <CreateCoupleDialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen} />
 
-      {/* Add Function to existing couple */}
       {addingFunctionCouple && (
         <EditFunctionDialog
           open={!!addingFunctionCouple}
@@ -158,7 +178,6 @@ export function UserRolesManager() {
         />
       )}
 
-      {/* Edit Function Dialog */}
       {editingFunction && (
         <EditFunctionDialog
           open={!!editingFunction}
@@ -169,7 +188,6 @@ export function UserRolesManager() {
         />
       )}
 
-      {/* Remove Function Dialog */}
       {removingFunction && (
         <RemoveFunctionDialog
           open={!!removingFunction}
@@ -184,11 +202,13 @@ export function UserRolesManager() {
 
 function CoupleCard({
   couple,
+  accessKeyMap,
   onAddFunction,
   onEditFunction,
   onRemoveFunction,
 }: {
   couple: CoupleWithFunctions;
+  accessKeyMap: Map<string, { code: string; active: boolean }>;
   onAddFunction: () => void;
   onEditFunction: (fn: CoupleFunction, index: number) => void;
   onRemoveFunction: (fn: CoupleFunction) => void;
@@ -198,7 +218,6 @@ function CoupleCard({
   return (
     <div className="rounded-xl border border-border/50 p-4 hover:border-primary/20 transition-colors">
       <div className="flex items-start gap-3">
-        {/* Couple Avatars */}
         <div className="flex -space-x-2 shrink-0">
           <Avatar className="h-10 w-10 border-2 border-background">
             <AvatarImage src={couple.spouse1?.avatar_url || undefined} crossOrigin="anonymous" />
@@ -214,14 +233,16 @@ function CoupleCard({
           </Avatar>
         </div>
 
-        {/* Info */}
         <div className="flex-1 min-w-0">
           <p className="font-semibold text-sm truncate">{coupleName}</p>
           <div className="mt-2 space-y-1.5">
             {couple.functions.map((fn, i) => {
               const Icon = roleIcons[fn.role] || Users;
+              const scopeType = scopeTypeMap[fn.role];
+              const keyInfo = scopeType ? accessKeyMap.get(`${scopeType}:${fn.entityId}`) : null;
+
               return (
-                <div key={i} className="flex items-center gap-2 text-xs group">
+                <div key={i} className="flex items-center gap-2 text-xs group flex-wrap">
                   <Badge variant="secondary" className={`gap-1 text-xs font-medium ${roleColors[fn.role] || ''}`}>
                     <Icon className="h-3 w-3" />
                     {fn.roleLabel}
@@ -230,6 +251,19 @@ function CoupleCard({
                   <span className="font-medium">{fn.entityName}</span>
                   {fn.parentName && (
                     <span className="text-muted-foreground">({fn.parentName})</span>
+                  )}
+                  {/* Access code badge */}
+                  {keyInfo && (
+                    <Badge variant="outline" className={`gap-1 text-[10px] font-mono ${keyInfo.active ? 'border-green-500/30 text-green-600' : 'border-destructive/30 text-destructive line-through'}`}>
+                      <KeyRound className="h-2.5 w-2.5" />
+                      {keyInfo.code}
+                    </Badge>
+                  )}
+                  {!keyInfo && (
+                    <Badge variant="outline" className="gap-1 text-[10px] text-muted-foreground border-dashed">
+                      <KeyRound className="h-2.5 w-2.5" />
+                      sem código
+                    </Badge>
                   )}
                   {/* Per-function actions */}
                   <DropdownMenu>
@@ -256,7 +290,6 @@ function CoupleCard({
           </div>
         </div>
 
-        {/* Actions */}
         <div className="flex items-center gap-1 shrink-0">
           {couple.functions.length > 1 && (
             <Badge variant="outline" className="text-xs mr-1">
