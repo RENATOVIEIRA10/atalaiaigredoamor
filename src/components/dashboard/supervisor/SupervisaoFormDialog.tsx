@@ -182,13 +182,13 @@ export function SupervisaoFormDialog({ open, onOpenChange, supervisorId, celulas
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh]">
-        <DialogHeader>
+      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle>Registrar Supervisão</DialogTitle>
           <DialogDescription>Preencha o formulário de supervisão da célula</DialogDescription>
         </DialogHeader>
         
-        <ScrollArea className="max-h-[70vh] pr-4">
+        <div className="flex-1 overflow-y-auto pr-2 -mr-2">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Basic Info */}
             <div className="grid gap-4 md:grid-cols-2">
@@ -362,7 +362,7 @@ export function SupervisaoFormDialog({ open, onOpenChange, supervisorId, celulas
               </Button>
             </div>
           </form>
-        </ScrollArea>
+        </div>
       </DialogContent>
     </Dialog>
   );
