@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Loader2, GitBranch, Search, FileDown } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import { moduleIcons, actionIcons } from '@/lib/icons';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { PageHeader } from '@/components/ui/page-header';
 import { Input } from '@/components/ui/input';
@@ -39,14 +40,14 @@ export default function Organograma() {
         <PageHeader
           title="Organograma"
           subtitle="Estrutura hierárquica da rede"
-          icon={GitBranch}
+          icon={moduleIcons.organograma}
         />
 
         <div className="flex flex-col sm:flex-row gap-3">
           <Card className="flex-1">
             <CardContent className="p-3">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <actionIcons.search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Buscar por nome..."
                   value={search}
@@ -62,7 +63,7 @@ export default function Organograma() {
             disabled={exporting || isLoading}
             className="gap-2 shrink-0"
           >
-            {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
+            {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <actionIcons.export className="h-4 w-4" />}
             Exportar PDF
           </Button>
         </div>

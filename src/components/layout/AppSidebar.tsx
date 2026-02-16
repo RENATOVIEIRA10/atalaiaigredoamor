@@ -1,10 +1,7 @@
 import { useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import {
-  LayoutDashboard, Users, Network, FolderTree, Home,
-  ClipboardCheck, Settings, LogOut, Database, GitBranch,
-  Heart, Moon, Eye
-} from 'lucide-react';
+import { moduleIcons, roleIcons, actionIcons, themeIcons, roleLabels } from '@/lib/icons';
+import { Eye, LogOut } from 'lucide-react';
 import logoIgreja from '@/assets/logo-igreja-do-amor.png';
 import { useRole } from '@/contexts/RoleContext';
 import { useDemoMode } from '@/contexts/DemoModeContext';
@@ -18,38 +15,29 @@ import {
   SidebarMenu, SidebarMenuButton, SidebarMenuItem
 } from '@/components/ui/sidebar';
 
-const roleLabels: Record<string, string> = {
-  pastor: 'Pastor Sênior',
-  admin: 'Administrador',
-  rede_leader: 'Líder de Rede',
-  coordenador: 'Coordenador',
-  supervisor: 'Supervisor',
-  celula_leader: 'Líder de Célula'
-};
-
 const pastorNavItems = [
-  { title: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { title: 'Organograma', href: '/organograma', icon: GitBranch },
+  { title: 'Dashboard', href: '/dashboard', icon: moduleIcons.dashboard },
+  { title: 'Organograma', href: '/organograma', icon: moduleIcons.organograma },
 ];
 
 const cellLeaderNavItems = [
-  { title: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { title: 'Organograma', href: '/organograma', icon: GitBranch },
+  { title: 'Dashboard', href: '/dashboard', icon: moduleIcons.dashboard },
+  { title: 'Organograma', href: '/organograma', icon: moduleIcons.organograma },
 ];
 
 const fullNavItems = [
-  { title: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { title: 'Dados', href: '/dados', icon: Database },
-  { title: 'Células', href: '/celulas', icon: Home },
-  { title: 'Membros', href: '/membros', icon: Users },
-  { title: 'Presença', href: '/presenca', icon: ClipboardCheck },
-  { title: 'Organograma', href: '/organograma', icon: GitBranch },
+  { title: 'Dashboard', href: '/dashboard', icon: moduleIcons.dashboard },
+  { title: 'Dados', href: '/dados', icon: moduleIcons.dados },
+  { title: 'Células', href: '/celulas', icon: moduleIcons.celulas },
+  { title: 'Membros', href: '/membros', icon: moduleIcons.membros },
+  { title: 'Presença', href: '/presenca', icon: moduleIcons.presenca },
+  { title: 'Organograma', href: '/organograma', icon: moduleIcons.organograma },
 ];
 
 const adminNavItems = [
-  { title: 'Redes', href: '/redes', icon: Network },
-  { title: 'Coordenações', href: '/coordenacoes', icon: FolderTree },
-  { title: 'Configurações', href: '/configuracoes', icon: Settings },
+  { title: 'Redes', href: '/redes', icon: moduleIcons.redes },
+  { title: 'Coordenações', href: '/coordenacoes', icon: moduleIcons.coordenacoes },
+  { title: 'Configurações', href: '/configuracoes', icon: moduleIcons.configuracoes },
 ];
 
 export function AppSidebar() {
@@ -158,7 +146,7 @@ export function AppSidebar() {
               onClick={toggleTheme}
               className="flex-1 h-9 text-xs font-medium text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent gap-2"
             >
-              {theme === 'padrao' ? <Heart className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              {theme === 'padrao' ? <themeIcons.amor className="h-4 w-4" /> : <themeIcons.padrao className="h-4 w-4" />}
               {theme === 'padrao' ? 'Tema Amor' : 'Tema Padrão'}
             </Button>
           </div>
