@@ -7,24 +7,24 @@ interface ScriptureVerse {
 
 const versesByRole: Record<string, ScriptureVerse> = {
   pastor: {
-    text: 'Apascenta as minhas ovelhas.',
-    reference: 'João 21:17',
+    text: 'Cuidem de todo o rebanho sobre o qual o Espírito Santo os colocou.',
+    reference: 'Atos 20:28',
   },
   rede_leader: {
-    text: 'Não havendo visão, o povo perece.',
+    text: 'Onde não há visão, o povo perece.',
     reference: 'Provérbios 29:18',
   },
   coordenador: {
-    text: 'Mas faça-se tudo com decência e ordem.',
-    reference: '1 Coríntios 14:40',
+    text: 'Os planos bem elaborados levam à fartura.',
+    reference: 'Provérbios 21:5',
   },
   supervisor: {
-    text: 'Olhai por vós e por todo o rebanho sobre o qual o Espírito Santo vos constituiu bispos.',
-    reference: 'Atos 20:28',
+    text: 'Vigiai, permanecei firmes na fé.',
+    reference: '1 Coríntios 16:13',
   },
   celula_leader: {
-    text: 'Porque onde estiverem dois ou três reunidos em meu nome, ali estou no meio deles.',
-    reference: 'Mateus 18:20',
+    text: 'Apascentem o rebanho de Deus que está aos seus cuidados.',
+    reference: '1 Pedro 5:2',
   },
   admin: {
     text: 'Tudo o que fizerem, façam de todo o coração, como para o Senhor.',
@@ -41,14 +41,24 @@ export function MissionVerse({ role }: MissionVerseProps) {
   if (!verse) return null;
 
   return (
-    <div className="flex items-start gap-3 px-4 py-3 rounded-xl border border-primary/10 bg-primary/5">
+    <div
+      className="flex items-start gap-3 px-4 py-3.5 rounded-xl border border-primary/15 bg-primary/5"
+      style={{
+        boxShadow: 'inset 0 1px 0 0 hsl(var(--primary) / 0.06)',
+      }}
+    >
       <BookOpen className="h-4 w-4 text-primary mt-0.5 shrink-0" />
       <div className="min-w-0">
-        <p className="text-sm italic text-foreground/80 leading-relaxed">
+        <p
+          className="text-sm italic text-foreground/80 leading-relaxed"
+          style={{ fontFamily: "'DM Serif Display', serif" }}
+        >
           "{verse.text}"
         </p>
-        <p className="text-xs text-muted-foreground mt-1 font-medium">
-          📖 {verse.reference}
+        <p className="text-xs text-muted-foreground mt-1 font-medium"
+          style={{ fontFamily: "'Inter', sans-serif" }}
+        >
+          {verse.reference}
         </p>
       </div>
     </div>
