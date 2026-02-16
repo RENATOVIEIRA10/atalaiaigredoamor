@@ -19,7 +19,7 @@ export function StatCard({ icon: Icon, label, value, subtitle, trend, className 
         <div className="flex items-start justify-between">
           <div className="space-y-1">
             <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
-            <p className="text-2xl font-bold tracking-tight text-foreground">{value}</p>
+            <p className="text-3xl font-bold tracking-tight text-foreground">{value}</p>
             {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
             {trend && (
               <Badge
@@ -33,7 +33,7 @@ export function StatCard({ icon: Icon, label, value, subtitle, trend, className 
               </Badge>
             )}
           </div>
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/8 ring-1 ring-primary/15">
             <Icon className="h-5 w-5 text-primary" />
           </div>
         </div>
