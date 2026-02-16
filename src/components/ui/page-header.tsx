@@ -12,9 +12,9 @@ export function PageHeader({ title, subtitle, icon: Icon, actions }: PageHeaderP
   return (
     <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
       <div className="space-y-1">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2.5">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-3">
           {Icon && (
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 ring-1 ring-primary/20">
               <Icon className="h-5 w-5 text-primary" />
             </div>
           )}
