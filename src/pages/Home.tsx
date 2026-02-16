@@ -4,7 +4,8 @@ import { useRole } from '@/contexts/RoleContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Lock, AlertCircle, Loader2 } from 'lucide-react';
+import { AlertCircle, Loader2, Lock as LockIcon } from 'lucide-react';
+import { actionIcons } from '@/lib/icons';
 import logoRedeAmor from '@/assets/logo-rede-amor-a2.png';
 import logoAnoSantidade from '@/assets/logo-ano-santidade.png';
 import { supabase } from '@/integrations/supabase/client';
@@ -98,8 +99,8 @@ export default function HomePage() {
       />
 
       <div className="relative z-10 w-full max-w-md px-5 py-8 flex flex-col items-center">
-        {/* Logo */}
-        <div className="mb-6 flex flex-col items-center">
+        {/* Logo — fade-in */}
+        <div className="mb-6 flex flex-col items-center opacity-0 animate-fade-in">
           <img
             src={logoRedeAmor}
             alt="Rede Amor a 2"
@@ -107,8 +108,8 @@ export default function HomePage() {
           />
         </div>
 
-        {/* Welcome text */}
-        <div className="text-center mb-8">
+        {/* Welcome text — staggered */}
+        <div className="text-center mb-8 opacity-0 animate-fade-in-up stagger-2">
           <h1
             className="text-2xl sm:text-3xl mb-2"
             style={{
@@ -132,9 +133,9 @@ export default function HomePage() {
           </p>
         </div>
 
-        {/* Login card */}
+        {/* Login card — slide-up */}
         <div
-          className="w-full rounded-2xl p-6 sm:p-8"
+          className="w-full rounded-2xl p-6 sm:p-8 opacity-0 animate-slide-up stagger-3"
           style={{
             background: 'linear-gradient(180deg, #1e1e22 0%, #1a1a1e 100%)',
             border: '1px solid rgba(201,162,77,0.18)',
@@ -163,7 +164,7 @@ export default function HomePage() {
                 Código de Acesso
               </Label>
               <div className="relative">
-                <Lock
+                <LockIcon
                   className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4"
                   style={{ color: '#C9A24D' }}
                 />
@@ -210,7 +211,7 @@ export default function HomePage() {
 
             <Button
               type="submit"
-              className="w-full h-12 text-base font-semibold tracking-wide transition-all duration-200"
+              className="w-full h-12 text-base font-semibold tracking-wide btn-tap"
               disabled={!code.trim() || isLoading}
               style={{
                 background: !code.trim() || isLoading
@@ -222,12 +223,13 @@ export default function HomePage() {
                 boxShadow: code.trim() && !isLoading
                   ? '0 4px 20px rgba(201,162,77,0.25)'
                   : 'none',
+                transition: 'all 0.2s ease-out',
               }}
             >
               {isLoading ? (
                 <Loader2 className="h-5 w-5 animate-spin mr-2" />
               ) : (
-                <Lock className="h-4 w-4 mr-2" />
+                <LockIcon className="h-4 w-4 mr-2" />
               )}
               Entrar no Sistema
             </Button>
@@ -235,7 +237,7 @@ export default function HomePage() {
         </div>
 
         {/* Ano da Santidade badge */}
-        <div className="mt-6 flex justify-center">
+        <div className="mt-6 flex justify-center opacity-0 animate-fade-in stagger-5">
           <img
             src={logoAnoSantidade}
             alt="Ano da Santidade 2026"
@@ -244,7 +246,7 @@ export default function HomePage() {
         </div>
 
         {/* Scripture footer */}
-        <div className="mt-6 text-center">
+        <div className="mt-6 text-center opacity-0 animate-fade-in stagger-6">
           <p
             className="text-xs italic"
             style={{
