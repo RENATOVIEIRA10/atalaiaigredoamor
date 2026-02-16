@@ -5,7 +5,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { RoleProvider } from "@/contexts/RoleContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { DemoModeProvider } from "@/contexts/DemoModeContext";
 import { RoleProtectedRoute } from "@/components/RoleProtectedRoute";
+import { DemoModeBanner } from "@/components/demo/DemoModeBanner";
 
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
@@ -29,19 +31,22 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <RoleProvider>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/dashboard" element={<RoleProtectedRoute><Dashboard /></RoleProtectedRoute>} />
-              <Route path="/celulas" element={<RoleProtectedRoute><Celulas /></RoleProtectedRoute>} />
-              <Route path="/membros" element={<RoleProtectedRoute><Membros /></RoleProtectedRoute>} />
-              <Route path="/presenca" element={<RoleProtectedRoute><Presenca /></RoleProtectedRoute>} />
-              <Route path="/redes" element={<RoleProtectedRoute><Redes /></RoleProtectedRoute>} />
-              <Route path="/coordenacoes" element={<RoleProtectedRoute><Coordenacoes /></RoleProtectedRoute>} />
-              <Route path="/configuracoes" element={<RoleProtectedRoute><Configuracoes /></RoleProtectedRoute>} />
-              <Route path="/dados" element={<RoleProtectedRoute><Dados /></RoleProtectedRoute>} />
-              <Route path="/organograma" element={<RoleProtectedRoute><Organograma /></RoleProtectedRoute>} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <DemoModeProvider>
+              <DemoModeBanner />
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/dashboard" element={<RoleProtectedRoute><Dashboard /></RoleProtectedRoute>} />
+                <Route path="/celulas" element={<RoleProtectedRoute><Celulas /></RoleProtectedRoute>} />
+                <Route path="/membros" element={<RoleProtectedRoute><Membros /></RoleProtectedRoute>} />
+                <Route path="/presenca" element={<RoleProtectedRoute><Presenca /></RoleProtectedRoute>} />
+                <Route path="/redes" element={<RoleProtectedRoute><Redes /></RoleProtectedRoute>} />
+                <Route path="/coordenacoes" element={<RoleProtectedRoute><Coordenacoes /></RoleProtectedRoute>} />
+                <Route path="/configuracoes" element={<RoleProtectedRoute><Configuracoes /></RoleProtectedRoute>} />
+                <Route path="/dados" element={<RoleProtectedRoute><Dados /></RoleProtectedRoute>} />
+                <Route path="/organograma" element={<RoleProtectedRoute><Organograma /></RoleProtectedRoute>} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </DemoModeProvider>
           </RoleProvider>
         </BrowserRouter>
       </TooltipProvider>

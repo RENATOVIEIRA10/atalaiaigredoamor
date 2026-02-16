@@ -1,79 +1,48 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Loader2, Plus, Trash2, FolderTree, ClipboardCheck, UserPlus, Users } from 'lucide-react';
+import { Loader2, UserPlus, Users, Search, Network, FolderTree, ClipboardCheck, Home } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { useSupervisores, useDeleteSupervisor } from '@/hooks/useSupervisoes';
-import { SupervisorFormDialog } from '@/components/settings/SupervisorFormDialog';
+import { useCoupleFunctions, CoupleWithFunctions } from '@/hooks/useCoupleFunctions';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
-interface Profile {
-  id: string;
-  name: string;
-  email: string | null;
-  avatar_url: string | null;
-  user_id: string;
-}
+const roleIcons: Record<string, any> = {
+  rede_leader: Network,
+  coordenador: FolderTree,
+  supervisor: ClipboardCheck,
+  celula_leader: Home,
+};
 
+const roleColors: Record<string, string> = {
+  rede_leader: 'bg-primary/10 text-primary',
+  coordenador: 'bg-blue-500/10 text-blue-600',
+  supervisor: 'bg-green-500/10 text-green-600',
+  celula_leader: 'bg-orange-500/10 text-orange-600',
+};
 
 export function UserRolesManager() {
   const queryClient = useQueryClient();
+  const { couples, isLoading } = useCoupleFunctions();
+  const [search, setSearch] = useState('');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isSupervisorFormOpen, setIsSupervisorFormOpen] = useState(false);
   const [newProfileName, setNewProfileName] = useState('');
   const [newProfileEmail, setNewProfileEmail] = useState('');
 
-  const { data: profilesWithRoles, isLoading: profilesLoading, error: profilesError } = useQuery({
-    queryKey: ['profiles-with-roles'],
-    queryFn: async () => {
-      const { data: profiles, error: profilesErr } = await supabase
-        .from('profiles')
-        .select('*')
-        .order('name');
-      
-      if (profilesErr) throw profilesErr;
-      return (profiles || []) as Profile[];
-    },
-    retry: 1,
-  });
-
-  if (profilesError) {
-    console.error('Erro fatal na query:', profilesError);
-  }
-
-  const { data: supervisores, isLoading: supervisoresLoading } = useSupervisores();
-  const deleteSupervisor = useDeleteSupervisor();
-
-  // Create profile mutation
   const createProfile = useMutation({
     mutationFn: async (data: { name: string; email?: string }) => {
-      console.log('Tentando criar perfil:', data);
-      
-      // Tenta criar com um ID gerado, mas sabendo que pode falhar se não houver usuário Auth correspondente
       const fakeUserId = crypto.randomUUID();
-      
       const { data: profile, error } = await supabase
         .from('profiles')
-        .insert({
-          name: data.name,
-          email: data.email || null,
-          user_id: fakeUserId,
-        })
+        .insert({ name: data.name, email: data.email || null, user_id: fakeUserId })
         .select()
         .single();
-
-      if (error) {
-        console.error('Erro ao criar perfil:', error);
-        throw error;
-      }
+      if (error) throw error;
       return profile;
     },
     onSuccess: () => {
@@ -81,46 +50,24 @@ export function UserRolesManager() {
       setIsCreateDialogOpen(false);
       setNewProfileName('');
       setNewProfileEmail('');
-      toast({
-        title: 'Perfil criado',
-        description: 'O perfil foi criado com sucesso. Note que este usuário não tem login (apenas registro interno).',
-      });
+      toast({ title: 'Perfil criado', description: 'Perfil criado com sucesso.' });
     },
     onError: (error: any) => {
-      console.error('Erro detalhado na criação:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Erro ao criar perfil',
-        description: error.message || 'Verifique se você tem permissão de administrador.',
-      });
+      toast({ variant: 'destructive', title: 'Erro ao criar perfil', description: error.message });
     },
   });
 
-  // Delete profile mutation
-  const deleteProfile = useMutation({
-    mutationFn: async (profileId: string) => {
-      const { error } = await supabase
-        .from('profiles')
-        .delete()
-        .eq('id', profileId);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['profiles-with-roles'] });
-      queryClient.invalidateQueries({ queryKey: ['supervisores'] });
-      toast({ title: 'Sucesso!', description: 'Perfil removido com sucesso.' });
-    },
-    onError: (error) => {
-      toast({ title: 'Erro', description: error.message, variant: 'destructive' });
-    },
-  });
+  const filtered = useMemo(() => {
+    if (!search.trim()) return couples;
+    const s = search.toLowerCase();
+    return couples.filter(c => {
+      const names = [c.spouse1?.name, c.spouse2?.name].filter(Boolean).join(' ').toLowerCase();
+      const funcs = c.functions.map(f => `${f.roleLabel} ${f.entityName}`).join(' ').toLowerCase();
+      return names.includes(s) || funcs.includes(s);
+    });
+  }, [couples, search]);
 
-  const handleCreateProfile = () => {
-    if (!newProfileName.trim()) return;
-    createProfile.mutate({ name: newProfileName, email: newProfileEmail });
-  };
-
-  if (profilesLoading) {
+  if (isLoading) {
     return (
       <Card>
         <CardContent className="flex items-center justify-center py-8">
@@ -132,206 +79,57 @@ export function UserRolesManager() {
 
   return (
     <div className="space-y-6">
-      <Tabs defaultValue="profiles" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="profiles" className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            Perfis
-          </TabsTrigger>
-          <TabsTrigger value="supervisores" className="flex items-center gap-2">
-            <ClipboardCheck className="h-4 w-4" />
-            Supervisores
-          </TabsTrigger>
-        </TabsList>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Gestão de Funções por Casal
+              </CardTitle>
+              <CardDescription>
+                {couples.length} casal(is) com funções ativas na estrutura
+              </CardDescription>
+            </div>
+            <Button size="sm" onClick={() => setIsCreateDialogOpen(true)}>
+              <UserPlus className="h-4 w-4 mr-2" />
+              Novo Perfil
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {couples.length > 5 && (
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar casal ou função..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+          )}
 
-        {/* Profiles & Roles Tab */}
-        <TabsContent value="profiles">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <Users className="h-5 w-5" />
-                    Gestão de Perfis
-                  </CardTitle>
-                  <CardDescription>
-                    Cadastre e gerencie perfis do sistema
-                  </CardDescription>
-                </div>
-                <Button onClick={() => setIsCreateDialogOpen(true)}>
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  Novo Perfil
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Perfil</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead className="text-right w-20">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {profilesWithRoles?.map((profile) => (
-                    <TableRow key={profile.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-8 w-8">
-                            <AvatarImage src={profile.avatar_url || undefined} crossOrigin="anonymous" />
-                            <AvatarFallback>
-                              {profile.name.charAt(0).toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
-                          <span className="font-medium">{profile.name}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm text-muted-foreground">{profile.email || '—'}</span>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            if (confirm(`Remover perfil "${profile.name}"?`)) {
-                              deleteProfile.mutate(profile.id);
-                            }
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {(!profilesWithRoles || profilesWithRoles.length === 0) && (
-                    <TableRow>
-                      <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
-                        Nenhum perfil cadastrado
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
+          {filtered.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              {search ? 'Nenhum resultado encontrado' : 'Nenhum casal com funções ativas'}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {filtered.map(couple => (
+                <CoupleCard key={couple.coupleId} couple={couple} />
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
-        {/* Supervisores Tab */}
-        <TabsContent value="supervisores">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <ClipboardCheck className="h-5 w-5" />
-                    Gestão de Supervisores
-                  </CardTitle>
-                  <CardDescription>
-                    Vincule casais como supervisores de coordenações específicas
-                  </CardDescription>
-                </div>
-                <Button onClick={() => setIsSupervisorFormOpen(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Novo Supervisor (Casal)
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Supervisors List */}
-              {supervisoresLoading ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                </div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Casal Supervisor</TableHead>
-                      <TableHead>Coordenação</TableHead>
-                      <TableHead className="text-right">Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {supervisores?.map((supervisor) => {
-                      const coupleName = supervisor.leadership_couple
-                        ? `${supervisor.leadership_couple.spouse1?.name || ''} & ${supervisor.leadership_couple.spouse2?.name || ''}`
-                        : supervisor.profile?.name || 'N/A';
-                      
-                      return (
-                        <TableRow key={supervisor.id}>
-                          <TableCell>
-                            <div className="flex items-center gap-3">
-                              {supervisor.leadership_couple ? (
-                                <div className="flex -space-x-2">
-                                  <Avatar className="h-8 w-8 border-2 border-background">
-                                    <AvatarImage src={supervisor.leadership_couple.spouse1?.avatar_url || undefined} crossOrigin="anonymous" />
-                                    <AvatarFallback className="text-xs">
-                                      {supervisor.leadership_couple.spouse1?.name?.charAt(0) || 'S'}
-                                    </AvatarFallback>
-                                  </Avatar>
-                                  <Avatar className="h-8 w-8 border-2 border-background">
-                                    <AvatarImage src={supervisor.leadership_couple.spouse2?.avatar_url || undefined} crossOrigin="anonymous" />
-                                    <AvatarFallback className="text-xs">
-                                      {supervisor.leadership_couple.spouse2?.name?.charAt(0) || 'S'}
-                                    </AvatarFallback>
-                                  </Avatar>
-                                </div>
-                              ) : (
-                                <Avatar className="h-8 w-8">
-                                  <AvatarFallback>
-                                    {supervisor.profile?.name?.charAt(0)?.toUpperCase() || 'S'}
-                                  </AvatarFallback>
-                                </Avatar>
-                              )}
-                              <span className="font-medium">{coupleName}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="outline" className="flex w-fit items-center gap-1">
-                              <FolderTree className="h-3 w-3" />
-                              {supervisor.coordenacao?.name || 'N/A'}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                if (confirm(`Remover supervisor "${coupleName}"?`)) {
-                                  deleteSupervisor.mutate(supervisor.id);
-                                }
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                    {(!supervisores || supervisores.length === 0) && (
-                      <TableRow>
-                        <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
-                          Nenhum supervisor cadastrado
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-
+      {/* Create Profile Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Criar Novo Perfil</DialogTitle>
-            <DialogDescription>
-              Adicione um novo membro ao sistema.
-            </DialogDescription>
+            <DialogDescription>Adicione um novo membro ao sistema.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
@@ -351,18 +149,76 @@ export function UserRolesManager() {
                 onChange={(e) => setNewProfileEmail(e.target.value)}
               />
             </div>
-            <Button onClick={handleCreateProfile} className="w-full" disabled={createProfile.isPending}>
+            <Button
+              onClick={() => {
+                if (!newProfileName.trim()) return;
+                createProfile.mutate({ name: newProfileName, email: newProfileEmail });
+              }}
+              className="w-full"
+              disabled={createProfile.isPending}
+            >
               {createProfile.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               Criar Perfil
             </Button>
           </div>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
 
-      <SupervisorFormDialog
-        open={isSupervisorFormOpen}
-        onOpenChange={setIsSupervisorFormOpen}
-      />
+function CoupleCard({ couple }: { couple: CoupleWithFunctions }) {
+  const coupleName = [couple.spouse1?.name, couple.spouse2?.name].filter(Boolean).join(' & ');
+
+  return (
+    <div className="rounded-xl border border-border/50 p-4 hover:border-primary/20 transition-colors">
+      <div className="flex items-start gap-3">
+        {/* Couple Avatars */}
+        <div className="flex -space-x-2 shrink-0">
+          <Avatar className="h-10 w-10 border-2 border-background">
+            <AvatarImage src={couple.spouse1?.avatar_url || undefined} crossOrigin="anonymous" />
+            <AvatarFallback className="text-xs bg-primary/10 text-primary">
+              {couple.spouse1?.name?.charAt(0) || '?'}
+            </AvatarFallback>
+          </Avatar>
+          <Avatar className="h-10 w-10 border-2 border-background">
+            <AvatarImage src={couple.spouse2?.avatar_url || undefined} crossOrigin="anonymous" />
+            <AvatarFallback className="text-xs bg-primary/10 text-primary">
+              {couple.spouse2?.name?.charAt(0) || '?'}
+            </AvatarFallback>
+          </Avatar>
+        </div>
+
+        {/* Info */}
+        <div className="flex-1 min-w-0">
+          <p className="font-semibold text-sm truncate">{coupleName}</p>
+          <div className="mt-2 space-y-1.5">
+            {couple.functions.map((fn, i) => {
+              const Icon = roleIcons[fn.role] || Users;
+              return (
+                <div key={i} className="flex items-center gap-2 text-xs">
+                  <Badge variant="secondary" className={`gap-1 text-xs font-medium ${roleColors[fn.role] || ''}`}>
+                    <Icon className="h-3 w-3" />
+                    {fn.roleLabel}
+                  </Badge>
+                  <span className="text-muted-foreground">→</span>
+                  <span className="font-medium">{fn.entityName}</span>
+                  {fn.parentName && (
+                    <span className="text-muted-foreground">({fn.parentName})</span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Count badge */}
+        {couple.functions.length > 1 && (
+          <Badge variant="outline" className="shrink-0 text-xs">
+            {couple.functions.length} funções
+          </Badge>
+        )}
+      </div>
     </div>
   );
 }
