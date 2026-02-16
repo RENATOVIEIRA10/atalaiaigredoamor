@@ -50,6 +50,47 @@ export type Database = {
         }
         Relationships: []
       }
+      access_logs: {
+        Row: {
+          access_key_id: string | null
+          code_used: string
+          created_at: string
+          id: string
+          ip_hint: string | null
+          scope_id: string | null
+          scope_type: string
+          user_agent: string | null
+        }
+        Insert: {
+          access_key_id?: string | null
+          code_used: string
+          created_at?: string
+          id?: string
+          ip_hint?: string | null
+          scope_id?: string | null
+          scope_type: string
+          user_agent?: string | null
+        }
+        Update: {
+          access_key_id?: string | null
+          code_used?: string
+          created_at?: string
+          id?: string
+          ip_hint?: string | null
+          scope_id?: string | null
+          scope_type?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "access_logs_access_key_id_fkey"
+            columns: ["access_key_id"]
+            isOneToOne: false
+            referencedRelation: "access_keys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       attendances: {
         Row: {
           created_at: string

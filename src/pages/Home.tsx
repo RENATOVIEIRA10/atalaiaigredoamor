@@ -38,41 +38,59 @@ export default function HomePage() {
       const match = data?.find(k => k.code.toLowerCase() === normalizedCode.toLowerCase());
 
       if (!match) {
+        // Increment failed attempts on any key that matches (case-insensitive, even inactive)
+        const { data: anyKeys } = await supabase
+          .from('access_keys')
+          .select('id, failed_attempts')
+          .ilike('code', normalizedCode);
+        if (anyKeys && anyKeys.length > 0) {
+          await supabase
+            .from('access_keys')
+            .update({ failed_attempts: (anyKeys[0].failed_attempts || 0) + 1 })
+            .eq('id', anyKeys[0].id);
+        }
         setAttempts(prev => prev + 1);
         setError('Código inválido. Verifique e tente novamente.');
         setIsLoading(false);
         return;
       }
 
-      if (match.failed_attempts >= 5) {
+      // Check brute-force lockout
+      if ((match.failed_attempts || 0) >= 5) {
         setError('Código bloqueado por tentativas excessivas. Contate o administrador.');
         setIsLoading(false);
         return;
       }
 
+      // Check expiration
+      if (match.expires_at && new Date(match.expires_at) < new Date()) {
+        setError('Código expirado. Solicite um novo ao administrador.');
+        setIsLoading(false);
+        return;
+      }
+
+      // Update last_used_at and reset failed attempts
       await supabase
         .from('access_keys')
         .update({ last_used_at: new Date().toISOString(), failed_attempts: 0 })
         .eq('id', match.id);
+
+      // Log access silently
+      try {
+        await supabase.from('access_logs').insert({
+          access_key_id: match.id,
+          scope_type: match.scope_type,
+          scope_id: match.scope_id,
+          code_used: match.code,
+          user_agent: navigator.userAgent?.substring(0, 200) || null,
+        });
+      } catch (_) { /* silent */ }
 
       const scopeType = match.scope_type as 'pastor' | 'admin' | 'rede' | 'coordenacao' | 'supervisor' | 'celula';
       setScopeAccess(scopeType, match.scope_id);
       navigate('/dashboard');
     } catch (err: any) {
       setError(err.message || 'Erro ao validar código');
-
-      const { data: keys } = await supabase
-        .from('access_keys')
-        .select('id, failed_attempts')
-        .ilike('code', code.trim())
-        .eq('active', true);
-
-      if (keys && keys.length > 0) {
-        await supabase
-          .from('access_keys')
-          .update({ failed_attempts: (keys[0].failed_attempts || 0) + 1 })
-          .eq('id', keys[0].id);
-      }
     } finally {
       setIsLoading(false);
     }

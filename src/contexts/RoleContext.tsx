@@ -1,7 +1,17 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 type UserRole = 'pastor' | 'admin' | 'rede_leader' | 'coordenador' | 'supervisor' | 'celula_leader';
 type ScopeType = 'pastor' | 'admin' | 'rede' | 'coordenacao' | 'supervisor' | 'celula';
+
+const SESSION_KEY = 'rede_amor_session';
+const SESSION_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+interface StoredSession {
+  scopeType: ScopeType;
+  scopeId: string | null;
+  expiresAt: number;
+}
 
 interface RoleContextType {
   selectedRole: UserRole | null;
@@ -36,16 +46,65 @@ export function RoleProvider({ children }: { children: ReactNode }) {
   const [scopeType, setScopeType] = useState<ScopeType | null>(null);
   const [scopeId, setScopeId] = useState<string | null>(null);
 
+  // Restore session on mount
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(SESSION_KEY);
+      if (stored) {
+        const session: StoredSession = JSON.parse(stored);
+        if (session.expiresAt > Date.now()) {
+          setScopeType(session.scopeType);
+          setScopeId(session.scopeId);
+          setSelectedRole(scopeTypeToRole(session.scopeType));
+        } else {
+          // Session expired
+          localStorage.removeItem(SESSION_KEY);
+        }
+      }
+    } catch {
+      localStorage.removeItem(SESSION_KEY);
+    }
+  }, []);
+
+  // Check expiry periodically (every 60s)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      try {
+        const stored = localStorage.getItem(SESSION_KEY);
+        if (stored) {
+          const session: StoredSession = JSON.parse(stored);
+          if (session.expiresAt <= Date.now()) {
+            localStorage.removeItem(SESSION_KEY);
+            setScopeType(null);
+            setScopeId(null);
+            setSelectedRole(null);
+          }
+        }
+      } catch {
+        // ignore
+      }
+    }, 60_000);
+    return () => clearInterval(interval);
+  }, []);
+
   const setScopeAccess = (st: ScopeType, sid: string | null) => {
     setScopeType(st);
     setScopeId(sid);
     setSelectedRole(scopeTypeToRole(st));
+    // Persist session with 24h expiry
+    const session: StoredSession = {
+      scopeType: st,
+      scopeId: sid,
+      expiresAt: Date.now() + SESSION_DURATION_MS,
+    };
+    localStorage.setItem(SESSION_KEY, JSON.stringify(session));
   };
 
   const clearAccess = () => {
     setSelectedRole(null);
     setScopeType(null);
     setScopeId(null);
+    localStorage.removeItem(SESSION_KEY);
   };
 
   const value: RoleContextType = {
