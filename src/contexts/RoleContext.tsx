@@ -10,6 +10,7 @@ const SESSION_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
 interface StoredSession {
   scopeType: ScopeType;
   scopeId: string | null;
+  accessKeyId: string | null;
   expiresAt: number;
 }
 
@@ -18,7 +19,8 @@ interface RoleContextType {
   setSelectedRole: (role: UserRole | null) => void;
   scopeType: ScopeType | null;
   scopeId: string | null;
-  setScopeAccess: (scopeType: ScopeType, scopeId: string | null) => void;
+  accessKeyId: string | null;
+  setScopeAccess: (scopeType: ScopeType, scopeId: string | null, accessKeyId?: string | null) => void;
   clearAccess: () => void;
   isPastor: boolean;
   isAdmin: boolean;
@@ -45,6 +47,7 @@ export function RoleProvider({ children }: { children: ReactNode }) {
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
   const [scopeType, setScopeType] = useState<ScopeType | null>(null);
   const [scopeId, setScopeId] = useState<string | null>(null);
+  const [accessKeyId, setAccessKeyId] = useState<string | null>(null);
 
   // Restore session on mount
   useEffect(() => {
@@ -55,6 +58,7 @@ export function RoleProvider({ children }: { children: ReactNode }) {
         if (session.expiresAt > Date.now()) {
           setScopeType(session.scopeType);
           setScopeId(session.scopeId);
+          setAccessKeyId(session.accessKeyId || null);
           setSelectedRole(scopeTypeToRole(session.scopeType));
         } else {
           // Session expired
@@ -77,6 +81,7 @@ export function RoleProvider({ children }: { children: ReactNode }) {
             localStorage.removeItem(SESSION_KEY);
             setScopeType(null);
             setScopeId(null);
+            setAccessKeyId(null);
             setSelectedRole(null);
           }
         }
@@ -87,14 +92,16 @@ export function RoleProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(interval);
   }, []);
 
-  const setScopeAccess = (st: ScopeType, sid: string | null) => {
+  const setScopeAccess = (st: ScopeType, sid: string | null, akId?: string | null) => {
     setScopeType(st);
     setScopeId(sid);
+    setAccessKeyId(akId || null);
     setSelectedRole(scopeTypeToRole(st));
     // Persist session with 24h expiry
     const session: StoredSession = {
       scopeType: st,
       scopeId: sid,
+      accessKeyId: akId || null,
       expiresAt: Date.now() + SESSION_DURATION_MS,
     };
     localStorage.setItem(SESSION_KEY, JSON.stringify(session));
@@ -104,6 +111,7 @@ export function RoleProvider({ children }: { children: ReactNode }) {
     setSelectedRole(null);
     setScopeType(null);
     setScopeId(null);
+    setAccessKeyId(null);
     localStorage.removeItem(SESSION_KEY);
   };
 
@@ -112,6 +120,7 @@ export function RoleProvider({ children }: { children: ReactNode }) {
     setSelectedRole,
     scopeType,
     scopeId,
+    accessKeyId,
     setScopeAccess,
     clearAccess,
     isPastor: selectedRole === 'pastor',

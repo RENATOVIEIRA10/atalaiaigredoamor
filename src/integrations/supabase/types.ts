@@ -502,6 +502,38 @@ export type Database = {
           },
         ]
       }
+      policy_acceptances: {
+        Row: {
+          accepted_at: string
+          access_key_id: string
+          created_at: string
+          id: string
+          policy_version: string
+        }
+        Insert: {
+          accepted_at?: string
+          access_key_id: string
+          created_at?: string
+          id?: string
+          policy_version: string
+        }
+        Update: {
+          accepted_at?: string
+          access_key_id?: string
+          created_at?: string
+          id?: string
+          policy_version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "policy_acceptances_access_key_id_fkey"
+            columns: ["access_key_id"]
+            isOneToOne: false
+            referencedRelation: "access_keys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null

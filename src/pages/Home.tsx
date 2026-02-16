@@ -87,8 +87,8 @@ export default function HomePage() {
       } catch (_) { /* silent */ }
 
       const scopeType = match.scope_type as 'pastor' | 'admin' | 'rede' | 'coordenacao' | 'supervisor' | 'celula';
-      setScopeAccess(scopeType, match.scope_id);
-      navigate('/dashboard');
+      setScopeAccess(scopeType, match.scope_id, match.id);
+      navigate('/onboarding');
     } catch (err: any) {
       setError(err.message || 'Erro ao validar código');
     } finally {
