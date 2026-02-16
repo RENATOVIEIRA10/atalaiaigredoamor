@@ -9,6 +9,7 @@ import { AvatarUpload } from './AvatarUpload';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRole } from '@/contexts/RoleContext';
+import { canEditAvatar } from '@/lib/avatarPermissions';
 
 interface ProfilePerson {
   id?: string;
@@ -51,11 +52,13 @@ export function ProfileViewerDialog({ open, onOpenChange, person1, person2, role
   const RoleIcon = roleIcons[entityType] || Users;
   const roleLabel = role || roleLabels[entityType] || 'Perfil';
   const queryClient = useQueryClient();
-  const { isAdmin, isRedeLeader, isCoordenador, isSupervisor } = useRole();
+  const { scopeType } = useRole();
   const [editingPhoto, setEditingPhoto] = useState<'person1' | 'person2' | null>(null);
 
   // Determine edit permission based on hierarchy
-  const canEditPhoto = canEdit !== undefined ? canEdit : (isAdmin || isRedeLeader || isCoordenador || isSupervisor);
+  const canEditPhoto = canEdit !== undefined
+    ? canEdit
+    : canEditAvatar(scopeType, entityType);
 
   const handlePhotoUploaded = async (profileId: string, url: string) => {
     await supabase.from('profiles').update({ avatar_url: url }).eq('id', profileId);
