@@ -12,7 +12,7 @@
  */
 
 type ScopeType = 'pastor' | 'admin' | 'rede' | 'coordenacao' | 'supervisor' | 'celula';
-type EntityType = 'celula' | 'supervisor' | 'coordenacao' | 'rede' | 'membro';
+type EntityType = 'celula' | 'supervisor' | 'coordenacao' | 'rede' | 'pastor' | 'membro';
 
 // Numeric rank: higher = more authority
 const SCOPE_RANK: Record<ScopeType, number> = {
@@ -31,6 +31,7 @@ const ENTITY_MIN_RANK: Record<EntityType, number> = {
   supervisor: 70,   // coordenador and above (or self)
   coordenacao: 80,  // rede_leader and above (or self)
   rede: 100,        // admin only (or self)
+  pastor: 100,      // admin only (or self)
 };
 
 /**
