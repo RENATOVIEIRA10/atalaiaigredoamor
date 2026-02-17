@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, UserCheck, Heart, UserPlus, Baby, Loader2, Network, FileSpreadsheet, ChevronDown, ChevronUp, Eye, ClipboardCheck, Image, Sparkles, History, GitBranch, User } from 'lucide-react';
+import { Users, UserCheck, Heart, UserPlus, Baby, Loader2, Network, FileSpreadsheet, ChevronDown, ChevronUp, Eye, ClipboardCheck, Image, Sparkles, History, GitBranch, User, Activity } from 'lucide-react';
 import { useRedes } from '@/hooks/useRedes';
 import { useCoordenacoes } from '@/hooks/useCoordenacoes';
 import { useCelulas } from '@/hooks/useCelulas';
@@ -31,6 +31,8 @@ import { StatCard } from '@/components/ui/stat-card';
 import { MissionVerse } from './MissionVerse';
 import { EmptyState } from '@/components/ui/empty-state';
 import { useRole } from '@/contexts/RoleContext';
+import { PulsoRedeSection } from './PulsoRedeSection';
+import { AniversariantesSemanaCard } from './AniversariantesSemanaCard';
 
 export function NetworkLeaderDashboard() {
   const { toast } = useToast();
@@ -190,6 +192,7 @@ export function NetworkLeaderDashboard() {
 
           <Tabs defaultValue="coordenacoes" className="space-y-4">
             <TabsList className="flex flex-wrap h-auto gap-1">
+              <TabsTrigger value="pulso" className="gap-1.5"><Activity className="h-4 w-4" />Pulso</TabsTrigger>
               <TabsTrigger value="coordenacoes" className="gap-1.5"><Network className="h-4 w-4" />Coordenações</TabsTrigger>
               <TabsTrigger value="multiplicacoes" className="gap-1.5"><GitBranch className="h-4 w-4" />Multiplicação</TabsTrigger>
               <TabsTrigger value="multiplicacoes-visual" className="gap-1.5"><GitBranch className="h-4 w-4" />Visual</TabsTrigger>
@@ -200,6 +203,13 @@ export function NetworkLeaderDashboard() {
                 <TabsTrigger value="supervisoes" className="gap-1.5"><ClipboardCheck className="h-4 w-4" />Supervisões</TabsTrigger>
               )}
             </TabsList>
+
+            <TabsContent value="pulso">
+              <div className="space-y-6">
+                <PulsoRedeSection scopeType="rede" scopeId={selectedRede} title="Pulso da Rede" />
+                <AniversariantesSemanaCard scopeType="rede" scopeId={selectedRede} />
+              </div>
+            </TabsContent>
 
             <TabsContent value="multiplicacoes"><MultiplicacoesTab /></TabsContent>
             <TabsContent value="multiplicacoes-visual"><MultiplicacoesVisual celulas={celulas || []} /></TabsContent>
