@@ -20,6 +20,8 @@ import Coordenacoes from "./pages/Coordenacoes";
 import Configuracoes from "./pages/Configuracoes";
 import Dados from "./pages/Dados";
 import Organograma from "./pages/Organograma";
+import PerfilCasal from "./pages/PerfilCasal";
+import PerfilMembro from "./pages/PerfilMembro";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -46,6 +48,8 @@ const App = () => (
                 <Route path="/configuracoes" element={<RoleProtectedRoute><Configuracoes /></RoleProtectedRoute>} />
                 <Route path="/dados" element={<RoleProtectedRoute><Dados /></RoleProtectedRoute>} />
                 <Route path="/organograma" element={<RoleProtectedRoute><Organograma /></RoleProtectedRoute>} />
+                <Route path="/perfil/casal/:coupleId" element={<RoleProtectedRoute><PerfilCasal /></RoleProtectedRoute>} />
+                <Route path="/perfil/membro/:memberId" element={<RoleProtectedRoute><PerfilMembro /></RoleProtectedRoute>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </DemoModeProvider>

@@ -58,6 +58,7 @@ export function RedeCard({ node }: RedeCardProps) {
           person2={node.spouse2}
           entityType="rede"
           entityName={node.name}
+          coupleId={node.coupleId || undefined}
         />
       )}
     </>

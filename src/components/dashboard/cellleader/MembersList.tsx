@@ -380,6 +380,7 @@ export function MembersList({ celulaId }: MembersListProps) {
           person1={(viewingProfile.profile as any) || undefined}
           entityType="membro"
           entityName={viewingProfile.celula?.name}
+          memberId={viewingProfile.id}
         />
       )}
     </>

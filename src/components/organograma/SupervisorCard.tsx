@@ -97,6 +97,7 @@ export function SupervisorCard({ node, searchQuery }: SupervisorCardProps) {
           person2={node.spouse2}
           entityType="supervisor"
           entityName={node.name}
+          coupleId={node.coupleId || undefined}
         />
       )}
     </>

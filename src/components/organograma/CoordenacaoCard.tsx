@@ -125,6 +125,7 @@ export function CoordenacaoCard({ node, searchQuery }: CoordenacaoCardProps) {
           person2={node.spouse2}
           entityType="coordenacao"
           entityName={node.name}
+          coupleId={node.coupleId || undefined}
         />
       )}
     </>

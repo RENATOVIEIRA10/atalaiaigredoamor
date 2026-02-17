@@ -1,11 +1,13 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Users, MapPin, Network, FolderTree, ClipboardCheck, Home } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Users, MapPin, Network, FolderTree, ClipboardCheck, Home, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AvatarEditable } from './AvatarEditable';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRole } from '@/contexts/RoleContext';
+import { useNavigate } from 'react-router-dom';
 import { canEditAvatar } from '@/lib/avatarPermissions';
 
 interface ProfilePerson {
@@ -26,6 +28,10 @@ interface ProfileViewerDialogProps {
   entityType?: 'celula' | 'supervisor' | 'coordenacao' | 'rede' | 'membro';
   parentName?: string;
   canEdit?: boolean;
+  /** Leadership couple ID — enables "Editar perfil" button linking to /perfil/casal/:id */
+  coupleId?: string;
+  /** Member ID — enables "Editar perfil" button linking to /perfil/membro/:id */
+  memberId?: string;
 }
 
 const roleLabels: Record<string, string> = {
@@ -44,20 +50,29 @@ const roleIcons: Record<string, any> = {
   membro: Users,
 };
 
-export function ProfileViewerDialog({ open, onOpenChange, person1, person2, role, entityName, entityType = 'membro', parentName, canEdit }: ProfileViewerDialogProps) {
+export function ProfileViewerDialog({ open, onOpenChange, person1, person2, role, entityName, entityType = 'membro', parentName, canEdit, coupleId, memberId }: ProfileViewerDialogProps) {
   const isCouple = !!person2;
   const RoleIcon = roleIcons[entityType] || Users;
   const roleLabel = role || roleLabels[entityType] || 'Perfil';
   const queryClient = useQueryClient();
   const { scopeType } = useRole();
+  const navigate = useNavigate();
 
   // Determine edit permission based on hierarchy
   const canEditPhoto = canEdit !== undefined
     ? canEdit
     : canEditAvatar(scopeType, entityType);
 
+  const handleGoToProfile = () => {
+    onOpenChange(false);
+    if (coupleId) {
+      navigate(`/perfil/casal/${coupleId}`);
+    } else if (memberId) {
+      navigate(`/perfil/membro/${memberId}`);
+    }
+  };
 
-
+  const showProfileButton = canEditPhoto && (coupleId || memberId);
   const handlePhotoSaved = async (profileId: string, url: string) => {
     await supabase.from('profiles').update({ avatar_url: url }).eq('id', profileId);
     // AvatarEditable already invalidates queries internally
@@ -119,6 +134,19 @@ export function ProfileViewerDialog({ open, onOpenChange, person1, person2, role
               <p className="text-xs text-muted-foreground">{parentName}</p>
             )}
           </div>
+
+          {/* Explicit CTA — desktop-friendly, no hover needed */}
+          {showProfileButton && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full gap-2"
+              onClick={handleGoToProfile}
+            >
+              <ExternalLink className="h-3.5 w-3.5" />
+              Editar perfil
+            </Button>
+          )}
         </div>
       </DialogContent>
     </Dialog>

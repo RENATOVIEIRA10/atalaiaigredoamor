@@ -58,6 +58,7 @@ export function CelulaCardOrg({ node, searchQuery }: CelulaCardOrgProps) {
           person2={node.spouse2}
           entityType="celula"
           entityName={node.name}
+          coupleId={node.coupleId || undefined}
         />
       )}
     </>
