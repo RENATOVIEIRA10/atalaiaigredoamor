@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, UserCheck, Heart, UserPlus, Baby, Loader2, LayoutGrid, Eye, ClipboardCheck, Image, FileSpreadsheet, Sparkles, History, Plus } from 'lucide-react';
+import { Users, UserCheck, Heart, UserPlus, Baby, Loader2, LayoutGrid, Eye, ClipboardCheck, Image, FileSpreadsheet, Sparkles, History, Plus, Activity } from 'lucide-react';
 import { useCoordenacoes } from '@/hooks/useCoordenacoes';
 import { useCelulas } from '@/hooks/useCelulas';
 import { useWeeklyReportsByCoordenacao, useUpdateWeeklyReport, useDeleteWeeklyReport } from '@/hooks/useWeeklyReports';
@@ -28,6 +28,8 @@ import { MissionVerse } from './MissionVerse';
 import { EmptyState } from '@/components/ui/empty-state';
 import { useRole } from '@/contexts/RoleContext';
 import { SupervisorFormDialog } from '@/components/settings/SupervisorFormDialog';
+import { PulsoRedeSection } from './PulsoRedeSection';
+import { AniversariantesSemanaCard } from './AniversariantesSemanaCard';
 
 export function CoordinatorDashboard() {
   const { toast } = useToast();
@@ -176,12 +178,20 @@ export function CoordinatorDashboard() {
 
           <Tabs defaultValue="relatorios" className="space-y-4">
             <TabsList className="flex flex-wrap h-auto gap-1">
+              <TabsTrigger value="pulso" className="gap-1.5"><Activity className="h-4 w-4" />Pulso</TabsTrigger>
               <TabsTrigger value="relatorios" className="gap-1.5"><LayoutGrid className="h-4 w-4" />Relatórios</TabsTrigger>
               <TabsTrigger value="historico" className="gap-1.5"><History className="h-4 w-4" />Histórico</TabsTrigger>
               <TabsTrigger value="insights" className="gap-1.5"><Sparkles className="h-4 w-4" />Insights IA</TabsTrigger>
               <TabsTrigger value="fotos" className="gap-1.5"><Image className="h-4 w-4" />Fotos</TabsTrigger>
               <TabsTrigger value="supervisoes" className="gap-1.5"><ClipboardCheck className="h-4 w-4" />Supervisões</TabsTrigger>
             </TabsList>
+
+            <TabsContent value="pulso">
+              <div className="space-y-6">
+                <PulsoRedeSection scopeType="coordenacao" scopeId={selectedCoordenacao} title="Pulso da Coordenação" />
+                <AniversariantesSemanaCard scopeType="coordenacao" scopeId={selectedCoordenacao} />
+              </div>
+            </TabsContent>
 
             <TabsContent value="insights">
               <AIInsightsPanel reports={currentReports} periodLabel={formatDateRangeDisplay()} context="coordenacao" />
