@@ -1,11 +1,8 @@
-import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Users, MapPin, Network, FolderTree, ClipboardCheck, Home, Camera } from 'lucide-react';
+import { Users, MapPin, Network, FolderTree, ClipboardCheck, Home } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { AvatarUpload } from './AvatarUpload';
+import { AvatarEditable } from './AvatarEditable';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRole } from '@/contexts/RoleContext';
@@ -53,73 +50,36 @@ export function ProfileViewerDialog({ open, onOpenChange, person1, person2, role
   const roleLabel = role || roleLabels[entityType] || 'Perfil';
   const queryClient = useQueryClient();
   const { scopeType } = useRole();
-  const [editingPhoto, setEditingPhoto] = useState<'person1' | 'person2' | null>(null);
 
   // Determine edit permission based on hierarchy
   const canEditPhoto = canEdit !== undefined
     ? canEdit
     : canEditAvatar(scopeType, entityType);
 
-  const handlePhotoUploaded = async (profileId: string, url: string) => {
+  const handlePhotoSaved = async (profileId: string, url: string) => {
     await supabase.from('profiles').update({ avatar_url: url }).eq('id', profileId);
-    queryClient.invalidateQueries({ queryKey: ['members'] });
-    queryClient.invalidateQueries({ queryKey: ['profiles'] });
-    queryClient.invalidateQueries({ queryKey: ['supervisores'] });
-    queryClient.invalidateQueries({ queryKey: ['celulas'] });
-    queryClient.invalidateQueries({ queryKey: ['coordenacoes'] });
-    queryClient.invalidateQueries({ queryKey: ['redes'] });
-    queryClient.invalidateQueries({ queryKey: ['leadership_couples'] });
-    queryClient.invalidateQueries({ queryKey: ['organograma'] });
-    setEditingPhoto(null);
+    // AvatarEditable already invalidates queries internally
   };
 
-  const renderPersonAvatar = (person: ProfilePerson | null | undefined, personKey: 'person1' | 'person2') => {
+  const renderPerson = (person: ProfilePerson | null | undefined) => {
     if (!person) return null;
-    const isEditing = editingPhoto === personKey;
 
     return (
-      <div className="flex flex-col items-center gap-2">
-        {isEditing && person.id ? (
-          <div className="flex flex-col items-center gap-2">
-            <AvatarUpload
-              currentUrl={person.avatar_url}
-              onUploaded={(url) => handlePhotoUploaded(person.id!, url)}
-              fallbackText={person.name?.charAt(0) || '?'}
-              size="lg"
-            />
-            <Button variant="ghost" size="sm" onClick={() => setEditingPhoto(null)} className="text-xs">
-              Cancelar
-            </Button>
-          </div>
-        ) : (
-          <div
-            className="relative group cursor-pointer"
-            onClick={() => { if (canEditPhoto && person.id) setEditingPhoto(personKey); }}
-            role={canEditPhoto && person.id ? 'button' : undefined}
-            tabIndex={canEditPhoto && person.id ? 0 : undefined}
-            aria-label={canEditPhoto && person.id ? 'Alterar foto' : undefined}
-          >
-            <Avatar className="h-24 w-24 border-4 border-primary/20">
-              <AvatarImage src={person.avatar_url || undefined} crossOrigin="anonymous" />
-              <AvatarFallback className="bg-primary/10 text-primary text-2xl">
-                {person.name?.charAt(0) || '?'}
-              </AvatarFallback>
-            </Avatar>
-            {canEditPhoto && person.id && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center rounded-full bg-black/40 opacity-0 group-hover:opacity-100 active:opacity-100 transition-opacity">
-                <Camera className="h-5 w-5 text-white" />
-                <span className="text-[10px] text-white mt-0.5">Alterar</span>
-              </div>
-            )}
-          </div>
-        )}
+      <div className="flex flex-col items-center gap-1">
+        <AvatarEditable
+          currentUrl={person.avatar_url}
+          canEdit={canEditPhoto && !!person.id}
+          onSaved={(url) => { if (person.id) handlePhotoSaved(person.id, url); }}
+          fallbackText={person.name?.charAt(0) || '?'}
+          size="lg"
+        />
         <p className="font-semibold text-center">{person.name || 'Sem nome'}</p>
       </div>
     );
   };
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { if (!v) setEditingPhoto(null); onOpenChange(v); }}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-sm">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -131,20 +91,15 @@ export function ProfileViewerDialog({ open, onOpenChange, person1, person2, role
         <div className="flex flex-col items-center gap-4 py-4">
           {/* Avatar(s) */}
           <div className={cn("flex items-center", isCouple ? "gap-4" : "")}>
-            {renderPersonAvatar(person1, 'person1')}
+            {renderPerson(person1)}
 
             {isCouple && (
               <>
                 <span className="text-muted-foreground font-medium text-lg">&</span>
-                {renderPersonAvatar(person2, 'person2')}
+                {renderPerson(person2)}
               </>
             )}
           </div>
-
-          {/* Edit photo hint */}
-          {canEditPhoto && !editingPhoto && (
-            <p className="text-xs text-muted-foreground">Toque na foto para editar</p>
-          )}
 
           {/* Info */}
           <div className="flex flex-col items-center gap-2 w-full">
