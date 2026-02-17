@@ -14,38 +14,68 @@ interface DemoModeContextType {
 
 const DemoModeContext = createContext<DemoModeContextType | undefined>(undefined);
 
+const DEMO_STORAGE_KEY = 'rede_amor_demo';
+
+interface DemoStoredState {
+  active: boolean;
+  scopeType: DemoScopeType;
+  scopeId: string | null;
+  label: string;
+  savedAccessKeyId: string | null;
+}
+
 export function DemoModeProvider({ children }: { children: ReactNode }) {
-  const { isAdmin, setScopeAccess } = useRole();
+  const { isAdmin, setScopeAccess, accessKeyId } = useRole();
   const [isDemoActive, setIsDemoActive] = useState(false);
   const [demoScopeType, setDemoScopeType] = useState<DemoScopeType | null>(null);
   const [demoScopeId, setDemoScopeId] = useState<string | null>(null);
   const [demoLabel, setDemoLabel] = useState<string | null>(null);
-  const [savedScopeType, setSavedScopeType] = useState<string | null>(null);
-  const [savedScopeId, setSavedScopeId] = useState<string | null>(null);
+  const [savedAccessKeyId, setSavedAccessKeyId] = useState<string | null>(null);
 
   const activateDemo = useCallback((scopeType: DemoScopeType, scopeId: string | null, label: string) => {
-    if (!isAdmin && !isDemoActive) return; // only admin can activate
-    // Save current admin state on first activation
+    if (!isAdmin && !isDemoActive) return;
+    
+    // Save current admin accessKeyId on first activation
+    const akId = isDemoActive ? savedAccessKeyId : accessKeyId;
     if (!isDemoActive) {
-      setSavedScopeType('admin');
-      setSavedScopeId(null);
+      setSavedAccessKeyId(accessKeyId);
     }
+    
     setIsDemoActive(true);
     setDemoScopeType(scopeType);
     setDemoScopeId(scopeId);
     setDemoLabel(label);
-    // Actually switch the role context
-    setScopeAccess(scopeType, scopeId);
-  }, [isAdmin, isDemoActive, setScopeAccess]);
+    
+    // Switch scope but KEEP the admin's accessKeyId so policy guard passes
+    setScopeAccess(scopeType, scopeId, akId);
+    
+    // Persist demo state
+    try {
+      const state: DemoStoredState = {
+        active: true,
+        scopeType,
+        scopeId,
+        label,
+        savedAccessKeyId: akId,
+      };
+      sessionStorage.setItem(DEMO_STORAGE_KEY, JSON.stringify(state));
+    } catch {}
+  }, [isAdmin, isDemoActive, setScopeAccess, accessKeyId, savedAccessKeyId]);
 
   const deactivateDemo = useCallback(() => {
+    const akId = savedAccessKeyId;
     setIsDemoActive(false);
     setDemoScopeType(null);
     setDemoScopeId(null);
     setDemoLabel(null);
-    // Restore admin
-    setScopeAccess('admin', null);
-  }, [setScopeAccess]);
+    setSavedAccessKeyId(null);
+    
+    // Restore admin with the original accessKeyId
+    setScopeAccess('admin', null, akId);
+    
+    // Clear demo storage
+    try { sessionStorage.removeItem(DEMO_STORAGE_KEY); } catch {}
+  }, [setScopeAccess, savedAccessKeyId]);
 
   return (
     <DemoModeContext.Provider value={{ isDemoActive, demoScopeType, demoScopeId, demoLabel, activateDemo, deactivateDemo }}>
