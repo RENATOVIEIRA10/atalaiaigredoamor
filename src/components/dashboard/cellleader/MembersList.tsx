@@ -17,7 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { format, parseISO, differenceInYears, differenceInMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { ProfileViewerDialog } from '@/components/profile/ProfileViewerDialog';
-import { AvatarUpload } from '@/components/profile/AvatarUpload';
+import { AvatarEditable } from '@/components/profile/AvatarEditable';
 
 interface MembersListProps {
   celulaId: string;
@@ -260,22 +260,18 @@ export function MembersList({ celulaId }: MembersListProps) {
                     
                     <CollapsibleContent className="pt-4 space-y-4">
                       {/* Avatar Upload */}
-                      <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                        <AvatarUpload
+                      <div className="flex items-center gap-4 p-3 bg-muted/50 rounded-lg">
+                        <AvatarEditable
                           currentUrl={profile?.avatar_url}
-                          onUploaded={async (url) => {
+                          canEdit={true}
+                          onSaved={async (url) => {
                             if (profile?.id) {
                               await supabase.from('profiles').update({ avatar_url: url }).eq('id', profile.id);
-                              queryClient.invalidateQueries({ queryKey: ['members'] });
                             }
                           }}
                           fallbackText={profile?.name?.charAt(0) || 'M'}
                           size="lg"
                         />
-                        <div>
-                          <p className="text-sm font-medium">Foto de Perfil</p>
-                          <p className="text-xs text-muted-foreground">Clique para alterar</p>
-                        </div>
                       </div>
                       {/* Dates Section */}
                       <div className="p-3 bg-muted/50 rounded-lg space-y-3">
