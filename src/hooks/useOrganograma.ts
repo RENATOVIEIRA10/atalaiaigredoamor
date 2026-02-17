@@ -9,8 +9,8 @@ export interface OrgNode {
   type: 'pastor' | 'rede' | 'coordenacao' | 'supervisor' | 'celula';
   name: string;
   coupleName: string | null;
-  spouse1?: { name?: string; avatar_url?: string | null } | null;
-  spouse2?: { name?: string; avatar_url?: string | null } | null;
+  spouse1?: { id?: string; name?: string; avatar_url?: string | null } | null;
+  spouse2?: { id?: string; name?: string; avatar_url?: string | null } | null;
   childrenCount: number;
   children: OrgNode[];
 }
@@ -25,8 +25,8 @@ function getCoupleDisplayName(couple: any): string | null {
 
 function getCoupleSpouses(couple: any) {
   return {
-    spouse1: couple?.spouse1 ? { name: couple.spouse1.name, avatar_url: couple.spouse1.avatar_url } : null,
-    spouse2: couple?.spouse2 ? { name: couple.spouse2.name, avatar_url: couple.spouse2.avatar_url } : null,
+    spouse1: couple?.spouse1 ? { id: couple.spouse1.id, name: couple.spouse1.name, avatar_url: couple.spouse1.avatar_url } : null,
+    spouse2: couple?.spouse2 ? { id: couple.spouse2.id, name: couple.spouse2.name, avatar_url: couple.spouse2.avatar_url } : null,
   };
 }
 

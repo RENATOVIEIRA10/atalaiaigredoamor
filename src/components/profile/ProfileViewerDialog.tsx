@@ -56,6 +56,8 @@ export function ProfileViewerDialog({ open, onOpenChange, person1, person2, role
     ? canEdit
     : canEditAvatar(scopeType, entityType);
 
+
+
   const handlePhotoSaved = async (profileId: string, url: string) => {
     await supabase.from('profiles').update({ avatar_url: url }).eq('id', profileId);
     // AvatarEditable already invalidates queries internally
