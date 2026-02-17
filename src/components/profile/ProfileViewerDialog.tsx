@@ -80,14 +80,25 @@ export function ProfileViewerDialog({ open, onOpenChange, person1, person2, role
     return (
       <div className="flex flex-col items-center gap-2">
         {isEditing && person.id ? (
-          <AvatarUpload
-            currentUrl={person.avatar_url}
-            onUploaded={(url) => handlePhotoUploaded(person.id!, url)}
-            fallbackText={person.name?.charAt(0) || '?'}
-            size="lg"
-          />
+          <div className="flex flex-col items-center gap-2">
+            <AvatarUpload
+              currentUrl={person.avatar_url}
+              onUploaded={(url) => handlePhotoUploaded(person.id!, url)}
+              fallbackText={person.name?.charAt(0) || '?'}
+              size="lg"
+            />
+            <Button variant="ghost" size="sm" onClick={() => setEditingPhoto(null)} className="text-xs">
+              Cancelar
+            </Button>
+          </div>
         ) : (
-          <div className="relative group">
+          <div
+            className="relative group cursor-pointer"
+            onClick={() => { if (canEditPhoto && person.id) setEditingPhoto(personKey); }}
+            role={canEditPhoto && person.id ? 'button' : undefined}
+            tabIndex={canEditPhoto && person.id ? 0 : undefined}
+            aria-label={canEditPhoto && person.id ? 'Alterar foto' : undefined}
+          >
             <Avatar className="h-24 w-24 border-4 border-primary/20">
               <AvatarImage src={person.avatar_url || undefined} crossOrigin="anonymous" />
               <AvatarFallback className="bg-primary/10 text-primary text-2xl">
@@ -95,22 +106,14 @@ export function ProfileViewerDialog({ open, onOpenChange, person1, person2, role
               </AvatarFallback>
             </Avatar>
             {canEditPhoto && person.id && (
-              <button
-                type="button"
-                onClick={() => setEditingPhoto(personKey)}
-                className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity"
-              >
+              <div className="absolute inset-0 flex flex-col items-center justify-center rounded-full bg-black/40 opacity-0 group-hover:opacity-100 active:opacity-100 transition-opacity">
                 <Camera className="h-5 w-5 text-white" />
-              </button>
+                <span className="text-[10px] text-white mt-0.5">Alterar</span>
+              </div>
             )}
           </div>
         )}
         <p className="font-semibold text-center">{person.name || 'Sem nome'}</p>
-        {isEditing && (
-          <Button variant="ghost" size="sm" onClick={() => setEditingPhoto(null)} className="text-xs">
-            Cancelar
-          </Button>
-        )}
       </div>
     );
   };
@@ -138,9 +141,9 @@ export function ProfileViewerDialog({ open, onOpenChange, person1, person2, role
             )}
           </div>
 
-          {/* Edit photo button when not editing */}
+          {/* Edit photo hint */}
           {canEditPhoto && !editingPhoto && (
-            <p className="text-xs text-muted-foreground">Passe o mouse sobre a foto para editar</p>
+            <p className="text-xs text-muted-foreground">Toque na foto para editar</p>
           )}
 
           {/* Info */}
