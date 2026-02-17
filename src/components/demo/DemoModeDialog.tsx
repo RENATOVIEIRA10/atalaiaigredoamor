@@ -95,9 +95,8 @@ export function DemoModeDialog({ open, onOpenChange }: DemoModeDialogProps) {
     return [];
   }, [selectedLevel, search, redes, coordenacoes, supervisores, celulas]);
 
-  const handleSelect = (scopeId: string | null, label: string) => {
-    if (!selectedLevel) return;
-    activateDemo(selectedLevel, scopeId, label);
+  const handleSelect = (level: DemoLevel, scopeId: string | null, label: string) => {
+    activateDemo(level, scopeId, label);
     onOpenChange(false);
     setSelectedLevel(null);
     setSearch('');
@@ -132,7 +131,7 @@ export function DemoModeDialog({ open, onOpenChange }: DemoModeDialogProps) {
                 key={level.value}
                 onClick={() => {
                   if (level.value === 'pastor') {
-                    handleSelect(null, 'Visão Pastoral');
+                    handleSelect('pastor', null, 'Visão Pastoral');
                   } else {
                     setSelectedLevel(level.value);
                   }
@@ -176,7 +175,7 @@ export function DemoModeDialog({ open, onOpenChange }: DemoModeDialogProps) {
                 {scopeOptions.map((opt, i) => (
                   <button
                     key={opt.id || i}
-                    onClick={() => handleSelect(opt.id, opt.name)}
+                    onClick={() => handleSelect(selectedLevel!, opt.id, opt.name)}
                     className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-accent/50 transition-all text-left"
                   >
                     <div>

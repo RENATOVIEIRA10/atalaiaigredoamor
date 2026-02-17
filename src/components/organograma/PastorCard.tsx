@@ -51,8 +51,9 @@ export function PastorCard({ node }: PastorCardProps) {
           onOpenChange={setShowProfile}
           person1={node.spouse1}
           person2={node.spouse2}
-          entityType="rede"
+          entityType="pastor"
           entityName="Igreja do Amor"
+          coupleId={node.coupleId || undefined}
         />
       )}
     </>

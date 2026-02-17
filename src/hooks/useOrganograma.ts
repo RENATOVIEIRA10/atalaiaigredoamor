@@ -3,6 +3,8 @@ import { useCoordenacoes } from './useCoordenacoes';
 import { useSupervisores } from './useSupervisoes';
 import { useCelulas } from './useCelulas';
 import { useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface OrgNode {
   id: string;
@@ -37,7 +39,31 @@ export function useOrganograma() {
   const { data: supervisores, isLoading: l3 } = useSupervisores();
   const { data: celulas, isLoading: l4 } = useCelulas();
 
-  const isLoading = l1 || l2 || l3 || l4;
+  // Fetch pastor couple from access_keys with scope_type='pastor'
+  const { data: pastorCouple, isLoading: l5 } = useQuery({
+    queryKey: ['pastor-couple'],
+    queryFn: async () => {
+      // Get the pastor access key to find the couple ID
+      const { data: ak } = await supabase
+        .from('access_keys')
+        .select('scope_id')
+        .eq('scope_type', 'pastor')
+        .limit(1)
+        .single();
+
+      if (!ak?.scope_id) return null;
+
+      const { data: couple } = await supabase
+        .from('leadership_couples')
+        .select('id, spouse1:profiles!leadership_couples_spouse1_id_fkey(id, name, avatar_url), spouse2:profiles!leadership_couples_spouse2_id_fkey(id, name, avatar_url)')
+        .eq('id', ak.scope_id)
+        .single();
+
+      return couple;
+    },
+  });
+
+  const isLoading = l1 || l2 || l3 || l4 || l5;
 
   const tree = useMemo(() => {
     if (!redes || !coordenacoes || !celulas) return [];
@@ -134,18 +160,33 @@ export function useOrganograma() {
       };
     });
 
+    // Look up pastor couple from access_keys with scope_type='pastor'
+    const pastorCoupleId = pastorCouple?.id || null;
+    const pastorSpouses = pastorCouple
+      ? {
+          spouse1: pastorCouple.spouse1 ? { id: (pastorCouple.spouse1 as any).id, name: (pastorCouple.spouse1 as any).name, avatar_url: (pastorCouple.spouse1 as any).avatar_url } : null,
+          spouse2: pastorCouple.spouse2 ? { id: (pastorCouple.spouse2 as any).id, name: (pastorCouple.spouse2 as any).name, avatar_url: (pastorCouple.spouse2 as any).avatar_url } : null,
+        }
+      : { spouse1: null, spouse2: null };
+
+    const pastorCoupleName = pastorSpouses.spouse1 && pastorSpouses.spouse2
+      ? `${pastorSpouses.spouse1.name} & ${pastorSpouses.spouse2.name}`
+      : 'Pr. Arthur & Pra. Talitha';
+
     // Wrap everything under Pastores Sêniores
     const pastorNode: OrgNode = {
       id: 'pastores-seniores',
       type: 'pastor',
       name: 'Pastores Sêniores',
-      coupleName: 'Pr. Arthur & Pra. Talitha',
+      coupleName: pastorCoupleName,
+      coupleId: pastorCoupleId,
+      ...pastorSpouses,
       childrenCount: redeNodes.length,
       children: redeNodes,
     };
 
     return [pastorNode];
-  }, [redes, coordenacoes, supervisores, celulas]);
+  }, [redes, coordenacoes, supervisores, celulas, pastorCouple]);
 
   return { tree, isLoading };
 }

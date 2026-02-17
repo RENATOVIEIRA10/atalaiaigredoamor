@@ -1,7 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Users, MapPin, Network, FolderTree, ClipboardCheck, Home, ExternalLink } from 'lucide-react';
+import { Users, MapPin, Network, FolderTree, ClipboardCheck, Home, ExternalLink, Crown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AvatarEditable } from './AvatarEditable';
 import { supabase } from '@/integrations/supabase/client';
@@ -25,7 +25,7 @@ interface ProfileViewerDialogProps {
   person2?: ProfilePerson | null;
   role?: string;
   entityName?: string;
-  entityType?: 'celula' | 'supervisor' | 'coordenacao' | 'rede' | 'membro';
+  entityType?: 'celula' | 'supervisor' | 'coordenacao' | 'rede' | 'pastor' | 'membro';
   parentName?: string;
   canEdit?: boolean;
   /** Leadership couple ID — enables "Editar perfil" button linking to /perfil/casal/:id */
@@ -39,6 +39,7 @@ const roleLabels: Record<string, string> = {
   supervisor: 'Supervisor',
   coordenacao: 'Coordenador',
   rede: 'Líder de Rede',
+  pastor: 'Pastor Sênior',
   membro: 'Membro',
 };
 
@@ -47,6 +48,7 @@ const roleIcons: Record<string, any> = {
   supervisor: ClipboardCheck,
   coordenacao: FolderTree,
   rede: Network,
+  pastor: Crown,
   membro: Users,
 };
 
