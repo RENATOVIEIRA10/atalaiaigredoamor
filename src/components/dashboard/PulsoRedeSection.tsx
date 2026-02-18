@@ -3,7 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Activity, AlertTriangle, BookOpen, GraduationCap, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  Activity, AlertTriangle, BookOpen, GraduationCap,
+  ChevronDown, ChevronUp, Loader2, Church, Heart, Cake,
+} from 'lucide-react';
 import { usePulsoRede, PulsoRedeData } from '@/hooks/usePulsoRede';
 import { CelulaReportStatus } from '@/hooks/usePulsoPastoral';
 
@@ -16,6 +20,7 @@ interface PulsoRedeSectionProps {
 export function PulsoRedeSection({ scopeType, scopeId, title }: PulsoRedeSectionProps) {
   const { data: pulso, isLoading } = usePulsoRede({ scopeType, scopeId });
   const [showAlertCells, setShowAlertCells] = useState(false);
+  const [showStagnantMembers, setShowStagnantMembers] = useState(false);
 
   if (isLoading) {
     return (
@@ -29,13 +34,15 @@ export function PulsoRedeSection({ scopeType, scopeId, title }: PulsoRedeSection
 
   const engajamentoDiff = pulso.percentualEngajamento - pulso.percentualSemanaAnterior;
   const totalAlertas = pulso.celulasAlerta1Semana.length + pulso.celulasAlerta2Semanas.length + pulso.celulasAlerta3Semanas.length;
-
   const label = title || (scopeType === 'coordenacao' ? 'Pulso da Coordenação' : 'Pulso da Rede');
   const scopeLabel = scopeType === 'coordenacao' ? 'na coordenação' : 'na rede';
 
   return (
-    <section>
-      <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">🫀 {label}</h2>
+    <div className="space-y-4">
+      {/* Header */}
+      <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">🫀 {label}</h2>
+
+      {/* Grid principal */}
       <div className="grid gap-4 md:grid-cols-2">
         {/* Engajamento */}
         <Card>
@@ -136,9 +143,9 @@ export function PulsoRedeSection({ scopeType, scopeId, title }: PulsoRedeSection
         </Card>
       </div>
 
-      {/* Alert details */}
+      {/* Detalhes alertas */}
       {showAlertCells && totalAlertas > 0 && (
-        <Card className="mt-4">
+        <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base">Detalhes – Células sem Relatório</CardTitle>
           </CardHeader>
@@ -159,7 +166,106 @@ export function PulsoRedeSection({ scopeType, scopeId, title }: PulsoRedeSection
           </CardContent>
         </Card>
       )}
-    </section>
+
+      {/* Marcos Espirituais */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Church className="h-4 w-4 text-primary" />
+            Marcos Espirituais
+          </CardTitle>
+          <CardDescription>Crescimento espiritual real do rebanho</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            <MarcoCard label="Encontro c/ Deus" value={pulso.marcosEncontro} icon="🔥" />
+            <MarcoCard label="Batismo" value={pulso.marcosBatismo} icon="💧" />
+            <MarcoCard label="Discipulado" value={pulso.marcosDiscipulado} icon="📖" />
+            <MarcoCard label="Curso Lidere" value={pulso.marcosCursoLidere} icon="🎓" />
+            <MarcoCard label="Renovo" value={pulso.marcosRenovo} icon="🌿" />
+            <MarcoCard label="Líder em Treinamento" value={pulso.marcosLiderEmTreinamento} icon="⭐" />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Atenção Pastoral - Estagnação */}
+      {pulso.stagnantCount > 0 && (
+        <Card className="border-amber-500/20 bg-amber-500/5">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <Heart className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium">Atenção Pastoral</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Há <strong>{pulso.stagnantCount} pessoa(s)</strong> com mais de 2 anos de igreja
+                  que ainda não avançaram em marcos espirituais básicos (Encontro com Deus, Batismo ou Curso Lidere).
+                </p>
+                {pulso.stagnantMembers.length > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="mt-2 h-7 px-2 text-xs text-amber-700 hover:bg-amber-500/10"
+                    onClick={() => setShowStagnantMembers(!showStagnantMembers)}
+                  >
+                    {showStagnantMembers ? <ChevronUp className="h-3 w-3 mr-1" /> : <ChevronDown className="h-3 w-3 mr-1" />}
+                    {showStagnantMembers ? 'Ocultar membros' : `Ver ${pulso.stagnantMembers.length} membro(s)`}
+                  </Button>
+                )}
+              </div>
+            </div>
+            {showStagnantMembers && pulso.stagnantMembers.length > 0 && (
+              <ScrollArea className="mt-3 max-h-56">
+                <div className="space-y-2 pr-2">
+                  {pulso.stagnantMembers.map((m) => (
+                    <div key={m.id} className="flex items-center gap-2.5 p-2 rounded-lg bg-background/60 border border-amber-500/10">
+                      <Avatar className="h-8 w-8 shrink-0">
+                        <AvatarImage src={m.avatar_url || undefined} />
+                        <AvatarFallback className="text-xs bg-amber-500/10 text-amber-700">{m.name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{m.name}</p>
+                        <p className="text-xs text-muted-foreground truncate">{m.celula_name}</p>
+                      </div>
+                      <Badge variant="outline" className="shrink-0 text-xs border-amber-500/30 text-amber-700">
+                        Sem marcos básicos
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Aniversários da semana */}
+      <section>
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">🎂 Aniversários da Semana</h2>
+        <Card>
+          <CardContent className="p-4">
+            {pulso.birthdays.length > 0 ? (
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {pulso.birthdays.map((b) => (
+                  <div key={b.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={b.avatar_url || undefined} />
+                      <AvatarFallback className="text-xs">{b.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{b.name}</p>
+                      <p className="text-xs text-muted-foreground">{b.role} · {b.celula_name}</p>
+                    </div>
+                    {b.is_today && <Badge className="bg-primary/10 text-primary text-xs">Hoje! 🎂</Badge>}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground text-center py-4">Nenhum aniversário nesta semana</p>
+            )}
+          </CardContent>
+        </Card>
+      </section>
+    </div>
   );
 }
 
@@ -175,6 +281,16 @@ function AlertCellGroup({ label, cells }: { label: string; cells: CelulaReportSt
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+function MarcoCard({ label, value, icon }: { label: string; value: number; icon: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center p-3 rounded-xl bg-muted/40 border border-border/50 text-center gap-1">
+      <span className="text-xl">{icon}</span>
+      <span className="text-2xl font-bold text-foreground">{value}</span>
+      <span className="text-xs text-muted-foreground leading-tight">{label}</span>
     </div>
   );
 }
