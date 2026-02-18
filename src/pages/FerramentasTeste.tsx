@@ -12,25 +12,26 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
-import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   FlaskConical, Play, Trash2, Download, FileText, Users, Calendar,
-  GitBranch, Shield, AlertTriangle, CheckCircle2, Clock, RefreshCw,
-  Database, Terminal, ChevronRight, Info, FileDown
+  GitBranch, Shield, AlertTriangle, CheckCircle2, RefreshCw,
+  Database, Terminal, ChevronRight, Info, FileDown, Loader2, XCircle, Eye
 } from 'lucide-react';
 import {
   useSeedRuns, useCreateSeedRun, useSeedActions,
-  getPeriodDates, buildCSVExportUrl, SeedPeriodPreset, SeedRun
+  getPeriodDates, buildCSVExportUrl, getWeekCount, SeedPeriodPreset, SeedRun, SeedStepResult
 } from '@/hooks/useSeedRuns';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
+import { useCelulas } from '@/hooks/useCelulas';
+
 
 // ─── Status Badge ───
 function StatusBadge({ status, cleanedAt }: { status: string; cleanedAt?: string | null }) {
   if (cleanedAt) return <Badge variant="outline" className="text-muted-foreground">Limpo</Badge>;
-  if (status === 'running') return <Badge variant="outline" className="border-warning text-warning">Em execução</Badge>;
+  if (status === 'running') return <Badge variant="outline" className="border-warning text-warning animate-pulse">Em execução</Badge>;
   if (status === 'done') return <Badge variant="outline" className="border-primary text-primary">Concluído</Badge>;
   if (status === 'failed') return <Badge variant="destructive">Falhou</Badge>;
   return <Badge variant="outline">{status}</Badge>;
@@ -40,6 +41,14 @@ function StatusBadge({ status, cleanedAt }: { status: string; cleanedAt?: string
 function EnvBadge({ env }: { env: string }) {
   if (env === 'prod') return <Badge variant="destructive" className="opacity-80">PRODUÇÃO</Badge>;
   return <Badge variant="secondary">Dev</Badge>;
+}
+
+// ─── Step Status Icon ───
+function StepIcon({ status }: { status: SeedStepResult['status'] }) {
+  if (status === 'done') return <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />;
+  if (status === 'failed') return <XCircle className="h-4 w-4 text-destructive shrink-0" />;
+  if (status === 'running') return <Loader2 className="h-4 w-4 text-primary animate-spin shrink-0" />;
+  return <div className="h-4 w-4 rounded-full border-2 border-muted shrink-0" />;
 }
 
 // ─── CSV Export buttons ───
@@ -61,7 +70,7 @@ function downloadCSV(url: string, filename: string) {
   link.click();
 }
 
-// ─── Seed Run Detail Card ───
+// ─── Seed Run Card ───
 function SeedRunCard({ run, onSelect, isSelected }: { run: SeedRun; onSelect: () => void; isSelected: boolean }) {
   const totals = run.totals || {};
   return (
@@ -164,8 +173,7 @@ function CreateSeedRunDialog({
             <Alert className="border-destructive/50 bg-destructive/5">
               <AlertTriangle className="h-4 w-4 text-destructive" />
               <AlertDescription className="text-sm">
-                <strong>Você está em PRODUÇÃO.</strong> Nada será criado sem a confirmação abaixo.
-                Os dados serão marcados como <code>is_test_data=true</code> e podem ser limpos integralmente.
+                <strong>Você está em PRODUÇÃO.</strong> Os dados serão marcados como <code>is_test_data=true</code> e podem ser limpos integralmente.
               </AlertDescription>
             </Alert>
           )}
@@ -183,7 +191,6 @@ function CreateSeedRunDialog({
                 onChange={e => setConfirmText(e.target.value)}
                 placeholder="GERAR_DADOS_TESTE"
                 className="font-mono border-destructive/30"
-                autoFocus
               />
             </div>
           )}
@@ -253,7 +260,6 @@ function CleanupDialog({
               onChange={e => setConfirmText(e.target.value)}
               placeholder="APAGAR_DADOS_TESTE"
               className="font-mono border-destructive/30"
-              autoFocus
             />
           </div>
         </div>
@@ -274,25 +280,145 @@ function CleanupDialog({
   );
 }
 
+// ─── Demo Dashboard Dialog ───
+function DemoDashboardDialog({
+  open, onOpenChange, seedRuns
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  seedRuns: SeedRun[];
+}) {
+  const navigate = useNavigate();
+  const [selectedSeedRunId, setSelectedSeedRunId] = useState('');
+  const [selectedRole, setSelectedRole] = useState<string>('');
+
+  const validRuns = seedRuns.filter(r => r.status === 'done' && !r.cleaned_at);
+
+  const handleOpen = () => {
+    if (!selectedSeedRunId || !selectedRole) return;
+    // Store demo mode in sessionStorage so dashboards can pick it up
+    sessionStorage.setItem('demo_seed_run_id', selectedSeedRunId);
+    sessionStorage.setItem('demo_role', selectedRole);
+    onOpenChange(false);
+    navigate('/dashboard?demo=true');
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Eye className="h-5 w-5 text-primary" />
+            Dashboard de Demonstração
+          </DialogTitle>
+          <DialogDescription>
+            Visualize os dashboards reais com dados sintéticos do seed run selecionado. Nenhum dado real será exibido.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4 py-2">
+          {validRuns.length === 0 ? (
+            <Alert>
+              <Info className="h-4 w-4" />
+              <AlertDescription>
+                Nenhum seed run concluído disponível. Execute um seed run antes de abrir o dashboard de demonstração.
+              </AlertDescription>
+            </Alert>
+          ) : (
+            <>
+              <div className="space-y-1.5">
+                <Label>Seed Run</Label>
+                <Select value={selectedSeedRunId} onValueChange={setSelectedSeedRunId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um seed run..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {validRuns.map(r => (
+                      <SelectItem key={r.id} value={r.id} className="font-mono text-xs">
+                        {r.name} — {format(new Date(r.created_at), 'dd/MM/yy')}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>Papel de visualização</Label>
+                <Select value={selectedRole} onValueChange={setSelectedRole}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um papel..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pastor">Pastor Sênior — Painel completo</SelectItem>
+                    <SelectItem value="rede_leader">Líder de Rede — Dashboard da rede</SelectItem>
+                    <SelectItem value="coordenador">Coordenador — Dashboard da coordenação</SelectItem>
+                    <SelectItem value="supervisor">Supervisor — Dashboard do supervisor</SelectItem>
+                    <SelectItem value="celula_leader">Líder de Célula — Dashboard da célula</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <Alert className="border-primary/30 bg-primary/5">
+                <Info className="h-4 w-4 text-primary" />
+                <AlertDescription className="text-xs">
+                  O dashboard abrirá em modo demonstração. Um banner laranja indicará que os dados exibidos são sintéticos.
+                  Acesse <strong>Ferramentas de Teste</strong> para voltar ao modo normal.
+                </AlertDescription>
+              </Alert>
+            </>
+          )}
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+          <Button
+            onClick={handleOpen}
+            disabled={!selectedSeedRunId || !selectedRole || validRuns.length === 0}
+          >
+            <Eye className="h-4 w-4 mr-2" />
+            Abrir Dashboard de Demonstração
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // ─── Action Panel (for selected seed run) ───
 function SeedActionPanel({ seedRun, onCleanup }: { seedRun: SeedRun; onCleanup: () => void }) {
-  const { runAction, isRunning, lastResult } = useSeedActions(seedRun.id);
+  const { runAction, isRunning, steps, clearSteps } = useSeedActions(seedRun.id);
   const [preset, setPreset] = useState<SeedPeriodPreset>('3m');
   const [customFrom, setCustomFrom] = useState('');
   const [customTo, setCustomTo] = useState('');
-  const [actionLog, setActionLog] = useState<string[]>([]);
   const isCleaned = !!seedRun.cleaned_at;
+  const { data: celulas } = useCelulas();
+  const celulaCount = (celulas || []).filter(c => !c.is_test_data).length;
 
   const period = getPeriodDates(preset, customFrom, customTo);
+  const weekCount = getWeekCount(period.from, period.to);
+  const estimatedMembers = celulaCount * 7;
+  const estimatedReports = celulaCount * weekCount;
 
-  const run = async (action: string, label: string, extra?: Record<string, string>) => {
-    const line = `[${format(new Date(), 'HH:mm:ss')}] Iniciando: ${label}...`;
-    setActionLog(prev => [...prev, line]);
-    try {
-      const result = await runAction(action, extra);
-      setActionLog(prev => [...prev, `  ✓ ${result?.created ?? 0} registros criados`]);
-    } catch {
-      setActionLog(prev => [...prev, `  ✗ Falhou`]);
+  const SEED_ACTIONS = [
+    { action: 'seed_members', label: '👥 Gerar Membros + Marcos', desc: `7 membros fictícios por célula (≈${estimatedMembers})`, needsPeriod: false },
+    { action: 'seed_reports', label: '📋 Gerar Relatórios Semanais', desc: `1 por semana por célula (≈${estimatedReports})`, needsPeriod: true },
+    { action: 'seed_supervisoes', label: '🔍 Gerar Supervisões', desc: 'Mínimo 2 por supervisor no período', needsPeriod: true },
+    { action: 'seed_multiplicacoes', label: '🌱 Gerar Multiplicações', desc: '~20% das células multiplicam', needsPeriod: true },
+  ];
+
+  const run = async (action: string, label: string, needsPeriod: boolean) => {
+    const extra = needsPeriod ? { period_from: period.from, period_to: period.to } : undefined;
+    await runAction(action, label, extra);
+  };
+
+  const runAll = async () => {
+    clearSteps();
+    for (const item of SEED_ACTIONS) {
+      try {
+        await run(item.action, item.label, item.needsPeriod);
+      } catch {
+        break; // Stop on first failure
+      }
     }
   };
 
@@ -326,6 +452,7 @@ function SeedActionPanel({ seedRun, onCleanup }: { seedRun: SeedRun; onCleanup: 
                 size="sm"
                 variant={preset === p ? 'default' : 'outline'}
                 onClick={() => setPreset(p)}
+                disabled={isRunning}
               >
                 {p === 'custom' ? 'Personalizado' : p === '1m' ? '1 mês' : p === '3m' ? '3 meses' : p === '6m' ? '6 meses' : '12 meses'}
               </Button>
@@ -342,62 +469,94 @@ function SeedActionPanel({ seedRun, onCleanup }: { seedRun: SeedRun; onCleanup: 
                 <Input value={customTo} onChange={e => setCustomTo(e.target.value)} placeholder="2025-12-31" className="font-mono text-sm" />
               </div>
             </div>
-          ) : (
-            <p className="text-xs text-muted-foreground font-mono">
-              {period.from} → {period.to}
-            </p>
-          )}
+          ) : null}
+          <div className="flex flex-wrap gap-4 text-xs text-muted-foreground font-mono bg-muted/30 rounded-md p-2">
+            <span>📅 {period.from} → {period.to}</span>
+            <span>📆 {weekCount} semanas</span>
+            <span>👥 ≈{estimatedMembers} membros</span>
+            <span>📋 ≈{estimatedReports} relatórios</span>
+          </div>
         </CardContent>
       </Card>
 
-      {/* Actions */}
+      {/* Run All button */}
+      <Button
+        className="w-full gap-2"
+        size="lg"
+        onClick={runAll}
+        disabled={isRunning}
+      >
+        {isRunning
+          ? <><Loader2 className="h-4 w-4 animate-spin" /> Executando...</>
+          : <><Play className="h-4 w-4" /> Executar Tudo em Sequência</>
+        }
+      </Button>
+
+      {/* Individual actions */}
       <div className="space-y-3">
-        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Ações de Seed</h3>
+        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Ações Individuais</h3>
         <div className="grid gap-2 sm:grid-cols-2">
-          {[
-            { action: 'seed_members', label: '👥 Gerar Membros + Marcos', desc: '7 membros fictícios por célula com marcos espirituais' },
-            { action: 'seed_reports', label: '📋 Gerar Relatórios Semanais', desc: '1 relatório por semana por célula no período' },
-            { action: 'seed_supervisoes', label: '🔍 Gerar Supervisões', desc: '2 supervisões por supervisor no período' },
-            { action: 'seed_multiplicacoes', label: '🌱 Gerar Multiplicações', desc: '~20% das células multiplicam no período' },
-          ].map(item => (
-            <Card key={item.action} className="border">
-              <CardHeader className="pb-2 pt-4 px-4">
-                <CardTitle className="text-sm">{item.label}</CardTitle>
-                <CardDescription className="text-xs">{item.desc}</CardDescription>
-              </CardHeader>
-              <CardContent className="px-4 pb-4">
-                <Button
-                  size="sm"
-                  onClick={() => run(item.action, item.label,
-                    item.action !== 'seed_members' ? { period_from: period.from, period_to: period.to } : undefined
+          {SEED_ACTIONS.map(item => {
+            const step = steps.find(s => s.step === item.action);
+            return (
+              <Card key={item.action} className={`border transition-colors ${step?.status === 'done' ? 'border-primary/40 bg-primary/5' : step?.status === 'failed' ? 'border-destructive/40 bg-destructive/5' : ''}`}>
+                <CardHeader className="pb-2 pt-4 px-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <CardTitle className="text-sm">{item.label}</CardTitle>
+                    {step && <StepIcon status={step.status} />}
+                  </div>
+                  <CardDescription className="text-xs">{item.desc}</CardDescription>
+                  {step?.status === 'done' && (
+                    <p className="text-xs text-primary font-medium">✓ {step.created} criados</p>
                   )}
-                  disabled={isRunning}
-                  className="w-full"
-                >
-                  {isRunning ? <RefreshCw className="h-3 w-3 mr-1.5 animate-spin" /> : <Play className="h-3 w-3 mr-1.5" />}
-                  Executar
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
+                  {step?.status === 'failed' && (
+                    <p className="text-xs text-destructive font-medium">✗ {step.error}</p>
+                  )}
+                </CardHeader>
+                <CardContent className="px-4 pb-4">
+                  <Button
+                    size="sm"
+                    variant={step?.status === 'done' ? 'outline' : 'default'}
+                    onClick={() => run(item.action, item.label, item.needsPeriod)}
+                    disabled={isRunning}
+                    className="w-full"
+                  >
+                    {step?.status === 'running'
+                      ? <><Loader2 className="h-3 w-3 mr-1.5 animate-spin" /> Executando...</>
+                      : step?.status === 'done'
+                        ? <><RefreshCw className="h-3 w-3 mr-1.5" /> Re-executar</>
+                        : <><Play className="h-3 w-3 mr-1.5" /> Executar</>
+                    }
+                  </Button>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       </div>
 
-      {/* Action log */}
-      {actionLog.length > 0 && (
+      {/* Execution log */}
+      {steps.length > 0 && (
         <Card className="bg-muted/30 border-dashed">
           <CardHeader className="pb-2">
             <CardTitle className="text-xs font-mono flex items-center gap-2">
               <Terminal className="h-3.5 w-3.5" />
-              Log de execução
+              Progresso de execução
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ScrollArea className="h-32">
-              <div className="font-mono text-xs space-y-0.5 text-muted-foreground">
-                {actionLog.map((line, i) => <div key={i}>{line}</div>)}
-              </div>
-            </ScrollArea>
+            <div className="space-y-2">
+              {steps.map((step) => (
+                <div key={step.step} className="flex items-center gap-2 text-xs">
+                  <StepIcon status={step.status} />
+                  <span className={`flex-1 font-mono ${step.status === 'failed' ? 'text-destructive' : step.status === 'done' ? 'text-primary' : 'text-muted-foreground'}`}>
+                    {step.label}
+                  </span>
+                  {step.status === 'done' && <span className="text-primary font-medium">{step.created} criados</span>}
+                  {step.status === 'failed' && <span className="text-destructive">{step.error}</span>}
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
       )}
@@ -414,10 +573,10 @@ function SeedActionPanel({ seedRun, onCleanup }: { seedRun: SeedRun; onCleanup: 
           <Info className="h-4 w-4 text-destructive/70" />
           <AlertDescription className="text-xs text-muted-foreground">
             Remove apenas registros marcados com <code>is_test_data=true</code> deste seed run.
-            Dados reais nunca são afetados. A operação registra auditoria de quem limpou e quando.
+            Dados reais nunca são afetados.
           </AlertDescription>
         </Alert>
-        <Button variant="destructive" size="sm" onClick={onCleanup} className="gap-2">
+        <Button variant="destructive" size="sm" onClick={onCleanup} className="gap-2" disabled={isRunning}>
           <Trash2 className="h-4 w-4" />
           Limpar Dados de Teste
         </Button>
@@ -519,6 +678,7 @@ export default function FerramentasTeste() {
   const { data: seedRuns, isLoading, refetch } = useSeedRuns();
   const [createOpen, setCreateOpen] = useState(false);
   const [cleanupOpen, setCleanupOpen] = useState(false);
+  const [demoOpen, setDemoOpen] = useState(false);
   const [selectedRun, setSelectedRun] = useState<SeedRun | null>(null);
   const { runCleanup, isRunning } = useSeedActions(selectedRun?.id || null);
 
@@ -548,10 +708,16 @@ export default function FerramentasTeste() {
               Seed & Auditoria — Crie, valide e limpe dados sintéticos com rastreabilidade total.
             </p>
           </div>
-          <Button onClick={() => setCreateOpen(true)} className="gap-2">
-            <FlaskConical className="h-4 w-4" />
-            Novo Seed Run
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" onClick={() => setDemoOpen(true)} className="gap-2">
+              <Eye className="h-4 w-4" />
+              Dashboard de Demonstração
+            </Button>
+            <Button onClick={() => setCreateOpen(true)} className="gap-2">
+              <FlaskConical className="h-4 w-4" />
+              Novo Seed Run
+            </Button>
+          </div>
         </div>
 
         <Alert>
@@ -673,6 +839,12 @@ export default function FerramentasTeste() {
         onOpenChange={setCleanupOpen}
         seedRun={selectedRun}
         onConfirm={handleCleanup}
+      />
+
+      <DemoDashboardDialog
+        open={demoOpen}
+        onOpenChange={setDemoOpen}
+        seedRuns={seedRuns || []}
       />
     </AppLayout>
   );
