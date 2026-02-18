@@ -179,11 +179,12 @@ export function usePulsoEngine({ scopeType, scopeId, enabled = true }: UsePulsoE
         buildReportQuery(twoWeeksAgo),
 
         // Membros ativos no escopo — para marcos espirituais
+        // NOTA: NÃO filtramos is_test_data aqui porque membros reais podem estar
+        // marcados como is_test_data=true se vieram de um seed run não limpo.
         supabase
           .from('members')
           .select('id, is_discipulado, is_lider_em_treinamento, encontro_com_deus, batismo, curso_lidere, renovo')
           .eq('is_active', true)
-          .eq('is_test_data', false)
           .in('celula_id', celulaIds),
 
         // Membros há >2 anos sem marcos básicos — atenção pastoral
@@ -198,7 +199,6 @@ export function usePulsoEngine({ scopeType, scopeId, enabled = true }: UsePulsoE
             celula:celulas!members_celula_id_fkey(name)
           `)
           .eq('is_active', true)
-          .eq('is_test_data', false)
           .in('celula_id', celulaIds)
           .lt('joined_at', twoYearsAgo.toISOString()),
 
@@ -211,7 +211,6 @@ export function usePulsoEngine({ scopeType, scopeId, enabled = true }: UsePulsoE
             profile:profiles!members_profile_id_fkey(id, name, avatar_url, birth_date)
           `)
           .eq('is_active', true)
-          .eq('is_test_data', false)
           .in('celula_id', celulaIds),
       ]);
 
