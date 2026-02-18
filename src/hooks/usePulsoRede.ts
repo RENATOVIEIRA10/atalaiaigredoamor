@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { subDays, format, startOfWeek } from 'date-fns';
+import { format, startOfWeek, addDays } from 'date-fns';
 import { CelulaReportStatus } from '@/hooks/usePulsoPastoral';
 
 export interface PulsoRedeData {
@@ -20,19 +20,36 @@ interface UsePulsoRedeOptions {
   scopeId: string;
 }
 
+/**
+ * Calcula a janela operacional (Seg→Sáb) de uma data.
+ * Usa Segunda-feira como início (weekStartsOn: 1).
+ * Sábado é Monday + 5 dias.
+ */
+function getOperacionalWindow(date: Date): { from: string; to: string } {
+  const monday = startOfWeek(date, { weekStartsOn: 1 });
+  const saturday = addDays(monday, 5);
+  return {
+    from: format(monday, 'yyyy-MM-dd'),
+    to: format(saturday, 'yyyy-MM-dd'),
+  };
+}
+
 export function usePulsoRede({ scopeType, scopeId }: UsePulsoRedeOptions) {
   return useQuery({
     queryKey: ['pulso-rede', scopeType, scopeId],
     enabled: !!scopeId,
     queryFn: async (): Promise<PulsoRedeData> => {
       const now = new Date();
-      const thisWeekStart = startOfWeek(now, { weekStartsOn: 0 });
-      const lastWeekStart = subDays(thisWeekStart, 7);
-      const twoWeeksAgo = subDays(thisWeekStart, 14);
-      const threeWeeksAgo = subDays(thisWeekStart, 21);
+      // Semana operacional atual (Seg→Sáb)
+      const thisWeek = getOperacionalWindow(now);
+      // Semana anterior
+      const lastWeek = getOperacionalWindow(addDays(startOfWeek(now, { weekStartsOn: 1 }), -7));
+      // 2 semanas atrás
+      const twoWeeksAgo = getOperacionalWindow(addDays(startOfWeek(now, { weekStartsOn: 1 }), -14));
 
       // 1. Get celulas in scope
-      let celulaQuery = supabase.from('celulas').select('id, name, coordenacao_id, coordenacao:coordenacoes!celulas_coordenacao_id_fkey(name, rede_id)');
+      let celulaQuery = supabase.from('celulas').select('id, name, coordenacao_id, coordenacao:coordenacoes!celulas_coordenacao_id_fkey(name, rede_id)')
+        .eq('is_test_data', false);
 
       if (scopeType === 'coordenacao') {
         celulaQuery = celulaQuery.eq('coordenacao_id', scopeId);
@@ -41,7 +58,6 @@ export function usePulsoRede({ scopeType, scopeId }: UsePulsoRedeOptions) {
       const celulasRes = await celulaQuery;
       let allCelulas = celulasRes.data || [];
 
-      // Filter by rede if needed
       if (scopeType === 'rede') {
         allCelulas = allCelulas.filter(c => (c.coordenacao as any)?.rede_id === scopeId);
       }
@@ -57,12 +73,24 @@ export function usePulsoRede({ scopeType, scopeId }: UsePulsoRedeOptions) {
         };
       }
 
-      // 2. Fetch reports and members in parallel
+      // 2. Fetch reports using meeting_date as source of truth (Seg→Sáb window)
+      // We filter by meeting_date within each week's Seg→Sáb window.
+      // Fallback: also consider records where meeting_date is null but week_start falls in range.
+      const buildReportQuery = (window: { from: string; to: string }) =>
+        supabase.from('weekly_reports')
+          .select('celula_id')
+          .in('celula_id', celulaIds)
+          .eq('is_test_data', false)
+          .or(
+            `and(meeting_date.gte.${window.from},meeting_date.lte.${window.to}),` +
+            `and(meeting_date.is.null,week_start.gte.${window.from},week_start.lte.${window.to})`
+          );
+
       const [thisWeekReports, lastWeekReports, twoWeekReports, membersRes] = await Promise.all([
-        supabase.from('weekly_reports').select('celula_id').gte('week_start', format(thisWeekStart, 'yyyy-MM-dd')).in('celula_id', celulaIds),
-        supabase.from('weekly_reports').select('celula_id').gte('week_start', format(lastWeekStart, 'yyyy-MM-dd')).lt('week_start', format(thisWeekStart, 'yyyy-MM-dd')).in('celula_id', celulaIds),
-        supabase.from('weekly_reports').select('celula_id').gte('week_start', format(twoWeeksAgo, 'yyyy-MM-dd')).lt('week_start', format(lastWeekStart, 'yyyy-MM-dd')).in('celula_id', celulaIds),
-        supabase.from('members').select('id, is_discipulado, is_lider_em_treinamento').eq('is_active', true).in('celula_id', celulaIds),
+        buildReportQuery(thisWeek),
+        buildReportQuery(lastWeek),
+        buildReportQuery(twoWeeksAgo),
+        supabase.from('members').select('id, is_discipulado, is_lider_em_treinamento').eq('is_active', true).eq('is_test_data', false).in('celula_id', celulaIds),
       ]);
 
       const thisWeekIds = new Set((thisWeekReports.data || []).map(r => r.celula_id));
@@ -107,3 +135,4 @@ export function usePulsoRede({ scopeType, scopeId }: UsePulsoRedeOptions) {
     },
   });
 }
+

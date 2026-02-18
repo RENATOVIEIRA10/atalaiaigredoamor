@@ -5,10 +5,9 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Edit, Trash2, MoreHorizontal, Image as ImageIcon, Users, GraduationCap, BookOpen, UserPlus, Baby, Calendar } from 'lucide-react';
 import { WeeklyReport } from '@/hooks/useWeeklyReports';
-import { format, parseISO } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import { ReportEditDialog } from './ReportEditDialog';
 import { ReportDeleteDialog } from './ReportDeleteDialog';
+import { formatDataRealizacao, formatWeekLabelOperacional } from '@/lib/weekUtils';
 
 interface ReportsHistoryTableProps {
   reports: WeeklyReport[];
@@ -112,9 +111,14 @@ export function ReportsHistoryTable({
             return (
               <TableRow key={report.id}>
                 <TableCell>
-                  <Badge variant="outline">
-                    {format(parseISO(reportDate), "dd/MM/yyyy", { locale: ptBR })}
-                  </Badge>
+                  <div className="space-y-0.5">
+                    <Badge variant="outline" className="font-medium">
+                      {formatDataRealizacao(reportDate)}
+                    </Badge>
+                    <p className="text-xs text-muted-foreground leading-tight">
+                      {formatWeekLabelOperacional(reportDate)}
+                    </p>
+                  </div>
                 </TableCell>
                 {showCelulaColumn && (
                   <TableCell className="font-medium">

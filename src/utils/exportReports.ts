@@ -164,22 +164,38 @@ function createByLiderSheet(wb: XLSX.WorkBook, byLider: LiderAggregation[], byCo
 
 // ─── RELATÓRIOS DETALHADOS ───
 function createRelatoriosSheet(wb: XLSX.WorkBook, data: ExportData) {
-  const headers = ['Data', 'Célula', 'Coordenação', 'Rede', 'Líderes', 'Membros Presentes', 'Líderes Treino', 'Discipulados', 'Visitantes', 'Crianças', 'Total', 'Observações'];
+  const headers = ['Data Realização', 'Semana (Seg→Sáb)', 'Célula', 'Coordenação', 'Rede', 'Líderes', 'Membros Presentes', 'Líderes Treino', 'Discipulados', 'Visitantes', 'Crianças', 'Total', 'Observações'];
   const rows: (string | number)[][] = [headers];
 
-  const sorted = [...data.reports].sort((a, b) => new Date(b.week_start).getTime() - new Date(a.week_start).getTime());
+  // Sort by meeting_date (source of truth), fallback to week_start
+  const sorted = [...data.reports].sort((a, b) => {
+    const da = a.meeting_date || a.week_start;
+    const db = b.meeting_date || b.week_start;
+    return new Date(db).getTime() - new Date(da).getTime();
+  });
 
   sorted.forEach(r => {
     const celula = data.celulas.find(c => c.id === r.celula_id);
     const coord = data.coordenacoes.find(c => c.id === celula?.coordenacao_id);
     const rede = data.redes?.find(re => re.id === coord?.rede_id);
     const total = r.members_present + r.leaders_in_training + r.discipleships + r.visitors + r.children;
-    const dateStr = r.meeting_date
-      ? format(parseISO(r.meeting_date), 'dd/MM/yyyy', { locale: ptBR })
-      : format(parseISO(r.week_start), 'dd/MM/yyyy', { locale: ptBR });
+    // Source of truth: meeting_date; fallback to week_start
+    const realizacaoDate = r.meeting_date || r.week_start;
+    const dateStr = format(parseISO(realizacaoDate), 'dd/MM/yyyy', { locale: ptBR });
+    // Week label: derive monday from realizacao, then +5 days = saturday
+    const mondayDate = (() => {
+      const d = new Date(realizacaoDate + 'T12:00:00');
+      const day = d.getDay();
+      const diff = day === 0 ? -6 : 1 - day;
+      d.setDate(d.getDate() + diff);
+      return d;
+    })();
+    const saturdayDate = new Date(mondayDate.getTime() + 5 * 24 * 60 * 60 * 1000);
+    const weekLabel = `${format(mondayDate, 'dd/MM', { locale: ptBR })} → ${format(saturdayDate, 'dd/MM', { locale: ptBR })}`;
 
     rows.push([
       dateStr,
+      weekLabel,
       celula?.name || '—',
       coord?.name || '—',
       rede?.name || '—',
@@ -195,14 +211,14 @@ function createRelatoriosSheet(wb: XLSX.WorkBook, data: ExportData) {
   });
 
   const ws = XLSX.utils.aoa_to_sheet(rows);
-  setColWidths(ws, [12, 22, 22, 20, 28, 16, 14, 14, 12, 12, 10, 30]);
+  setColWidths(ws, [14, 18, 22, 22, 20, 28, 16, 14, 14, 12, 12, 10, 30]);
   addAutoFilter(ws, 1, headers.length, sorted.length);
   XLSX.utils.book_append_sheet(wb, ws, 'RELATORIOS');
 }
 
 // ─── DADOS BRUTOS ───
 function createDadosBrutosSheet(wb: XLSX.WorkBook, data: ExportData) {
-  const headers = ['Coordenação', 'Célula', 'Semana', 'Data', 'Membros Presentes', 'Líderes Treino', 'Discipulados', 'Visitantes', 'Crianças', 'Total'];
+  const headers = ['Coordenação', 'Célula', 'Data Realização', 'Semana (Seg→Sáb)', 'week_start', 'week_end_operacional', 'Membros Presentes', 'Líderes Treino', 'Discipulados', 'Visitantes', 'Crianças', 'Total'];
   const rows: (string | number)[][] = [headers];
 
   const sorted = [...data.reports].sort((a, b) => {
@@ -214,19 +230,33 @@ function createDadosBrutosSheet(wb: XLSX.WorkBook, data: ExportData) {
     if (cc !== 0) return cc;
     const cn = (cA?.name || '').localeCompare(cB?.name || '');
     if (cn !== 0) return cn;
-    return new Date(b.week_start).getTime() - new Date(a.week_start).getTime();
+    const da = a.meeting_date || a.week_start;
+    const db = b.meeting_date || b.week_start;
+    return new Date(db).getTime() - new Date(da).getTime();
   });
 
   sorted.forEach(r => {
     const celula = data.celulas.find(c => c.id === r.celula_id);
     const coord = data.coordenacoes.find(co => co.id === celula?.coordenacao_id);
     const total = r.members_present + r.leaders_in_training + r.discipleships + r.visitors + r.children;
+    const realizacaoDate = r.meeting_date || r.week_start;
+    // Derive Monday
+    const d = new Date(realizacaoDate + 'T12:00:00');
+    const day = d.getDay();
+    const diff = day === 0 ? -6 : 1 - day;
+    d.setDate(d.getDate() + diff);
+    const mondayStr = format(d, 'yyyy-MM-dd', { locale: ptBR });
+    const satDate = new Date(d.getTime() + 5 * 24 * 60 * 60 * 1000);
+    const satStr = format(satDate, 'yyyy-MM-dd', { locale: ptBR });
+    const weekLabel = `${format(d, 'dd/MM', { locale: ptBR })} → ${format(satDate, 'dd/MM', { locale: ptBR })}`;
 
     rows.push([
       coord?.name || 'N/A',
       celula?.name || 'N/A',
-      r.week_start,
-      format(parseISO(r.week_start), "dd/MM/yyyy", { locale: ptBR }),
+      format(parseISO(realizacaoDate), 'dd/MM/yyyy', { locale: ptBR }),
+      weekLabel,
+      mondayStr,
+      satStr,
       r.members_present,
       r.leaders_in_training,
       r.discipleships,
@@ -237,7 +267,7 @@ function createDadosBrutosSheet(wb: XLSX.WorkBook, data: ExportData) {
   });
 
   const ws = XLSX.utils.aoa_to_sheet(rows);
-  setColWidths(ws, [25, 25, 12, 12, 18, 14, 14, 12, 12, 10]);
+  setColWidths(ws, [25, 25, 14, 18, 12, 12, 18, 14, 14, 12, 12, 10]);
   addAutoFilter(ws, 1, headers.length, sorted.length);
   XLSX.utils.book_append_sheet(wb, ws, 'DADOS BRUTOS');
 }

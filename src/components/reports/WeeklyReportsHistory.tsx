@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Loader2, History, Users, GraduationCap, BookOpen, UserPlus, Baby, Calendar } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { formatDataRealizacao, formatWeekLabelOperacional } from '@/lib/weekUtils';
 
 export function WeeklyReportsHistory() {
   const { data: reports, isLoading } = useWeeklyReports();
@@ -22,11 +23,11 @@ export function WeeklyReportsHistory() {
     );
   }
 
-  // Get unique weeks for filter
+  // Get unique week_starts for filter — derived from meeting_date (source of truth)
   const uniqueWeeks = [...new Set(reports?.map(r => r.week_start) || [])].sort().reverse();
 
-  const filteredReports = filterWeek === 'all' 
-    ? reports 
+  const filteredReports = filterWeek === 'all'
+    ? reports
     : reports?.filter(r => r.week_start === filterWeek);
 
   // Calculate totals
@@ -51,18 +52,18 @@ export function WeeklyReportsHistory() {
               Histórico de Relatórios Semanais
             </CardTitle>
             <CardDescription>
-              Visualize e compare os relatórios de semanas anteriores
+              Relatórios ordenados por data de realização da célula
             </CardDescription>
           </div>
           <Select value={filterWeek} onValueChange={setFilterWeek}>
-            <SelectTrigger className="w-[200px]">
+            <SelectTrigger className="w-[240px]">
               <SelectValue placeholder="Filtrar por semana" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas as semanas</SelectItem>
               {uniqueWeeks.map((week) => (
                 <SelectItem key={week} value={week}>
-                  {format(parseISO(week), "dd/MM/yyyy", { locale: ptBR })}
+                  {formatWeekLabelOperacional(week).replace('Semana (Seg→Sáb): ', '')}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -167,12 +168,19 @@ export function WeeklyReportsHistory() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredReports.map((report) => (
+              {filteredReports.map((report) => {
+                const reportDate = report.meeting_date || report.week_start;
+                return (
                 <TableRow key={report.id}>
                   <TableCell>
-                    <Badge variant="outline">
-                      {format(parseISO(report.week_start), "dd/MM/yyyy", { locale: ptBR })}
-                    </Badge>
+                    <div className="space-y-0.5">
+                      <Badge variant="outline" className="font-medium">
+                        {formatDataRealizacao(reportDate)}
+                      </Badge>
+                      <p className="text-xs text-muted-foreground leading-tight">
+                        {formatWeekLabelOperacional(reportDate)}
+                      </p>
+                    </div>
                   </TableCell>
                   <TableCell className="font-medium">
                     {report.celula?.name || 'N/A'}
@@ -196,7 +204,9 @@ export function WeeklyReportsHistory() {
                     <Badge variant="secondary">{report.children}</Badge>
                   </TableCell>
                 </TableRow>
-              ))}
+                );
+              })}
+
             </TableBody>
           </Table>
         ) : (
