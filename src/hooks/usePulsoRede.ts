@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { format, startOfWeek, addDays, parseISO } from 'date-fns';
+import { format, startOfWeek, addDays, parseISO, subDays } from 'date-fns';
 import { CelulaReportStatus } from '@/hooks/usePulsoPastoral';
 
 export interface StagnantMemberScoped {
@@ -67,6 +67,15 @@ export function usePulsoRede({ scopeType, scopeId }: UsePulsoRedeOptions) {
       const lastWeek = getOperacionalWindow(addDays(startOfWeek(now, { weekStartsOn: 1 }), -7));
       const twoWeeksAgo = getOperacionalWindow(addDays(startOfWeek(now, { weekStartsOn: 1 }), -14));
 
+      const empty: PulsoRedeData = {
+        totalCelulas: 0, celulasComRelatorio: 0, percentualEngajamento: 0,
+        percentualSemanaAnterior: 0, celulasAlerta1Semana: [], celulasAlerta2Semanas: [],
+        celulasAlerta3Semanas: [], totalDiscipulados: 0, lideresEmTreinamento: 0,
+        marcosEncontro: 0, marcosBatismo: 0, marcosDiscipulado: 0,
+        marcosCursoLidere: 0, marcosRenovo: 0, marcosLiderEmTreinamento: 0,
+        stagnantCount: 0, stagnantMembers: [], birthdays: [],
+      };
+
       // 1. Get celulas in scope
       let celulaQuery = supabase
         .from('celulas')
@@ -87,18 +96,9 @@ export function usePulsoRede({ scopeType, scopeId }: UsePulsoRedeOptions) {
       const celulaIds = allCelulas.map(c => c.id);
       const totalCelulas = celulaIds.length;
 
-      const empty: PulsoRedeData = {
-        totalCelulas: 0, celulasComRelatorio: 0, percentualEngajamento: 0,
-        percentualSemanaAnterior: 0, celulasAlerta1Semana: [], celulasAlerta2Semanas: [],
-        celulasAlerta3Semanas: [], totalDiscipulados: 0, lideresEmTreinamento: 0,
-        marcosEncontro: 0, marcosBatismo: 0, marcosDiscipulado: 0,
-        marcosCursoLidere: 0, marcosRenovo: 0, marcosLiderEmTreinamento: 0,
-        stagnantCount: 0, stagnantMembers: [], birthdays: [],
-      };
-
       if (totalCelulas === 0) return empty;
 
-      // 2. Build report query helper
+      // 2. Build report query helper using week window
       const buildReportQuery = (window: { from: string; to: string }) =>
         supabase.from('weekly_reports')
           .select('celula_id')
@@ -109,7 +109,7 @@ export function usePulsoRede({ scopeType, scopeId }: UsePulsoRedeOptions) {
             `and(meeting_date.is.null,week_start.gte.${window.from},week_start.lte.${window.to})`
           );
 
-      const twoYearsAgo = addDays(now, -730);
+      const twoYearsAgo = subDays(now, 730);
 
       // 3. Fetch all in parallel
       const [
@@ -123,11 +123,13 @@ export function usePulsoRede({ scopeType, scopeId }: UsePulsoRedeOptions) {
         buildReportQuery(thisWeek),
         buildReportQuery(lastWeek),
         buildReportQuery(twoWeeksAgo),
+        // Marcos espirituais - membros ativos no escopo
         supabase.from('members')
           .select('id, is_discipulado, is_lider_em_treinamento, encontro_com_deus, batismo, curso_lidere, renovo')
           .eq('is_active', true)
           .eq('is_test_data', false)
           .in('celula_id', celulaIds),
+        // Estagnação - membros há mais de 2 anos sem marcos básicos
         supabase.from('members')
           .select(`
             id,
@@ -142,6 +144,7 @@ export function usePulsoRede({ scopeType, scopeId }: UsePulsoRedeOptions) {
           .eq('is_test_data', false)
           .in('celula_id', celulaIds)
           .lt('joined_at', twoYearsAgo.toISOString()),
+        // Aniversários da semana
         supabase.from('members')
           .select(`
             profile_id,
@@ -185,7 +188,7 @@ export function usePulsoRede({ scopeType, scopeId }: UsePulsoRedeOptions) {
         }
       }
 
-      // --- Marcos espirituais ---
+      // --- Marcos espirituais (contagem real dos membros cadastrados) ---
       const members = membersRes.data || [];
       const totalDiscipulados = members.filter(m => m.is_discipulado).length;
       const lideresEmTreinamento = members.filter(m => m.is_lider_em_treinamento).length;

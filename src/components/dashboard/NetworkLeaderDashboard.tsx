@@ -32,7 +32,6 @@ import { MissionVerse } from './MissionVerse';
 import { EmptyState } from '@/components/ui/empty-state';
 import { useRole } from '@/contexts/RoleContext';
 import { PulsoRedeSection } from './PulsoRedeSection';
-import { AniversariantesSemanaCard } from './AniversariantesSemanaCard';
 import { RedeEmailReportDialog } from './RedeEmailReportDialog';
 
 export function NetworkLeaderDashboard() {
@@ -214,10 +213,7 @@ export function NetworkLeaderDashboard() {
             </TabsList>
 
             <TabsContent value="pulso">
-              <div className="space-y-6">
-                <PulsoRedeSection scopeType="rede" scopeId={selectedRede} title="Pulso da Rede" />
-                <AniversariantesSemanaCard scopeType="rede" scopeId={selectedRede} />
-              </div>
+              <PulsoRedeSection scopeType="rede" scopeId={selectedRede} title="Pulso da Rede" />
             </TabsContent>
 
             <TabsContent value="multiplicacoes"><MultiplicacoesTab /></TabsContent>
