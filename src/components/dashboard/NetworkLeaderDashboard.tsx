@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, UserCheck, Heart, UserPlus, Baby, Loader2, Network, FileSpreadsheet, ChevronDown, ChevronUp, Eye, ClipboardCheck, Image, Sparkles, History, GitBranch, User, Activity } from 'lucide-react';
+import { Users, UserCheck, Heart, UserPlus, Baby, Loader2, Network, FileSpreadsheet, ChevronDown, ChevronUp, Eye, ClipboardCheck, Image, Sparkles, History, GitBranch, User, Activity, Mail } from 'lucide-react';
 import { useRedes } from '@/hooks/useRedes';
 import { useCoordenacoes } from '@/hooks/useCoordenacoes';
 import { useCelulas } from '@/hooks/useCelulas';
@@ -33,6 +33,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { useRole } from '@/contexts/RoleContext';
 import { PulsoRedeSection } from './PulsoRedeSection';
 import { AniversariantesSemanaCard } from './AniversariantesSemanaCard';
+import { RedeEmailReportDialog } from './RedeEmailReportDialog';
 
 export function NetworkLeaderDashboard() {
   const { toast } = useToast();
@@ -45,6 +46,7 @@ export function NetworkLeaderDashboard() {
   const [dateRange, setDateRange] = useState<DateRangeValue>({ from: subDays(new Date(), 6), to: new Date() });
   const [expandedCoords, setExpandedCoords] = useState<Set<string>>(new Set());
   const [selectedCelula, setSelectedCelula] = useState<{ id: string; name: string } | null>(null);
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
   
   const dateRangeFilter = { from: getDateString(dateRange.from), to: getDateString(dateRange.to) };
   const { data: redeData, isLoading: reportsLoading } = useWeeklyReportsByRede(selectedRede, dateRangeFilter);
@@ -123,12 +125,19 @@ export function NetworkLeaderDashboard() {
         subtitle="Acompanhe o desempenho das coordenações"
         icon={Network}
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <DateRangeSelector dateRange={dateRange} onDateRangeChange={setDateRange} />
             {selectedRede && (
-              <Button variant="outline" size="icon" onClick={handleExportExcel} title="Exportar Excel">
-                <FileSpreadsheet className="h-4 w-4" />
-              </Button>
+              <>
+                <Button variant="outline" size="icon" onClick={handleExportExcel} title="Exportar Excel">
+                  <FileSpreadsheet className="h-4 w-4" />
+                </Button>
+                <Button variant="default" size="sm" onClick={() => setEmailDialogOpen(true)} className="gap-2">
+                  <Mail className="h-4 w-4" />
+                  <span className="hidden sm:inline">Enviar Relatório</span>
+                  <span className="sm:hidden">E-mail</span>
+                </Button>
+              </>
             )}
           </div>
         }
@@ -331,6 +340,20 @@ export function NetworkLeaderDashboard() {
       {selectedCelula && (
         <CelulaDetailsDialog open={!!selectedCelula} onOpenChange={(open) => { if (!open) setSelectedCelula(null); }} celulaId={selectedCelula.id} celulaName={selectedCelula.name} />
       )}
+
+      {selectedRede && (
+        <RedeEmailReportDialog
+          open={emailDialogOpen}
+          onOpenChange={setEmailDialogOpen}
+          redeId={selectedRede}
+          redeName={selectedRedeData?.name || 'Rede Amor a 2'}
+          redeLeaderName={
+            selectedRedeData?.leadership_couple?.spouse1?.name && selectedRedeData?.leadership_couple?.spouse2?.name
+              ? `${selectedRedeData.leadership_couple.spouse1.name} & ${selectedRedeData.leadership_couple.spouse2.name}`
+              : selectedRedeData?.leadership_couple?.spouse1?.name || 'Liderança'
+          }
+        />
+      )}
     </div>
   );
-}      
+}
