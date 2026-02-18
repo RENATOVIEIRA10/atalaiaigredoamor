@@ -53,9 +53,9 @@ export function SupervisaoDetailsDialog({ open, onOpenChange, supervisao }: Supe
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh]">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+      <DialogContent className="max-w-2xl flex flex-col" style={{ maxHeight: '90vh' }}>
+        <DialogHeader className="flex-shrink-0">
+          <DialogTitle className="flex items-center gap-2 flex-wrap">
             Supervisão - {supervisao.celula?.name}
             {supervisao.celula_realizada ? (
               <Badge variant="default">Realizada</Badge>
@@ -65,7 +65,7 @@ export function SupervisaoDetailsDialog({ open, onOpenChange, supervisao }: Supe
           </DialogTitle>
         </DialogHeader>
         
-        <ScrollArea className="max-h-[70vh] pr-4">
+        <ScrollArea className="flex-1 overflow-y-auto pr-4" style={{ maxHeight: 'calc(90vh - 80px)' }}>
           <div className="space-y-6">
             {/* Header Info */}
             <Card>
