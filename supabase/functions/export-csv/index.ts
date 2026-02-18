@@ -110,6 +110,7 @@ Deno.serve(async (req) => {
           celula:celulas(name, coordenacao:coordenacoes(name, rede:redes(name))),
           created_by_profile:profiles!weekly_reports_created_by_fkey(name)
         `)
+        .order('meeting_date', { ascending: false, nullsFirst: false })
         .order('week_start', { ascending: false });
 
       if (!includeTestData) query = query.eq('is_test_data', false);
@@ -119,23 +120,63 @@ Deno.serve(async (req) => {
       const { data, error } = await query;
       if (error) throw error;
 
-      const rows = (data || []).map((r: any) => ({
-        data_semana: r.week_start || '',
-        data_reuniao: r.meeting_date || '',
-        celula: r.celula?.name || '',
-        coordenacao: r.celula?.coordenacao?.name || '',
-        rede: r.celula?.coordenacao?.rede?.name || '',
-        membros_presentes: r.members_present,
-        visitantes: r.visitors,
-        criancas: r.children,
-        lideres_treinamento: r.leaders_in_training,
-        discipulados: r.discipleships,
-        total: r.members_present + r.visitors + r.children + r.leaders_in_training + r.discipleships,
-        observacoes: r.notes || '',
-        enviado_em: r.created_at?.split('T')[0] || '',
-        enviado_por: r.created_by_profile?.name || '',
-        dado_teste: r.is_test_data ? 'Sim' : 'Não',
-      }));
+      // Helper: get Monday of week from a date string
+      const getMonday = (ds: string): string => {
+        const d = new Date(ds + 'T12:00:00Z');
+        const day = d.getUTCDay();
+        const diff = day === 0 ? -6 : 1 - day;
+        d.setUTCDate(d.getUTCDate() + diff);
+        return d.toISOString().split('T')[0];
+      };
+      // Helper: Saturday (Seg→Sáb operacional end)
+      const getSaturday = (mondayStr: string): string => {
+        const d = new Date(mondayStr + 'T12:00:00Z');
+        d.setUTCDate(d.getUTCDate() + 5);
+        return d.toISOString().split('T')[0];
+      };
+      // Helper: Sunday (calendar end)
+      const getSunday = (mondayStr: string): string => {
+        const d = new Date(mondayStr + 'T12:00:00Z');
+        d.setUTCDate(d.getUTCDate() + 6);
+        return d.toISOString().split('T')[0];
+      };
+      // Helper: ISO week label
+      const getIsoWeekLabel = (mondayStr: string): string => {
+        const d = new Date(mondayStr + 'T12:00:00Z');
+        const startOfYear = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+        const weekNum = Math.ceil(((d.getTime() - startOfYear.getTime()) / 86400000 + startOfYear.getUTCDay() + 1) / 7);
+        return `${d.getUTCFullYear()}-W${String(weekNum).padStart(2, '0')} (Seg→Sáb)`;
+      };
+
+      const rows = (data || []).map((r: any) => {
+        // Source of truth: meeting_date; fallback to week_start
+        const dataRealizacao = r.meeting_date || r.week_start || '';
+        const weekStart = dataRealizacao ? getMonday(dataRealizacao) : (r.week_start || '');
+        const weekEndOp = weekStart ? getSaturday(weekStart) : '';
+        const weekEndCal = weekStart ? getSunday(weekStart) : '';
+        const semanaLabel = weekStart ? getIsoWeekLabel(weekStart) : '';
+
+        return {
+          data_realizacao: dataRealizacao,
+          week_start: weekStart,
+          week_end_operacional: weekEndOp,
+          week_end_calendario: weekEndCal,
+          semana_label: semanaLabel,
+          celula: r.celula?.name || '',
+          coordenacao: r.celula?.coordenacao?.name || '',
+          rede: r.celula?.coordenacao?.rede?.name || '',
+          membros_presentes: r.members_present,
+          visitantes: r.visitors,
+          criancas: r.children,
+          lideres_treinamento: r.leaders_in_training,
+          discipulados: r.discipleships,
+          total: r.members_present + r.visitors + r.children + r.leaders_in_training + r.discipleships,
+          observacoes: r.notes || '',
+          enviado_em: r.created_at?.split('T')[0] || '',
+          enviado_por: r.created_by_profile?.name || '',
+          dado_teste: r.is_test_data ? 'Sim' : 'Não',
+        };
+      });
 
       csvData = toCSV(rows);
       filename = 'relatorios_semanais';
@@ -214,7 +255,7 @@ Deno.serve(async (req) => {
       filename = 'coordenacoes';
     }
 
-    // ─── PENDÊNCIAS ───
+    // ─── PENDÊNCIAS (usa semana operacional Seg→Sáb) ───
     else if (type === 'pendencias') {
       const { data: celulas } = await supabase
         .from('celulas')
@@ -226,26 +267,42 @@ Deno.serve(async (req) => {
 
       const { data: recentReports } = await supabase
         .from('weekly_reports')
-        .select('celula_id, week_start')
+        .select('celula_id, meeting_date, week_start')
         .eq('is_test_data', false)
         .gte('week_start', new Date(Date.now() - 28 * 24 * 60 * 60 * 1000).toISOString().split('T')[0])
+        .order('meeting_date', { ascending: false, nullsFirst: false })
         .order('week_start', { ascending: false });
 
       const lastReportByCelula = new Map<string, string>();
       for (const r of (recentReports || [])) {
         if (!lastReportByCelula.has(r.celula_id)) {
-          lastReportByCelula.set(r.celula_id, r.week_start);
+          // Use meeting_date as source of truth; fallback to week_start
+          lastReportByCelula.set(r.celula_id, r.meeting_date || r.week_start);
         }
       }
 
+      // Helper: get Monday of week (operacional)
+      const getMondayOf = (ds: string): Date => {
+        const d = new Date(ds + 'T12:00:00Z');
+        const day = d.getUTCDay();
+        const diff = day === 0 ? -6 : 1 - day;
+        d.setUTCDate(d.getUTCDate() + diff);
+        return d;
+      };
+
       const today = new Date();
+      const currentWeekMon = getMondayOf(today.toISOString().split('T')[0]);
+
       const rows = (celulas || [])
         .filter(c => scopeCelulaIds ? scopeCelulaIds.includes(c.id) : true)
         .map((c: any) => {
           const lastReport = lastReportByCelula.get(c.id);
-          const weeksSince = lastReport
-            ? Math.floor((today.getTime() - new Date(lastReport + 'T12:00:00Z').getTime()) / (7 * 24 * 60 * 60 * 1000))
-            : 99;
+          let weeksSince = 99;
+          if (lastReport) {
+            const lastWeekMon = getMondayOf(lastReport);
+            const diffMs = currentWeekMon.getTime() - lastWeekMon.getTime();
+            weeksSince = Math.max(0, Math.floor(diffMs / (7 * 24 * 60 * 60 * 1000)));
+          }
           const nivel = weeksSince >= 3 ? '3_mais' : weeksSince === 2 ? '2_semanas' : weeksSince === 1 ? '1_semana' : 'em_dia';
 
           return {

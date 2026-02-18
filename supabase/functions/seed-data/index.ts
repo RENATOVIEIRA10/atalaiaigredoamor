@@ -209,12 +209,16 @@ Deno.serve(async (req) => {
       for (const celula of (celulas || [])) {
         for (const weekStart of weeks) {
           const weekDate = new Date(weekStart + 'T12:00:00Z');
+          // meeting_date must be within OPERACIONAL window: Seg(0)→Sáb(5)
+          // weekStart is already Monday, so offset 0-5 gives Mon-Sat
           const meetingDayOffset = randInt(0, 5);
           const meetingDate = new Date(weekDate.getTime() + meetingDayOffset * 24 * 60 * 60 * 1000);
+          // Derive week_start from meeting_date (canonical)
+          const derivedWeekStart = dateToString(getMonday(meetingDate));
 
           reportsToInsert.push({
             celula_id: celula.id,
-            week_start: weekStart,
+            week_start: derivedWeekStart,
             meeting_date: dateToString(meetingDate),
             members_present: randInt(4, 18),
             visitors: randInt(0, 6),
