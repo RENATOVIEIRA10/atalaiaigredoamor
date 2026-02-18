@@ -8,8 +8,8 @@ import {
   Activity, AlertTriangle, BookOpen, GraduationCap,
   ChevronDown, ChevronUp, Loader2, Church, Heart, Cake,
 } from 'lucide-react';
-import { usePulsoRede, PulsoRedeData } from '@/hooks/usePulsoRede';
-import { CelulaReportStatus } from '@/hooks/usePulsoPastoral';
+import { usePulsoRede } from '@/hooks/usePulsoRede';
+import { CelulaAlertaStatus as CelulaReportStatus } from '@/hooks/usePulsoEngine';
 
 interface PulsoRedeSectionProps {
   scopeType: 'coordenacao' | 'rede';
