@@ -193,12 +193,14 @@ export type Database = {
           instagram_celula: string | null
           instagram_lider1: string | null
           instagram_lider2: string | null
+          is_test_data: boolean | null
           leader_id: string | null
           leadership_couple_id: string | null
           meeting_day: string | null
           meeting_time: string | null
           name: string
           ordem: number | null
+          seed_run_id: string | null
           supervisor_id: string | null
           updated_at: string
         }
@@ -212,12 +214,14 @@ export type Database = {
           instagram_celula?: string | null
           instagram_lider1?: string | null
           instagram_lider2?: string | null
+          is_test_data?: boolean | null
           leader_id?: string | null
           leadership_couple_id?: string | null
           meeting_day?: string | null
           meeting_time?: string | null
           name: string
           ordem?: number | null
+          seed_run_id?: string | null
           supervisor_id?: string | null
           updated_at?: string
         }
@@ -231,12 +235,14 @@ export type Database = {
           instagram_celula?: string | null
           instagram_lider1?: string | null
           instagram_lider2?: string | null
+          is_test_data?: boolean | null
           leader_id?: string | null
           leadership_couple_id?: string | null
           meeting_day?: string | null
           meeting_time?: string | null
           name?: string
           ordem?: number | null
+          seed_run_id?: string | null
           supervisor_id?: string | null
           updated_at?: string
         }
@@ -260,6 +266,13 @@ export type Database = {
             columns: ["leadership_couple_id"]
             isOneToOne: false
             referencedRelation: "leadership_couples"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "celulas_seed_run_id_fkey"
+            columns: ["seed_run_id"]
+            isOneToOne: false
+            referencedRelation: "seed_runs"
             referencedColumns: ["id"]
           },
           {
@@ -408,9 +421,11 @@ export type Database = {
           is_active: boolean
           is_discipulado: boolean | null
           is_lider_em_treinamento: boolean | null
+          is_test_data: boolean | null
           joined_at: string
           profile_id: string
           renovo: boolean | null
+          seed_run_id: string | null
         }
         Insert: {
           batismo?: boolean | null
@@ -422,9 +437,11 @@ export type Database = {
           is_active?: boolean
           is_discipulado?: boolean | null
           is_lider_em_treinamento?: boolean | null
+          is_test_data?: boolean | null
           joined_at?: string
           profile_id: string
           renovo?: boolean | null
+          seed_run_id?: string | null
         }
         Update: {
           batismo?: boolean | null
@@ -436,9 +453,11 @@ export type Database = {
           is_active?: boolean
           is_discipulado?: boolean | null
           is_lider_em_treinamento?: boolean | null
+          is_test_data?: boolean | null
           joined_at?: string
           profile_id?: string
           renovo?: boolean | null
+          seed_run_id?: string | null
         }
         Relationships: [
           {
@@ -455,6 +474,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "members_seed_run_id_fkey"
+            columns: ["seed_run_id"]
+            isOneToOne: false
+            referencedRelation: "seed_runs"
+            referencedColumns: ["id"]
+          },
         ]
       }
       multiplicacoes: {
@@ -464,7 +490,9 @@ export type Database = {
           created_at: string
           data_multiplicacao: string
           id: string
+          is_test_data: boolean | null
           notes: string | null
+          seed_run_id: string | null
           updated_at: string
         }
         Insert: {
@@ -473,7 +501,9 @@ export type Database = {
           created_at?: string
           data_multiplicacao: string
           id?: string
+          is_test_data?: boolean | null
           notes?: string | null
+          seed_run_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -482,7 +512,9 @@ export type Database = {
           created_at?: string
           data_multiplicacao?: string
           id?: string
+          is_test_data?: boolean | null
           notes?: string | null
+          seed_run_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -498,6 +530,13 @@ export type Database = {
             columns: ["celula_origem_id"]
             isOneToOne: false
             referencedRelation: "celulas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "multiplicacoes_seed_run_id_fkey"
+            columns: ["seed_run_id"]
+            isOneToOne: false
+            referencedRelation: "seed_runs"
             referencedColumns: ["id"]
           },
         ]
@@ -541,8 +580,10 @@ export type Database = {
           created_at: string
           email: string | null
           id: string
+          is_test_data: boolean | null
           joined_church_at: string | null
           name: string
+          seed_run_id: string | null
           updated_at: string
           user_id: string
         }
@@ -552,8 +593,10 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          is_test_data?: boolean | null
           joined_church_at?: string | null
           name: string
+          seed_run_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -563,12 +606,22 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          is_test_data?: boolean | null
           joined_church_at?: string | null
           name?: string
+          seed_run_id?: string | null
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_seed_run_id_fkey"
+            columns: ["seed_run_id"]
+            isOneToOne: false
+            referencedRelation: "seed_runs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       redes: {
         Row: {
@@ -612,6 +665,60 @@ export type Database = {
           },
         ]
       }
+      seed_runs: {
+        Row: {
+          cleaned_at: string | null
+          cleaned_by: string | null
+          created_at: string
+          created_by: string | null
+          environment: string
+          id: string
+          name: string
+          notes: string | null
+          status: string
+          totals: Json | null
+        }
+        Insert: {
+          cleaned_at?: string | null
+          cleaned_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          environment?: string
+          id?: string
+          name: string
+          notes?: string | null
+          status?: string
+          totals?: Json | null
+        }
+        Update: {
+          cleaned_at?: string | null
+          cleaned_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          environment?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          status?: string
+          totals?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seed_runs_cleaned_by_fkey"
+            columns: ["cleaned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seed_runs_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       supervisoes: {
         Row: {
           apresentacao_visitantes: boolean | null
@@ -627,6 +734,7 @@ export type Database = {
           horario_termino: string
           id: string
           interatividade: boolean | null
+          is_test_data: boolean | null
           licao: boolean | null
           louvor: boolean | null
           momento_visao_triade: boolean | null
@@ -638,6 +746,7 @@ export type Database = {
           pontos_positivos: string | null
           pontualidade: boolean | null
           quebra_gelo: boolean | null
+          seed_run_id: string | null
           selfie: boolean | null
           supervisor_id: string
           updated_at: string
@@ -656,6 +765,7 @@ export type Database = {
           horario_termino: string
           id?: string
           interatividade?: boolean | null
+          is_test_data?: boolean | null
           licao?: boolean | null
           louvor?: boolean | null
           momento_visao_triade?: boolean | null
@@ -667,6 +777,7 @@ export type Database = {
           pontos_positivos?: string | null
           pontualidade?: boolean | null
           quebra_gelo?: boolean | null
+          seed_run_id?: string | null
           selfie?: boolean | null
           supervisor_id: string
           updated_at?: string
@@ -685,6 +796,7 @@ export type Database = {
           horario_termino?: string
           id?: string
           interatividade?: boolean | null
+          is_test_data?: boolean | null
           licao?: boolean | null
           louvor?: boolean | null
           momento_visao_triade?: boolean | null
@@ -696,6 +808,7 @@ export type Database = {
           pontos_positivos?: string | null
           pontualidade?: boolean | null
           quebra_gelo?: boolean | null
+          seed_run_id?: string | null
           selfie?: boolean | null
           supervisor_id?: string
           updated_at?: string
@@ -706,6 +819,13 @@ export type Database = {
             columns: ["celula_id"]
             isOneToOne: false
             referencedRelation: "celulas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supervisoes_seed_run_id_fkey"
+            columns: ["seed_run_id"]
+            isOneToOne: false
+            referencedRelation: "seed_runs"
             referencedColumns: ["id"]
           },
           {
@@ -845,6 +965,7 @@ export type Database = {
           cultura_whatsapp: string | null
           discipleships: number
           id: string
+          is_test_data: boolean | null
           leaders_in_training: number
           meeting_date: string | null
           members_present: number
@@ -852,6 +973,7 @@ export type Database = {
           notes: string | null
           paixao_whatsapp: string | null
           photo_url: string | null
+          seed_run_id: string | null
           updated_at: string
           visitors: number
           week_start: string
@@ -864,6 +986,7 @@ export type Database = {
           cultura_whatsapp?: string | null
           discipleships?: number
           id?: string
+          is_test_data?: boolean | null
           leaders_in_training?: number
           meeting_date?: string | null
           members_present?: number
@@ -871,6 +994,7 @@ export type Database = {
           notes?: string | null
           paixao_whatsapp?: string | null
           photo_url?: string | null
+          seed_run_id?: string | null
           updated_at?: string
           visitors?: number
           week_start: string
@@ -883,6 +1007,7 @@ export type Database = {
           cultura_whatsapp?: string | null
           discipleships?: number
           id?: string
+          is_test_data?: boolean | null
           leaders_in_training?: number
           meeting_date?: string | null
           members_present?: number
@@ -890,6 +1015,7 @@ export type Database = {
           notes?: string | null
           paixao_whatsapp?: string | null
           photo_url?: string | null
+          seed_run_id?: string | null
           updated_at?: string
           visitors?: number
           week_start?: string
@@ -907,6 +1033,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "weekly_reports_seed_run_id_fkey"
+            columns: ["seed_run_id"]
+            isOneToOne: false
+            referencedRelation: "seed_runs"
             referencedColumns: ["id"]
           },
         ]

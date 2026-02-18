@@ -181,7 +181,7 @@ export function useSupervisoesByCoordenacao(coordenacaoId: string) {
       
       // Filter out results where celula is null (join didn't match)
       const filteredData = (data || []).filter(s => s.celula !== null);
-      return filteredData as Supervisao[];
+      return filteredData as unknown as Supervisao[];
     },
     enabled: !!coordenacaoId,
   });
@@ -214,7 +214,7 @@ export function useSupervisoesBySupervisor(supervisorId: string) {
         .order('data_supervisao', { ascending: false });
       
       if (error) throw error;
-      return data as Supervisao[];
+      return data as unknown as Supervisao[];
     },
     enabled: !!supervisorId,
   });
@@ -251,7 +251,7 @@ export function useSupervisoesByRede(redeId: string) {
       const filteredData = (data || []).filter(s => 
         s.celula?.coordenacao?.rede_id === redeId
       );
-      return filteredData as Supervisao[];
+      return filteredData as unknown as Supervisao[];
     },
     enabled: !!redeId,
   });
