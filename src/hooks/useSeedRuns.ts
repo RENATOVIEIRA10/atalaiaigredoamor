@@ -1,9 +1,8 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { format, subDays, subMonths } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 
 export interface SeedRun {
   id: string;
@@ -60,41 +59,85 @@ export function useUpdateSeedRun() {
   });
 }
 
-const SUPABASE_PROJECT_ID = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-
+// ─── Usa supabase.functions.invoke (correto, sem precisar de VITE_SUPABASE_PROJECT_ID) ───
 async function callSeedFunction(action: string, seedRunId: string, extra?: Record<string, string>) {
-  const url = `https://${SUPABASE_PROJECT_ID}.supabase.co/functions/v1/seed-data`;
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'apikey': SUPABASE_ANON_KEY,
-    },
-    body: JSON.stringify({ action, seed_run_id: seedRunId, ...extra }),
+  const { data, error } = await supabase.functions.invoke('seed-data', {
+    body: { action, seed_run_id: seedRunId, ...extra },
   });
-  const json = await res.json();
-  if (!res.ok) throw new Error(json.error || 'Erro desconhecido');
-  return json;
+  if (error) throw new Error(error.message || 'Erro ao chamar função seed-data');
+  if (data?.error) throw new Error(data.error);
+  return data;
+}
+
+// ─── Também usa invoke para export-csv ───
+export function buildCSVExportUrl(type: string, params: {
+  includeTest?: boolean;
+  seedRunId?: string;
+  coordenacaoId?: string;
+  redeId?: string;
+}) {
+  const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+  const ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  const base = `${SUPABASE_URL}/functions/v1/export-csv`;
+  const q = new URLSearchParams({ type });
+  if (params.includeTest) q.set('include_test', 'true');
+  if (params.seedRunId) q.set('seed_run_id', params.seedRunId);
+  if (params.coordenacaoId) q.set('coordenacao_id', params.coordenacaoId);
+  if (params.redeId) q.set('rede_id', params.redeId);
+  return `${base}?${q.toString()}&apikey=${ANON_KEY}`;
+}
+
+export interface SeedStepResult {
+  step: string;
+  label: string;
+  status: 'pending' | 'running' | 'done' | 'failed';
+  created?: number;
+  error?: string;
 }
 
 export function useSeedActions(seedRunId: string | null) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [isRunning, setIsRunning] = useState(false);
+  const [steps, setSteps] = useState<SeedStepResult[]>([]);
   const [lastResult, setLastResult] = useState<Record<string, number> | null>(null);
 
-  const runAction = async (action: string, extra?: Record<string, string>) => {
+  const updateStep = (step: string, updates: Partial<SeedStepResult>) => {
+    setSteps(prev => prev.map(s => s.step === step ? { ...s, ...updates } : s));
+  };
+
+  const runAction = async (action: string, label: string, extra?: Record<string, string>) => {
     if (!seedRunId) return;
     setIsRunning(true);
+
+    // Add/update step
+    setSteps(prev => {
+      const exists = prev.find(s => s.step === action);
+      if (exists) return prev.map(s => s.step === action ? { ...s, status: 'running', error: undefined } : s);
+      return [...prev, { step: action, label, status: 'running' }];
+    });
+
     try {
       const result = await callSeedFunction(action, seedRunId, extra);
       setLastResult(result);
+      updateStep(action, { status: 'done', created: result?.created ?? 0 });
       queryClient.invalidateQueries({ queryKey: ['seed_runs'] });
-      toast({ title: 'Concluído', description: `${result.created ?? 0} registros criados` });
+      toast({ title: '✓ Concluído', description: `${label}: ${result?.created ?? 0} registros criados` });
       return result;
     } catch (e) {
-      toast({ title: 'Erro', description: e instanceof Error ? e.message : 'Erro inesperado', variant: 'destructive' });
+      const msg = e instanceof Error ? e.message : 'Erro inesperado';
+      updateStep(action, { status: 'failed', error: msg });
+
+      // Mark seed run as failed
+      if (seedRunId) {
+        await supabase.from('seed_runs').update({
+          status: 'failed',
+          notes: `Falha em "${label}": ${msg}`,
+        }).eq('id', seedRunId);
+        queryClient.invalidateQueries({ queryKey: ['seed_runs'] });
+      }
+
+      toast({ title: '✗ Erro', description: `${label}: ${msg}`, variant: 'destructive' });
       throw e;
     } finally {
       setIsRunning(false);
@@ -108,14 +151,17 @@ export function useSeedActions(seedRunId: string | null) {
       queryClient.invalidateQueries({ queryKey: ['seed_runs'] });
       toast({ title: 'Limpeza concluída', description: 'Dados de teste removidos com sucesso' });
     } catch (e) {
-      toast({ title: 'Erro na limpeza', description: e instanceof Error ? e.message : 'Erro inesperado', variant: 'destructive' });
+      const msg = e instanceof Error ? e.message : 'Erro inesperado';
+      toast({ title: 'Erro na limpeza', description: msg, variant: 'destructive' });
       throw e;
     } finally {
       setIsRunning(false);
     }
   };
 
-  return { runAction, runCleanup, isRunning, lastResult };
+  const clearSteps = () => setSteps([]);
+
+  return { runAction, runCleanup, isRunning, lastResult, steps, clearSteps };
 }
 
 export function getPeriodDates(preset: SeedPeriodPreset, customFrom?: string, customTo?: string): { from: string; to: string } {
@@ -128,17 +174,8 @@ export function getPeriodDates(preset: SeedPeriodPreset, customFrom?: string, cu
   return { from: fmt(subMonths(today, months)), to: fmt(today) };
 }
 
-export function buildCSVExportUrl(type: string, params: {
-  includeTest?: boolean;
-  seedRunId?: string;
-  coordenacaoId?: string;
-  redeId?: string;
-}) {
-  const base = `https://${SUPABASE_PROJECT_ID}.supabase.co/functions/v1/export-csv`;
-  const q = new URLSearchParams({ type });
-  if (params.includeTest) q.set('include_test', 'true');
-  if (params.seedRunId) q.set('seed_run_id', params.seedRunId);
-  if (params.coordenacaoId) q.set('coordenacao_id', params.coordenacaoId);
-  if (params.redeId) q.set('rede_id', params.redeId);
-  return `${base}?${q.toString()}`;
+export function getWeekCount(from: string, to: string): number {
+  const a = new Date(from + 'T12:00:00Z');
+  const b = new Date(to + 'T12:00:00Z');
+  return Math.max(1, Math.ceil((b.getTime() - a.getTime()) / (7 * 24 * 60 * 60 * 1000)));
 }
