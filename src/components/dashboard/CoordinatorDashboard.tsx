@@ -29,7 +29,6 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { useRole } from '@/contexts/RoleContext';
 import { SupervisorFormDialog } from '@/components/settings/SupervisorFormDialog';
 import { PulsoRedeSection } from './PulsoRedeSection';
-import { AniversariantesSemanaCard } from './AniversariantesSemanaCard';
 
 export function CoordinatorDashboard() {
   const { toast } = useToast();
@@ -187,10 +186,7 @@ export function CoordinatorDashboard() {
             </TabsList>
 
             <TabsContent value="pulso">
-              <div className="space-y-6">
-                <PulsoRedeSection scopeType="coordenacao" scopeId={selectedCoordenacao} title="Pulso da Coordenação" />
-                <AniversariantesSemanaCard scopeType="coordenacao" scopeId={selectedCoordenacao} />
-              </div>
+              <PulsoRedeSection scopeType="coordenacao" scopeId={selectedCoordenacao} title="Pulso da Coordenação" />
             </TabsContent>
 
             <TabsContent value="insights">
