@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { moduleIcons, roleIcons, actionIcons, themeIcons, roleLabels } from '@/lib/icons';
-import { Eye, LogOut } from 'lucide-react';
+import { Eye, LogOut, FlaskConical } from 'lucide-react';
 import logoIgreja from '@/assets/logo-igreja-do-amor.png';
 import { useRole } from '@/contexts/RoleContext';
 import { useDemoMode } from '@/contexts/DemoModeContext';
@@ -38,6 +38,7 @@ const adminNavItems = [
   { title: 'Redes', href: '/redes', icon: moduleIcons.redes },
   { title: 'Coordenações', href: '/coordenacoes', icon: moduleIcons.coordenacoes },
   { title: 'Configurações', href: '/configuracoes', icon: moduleIcons.configuracoes },
+  { title: 'Ferramentas', href: '/ferramentas-teste', icon: FlaskConical },
 ];
 
 export function AppSidebar() {
