@@ -33,10 +33,6 @@ function generateJoinedChurchAt(): string {
   return `${year}-${month}-${day}`;
 }
 
-function generatePhone(): string {
-  return `(${randInt(11, 99)}) 9${randInt(1000, 9999)}-${randInt(1000, 9999)}`;
-}
-
 function getMonday(d: Date): Date {
   const dt = new Date(d);
   const day = dt.getDay();
@@ -77,6 +73,15 @@ const NOTES_POOL = [
   'Foco em discipulado e crescimento pessoal.',
 ];
 
+const MARCOS = ['encontro_com_deus', 'batismo', 'encontro_de_casais', 'curso_lidere', 'renovo'];
+
+// Chunk array into batches
+function chunk<T>(arr: T[], size: number): T[][] {
+  const chunks: T[][] = [];
+  for (let i = 0; i < arr.length; i += size) chunks.push(arr.slice(i, i + size));
+  return chunks;
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -98,58 +103,83 @@ Deno.serve(async (req) => {
       const { data: celulas, error: celulasErr } = await supabase
         .from('celulas')
         .select('id, coordenacao_id')
-        .eq('is_test_data', false);
+        .or('is_test_data.is.null,is_test_data.eq.false');
 
       if (celulasErr) throw celulasErr;
+      if (!celulas || celulas.length === 0) {
+        return new Response(JSON.stringify({ success: true, created: 0 }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
 
-      let totalCreated = 0;
       const MEMBERS_PER_CELULA = 7;
-      const MARCOS = ['encontro_com_deus', 'batismo', 'encontro_de_casais', 'curso_lidere', 'renovo'];
 
-      for (const celula of (celulas || [])) {
+      // Build all profiles in one batch
+      const profilesToInsert = [];
+      const membersMeta: { celulaId: string; joinedAt: string }[] = [];
+
+      for (const celula of celulas) {
         for (let i = 0; i < MEMBERS_PER_CELULA; i++) {
-          // Create profile
           const userId = crypto.randomUUID();
           const joinedAt = generateJoinedChurchAt();
-          const { data: profile, error: profileErr } = await supabase
-            .from('profiles')
-            .insert({
-              user_id: userId,
-              name: generateName(),
-              birth_date: generateBirthDate(18, 65),
-              joined_church_at: joinedAt,
-              email: `test_${userId.slice(0, 8)}@seed.local`,
-              is_test_data: true,
-              seed_run_id,
-            })
-            .select('id')
-            .single();
+          profilesToInsert.push({
+            user_id: userId,
+            name: generateName(),
+            birth_date: generateBirthDate(18, 65),
+            joined_church_at: joinedAt,
+            email: `test_${userId.slice(0, 8)}@seed.local`,
+            is_test_data: true,
+            seed_run_id,
+          });
+          membersMeta.push({ celulaId: celula.id, joinedAt });
+        }
+      }
 
-          if (profileErr || !profile) continue;
+      // Insert profiles in batches of 50
+      let totalCreated = 0;
+      const profileBatches = chunk(profilesToInsert, 50);
+      const memberBatches: object[] = [];
 
-          // Random spiritual milestones (2 to all)
+      for (let b = 0; b < profileBatches.length; b++) {
+        const batch = profileBatches[b];
+        const { data: insertedProfiles, error: profileErr } = await supabase
+          .from('profiles')
+          .insert(batch)
+          .select('id');
+
+        if (profileErr || !insertedProfiles) continue;
+
+        const metaBatch = membersMeta.slice(b * 50, b * 50 + insertedProfiles.length);
+
+        for (let i = 0; i < insertedProfiles.length; i++) {
+          const profile = insertedProfiles[i];
+          const meta = metaBatch[i];
           const numMarcos = randInt(2, MARCOS.length);
           const selectedMarcos = [...MARCOS].sort(() => Math.random() - 0.5).slice(0, numMarcos);
           const marcosObj: Record<string, boolean> = {};
           for (const m of selectedMarcos) marcosObj[m] = true;
 
-          await supabase.from('members').insert({
+          memberBatches.push({
             profile_id: profile.id,
-            celula_id: celula.id,
-            joined_at: joinedAt,
+            celula_id: meta.celulaId,
+            joined_at: meta.joinedAt,
             is_active: true,
             is_test_data: true,
             seed_run_id,
             ...marcosObj,
           });
-
           totalCreated++;
         }
       }
 
+      // Insert all members in batches of 50
+      for (const batch of chunk(memberBatches, 50)) {
+        await supabase.from('members').insert(batch);
+      }
+
       // Update seed run totals
       const { data: existingRun } = await supabase.from('seed_runs').select('totals').eq('id', seed_run_id).single();
-      const totals = existingRun?.totals || {};
+      const totals = (existingRun?.totals as Record<string, unknown>) || {};
       await supabase.from('seed_runs').update({
         totals: { ...totals, members: totalCreated },
         status: 'done'
@@ -171,19 +201,18 @@ Deno.serve(async (req) => {
       const { data: celulas } = await supabase
         .from('celulas')
         .select('id')
-        .eq('is_test_data', false);
+        .or('is_test_data.is.null,is_test_data.eq.false');
 
       const weeks = getWeeksInPeriod(period_from, period_to);
-      let totalCreated = 0;
 
+      const reportsToInsert = [];
       for (const celula of (celulas || [])) {
         for (const weekStart of weeks) {
-          // Get a meeting date within the week (Mon-Sun)
           const weekDate = new Date(weekStart + 'T12:00:00Z');
           const meetingDayOffset = randInt(0, 5);
           const meetingDate = new Date(weekDate.getTime() + meetingDayOffset * 24 * 60 * 60 * 1000);
 
-          const { error } = await supabase.from('weekly_reports').insert({
+          reportsToInsert.push({
             celula_id: celula.id,
             week_start: weekStart,
             meeting_date: dateToString(meetingDate),
@@ -196,13 +225,18 @@ Deno.serve(async (req) => {
             is_test_data: true,
             seed_run_id,
           });
-
-          if (!error) totalCreated++;
         }
       }
 
+      // Insert in batches of 100
+      let totalCreated = 0;
+      for (const batch of chunk(reportsToInsert, 100)) {
+        const { error } = await supabase.from('weekly_reports').insert(batch);
+        if (!error) totalCreated += batch.length;
+      }
+
       const { data: existingRun } = await supabase.from('seed_runs').select('totals').eq('id', seed_run_id).single();
-      const totals = existingRun?.totals || {};
+      const totals = (existingRun?.totals as Record<string, unknown>) || {};
       await supabase.from('seed_runs').update({
         totals: { ...totals, reports: totalCreated, period_from, period_to },
         status: 'done'
@@ -228,13 +262,13 @@ Deno.serve(async (req) => {
       const { data: allCelulas } = await supabase
         .from('celulas')
         .select('id, coordenacao_id')
-        .eq('is_test_data', false);
+        .or('is_test_data.is.null,is_test_data.eq.false');
 
-      let totalCreated = 0;
       const fromDate = new Date(period_from + 'T12:00:00Z');
       const toDate = new Date(period_to + 'T12:00:00Z');
       const rangeDays = Math.max(1, Math.floor((toDate.getTime() - fromDate.getTime()) / (24 * 60 * 60 * 1000)));
 
+      const supervisoesToInsert = [];
       for (const sup of (supervisores || [])) {
         const myCelulas = (allCelulas || []).filter(c => c.coordenacao_id === sup.coordenacao_id);
         const selectedCelulas = myCelulas.sort(() => Math.random() - 0.5).slice(0, 2);
@@ -245,7 +279,7 @@ Deno.serve(async (req) => {
           const startH = randInt(18, 20);
           const endH = startH + 1;
 
-          const { error } = await supabase.from('supervisoes').insert({
+          supervisoesToInsert.push({
             supervisor_id: sup.id,
             celula_id: celula.id,
             data_supervisao: dateToString(supDate),
@@ -262,13 +296,18 @@ Deno.serve(async (req) => {
             is_test_data: true,
             seed_run_id,
           });
-
-          if (!error) totalCreated++;
         }
       }
 
+      // Insert in batches of 50
+      let totalCreated = 0;
+      for (const batch of chunk(supervisoesToInsert, 50)) {
+        const { error } = await supabase.from('supervisoes').insert(batch);
+        if (!error) totalCreated += batch.length;
+      }
+
       const { data: existingRun } = await supabase.from('seed_runs').select('totals').eq('id', seed_run_id).single();
-      const totals = existingRun?.totals || {};
+      const totals = (existingRun?.totals as Record<string, unknown>) || {};
       await supabase.from('seed_runs').update({
         totals: { ...totals, supervisoes: totalCreated },
         status: 'done'
@@ -290,7 +329,7 @@ Deno.serve(async (req) => {
       const { data: celulas } = await supabase
         .from('celulas')
         .select('id, coordenacao_id, supervisor_id')
-        .eq('is_test_data', false);
+        .or('is_test_data.is.null,is_test_data.eq.false');
 
       if (!celulas || celulas.length < 2) {
         return new Response(JSON.stringify({ success: true, created: 0 }), {
@@ -306,50 +345,60 @@ Deno.serve(async (req) => {
 
       const numOrigens = Math.max(1, Math.floor(celulas.length * 0.2));
       const origens = [...celulas].sort(() => Math.random() - 0.5).slice(0, numOrigens);
-      
+
       const fromDate = new Date(period_from + 'T12:00:00Z');
       const toDate = new Date(period_to + 'T12:00:00Z');
       const rangeDays = Math.max(1, Math.floor((toDate.getTime() - fromDate.getTime()) / (24 * 60 * 60 * 1000)));
-      
+
       let totalCreated = 0;
 
-      for (const origem of origens) {
-        // Create a new test celula as destino
-        const { data: newCelula, error: celulaErr } = await supabase
-          .from('celulas')
-          .insert({
-            name: `[Seed] Célula Nova ${Math.floor(Math.random() * 9000 + 1000)}`,
-            coordenacao_id: origem.coordenacao_id,
-            supervisor_id: origem.supervisor_id,
-            is_test_data: true,
-            seed_run_id,
-          })
-          .select('id')
-          .single();
+      // Build new test celulas in one batch
+      const newCelulasData = origens.map(origem => ({
+        name: `[Seed] Célula Nova ${Math.floor(Math.random() * 9000 + 1000)}`,
+        coordenacao_id: origem.coordenacao_id,
+        supervisor_id: origem.supervisor_id,
+        is_test_data: true,
+        seed_run_id,
+      }));
 
-        if (celulaErr || !newCelula) continue;
-        if (usedDestinos.has(newCelula.id)) continue;
+      const { data: newCelulas, error: celulaErr } = await supabase
+        .from('celulas')
+        .insert(newCelulasData)
+        .select('id');
+
+      if (celulaErr || !newCelulas) {
+        return new Response(JSON.stringify({ success: true, created: 0 }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      // Build multiplicacoes batch
+      const multsToInsert = [];
+      for (let i = 0; i < origens.length; i++) {
+        const newCelula = newCelulas[i];
+        if (!newCelula || usedDestinos.has(newCelula.id)) continue;
 
         const dayOffset = randInt(0, rangeDays);
         const multDate = new Date(fromDate.getTime() + dayOffset * 24 * 60 * 60 * 1000);
 
-        const { error: multErr } = await supabase.from('multiplicacoes').insert({
-          celula_origem_id: origem.id,
+        multsToInsert.push({
+          celula_origem_id: origens[i].id,
           celula_destino_id: newCelula.id,
           data_multiplicacao: dateToString(multDate),
           notes: `Multiplicação gerada via seed run ${seed_run_id.slice(0, 8)}`,
           is_test_data: true,
           seed_run_id,
         });
+        usedDestinos.add(newCelula.id);
+      }
 
-        if (!multErr) {
-          totalCreated++;
-          usedDestinos.add(newCelula.id);
-        }
+      if (multsToInsert.length > 0) {
+        const { error: multErr } = await supabase.from('multiplicacoes').insert(multsToInsert);
+        if (!multErr) totalCreated = multsToInsert.length;
       }
 
       const { data: existingRun } = await supabase.from('seed_runs').select('totals').eq('id', seed_run_id).single();
-      const totals = existingRun?.totals || {};
+      const totals = (existingRun?.totals as Record<string, unknown>) || {};
       await supabase.from('seed_runs').update({
         totals: { ...totals, multiplicacoes: totalCreated },
         status: 'done'
@@ -362,32 +411,34 @@ Deno.serve(async (req) => {
 
     // ─── ACTION: cleanup ───
     if (action === 'cleanup') {
-      const { data: cleanSeedRun } = body;
-      const targetId = cleanSeedRun || seed_run_id;
+      const targetId = seed_run_id;
 
       // Delete in FK-safe order
       await supabase.from('weekly_reports').delete().eq('seed_run_id', targetId).eq('is_test_data', true);
       await supabase.from('supervisoes').delete().eq('seed_run_id', targetId).eq('is_test_data', true);
       await supabase.from('multiplicacoes').delete().eq('seed_run_id', targetId).eq('is_test_data', true);
-      
+
       // Get test member ids to delete profiles too
       const { data: testMembers } = await supabase
         .from('members')
         .select('id, profile_id')
         .eq('seed_run_id', targetId)
         .eq('is_test_data', true);
-      
+
       await supabase.from('members').delete().eq('seed_run_id', targetId).eq('is_test_data', true);
-      
+
       // Delete test celulas (destinos created in multiplicacoes)
       await supabase.from('celulas').delete().eq('seed_run_id', targetId).eq('is_test_data', true);
-      
+
       // Delete test profiles
       if (testMembers && testMembers.length > 0) {
         const profileIds = testMembers.map(m => m.profile_id);
-        await supabase.from('profiles').delete().in('id', profileIds).eq('is_test_data', true);
+        // Delete in batches of 100
+        for (const batch of chunk(profileIds, 100)) {
+          await supabase.from('profiles').delete().in('id', batch).eq('is_test_data', true);
+        }
       }
-      
+
       // Also delete any profiles directly tagged
       await supabase.from('profiles').delete().eq('seed_run_id', targetId).eq('is_test_data', true);
 
