@@ -30,6 +30,7 @@ export interface PulsoPastoralData {
   marcosDiscipulado: number;
   marcosCursoLidere: number;
   marcosRenovo: number;
+  marcosLiderEmTreinamento: number;
 }
 
 export function usePulsoPastoral() {
@@ -106,6 +107,7 @@ export function usePulsoPastoral() {
       const marcosDiscipulado = members.filter(m => m.is_discipulado).length;
       const marcosCursoLidere = members.filter(m => m.curso_lidere).length;
       const marcosRenovo = members.filter(m => m.renovo).length;
+      const marcosLiderEmTreinamento = members.filter(m => m.is_lider_em_treinamento).length;
 
       return {
         totalCelulas,
@@ -123,6 +125,7 @@ export function usePulsoPastoral() {
         marcosDiscipulado,
         marcosCursoLidere,
         marcosRenovo,
+        marcosLiderEmTreinamento,
       };
     },
   });

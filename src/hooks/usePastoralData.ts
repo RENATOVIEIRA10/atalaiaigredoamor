@@ -167,6 +167,14 @@ export function useAbsentMembers() {
 }
 
 // Membros sem avanço espiritual
+export interface StagnantMember {
+  id: string;
+  name: string;
+  avatar_url: string | null;
+  celula_name: string;
+  joined_at: string;
+}
+
 export function useSpiritualStagnation() {
   return useQuery({
     queryKey: ['pastoral-spiritual-stagnation'],
@@ -182,19 +190,28 @@ export function useSpiritualStagnation() {
           batismo,
           curso_lidere,
           is_lider_em_treinamento,
-          profile:profiles!members_profile_id_fkey(name)
+          profile:profiles!members_profile_id_fkey(name, avatar_url),
+          celula:celulas!members_celula_id_fkey(name)
         `)
         .eq('is_active', true)
         .lt('joined_at', twoYearsAgo.toISOString());
 
-      if (!members) return { count: 0, yearsThreshold: 2 };
+      if (!members) return { count: 0, yearsThreshold: 2, members: [] as StagnantMember[] };
 
       // Members with 2+ years who haven't completed basic milestones
       const stagnant = members.filter(m => 
         !m.encontro_com_deus && !m.batismo && !m.curso_lidere
       );
 
-      return { count: stagnant.length, yearsThreshold: 2 };
+      const stagnantMembers: StagnantMember[] = stagnant.map(m => ({
+        id: m.id,
+        name: (m.profile as any)?.name || 'Sem nome',
+        avatar_url: (m.profile as any)?.avatar_url || null,
+        celula_name: (m.celula as any)?.name || 'Sem célula',
+        joined_at: m.joined_at,
+      }));
+
+      return { count: stagnant.length, yearsThreshold: 2, members: stagnantMembers };
     },
   });
 }
