@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Loader2, Home, Users, AlertTriangle, Heart, Sparkles, PartyPopper,
   GitBranch, Eye, Cake, ShieldAlert, TrendingUp, RefreshCw, X,
-  Activity, BookOpen, GraduationCap, ChevronDown, ChevronUp, Droplets, Church
+  Activity, BookOpen, GraduationCap, ChevronDown, ChevronUp, Droplets, Church, UserCheck
 } from 'lucide-react';
 import {
   usePastoralStats,
@@ -38,6 +38,7 @@ export function PastorDashboard() {
   const { data: redeGrowth } = useRedeGrowthData();
 
   const [showAlertCells, setShowAlertCells] = useState(false);
+  const [showStagnantMembers, setShowStagnantMembers] = useState(false);
 
   // AI
   const { isLoading: aiLoading, insight: aiInsight, generateInsight, clearInsight } = useAIInsights();
@@ -246,12 +247,13 @@ export function PastorDashboard() {
             <CardDescription>Crescimento espiritual real do rebanho</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
               <MarcoCard label="Encontro c/ Deus" value={pulso?.marcosEncontro || 0} icon="🔥" />
               <MarcoCard label="Batismo" value={pulso?.marcosBatismo || 0} icon="💧" />
               <MarcoCard label="Discipulado" value={pulso?.marcosDiscipulado || 0} icon="📖" />
               <MarcoCard label="Curso Lidere" value={pulso?.marcosCursoLidere || 0} icon="🎓" />
               <MarcoCard label="Renovo" value={pulso?.marcosRenovo || 0} icon="🌿" />
+              <MarcoCard label="Líder em Treinamento" value={pulso?.marcosLiderEmTreinamento || 0} icon="⭐" />
             </div>
           </CardContent>
         </Card>
@@ -259,15 +261,49 @@ export function PastorDashboard() {
         {/* Estagnação espiritual */}
         {stagnation && stagnation.count > 0 && (
           <Card className="mt-4 border-amber-500/20 bg-amber-500/5">
-            <CardContent className="p-4 flex items-start gap-3">
-              <Heart className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" />
-              <div>
-                <p className="text-sm font-medium">Atenção Pastoral</p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Há <strong>{stagnation.count} pessoa(s)</strong> com mais de {stagnation.yearsThreshold} anos de igreja
-                  que ainda não avançaram em marcos espirituais básicos (Encontro com Deus, Batismo ou Curso Lidere).
-                </p>
+            <CardContent className="p-4">
+              <div className="flex items-start gap-3">
+                <Heart className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium">Atenção Pastoral</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Há <strong>{stagnation.count} pessoa(s)</strong> com mais de {stagnation.yearsThreshold} anos de igreja
+                    que ainda não avançaram em marcos espirituais básicos (Encontro com Deus, Batismo ou Curso Lidere).
+                  </p>
+                  {stagnation.members && stagnation.members.length > 0 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="mt-2 h-7 px-2 text-xs text-amber-700 hover:bg-amber-500/10"
+                      onClick={() => setShowStagnantMembers(!showStagnantMembers)}
+                    >
+                      {showStagnantMembers ? <ChevronUp className="h-3 w-3 mr-1" /> : <ChevronDown className="h-3 w-3 mr-1" />}
+                      {showStagnantMembers ? 'Ocultar membros' : `Ver ${stagnation.members.length} membro(s)`}
+                    </Button>
+                  )}
+                </div>
               </div>
+              {showStagnantMembers && stagnation.members && stagnation.members.length > 0 && (
+                <ScrollArea className="mt-3 max-h-56">
+                  <div className="space-y-2 pr-2">
+                    {stagnation.members.map((m) => (
+                      <div key={m.id} className="flex items-center gap-2.5 p-2 rounded-lg bg-background/60 border border-amber-500/10">
+                        <Avatar className="h-8 w-8 shrink-0">
+                          <AvatarImage src={m.avatar_url || undefined} />
+                          <AvatarFallback className="text-xs bg-amber-500/10 text-amber-700">{m.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{m.name}</p>
+                          <p className="text-xs text-muted-foreground truncate">{m.celula_name}</p>
+                        </div>
+                        <Badge variant="outline" className="shrink-0 text-xs border-amber-500/30 text-amber-700">
+                          Sem marcos básicos
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              )}
             </CardContent>
           </Card>
         )}
