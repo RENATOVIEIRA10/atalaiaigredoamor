@@ -42,23 +42,32 @@ export function MobileMenuSheet({ open, onOpenChange }: MobileMenuSheetProps) {
         </SheetHeader>
 
         <div className="space-y-1 py-2">
-          <MenuButton icon={GitBranch} label="Organograma" onClick={() => goTo('/organograma')} />
-          <MenuButton icon={Home} label="Células" onClick={() => goTo('/celulas')} />
-
-          {/* Cell leaders: show Dados shortcut (they don't have it in bottom nav) */}
-          {isCellLeaderOnly && (
-            <MenuButton icon={Activity} label="Dados" onClick={() => goTo('/dados')} />
-          )}
-
-          {(showAdminItems || isCoordenador) && (
+          {/* Supervisor PWA: minimal menu items */}
+          {isSupervisor ? (
             <>
-              <div className="border-t border-border/30 my-2" />
-              {showAdminItems && (
+              <MenuButton icon={GitBranch} label="Organograma" onClick={() => goTo('/organograma')} />
+            </>
+          ) : (
+            <>
+              <MenuButton icon={GitBranch} label="Organograma" onClick={() => goTo('/organograma')} />
+              <MenuButton icon={Home} label="Células" onClick={() => goTo('/celulas')} />
+
+              {/* Cell leaders: show Dados shortcut (they don't have it in bottom nav) */}
+              {isCellLeaderOnly && (
+                <MenuButton icon={Activity} label="Dados" onClick={() => goTo('/dados')} />
+              )}
+
+              {(showAdminItems || isCoordenador) && (
                 <>
-                  <MenuButton icon={Network} label="Redes" onClick={() => goTo('/redes')} />
-                  <MenuButton icon={FolderTree} label="Coordenações" onClick={() => goTo('/coordenacoes')} />
-                  <MenuButton icon={Settings} label="Configurações" onClick={() => goTo('/configuracoes')} />
-                  <MenuButton icon={FlaskConical} label="Ferramentas" onClick={() => goTo('/ferramentas-teste')} />
+                  <div className="border-t border-border/30 my-2" />
+                  {showAdminItems && (
+                    <>
+                      <MenuButton icon={Network} label="Redes" onClick={() => goTo('/redes')} />
+                      <MenuButton icon={FolderTree} label="Coordenações" onClick={() => goTo('/coordenacoes')} />
+                      <MenuButton icon={Settings} label="Configurações" onClick={() => goTo('/configuracoes')} />
+                      <MenuButton icon={FlaskConical} label="Ferramentas" onClick={() => goTo('/ferramentas-teste')} />
+                    </>
+                  )}
                 </>
               )}
             </>
