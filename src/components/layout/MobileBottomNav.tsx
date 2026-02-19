@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Heart, FileText, Users, Menu, ClipboardCheck, Zap } from 'lucide-react';
+import { LayoutDashboard, Heart, FileText, Users, Menu, ClipboardCheck, Zap, History } from 'lucide-react';
 import { useIsPWA } from '@/hooks/useIsPWA';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useRole } from '@/contexts/RoleContext';
@@ -18,17 +18,28 @@ export function MobileBottomNav() {
   const isMobile = useIsMobile();
   const location = useLocation();
   const navigate = useNavigate();
-  const { isSupervisor, isCoordenador, isRedeLeader } = useRole();
+  const { isSupervisor, isCoordenador, isRedeLeader, isCelulaLeader, isAdmin, isPastor } = useRole();
   const [menuOpen, setMenuOpen] = useState(false);
 
   // Only render in PWA + mobile
   if (!isPWA || !isMobile) return null;
 
   let navItems: NavItem[];
-  if (isSupervisor) {
-    // Supervisor: single-screen MVP — only Início + Menu
+  const isCellLeaderOnly = isCelulaLeader && !isSupervisor && !isCoordenador && !isRedeLeader && !isAdmin && !isPastor;
+
+  if (isCellLeaderOnly) {
+    // Líder de Célula: Início, Ações, Histórico
     navItems = [
       { label: 'Início', icon: LayoutDashboard, path: '/dashboard' },
+      { label: 'Ações', icon: Zap, path: '/dashboard?tab=acoes' },
+      { label: 'Histórico', icon: History, path: '/dashboard?tab=historico' },
+    ];
+  } else if (isSupervisor) {
+    // Supervisor: Início, Ações, Histórico
+    navItems = [
+      { label: 'Início', icon: LayoutDashboard, path: '/dashboard' },
+      { label: 'Ações', icon: Zap, path: '/dashboard?tab=acoes' },
+      { label: 'Histórico', icon: History, path: '/dashboard?tab=historico' },
     ];
   } else if (isCoordenador || isRedeLeader) {
     // Coordenador / Líder de Rede: app enxuto com 3 abas + menu
@@ -38,7 +49,7 @@ export function MobileBottomNav() {
       { label: 'Ações', icon: Zap, path: '/dashboard?tab=acoes' },
     ];
   } else {
-    // Default (cell leader, admin, pastor, etc.)
+    // Default (admin, pastor, etc.)
     navItems = [
       { label: 'Início', icon: LayoutDashboard, path: '/dashboard' },
       { label: 'Pulso', icon: Heart, path: '/dashboard?tab=pulso' },
