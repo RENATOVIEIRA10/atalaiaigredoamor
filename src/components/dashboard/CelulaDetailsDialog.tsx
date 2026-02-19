@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from '@/components/ui/dialog';
+import { useIsPWA } from '@/hooks/useIsPWA';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -11,7 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Users, Users2, Link2, Loader2, Plus, Trash2, ChevronDown, ChevronUp, FileText, History, Image, Send } from 'lucide-react';
+import { Users, Users2, Link2, Loader2, Plus, Trash2, ChevronDown, ChevronUp, FileText, History, Image, Send, ArrowLeft } from 'lucide-react';
 import { Member, useMembers, useUpdateMember, useRemoveMember } from '@/hooks/useMembers';
 import { useCasais, useDeleteCasal } from '@/hooks/useCasais';
 import { useWeeklyReports, useCreateWeeklyReport, useUpdateWeeklyReport, useDeleteWeeklyReport, getWeekStartFromDate } from '@/hooks/useWeeklyReports';
@@ -43,6 +45,9 @@ const MARCOS_ESPIRITUAIS = [
 ] as const;
 
 export function CelulaDetailsDialog({ open, onOpenChange, celulaId, celulaName }: CelulaDetailsDialogProps) {
+  const isPWA = useIsPWA();
+  const isMobile = useIsMobile();
+  const isPWAMobile = isPWA && isMobile;
   const { toast } = useToast();
   const { data: members, isLoading: membersLoading } = useMembers(celulaId);
   const { data: casais, isLoading: casaisLoading } = useCasais(celulaId);
@@ -173,8 +178,29 @@ export function CelulaDetailsDialog({ open, onOpenChange, celulaId, celulaName }
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-4xl">
-          <DialogHeader>
+        <DialogContent className="sm:max-w-4xl" hideCloseButton={isPWAMobile}>
+          {/* PWA Mobile: fixed back header replacing the X */}
+          {isPWAMobile && (
+            <div
+              className="sticky top-0 z-20 -mx-4 -mt-12 px-3 flex items-center gap-2 bg-background border-b border-border/30 mb-4"
+              style={{
+                height: 'calc(48px + env(safe-area-inset-top, 0px))',
+                paddingTop: 'env(safe-area-inset-top, 0px)',
+              }}
+            >
+              <DialogClose asChild>
+                <button
+                  className="flex items-center justify-center h-11 w-11 rounded-xl active:bg-accent/60 touch-manipulation transition-colors"
+                  aria-label="Voltar"
+                >
+                  <ArrowLeft className="h-5 w-5 text-foreground" />
+                </button>
+              </DialogClose>
+              <span className="text-sm font-semibold text-foreground truncate">{celulaName}</span>
+            </div>
+          )}
+
+          <DialogHeader className={isPWAMobile ? 'sr-only' : ''}>
             <DialogTitle className="flex items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
                 <Users className="h-4 w-4 text-primary" />
