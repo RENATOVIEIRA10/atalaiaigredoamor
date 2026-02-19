@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -35,6 +36,8 @@ import { PulsoRedeSection } from './PulsoRedeSection';
 import { RedeEmailReportDialog } from './RedeEmailReportDialog';
 
 export function NetworkLeaderDashboard() {
+  const [searchParams] = useSearchParams();
+  const urlTab = searchParams.get('tab');
   const { toast } = useToast();
   const { data: redes, isLoading: redesLoading } = useRedes();
   const { data: coordenacoes } = useCoordenacoes();
@@ -198,7 +201,7 @@ export function NetworkLeaderDashboard() {
             <StatCard icon={FileSpreadsheet} label="Células" value={currentReports.length} />
           </div>
 
-          <Tabs defaultValue="coordenacoes" className="space-y-4">
+          <Tabs defaultValue={urlTab === 'pulso' ? 'pulso' : 'coordenacoes'} className="space-y-4">
             <TabsList className="flex flex-wrap h-auto gap-1">
               <TabsTrigger value="pulso" className="gap-1.5"><Activity className="h-4 w-4" />Pulso</TabsTrigger>
               <TabsTrigger value="coordenacoes" className="gap-1.5"><Network className="h-4 w-4" />Coordenações</TabsTrigger>
