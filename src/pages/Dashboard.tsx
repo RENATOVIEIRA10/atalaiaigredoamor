@@ -10,6 +10,8 @@ import { SupervisorDashboard } from '@/components/dashboard/SupervisorDashboard'
 import { PastorDashboard } from '@/components/dashboard/PastorDashboard';
 import { CoordinatorPWADashboard } from '@/components/dashboard/pwa/CoordinatorPWADashboard';
 import { NetworkLeaderPWADashboard } from '@/components/dashboard/pwa/NetworkLeaderPWADashboard';
+import { CellLeaderPWADashboard } from '@/components/dashboard/pwa/CellLeaderPWADashboard';
+import { SupervisorPWADashboard } from '@/components/dashboard/pwa/SupervisorPWADashboard';
 
 export default function Dashboard() {
   const { isAdmin, isRedeLeader, isCoordenador, isSupervisor, isPastor } = useRole();
@@ -25,17 +27,16 @@ export default function Dashboard() {
       return <AdminDashboard />;
     }
     if (isRedeLeader) {
-      // PWA: enxuto / Web: completo
       return isPWAMobile ? <NetworkLeaderPWADashboard /> : <NetworkLeaderDashboard />;
     }
     if (isCoordenador) {
-      // PWA: enxuto / Web: completo
       return isPWAMobile ? <CoordinatorPWADashboard /> : <CoordinatorDashboard />;
     }
     if (isSupervisor) {
-      return <SupervisorDashboard />;
+      return isPWAMobile ? <SupervisorPWADashboard /> : <SupervisorDashboard />;
     }
-    return <CellLeaderDashboard />;
+    // Cell leader
+    return isPWAMobile ? <CellLeaderPWADashboard /> : <CellLeaderDashboard />;
   };
 
   return (
