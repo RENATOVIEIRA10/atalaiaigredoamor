@@ -26,11 +26,9 @@ export function MobileBottomNav() {
 
   let navItems: NavItem[];
   if (isSupervisor) {
-    // Supervisor: simplified nav
+    // Supervisor: single-screen MVP — only Início + Menu
     navItems = [
       { label: 'Início', icon: LayoutDashboard, path: '/dashboard' },
-      { label: 'Supervisões', icon: ClipboardCheck, path: '/presenca' },
-      { label: 'Células', icon: Users, path: '/celulas' },
     ];
   } else if (isCoordenador || isRedeLeader) {
     // Coordenador / Líder de Rede: app enxuto com 3 abas + menu
