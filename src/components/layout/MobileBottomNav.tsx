@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Heart, FileText, Users, Menu } from 'lucide-react';
+import { LayoutDashboard, Heart, FileText, Users, Menu, ClipboardCheck } from 'lucide-react';
 import { useIsPWA } from '@/hooks/useIsPWA';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useRole } from '@/contexts/RoleContext';
 import { MobileMenuSheet } from './MobileMenuSheet';
 import { cn } from '@/lib/utils';
 
@@ -17,25 +18,35 @@ export function MobileBottomNav() {
   const isMobile = useIsMobile();
   const location = useLocation();
   const navigate = useNavigate();
+  const { isSupervisor } = useRole();
   const [menuOpen, setMenuOpen] = useState(false);
 
   // Only render in PWA + mobile
   if (!isPWA || !isMobile) return null;
 
-  // Same 5 items for ALL roles
-  const navItems: NavItem[] = [
-    { label: 'Início', icon: LayoutDashboard, path: '/dashboard' },
-    { label: 'Pulso', icon: Heart, path: '/dashboard?tab=pulso' },
-    { label: 'Relatórios', icon: FileText, path: '/presenca' },
-    { label: 'Pessoas', icon: Users, path: '/membros' },
-  ];
+  // Supervisor PWA: simplified nav without Pulso, Relatórios, Pessoas
+  let navItems: NavItem[];
+  if (isSupervisor) {
+    navItems = [
+      { label: 'Início', icon: LayoutDashboard, path: '/dashboard' },
+      { label: 'Supervisões', icon: ClipboardCheck, path: '/presenca' },
+      { label: 'Células', icon: Users, path: '/celulas' },
+    ];
+  } else {
+    navItems = [
+      { label: 'Início', icon: LayoutDashboard, path: '/dashboard' },
+      { label: 'Pulso', icon: Heart, path: '/dashboard?tab=pulso' },
+      { label: 'Relatórios', icon: FileText, path: '/presenca' },
+      { label: 'Pessoas', icon: Users, path: '/membros' },
+    ];
+  }
 
   const isActive = (path: string) => {
     const [pathPart, queryPart] = path.split('?');
     if (queryPart) {
       return location.pathname === pathPart && location.search === `?${queryPart}`;
     }
-    // "Início" is active only when on /dashboard without query params
+    // Active only when on exact path without query params
     return location.pathname === pathPart && !location.search;
   };
 
