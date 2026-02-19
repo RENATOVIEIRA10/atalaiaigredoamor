@@ -1,7 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { MessageSquare, Check, ImageIcon, ArrowRight, Copy, Download, RotateCcw } from 'lucide-react';
-import { useState, useCallback, useEffect } from 'react';
+import { MessageSquare, Check, ImageIcon, ArrowRight, Copy, Download, RotateCcw, Loader2 } from 'lucide-react';
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -90,7 +90,6 @@ function loadProgress(celulaName: string): WizardStep | null {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
     const data = JSON.parse(raw);
-    // Only restore if same celula and less than 30 min old
     if (data.celula === celulaName && Date.now() - data.ts < 30 * 60 * 1000) {
       return data.step as WizardStep;
     }
@@ -109,10 +108,53 @@ export function WhatsAppShareDialog({ open, onOpenChange, reportData }: WhatsApp
   const [step, setStep] = useState<WizardStep>('idle');
   const [confirmPrompt, setConfirmPrompt] = useState(false);
   const [resumePrompt, setResumePrompt] = useState(false);
+  const [busyBtn, setBusyBtn] = useState<string | null>(null);
+  const busyRef = useRef(false);
+
+  // Pre-cached photo blob
+  const photoBlobRef = useRef<{ url: string; file: File } | null>(null);
+  const [photoReady, setPhotoReady] = useState(false);
 
   const hasPhoto = !!reportData.photo_url;
-  const bloco2 = buildBloco2(reportData);
-  const bloco3 = buildBloco3(reportData);
+
+  // Pre-compute text blocks once via useMemo (no work on click)
+  const bloco2 = useMemo(() => buildBloco2(reportData), [reportData]);
+  const bloco3 = useMemo(() => buildBloco3(reportData), [reportData]);
+
+  // Pre-encode WhatsApp URLs so click is instant
+  const waUrlBloco2 = useMemo(() => {
+    const normalized = bloco2.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    return `https://wa.me/?text=${encodeURIComponent(normalized)}`;
+  }, [bloco2]);
+
+  const waUrlBloco3 = useMemo(() => {
+    const normalized = bloco3.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    return `https://wa.me/?text=${encodeURIComponent(normalized)}`;
+  }, [bloco3]);
+
+  // Pre-fetch photo when dialog opens
+  useEffect(() => {
+    if (!open || !reportData.photo_url) {
+      photoBlobRef.current = null;
+      setPhotoReady(false);
+      return;
+    }
+    let cancelled = false;
+    const t0 = performance.now();
+    fetch(reportData.photo_url)
+      .then(r => r.blob())
+      .then(blob => {
+        if (cancelled) return;
+        const file = new File([blob], `celula-${Date.now()}.jpg`, { type: blob.type || 'image/jpeg' });
+        photoBlobRef.current = { url: URL.createObjectURL(blob), file };
+        setPhotoReady(true);
+        console.log(`[WA perf] photo prefetch: ${Math.round(performance.now() - t0)}ms`);
+      })
+      .catch(() => {
+        if (!cancelled) setPhotoReady(false);
+      });
+    return () => { cancelled = true; };
+  }, [open, reportData.photo_url]);
 
   // Check for saved progress on open
   useEffect(() => {
@@ -150,23 +192,42 @@ export function WhatsAppShareDialog({ open, onOpenChange, reportData }: WhatsApp
     setStep('idle');
     clearProgress();
     setResumePrompt(false);
+    setConfirmPrompt(false);
+    setBusyBtn(null);
   };
 
-  const openWhatsAppText = (text: string) => {
-    const normalized = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-    const encoded = encodeURIComponent(normalized);
-    const url = `https://wa.me/?text=${encoded}`;
+  // Fast WhatsApp open — no encoding on click, just navigate
+  const openWhatsAppFast = useCallback((url: string, btnId: string, nextStep: WizardStep) => {
+    if (busyRef.current) return;
+    busyRef.current = true;
+    setBusyBtn(btnId);
 
+    const t0 = performance.now();
+    console.log(`[WA perf] ${btnId} click`);
+
+    // Instant navigation
     if (isPWA) {
-      // PWA: use location.href to avoid blank ghost tabs
       window.location.href = url;
     } else {
       const newTab = window.open(url, '_blank', 'noopener,noreferrer');
-      if (!newTab || newTab.closed || typeof newTab.closed === 'undefined') {
+      if (!newTab || newTab.closed) {
         window.location.href = url;
       }
     }
-  };
+
+    console.log(`[WA perf] ${btnId} dispatched: ${Math.round(performance.now() - t0)}ms`);
+
+    // Release lock after short delay
+    setTimeout(() => {
+      busyRef.current = false;
+      setBusyBtn(null);
+      if (isPWA) {
+        setConfirmPrompt(true);
+      } else {
+        advanceTo(nextStep);
+      }
+    }, 800);
+  }, [isPWA, advanceTo]);
 
   const copyToClipboard = async (text: string) => {
     try {
@@ -177,16 +238,6 @@ export function WhatsAppShareDialog({ open, onOpenChange, reportData }: WhatsApp
     }
   };
 
-  // In PWA, after returning from WhatsApp, show confirmation prompt
-  // The step doesn't auto-advance — user must explicitly confirm
-  const handleWhatsAppSent = (nextStep: WizardStep) => {
-    if (isPWA) {
-      setConfirmPrompt(true);
-    } else {
-      advanceTo(nextStep);
-    }
-  };
-
   const confirmSent = (nextStep: WizardStep) => {
     setConfirmPrompt(false);
     advanceTo(nextStep);
@@ -194,33 +245,53 @@ export function WhatsAppShareDialog({ open, onOpenChange, reportData }: WhatsApp
 
   const confirmRetry = () => {
     setConfirmPrompt(false);
-    // stay on same step
   };
 
+  // Photo share — uses pre-fetched blob, no network on click
   const handleSharePhoto = useCallback(async () => {
-    if (!reportData.photo_url) return;
+    if (busyRef.current) return;
+    busyRef.current = true;
+    setBusyBtn('photo');
+
+    const t0 = performance.now();
+    console.log('[WA perf] photo share click');
+
     try {
-      const response = await fetch(reportData.photo_url);
-      const blob = await response.blob();
-      const file = new File([blob], `celula-${Date.now()}.jpg`, { type: blob.type || 'image/jpeg' });
+      let file: File;
+      if (photoBlobRef.current) {
+        file = photoBlobRef.current.file;
+        console.log(`[WA perf] photo from cache: 0ms`);
+      } else {
+        // Fallback: fetch now (shouldn't happen if prefetch worked)
+        const response = await fetch(reportData.photo_url!);
+        const blob = await response.blob();
+        file = new File([blob], `celula-${Date.now()}.jpg`, { type: blob.type || 'image/jpeg' });
+        console.log(`[WA perf] photo fallback fetch: ${Math.round(performance.now() - t0)}ms`);
+      }
 
       if (navigator.share && navigator.canShare?.({ files: [file] })) {
         await navigator.share({ files: [file] });
-        return;
+      } else {
+        // Fallback: download
+        const url = photoBlobRef.current?.url || URL.createObjectURL(file);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = file.name;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        if (!photoBlobRef.current) URL.revokeObjectURL(url);
+        toast({ title: 'Foto salva!', description: 'Envie a foto manualmente no grupo do WhatsApp.' });
       }
-      // Fallback: download
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = file.name;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      toast({ title: 'Foto salva!', description: 'Envie a foto manualmente no grupo do WhatsApp.' });
     } catch {
       toast({ title: 'Não foi possível compartilhar a foto', description: 'Envie manualmente.', variant: 'default' });
     }
+
+    console.log(`[WA perf] photo total: ${Math.round(performance.now() - t0)}ms`);
+    setTimeout(() => {
+      busyRef.current = false;
+      setBusyBtn(null);
+    }, 800);
   }, [reportData.photo_url, toast]);
 
   const stepIndex = { idle: -1, photo: 0, bloco2: 1, bloco3: 2, done: 3 };
@@ -285,15 +356,23 @@ export function WhatsAppShareDialog({ open, onOpenChange, reportData }: WhatsApp
             <div className="flex items-center gap-2 mb-2">
               <StepBadge n={1} done={currentIdx > 0} active={step === 'photo'} />
               <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Foto da Célula</span>
+              {step === 'photo' && hasPhoto && !photoReady && (
+                <Loader2 className="h-3 w-3 animate-spin text-muted-foreground ml-auto" />
+              )}
             </div>
             {hasPhoto ? (
               <>
                 <img src={reportData.photo_url!} alt="Foto da célula" className="w-full h-28 object-cover rounded-md" />
                 {step === 'photo' && !confirmPrompt && (
                   <div className="space-y-2 mt-3">
-                    <Button size="sm" className="w-full bg-green-600 hover:bg-green-700 text-white" onClick={handleSharePhoto}>
-                      <Download className="h-4 w-4 mr-2" />
-                      Abrir WhatsApp para enviar a foto
+                    <Button
+                      size="sm"
+                      className="w-full bg-green-600 hover:bg-green-700 text-white"
+                      onClick={handleSharePhoto}
+                      disabled={busyBtn === 'photo'}
+                    >
+                      {busyBtn === 'photo' ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Download className="h-4 w-4 mr-2" />}
+                      {busyBtn === 'photo' ? 'Abrindo…' : 'Abrir WhatsApp para enviar a foto'}
                     </Button>
                     <Button size="sm" variant="outline" className="w-full" onClick={() => advanceTo('bloco2')}>
                       Já enviei a foto <ArrowRight className="h-4 w-4 ml-1" />
@@ -325,9 +404,14 @@ export function WhatsAppShareDialog({ open, onOpenChange, reportData }: WhatsApp
             <pre className="text-xs whitespace-pre-wrap font-sans leading-relaxed bg-muted/30 rounded-md p-2 max-h-24 overflow-y-auto">{bloco2}</pre>
             {step === 'bloco2' && !confirmPrompt && (
               <div className="space-y-2 mt-3">
-                <Button size="sm" className="w-full bg-green-600 hover:bg-green-700 text-white" onClick={() => { openWhatsAppText(bloco2); if (isPWA) handleWhatsAppSent('bloco3'); }}>
-                  <MessageSquare className="h-4 w-4 mr-2" />
-                  Abrir WhatsApp com o BLOCO 2
+                <Button
+                  size="sm"
+                  className="w-full bg-green-600 hover:bg-green-700 text-white"
+                  onClick={() => openWhatsAppFast(waUrlBloco2, 'bloco2', 'bloco3')}
+                  disabled={busyBtn === 'bloco2'}
+                >
+                  {busyBtn === 'bloco2' ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <MessageSquare className="h-4 w-4 mr-2" />}
+                  {busyBtn === 'bloco2' ? 'Abrindo WhatsApp…' : 'Abrir WhatsApp com o BLOCO 2'}
                 </Button>
                 <Button size="sm" variant="outline" className="w-full" onClick={() => advanceTo('bloco3')}>
                   Já enviei o BLOCO 2 <ArrowRight className="h-4 w-4 ml-1" />
@@ -352,9 +436,14 @@ export function WhatsAppShareDialog({ open, onOpenChange, reportData }: WhatsApp
             <pre className="text-xs whitespace-pre-wrap font-sans leading-relaxed bg-muted/30 rounded-md p-2 max-h-24 overflow-y-auto">{bloco3}</pre>
             {step === 'bloco3' && !confirmPrompt && (
               <div className="space-y-2 mt-3">
-                <Button size="sm" className="w-full bg-green-600 hover:bg-green-700 text-white" onClick={() => { openWhatsAppText(bloco3); if (isPWA) handleWhatsAppSent('done'); }}>
-                  <MessageSquare className="h-4 w-4 mr-2" />
-                  Abrir WhatsApp com o BLOCO 3
+                <Button
+                  size="sm"
+                  className="w-full bg-green-600 hover:bg-green-700 text-white"
+                  onClick={() => openWhatsAppFast(waUrlBloco3, 'bloco3', 'done')}
+                  disabled={busyBtn === 'bloco3'}
+                >
+                  {busyBtn === 'bloco3' ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <MessageSquare className="h-4 w-4 mr-2" />}
+                  {busyBtn === 'bloco3' ? 'Abrindo WhatsApp…' : 'Abrir WhatsApp com o BLOCO 3'}
                 </Button>
                 <Button size="sm" variant="outline" className="w-full" onClick={() => advanceTo('done')}>
                   Já enviei o BLOCO 3 <Check className="h-4 w-4 ml-1" />
