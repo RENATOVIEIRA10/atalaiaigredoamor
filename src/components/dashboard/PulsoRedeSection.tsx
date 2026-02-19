@@ -6,10 +6,11 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Activity, AlertTriangle, BookOpen, GraduationCap,
-  ChevronDown, ChevronUp, Loader2, Church, Heart, Cake,
+  ChevronDown, ChevronUp, Loader2, Church, Heart,
 } from 'lucide-react';
 import { usePulsoRede } from '@/hooks/usePulsoRede';
 import { CelulaAlertaStatus as CelulaReportStatus } from '@/hooks/usePulsoEngine';
+import { AniversariantesSemanaCard } from './AniversariantesSemanaCard';
 
 interface PulsoRedeSectionProps {
   scopeType: 'coordenacao' | 'rede';
@@ -238,33 +239,8 @@ export function PulsoRedeSection({ scopeType, scopeId, title }: PulsoRedeSection
         </Card>
       )}
 
-      {/* Aniversários da semana */}
-      <section>
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">🎂 Aniversários da Semana</h2>
-        <Card>
-          <CardContent className="p-4">
-            {pulso.birthdays.length > 0 ? (
-              <div className="space-y-2 max-h-48 overflow-y-auto">
-                {pulso.birthdays.map((b) => (
-                  <div key={b.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={b.avatar_url || undefined} />
-                      <AvatarFallback className="text-xs">{b.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{b.name}</p>
-                      <p className="text-xs text-muted-foreground">{b.role} · {b.celula_name}</p>
-                    </div>
-                    {b.is_today && <Badge className="bg-primary/10 text-primary text-xs">Hoje! 🎂</Badge>}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground text-center py-4">Nenhum aniversário nesta semana</p>
-            )}
-          </CardContent>
-        </Card>
-      </section>
+      {/* Aniversários da semana – com botão WhatsApp */}
+      <AniversariantesSemanaCard scopeType={scopeType} scopeId={scopeId} />
     </div>
   );
 }
