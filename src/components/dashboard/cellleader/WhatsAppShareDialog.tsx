@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Progress } from '@/components/ui/progress';
+import { useIsPWA } from '@/hooks/useIsPWA';
 
 interface WhatsAppShareDialogProps {
   open: boolean;
@@ -104,7 +105,9 @@ function clearProgress() {
 
 export function WhatsAppShareDialog({ open, onOpenChange, reportData }: WhatsAppShareDialogProps) {
   const { toast } = useToast();
+  const isPWA = useIsPWA();
   const [step, setStep] = useState<WizardStep>('idle');
+  const [confirmPrompt, setConfirmPrompt] = useState(false);
   const [resumePrompt, setResumePrompt] = useState(false);
 
   const hasPhoto = !!reportData.photo_url;
@@ -150,16 +153,18 @@ export function WhatsAppShareDialog({ open, onOpenChange, reportData }: WhatsApp
   };
 
   const openWhatsAppText = (text: string) => {
-    // Normaliza quebras de linha e aplica encoding
     const normalized = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
     const encoded = encodeURIComponent(normalized);
-    // wa.me é o link universal: redireciona para app no mobile e WhatsApp Web no desktop
-    // Evita aba em branco causada por whatsapp:// no desktop ou web.whatsapp.com/send com popup bloqueado
     const url = `https://wa.me/?text=${encoded}`;
-    const newTab = window.open(url, '_blank', 'noopener,noreferrer');
-    // Fallback se popup foi bloqueado: navegar na mesma aba
-    if (!newTab || newTab.closed || typeof newTab.closed === 'undefined') {
+
+    if (isPWA) {
+      // PWA: use location.href to avoid blank ghost tabs
       window.location.href = url;
+    } else {
+      const newTab = window.open(url, '_blank', 'noopener,noreferrer');
+      if (!newTab || newTab.closed || typeof newTab.closed === 'undefined') {
+        window.location.href = url;
+      }
     }
   };
 
@@ -170,6 +175,26 @@ export function WhatsAppShareDialog({ open, onOpenChange, reportData }: WhatsApp
     } catch {
       toast({ title: 'Erro ao copiar', variant: 'destructive' });
     }
+  };
+
+  // In PWA, after returning from WhatsApp, show confirmation prompt
+  // The step doesn't auto-advance — user must explicitly confirm
+  const handleWhatsAppSent = (nextStep: WizardStep) => {
+    if (isPWA) {
+      setConfirmPrompt(true);
+    } else {
+      advanceTo(nextStep);
+    }
+  };
+
+  const confirmSent = (nextStep: WizardStep) => {
+    setConfirmPrompt(false);
+    advanceTo(nextStep);
+  };
+
+  const confirmRetry = () => {
+    setConfirmPrompt(false);
+    // stay on same step
   };
 
   const handleSharePhoto = useCallback(async () => {
@@ -236,6 +261,24 @@ export function WhatsAppShareDialog({ open, onOpenChange, reportData }: WhatsApp
           </div>
         )}
 
+        {/* PWA Confirmation prompt after returning from WhatsApp */}
+        {confirmPrompt && (
+          <div className="rounded-lg border border-green-300 dark:border-green-700 bg-green-50 dark:bg-green-950/30 p-4 space-y-3">
+            <p className="text-sm font-medium text-green-900 dark:text-green-100">Você conseguiu enviar no WhatsApp?</p>
+            <div className="flex gap-2">
+              <Button size="sm" className="flex-1 bg-green-600 hover:bg-green-700 text-white" onClick={() => {
+                const nextMap: Record<WizardStep, WizardStep> = { photo: 'bloco2', bloco2: 'bloco3', bloco3: 'done', idle: 'idle', done: 'done' };
+                confirmSent(nextMap[step]);
+              }}>
+                <Check className="h-4 w-4 mr-1" /> Sim, enviado
+              </Button>
+              <Button size="sm" variant="outline" className="flex-1" onClick={confirmRetry}>
+                Não, tentar de novo
+              </Button>
+            </div>
+          </div>
+        )}
+
         <div className="space-y-3">
           {/* ═══ ETAPA 1: FOTO ═══ */}
           <div className={`rounded-lg border p-3 transition-all ${currentIdx > 0 ? 'opacity-40' : ''} ${step === 'photo' ? 'ring-2 ring-green-500/50' : ''}`}>
@@ -246,7 +289,7 @@ export function WhatsAppShareDialog({ open, onOpenChange, reportData }: WhatsApp
             {hasPhoto ? (
               <>
                 <img src={reportData.photo_url!} alt="Foto da célula" className="w-full h-28 object-cover rounded-md" />
-                {step === 'photo' && (
+                {step === 'photo' && !confirmPrompt && (
                   <div className="space-y-2 mt-3">
                     <Button size="sm" className="w-full bg-green-600 hover:bg-green-700 text-white" onClick={handleSharePhoto}>
                       <Download className="h-4 w-4 mr-2" />
@@ -280,9 +323,9 @@ export function WhatsAppShareDialog({ open, onOpenChange, reportData }: WhatsApp
               )}
             </div>
             <pre className="text-xs whitespace-pre-wrap font-sans leading-relaxed bg-muted/30 rounded-md p-2 max-h-24 overflow-y-auto">{bloco2}</pre>
-            {step === 'bloco2' && (
+            {step === 'bloco2' && !confirmPrompt && (
               <div className="space-y-2 mt-3">
-                <Button size="sm" className="w-full bg-green-600 hover:bg-green-700 text-white" onClick={() => openWhatsAppText(bloco2)}>
+                <Button size="sm" className="w-full bg-green-600 hover:bg-green-700 text-white" onClick={() => { openWhatsAppText(bloco2); if (isPWA) handleWhatsAppSent('bloco3'); }}>
                   <MessageSquare className="h-4 w-4 mr-2" />
                   Abrir WhatsApp com o BLOCO 2
                 </Button>
@@ -307,9 +350,9 @@ export function WhatsAppShareDialog({ open, onOpenChange, reportData }: WhatsApp
               )}
             </div>
             <pre className="text-xs whitespace-pre-wrap font-sans leading-relaxed bg-muted/30 rounded-md p-2 max-h-24 overflow-y-auto">{bloco3}</pre>
-            {step === 'bloco3' && (
+            {step === 'bloco3' && !confirmPrompt && (
               <div className="space-y-2 mt-3">
-                <Button size="sm" className="w-full bg-green-600 hover:bg-green-700 text-white" onClick={() => openWhatsAppText(bloco3)}>
+                <Button size="sm" className="w-full bg-green-600 hover:bg-green-700 text-white" onClick={() => { openWhatsAppText(bloco3); if (isPWA) handleWhatsAppSent('done'); }}>
                   <MessageSquare className="h-4 w-4 mr-2" />
                   Abrir WhatsApp com o BLOCO 3
                 </Button>
