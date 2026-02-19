@@ -182,15 +182,15 @@ export function CelulaDetailsDialog({ open, onOpenChange, celulaId, celulaName }
           {/* PWA Mobile: fixed back header replacing the X */}
           {isPWAMobile && (
             <div
-              className="sticky top-0 z-20 -mx-4 -mt-12 px-3 flex items-center gap-2 bg-background border-b border-border/30 mb-4"
+              className="sticky top-0 z-30 -mx-4 -mt-12 px-3 flex items-center gap-2 bg-background border-b border-border/30 mb-4 shadow-sm"
               style={{
-                height: 'calc(48px + env(safe-area-inset-top, 0px))',
+                minHeight: 'calc(52px + env(safe-area-inset-top, 0px))',
                 paddingTop: 'env(safe-area-inset-top, 0px)',
               }}
             >
               <DialogClose asChild>
                 <button
-                  className="flex items-center justify-center h-11 w-11 rounded-xl active:bg-accent/60 touch-manipulation transition-colors"
+                  className="flex items-center justify-center min-h-[44px] min-w-[44px] h-11 w-11 rounded-xl active:bg-accent/60 touch-manipulation transition-colors"
                   aria-label="Voltar"
                 >
                   <ArrowLeft className="h-5 w-5 text-foreground" />

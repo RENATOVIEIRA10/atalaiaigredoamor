@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, Users, GraduationCap, BookOpen, Baby, MessageSquare, Cake } from 'lucide-react';
 import { useMembers } from '@/hooks/useMembers';
 import { MissionVerse } from '../MissionVerse';
+import { useIsPWA } from '@/hooks/useIsPWA';
 
 interface CellLeaderPulsoTabProps {
   celulaId: string;
@@ -15,20 +16,26 @@ function buildBirthdayMessage(name: string): string {
   return `Feliz aniversário, ${firstName}! 🎉\n\nQue Jesus te abençoe muito e que esse novo ano seja cheio de graça, paz e propósito. ❤️\n\n— Rede Amor a 2`;
 }
 
-function openWhatsAppBirthday(name: string, whatsapp: string | null) {
+function openWhatsAppBirthday(name: string, whatsapp: string | null, isPWA: boolean) {
   const message = buildBirthdayMessage(name);
   const encoded = encodeURIComponent(message.replace(/\r\n/g, '\n').replace(/\r/g, '\n'));
   const url = whatsapp
     ? `https://wa.me/${whatsapp.replace(/\D/g, '')}?text=${encoded}`
     : `https://wa.me/?text=${encoded}`;
-  const tab = window.open(url, '_blank', 'noopener,noreferrer');
-  if (!tab || tab.closed || typeof tab.closed === 'undefined') {
+
+  if (isPWA) {
     window.location.href = url;
+  } else {
+    const tab = window.open(url, '_blank', 'noopener,noreferrer');
+    if (!tab || tab.closed || typeof tab.closed === 'undefined') {
+      window.location.href = url;
+    }
   }
 }
 
 export function CellLeaderPulsoTab({ celulaId }: CellLeaderPulsoTabProps) {
   const { data: members, isLoading } = useMembers(celulaId);
+  const isPWA = useIsPWA();
 
   if (isLoading) {
     return (
@@ -136,7 +143,7 @@ export function CellLeaderPulsoTab({ celulaId }: CellLeaderPulsoTabProps) {
                       variant="ghost"
                       size="sm"
                       className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-950"
-                      onClick={() => openWhatsAppBirthday(b.name, b.whatsapp)}
+                      onClick={() => openWhatsAppBirthday(b.name, b.whatsapp, isPWA)}
                       title={`Enviar parabéns para ${b.name}`}
                     >
                       <MessageSquare className="h-4 w-4" />
