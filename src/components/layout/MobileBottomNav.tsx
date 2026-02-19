@@ -36,34 +36,34 @@ export function MobileBottomNav() {
       { label: 'Pessoas', icon: Users, path: '/membros' },
     ];
   } else if (isSupervisorOnly) {
-    // Supervisor: Início, Pulso (dados), Relatórios, Pessoas
+    // Supervisor: Início, Pulso (dentro do dashboard), Relatórios, Pessoas
     navItems = [
       { label: 'Início', icon: LayoutDashboard, path: '/dashboard' },
-      { label: 'Pulso', icon: Activity, path: '/dados' },
+      { label: 'Pulso', icon: Activity, path: '/dashboard?tab=pulso' },
       { label: 'Relatórios', icon: FileText, path: '/presenca' },
       { label: 'Pessoas', icon: Users, path: '/membros' },
     ];
   } else if (isCoordenador && !isRedeLeader && !isAdmin && !isPastor) {
-    // Coordenador: Início, Pulso, Relatórios, Pessoas
+    // Coordenador: Início, Pulso (dentro do dashboard), Relatórios, Pessoas
     navItems = [
       { label: 'Início', icon: LayoutDashboard, path: '/dashboard' },
-      { label: 'Pulso', icon: Activity, path: '/dados' },
+      { label: 'Pulso', icon: Activity, path: '/dashboard?tab=pulso' },
       { label: 'Relatórios', icon: FileText, path: '/presenca' },
       { label: 'Pessoas', icon: Users, path: '/membros' },
     ];
   } else if (isRedeLeader && !isAdmin && !isPastor) {
-    // Líder de Rede: Início, Pulso, Relatórios, Pessoas
+    // Líder de Rede: Início, Pulso (dentro do dashboard), Relatórios, Pessoas
     navItems = [
       { label: 'Início', icon: LayoutDashboard, path: '/dashboard' },
-      { label: 'Pulso', icon: Activity, path: '/dados' },
+      { label: 'Pulso', icon: Activity, path: '/dashboard?tab=pulso' },
       { label: 'Relatórios', icon: FileText, path: '/presenca' },
       { label: 'Pessoas', icon: Users, path: '/membros' },
     ];
   } else if (isPastor) {
-    // Pastor: Início, Pulso, Dados, Pessoas
+    // Pastor: Início, Pulso (dentro do dashboard), Relatórios, Pessoas
     navItems = [
       { label: 'Início', icon: LayoutDashboard, path: '/dashboard' },
-      { label: 'Pulso', icon: Activity, path: '/dados' },
+      { label: 'Pulso', icon: Activity, path: '/dashboard?tab=pulso' },
       { label: 'Relatórios', icon: FileText, path: '/presenca' },
       { label: 'Pessoas', icon: Users, path: '/membros' },
     ];
@@ -77,7 +77,13 @@ export function MobileBottomNav() {
     ];
   }
 
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string) => {
+    const [pathPart, queryPart] = path.split('?');
+    if (queryPart) {
+      return location.pathname === pathPart && location.search === `?${queryPart}`;
+    }
+    return location.pathname === pathPart && !location.search;
+  };
 
   return (
     <>
