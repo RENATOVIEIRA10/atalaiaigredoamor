@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Users, Plus, Loader2, Trash2, ChevronDown, ChevronUp, Cake, Church, Calendar, Save } from 'lucide-react';
+import { Users, Plus, Loader2, Trash2, ChevronDown, ChevronUp, Cake, Church, Calendar, Save, Smartphone } from 'lucide-react';
 import { Member, useMembers, useUpdateMember, useRemoveMember } from '@/hooks/useMembers';
 import { useCasais } from '@/hooks/useCasais';
 import { MemberFormDialogSimple } from './MemberFormDialogSimple';
@@ -56,7 +56,7 @@ export function MembersList({ celulaId }: MembersListProps) {
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [expandedMembers, setExpandedMembers] = useState<Set<string>>(new Set());
-  const [editingDates, setEditingDates] = useState<Record<string, { birth_date: string; joined_church_at: string }>>({});
+  const [editingDates, setEditingDates] = useState<Record<string, { birth_date: string; joined_church_at: string; whatsapp: string }>>({});
   const [savingProfile, setSavingProfile] = useState<string | null>(null);
   const [viewingProfile, setViewingProfile] = useState<Member | null>(null);
 
@@ -92,11 +92,12 @@ export function MembersList({ celulaId }: MembersListProps) {
       [member.id]: {
         birth_date: profile?.birth_date || '',
         joined_church_at: profile?.joined_church_at || '',
+        whatsapp: (member as any).whatsapp || '',
       },
     }));
   };
 
-  const handleDateChange = (memberId: string, field: 'birth_date' | 'joined_church_at', value: string) => {
+  const handleDateChange = (memberId: string, field: 'birth_date' | 'joined_church_at' | 'whatsapp', value: string) => {
     setEditingDates(prev => ({
       ...prev,
       [memberId]: {
@@ -106,16 +107,36 @@ export function MembersList({ celulaId }: MembersListProps) {
     }));
   };
 
+  // Normalize BR WhatsApp to E.164
+  function normalizeWhatsApp(raw: string): string | null {
+    const digits = raw.replace(/\D/g, '');
+    if (!digits) return null;
+    if (digits.startsWith('55') && digits.length >= 12) return `+${digits}`;
+    if (digits.length === 10 || digits.length === 11) return `+55${digits}`;
+    return null;
+  }
+
   const saveDates = async (member: Member) => {
     const profile = member.profile as any;
     if (!profile?.id) return;
     
     const dates = editingDates[member.id];
     if (!dates) return;
+
+    // Validate whatsapp if provided
+    const rawWa = dates.whatsapp?.trim() || '';
+    let normalizedWa: string | null = null;
+    if (rawWa) {
+      normalizedWa = normalizeWhatsApp(rawWa);
+      if (!normalizedWa) {
+        toast({ title: 'WhatsApp inválido', description: 'Use DDD + número (ex: 81999999999)', variant: 'destructive' });
+        return;
+      }
+    }
     
     setSavingProfile(member.id);
     try {
-      const { error } = await supabase
+      const { error: profileError } = await supabase
         .from('profiles')
         .update({
           birth_date: dates.birth_date || null,
@@ -123,13 +144,21 @@ export function MembersList({ celulaId }: MembersListProps) {
         })
         .eq('id', profile.id);
       
-      if (error) throw error;
+      if (profileError) throw profileError;
+
+      // Save whatsapp on members table
+      const { error: memberError } = await supabase
+        .from('members')
+        .update({ whatsapp: normalizedWa } as any)
+        .eq('id', member.id);
+
+      if (memberError) throw memberError;
       
       queryClient.invalidateQueries({ queryKey: ['members'] });
       queryClient.invalidateQueries({ queryKey: ['birthdays'] });
-      toast({ title: 'Datas atualizadas com sucesso!' });
+      queryClient.invalidateQueries({ queryKey: ['aniversariantes-semana'] });
+      toast({ title: 'Dados atualizados com sucesso!' });
       
-      // Clear editing state
       setEditingDates(prev => {
         const next = { ...prev };
         delete next[member.id];
@@ -273,9 +302,23 @@ export function MembersList({ celulaId }: MembersListProps) {
                           size="lg"
                         />
                       </div>
-                      {/* Dates Section */}
+                      {/* Dates + WhatsApp Section */}
                       <div className="p-3 bg-muted/50 rounded-lg space-y-3">
-                        <p className="text-sm font-medium text-muted-foreground">Datas Importantes:</p>
+                        <p className="text-sm font-medium text-muted-foreground">Informações do Membro:</p>
+                        <div className="space-y-1">
+                          <Label className="text-xs flex items-center gap-1">
+                            <Smartphone className="h-3 w-3" />
+                            WhatsApp
+                          </Label>
+                          <Input
+                            type="text"
+                            inputMode="tel"
+                            placeholder="(DDD) 9xxxx-xxxx"
+                            value={editingDates[member.id]?.whatsapp || ''}
+                            onChange={(e) => handleDateChange(member.id, 'whatsapp', e.target.value)}
+                            className="h-8 text-sm"
+                          />
+                        </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <div className="space-y-1">
                             <Label className="text-xs flex items-center gap-1">
@@ -314,7 +357,7 @@ export function MembersList({ celulaId }: MembersListProps) {
                           ) : (
                             <Save className="h-3 w-3 mr-1" />
                           )}
-                          Salvar Datas
+                          Salvar Dados
                         </Button>
                       </div>
                       
