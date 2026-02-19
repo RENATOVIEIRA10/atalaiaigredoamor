@@ -12,18 +12,20 @@ interface AniversariantesSemanaCardProps {
 
 function buildBirthdayMessage(name: string): string {
   const firstName = name.split(' ')[0];
-  return `Feliz aniversário, ${firstName}! 🎉\n\nQue Jesus te abençoe muito e que esse novo ano seja cheio de graça, paz e propósito.\n\nConte com a gente. ❤️\n\n— Rede Amor a 2`;
+  return `Feliz aniversário, ${firstName}! 🎉\n\nQue Jesus te abençoe muito e que esse novo ano seja cheio de graça, paz e propósito. ❤️\n\n— Rede Amor a 2`;
 }
 
-function openWhatsAppBirthday(name: string) {
+function openWhatsAppBirthday(name: string, whatsapp: string | null) {
   const message = buildBirthdayMessage(name);
-  const encoded = encodeURIComponent(message);
-  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-  // Abre WhatsApp sem número pré-definido — líder escolhe o contato
-  const url = isMobile
-    ? `whatsapp://send?text=${encoded}`
-    : `https://web.whatsapp.com/send?text=${encoded}`;
-  window.open(url, '_blank', 'noopener,noreferrer');
+  const encoded = encodeURIComponent(message.replace(/\r\n/g, '\n').replace(/\r/g, '\n'));
+  // If we have the phone, open a direct chat; otherwise open share picker
+  const url = whatsapp
+    ? `https://wa.me/${whatsapp.replace(/\D/g, '')}?text=${encoded}`
+    : `https://wa.me/?text=${encoded}`;
+  const tab = window.open(url, '_blank', 'noopener,noreferrer');
+  if (!tab || tab.closed || typeof tab.closed === 'undefined') {
+    window.location.href = url;
+  }
 }
 
 function BirthdayRow({ b }: { b: AniversarianteSemana }) {
@@ -39,15 +41,19 @@ function BirthdayRow({ b }: { b: AniversarianteSemana }) {
       </div>
       <div className="flex items-center gap-1.5 flex-shrink-0">
         {b.is_today && <Badge className="bg-primary/10 text-primary text-xs">Hoje! 🎂</Badge>}
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-7 w-7 p-0 text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-950"
-          onClick={() => openWhatsAppBirthday(b.name)}
-          title={`Enviar parabéns no WhatsApp para ${b.name}`}
-        >
-          <MessageSquare className="h-4 w-4" />
-        </Button>
+        {b.whatsapp ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 w-7 p-0 text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-950"
+            onClick={() => openWhatsAppBirthday(b.name, b.whatsapp)}
+            title={`Enviar parabéns no WhatsApp para ${b.name}`}
+          >
+            <MessageSquare className="h-4 w-4" />
+          </Button>
+        ) : (
+          <span className="text-xs text-muted-foreground/60 hidden sm:block">Sem WhatsApp</span>
+        )}
       </div>
     </div>
   );

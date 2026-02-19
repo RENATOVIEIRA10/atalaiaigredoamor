@@ -426,6 +426,7 @@ export type Database = {
           profile_id: string
           renovo: boolean | null
           seed_run_id: string | null
+          whatsapp: string | null
         }
         Insert: {
           batismo?: boolean | null
@@ -442,6 +443,7 @@ export type Database = {
           profile_id: string
           renovo?: boolean | null
           seed_run_id?: string | null
+          whatsapp?: string | null
         }
         Update: {
           batismo?: boolean | null
@@ -458,6 +460,7 @@ export type Database = {
           profile_id?: string
           renovo?: boolean | null
           seed_run_id?: string | null
+          whatsapp?: string | null
         }
         Relationships: [
           {

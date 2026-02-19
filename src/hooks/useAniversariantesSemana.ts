@@ -10,7 +10,7 @@ export interface AniversarianteSemana {
   celula_name: string;
   display_date: string; // DD/MM
   is_today: boolean;
-  phone?: string | null; // para botão WhatsApp
+  whatsapp: string | null; // E.164 phone, e.g. +5581999999999
 }
 
 interface UseAniversariantesOptions {
@@ -41,7 +41,7 @@ export function useAniversariantesSemana({ scopeType, scopeId }: UseAniversarian
       // Get active members with profiles
       const { data: members } = await supabase
         .from('members')
-        .select('id, celula_id, profile:profiles!members_profile_id_fkey(name, avatar_url, birth_date, email)')
+        .select('id, celula_id, whatsapp, profile:profiles!members_profile_id_fkey(name, avatar_url, birth_date)')
         .eq('is_active', true)
         .in('celula_id', celulaIds);
 
@@ -69,8 +69,7 @@ export function useAniversariantesSemana({ scopeType, scopeId }: UseAniversarian
             celula_name: celulaMap[m.celula_id] || '',
             display_date: format(bd, 'dd/MM'),
             is_today: bdMD === todayMD,
-            // email como fallback de contato (alguns perfis usam email como WhatsApp não está na tabela)
-            phone: profile.email || null,
+            whatsapp: (m as any).whatsapp || null,
           });
         }
       }

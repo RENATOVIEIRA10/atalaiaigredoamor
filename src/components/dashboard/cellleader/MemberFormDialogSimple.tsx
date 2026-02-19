@@ -9,13 +9,25 @@ import { supabase } from '@/integrations/supabase/client';
 import { useCreateMember } from '@/hooks/useMembers';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
-import { Loader2, Cake, Church } from 'lucide-react';
+import { Loader2, Cake, Church, Smartphone } from 'lucide-react';
+
+// Normalize to E.164 Brazilian format: +55DDDNUMBER
+function normalizeWhatsApp(raw: string): string | null {
+  const digits = raw.replace(/\D/g, '');
+  if (!digits) return null;
+  // Already has country code 55
+  if (digits.startsWith('55') && digits.length >= 12) return `+${digits}`;
+  // DDD + number (10 or 11 digits)
+  if (digits.length === 10 || digits.length === 11) return `+55${digits}`;
+  return null;
+}
 
 const formSchema = z.object({
   name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
   email: z.string().email('Email inválido').optional().or(z.literal('')),
   birth_date: z.string().optional(),
   joined_church_at: z.string().optional(),
+  whatsapp: z.string().optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -38,10 +50,22 @@ export function MemberFormDialogSimple({ open, onOpenChange, celulaId }: MemberF
       email: '',
       birth_date: '',
       joined_church_at: '',
+      whatsapp: '',
     },
   });
   
   async function onSubmit(data: FormData) {
+    // Validate WhatsApp if provided
+    const rawWa = data.whatsapp?.trim() || '';
+    let normalizedWa: string | null = null;
+    if (rawWa) {
+      normalizedWa = normalizeWhatsApp(rawWa);
+      if (!normalizedWa) {
+        form.setError('whatsapp', { message: 'Número inválido. Use DDD + número (ex: 81999999999)' });
+        return;
+      }
+    }
+
     setIsSubmitting(true);
     try {
       // First, create a profile for the new member
@@ -63,7 +87,8 @@ export function MemberFormDialogSimple({ open, onOpenChange, celulaId }: MemberF
       await createMember.mutateAsync({
         profile_id: profile.id,
         celula_id: celulaId,
-      });
+        whatsapp: normalizedWa,
+      } as any);
       
       toast({ title: 'Membro adicionado com sucesso!' });
       onOpenChange(false);
@@ -116,6 +141,28 @@ export function MemberFormDialogSimple({ open, onOpenChange, celulaId }: MemberF
               )}
             />
             
+            <FormField
+              control={form.control}
+              name="whatsapp"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-1">
+                    <Smartphone className="h-4 w-4" />
+                    WhatsApp (opcional)
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="(DDD) 9xxxx-xxxx"
+                      inputMode="tel"
+                      className="h-12 text-base"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
