@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Activity, FileText, Users, Menu } from 'lucide-react';
+import { LayoutDashboard, Activity, FileText, Users, Menu, MessageSquare } from 'lucide-react';
 import { useIsPWA } from '@/hooks/useIsPWA';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useRole } from '@/contexts/RoleContext';
@@ -24,27 +24,51 @@ export function MobileBottomNav() {
   // Only render in PWA + mobile
   if (!isPWA || !isMobile) return null;
 
-  // Build nav items based on role
   const isCellLeaderOnly = isCelulaLeader && !isSupervisor && !isCoordenador && !isRedeLeader && !isAdmin && !isPastor;
   const isSupervisorOnly = isSupervisor && !isCoordenador && !isRedeLeader && !isAdmin && !isPastor;
 
   let navItems: NavItem[];
 
   if (isCellLeaderOnly) {
-    // Cell leaders: NO general reports access — only Início, Pessoas, Menu
+    // Líder de Célula: Início, Relatório (own dashboard), Pessoas
     navItems = [
       { label: 'Início', icon: LayoutDashboard, path: '/dashboard' },
       { label: 'Pessoas', icon: Users, path: '/membros' },
     ];
   } else if (isSupervisorOnly) {
-    // Supervisors: Início, Relatórios, Pessoas
+    // Supervisor: Início, Pulso (dados), Relatórios, Pessoas
     navItems = [
       { label: 'Início', icon: LayoutDashboard, path: '/dashboard' },
+      { label: 'Pulso', icon: Activity, path: '/dados' },
+      { label: 'Relatórios', icon: FileText, path: '/presenca' },
+      { label: 'Pessoas', icon: Users, path: '/membros' },
+    ];
+  } else if (isCoordenador && !isRedeLeader && !isAdmin && !isPastor) {
+    // Coordenador: Início, Pulso, Relatórios, Pessoas
+    navItems = [
+      { label: 'Início', icon: LayoutDashboard, path: '/dashboard' },
+      { label: 'Pulso', icon: Activity, path: '/dados' },
+      { label: 'Relatórios', icon: FileText, path: '/presenca' },
+      { label: 'Pessoas', icon: Users, path: '/membros' },
+    ];
+  } else if (isRedeLeader && !isAdmin && !isPastor) {
+    // Líder de Rede: Início, Pulso, Relatórios, Pessoas
+    navItems = [
+      { label: 'Início', icon: LayoutDashboard, path: '/dashboard' },
+      { label: 'Pulso', icon: Activity, path: '/dados' },
+      { label: 'Relatórios', icon: FileText, path: '/presenca' },
+      { label: 'Pessoas', icon: Users, path: '/membros' },
+    ];
+  } else if (isPastor) {
+    // Pastor: Início, Pulso, Dados, Pessoas
+    navItems = [
+      { label: 'Início', icon: LayoutDashboard, path: '/dashboard' },
+      { label: 'Pulso', icon: Activity, path: '/dados' },
       { label: 'Relatórios', icon: FileText, path: '/presenca' },
       { label: 'Pessoas', icon: Users, path: '/membros' },
     ];
   } else {
-    // Coordinators, Rede Leaders, Admin, Pastor: full nav
+    // Admin: Início, Dados, Relatórios, Pessoas
     navItems = [
       { label: 'Início', icon: LayoutDashboard, path: '/dashboard' },
       { label: 'Dados', icon: Activity, path: '/dados' },

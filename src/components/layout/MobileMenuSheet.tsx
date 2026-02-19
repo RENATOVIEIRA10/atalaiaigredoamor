@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle
 } from '@/components/ui/sheet';
-import { GitBranch, Settings, Network, FolderTree, LogOut, Moon, Heart, Eye, Home, FlaskConical } from 'lucide-react';
+import { GitBranch, Settings, Network, FolderTree, LogOut, Moon, Heart, Eye, Home, FlaskConical, FileText, Activity } from 'lucide-react';
 import { useRole } from '@/contexts/RoleContext';
 import { useDemoMode } from '@/contexts/DemoModeContext';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -15,11 +15,12 @@ interface MobileMenuSheetProps {
 
 export function MobileMenuSheet({ open, onOpenChange }: MobileMenuSheetProps) {
   const navigate = useNavigate();
-  const { clearAccess, isAdmin, isRedeLeader, isCoordenador } = useRole();
+  const { clearAccess, isAdmin, isRedeLeader, isCoordenador, isCelulaLeader, isSupervisor, isPastor } = useRole();
   const { isDemoActive, deactivateDemo } = useDemoMode();
   const { theme, toggleTheme } = useTheme();
 
   const showAdminItems = isAdmin || isRedeLeader || isDemoActive;
+  const isCellLeaderOnly = isCelulaLeader && !isSupervisor && !isCoordenador && !isRedeLeader && !isAdmin && !isPastor;
 
   const goTo = (path: string) => {
     navigate(path);
@@ -44,6 +45,11 @@ export function MobileMenuSheet({ open, onOpenChange }: MobileMenuSheetProps) {
           <MenuButton icon={GitBranch} label="Organograma" onClick={() => goTo('/organograma')} />
           <MenuButton icon={Home} label="Células" onClick={() => goTo('/celulas')} />
 
+          {/* Cell leaders: show Dados shortcut (they don't have it in bottom nav) */}
+          {isCellLeaderOnly && (
+            <MenuButton icon={Activity} label="Dados" onClick={() => goTo('/dados')} />
+          )}
+
           {(showAdminItems || isCoordenador) && (
             <>
               <div className="border-t border-border/30 my-2" />
@@ -66,7 +72,6 @@ export function MobileMenuSheet({ open, onOpenChange }: MobileMenuSheetProps) {
               label={isDemoActive ? 'Trocar Visão' : 'Modo Demonstração'}
               onClick={() => {
                 onOpenChange(false);
-                // Re-open demo dialog would need state lifting; for now navigate
               }}
               className="text-amber-600 dark:text-amber-400"
             />
