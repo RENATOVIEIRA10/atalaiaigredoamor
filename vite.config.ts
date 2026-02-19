@@ -19,6 +19,7 @@ export default defineConfig(({ mode }) => ({
       workbox: {
         // Cache only static assets – never cache API / dynamic data
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff,woff2,ttf,eot}"],
+        maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         // Never cache OAuth redirects or Supabase / API calls
         navigateFallbackDenylist: [/^\/~oauth/, /^\/rest/, /^\/auth/],
         runtimeCaching: [
