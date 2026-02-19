@@ -1,5 +1,7 @@
 import { useState, useMemo } from 'react';
+import { Navigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
+import { useRole } from '@/contexts/RoleContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
@@ -17,6 +19,7 @@ import { exportToExcel } from '@/utils/exportReports';
 type PeriodFilter = 'all' | 'this_month' | 'last_month' | 'last_3_months';
 
 export default function Presenca() {
+  const { isCelulaLeader, isSupervisor, isCoordenador, isRedeLeader, isAdmin, isPastor } = useRole();
   const [selectedCelula, setSelectedCelula] = useState<string>('all');
   const [selectedCoordenacao, setSelectedCoordenacao] = useState<string>('all');
   const [periodFilter, setPeriodFilter] = useState<PeriodFilter>('all');
@@ -25,6 +28,9 @@ export default function Presenca() {
   const { data: celulas } = useCelulas();
   const { data: coordenacoes } = useCoordenacoes();
   const { data: allReports, isLoading } = useWeeklyReports();
+
+
+  // Filter celulas by coordenacao
   
   // Filter celulas by coordenacao
   const filteredCelulas = useMemo(() => {
@@ -106,7 +112,13 @@ export default function Presenca() {
       children: 0,
     });
   }, [filteredReports]);
-  
+
+  // Cell leaders cannot access the general reports page
+  const isCellLeaderOnly = isCelulaLeader && !isSupervisor && !isCoordenador && !isRedeLeader && !isAdmin && !isPastor;
+  if (isCellLeaderOnly) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   const getCelulaName = (celulaId: string) => {
     return celulas?.find(c => c.id === celulaId)?.name || 'Célula não encontrada';
   };
