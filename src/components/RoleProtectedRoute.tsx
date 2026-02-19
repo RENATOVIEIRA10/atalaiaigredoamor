@@ -11,12 +11,15 @@ import { toast } from 'sonner';
 // Routes blocked for Supervisor in PWA mode
 const SUPERVISOR_PWA_BLOCKED = ['/membros', '/dados', '/redes', '/coordenacoes', '/configuracoes', '/ferramentas-teste', '/organograma'];
 
+// Routes blocked for Coordenador / Líder de Rede in PWA mode (heavy web-only routes)
+const COORD_REDE_PWA_BLOCKED = ['/membros', '/dados', '/redes', '/coordenacoes', '/configuracoes', '/ferramentas-teste'];
+
 interface RoleProtectedRouteProps {
   children: React.ReactNode;
 }
 
 export function RoleProtectedRoute({ children }: RoleProtectedRouteProps) {
-  const { selectedRole, accessKeyId, isSupervisor } = useRole();
+  const { selectedRole, accessKeyId, isSupervisor, isCoordenador, isRedeLeader } = useRole();
   const { isDemoActive } = useDemoMode();
   const accepted = usePolicyAcceptance(accessKeyId);
   const isPWA = useIsPWA();
@@ -26,16 +29,21 @@ export function RoleProtectedRoute({ children }: RoleProtectedRouteProps) {
   const isPWAMobile = isPWA && isMobile;
 
   // PWA Supervisor route guard
-  const isBlockedRoute = isPWAMobile && isSupervisor && SUPERVISOR_PWA_BLOCKED.includes(location.pathname);
-  const isPulsoRoute = isPWAMobile && isSupervisor && location.pathname === '/dashboard' && location.search.includes('tab=pulso');
+  const isSupervisorBlocked = isPWAMobile && isSupervisor && SUPERVISOR_PWA_BLOCKED.includes(location.pathname);
+  const isPulsoBlocked = isPWAMobile && isSupervisor && location.pathname === '/dashboard' && location.search.includes('tab=pulso');
+
+  // PWA Coordenador / Líder de Rede route guard
+  const isCoordRedeBlocked = isPWAMobile && (isCoordenador || isRedeLeader) && COORD_REDE_PWA_BLOCKED.includes(location.pathname);
+
+  const isBlocked = isSupervisorBlocked || isPulsoBlocked || isCoordRedeBlocked;
 
   useEffect(() => {
-    if (isBlockedRoute || isPulsoRoute) {
-      toast.info('Aba indisponível no app do Supervisor.');
+    if (isBlocked) {
+      toast.info('Indisponível no app. Use o navegador para acesso completo.');
     }
-  }, [isBlockedRoute, isPulsoRoute]);
+  }, [isBlocked]);
 
-  if (isBlockedRoute || isPulsoRoute) {
+  if (isBlocked) {
     return <Navigate to="/dashboard" replace />;
   }
 

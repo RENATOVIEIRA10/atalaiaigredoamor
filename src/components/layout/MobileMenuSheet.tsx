@@ -47,6 +47,12 @@ export function MobileMenuSheet({ open, onOpenChange }: MobileMenuSheetProps) {
             <>
               <MenuButton icon={GitBranch} label="Organograma" onClick={() => goTo('/organograma')} />
             </>
+          ) : (isCoordenador || isRedeLeader) ? (
+            <>
+              {/* Coordenador / Líder de Rede PWA: essentials only */}
+              <MenuButton icon={GitBranch} label="Organograma" onClick={() => goTo('/organograma')} />
+              <MenuButton icon={Home} label="Células" onClick={() => goTo('/celulas')} />
+            </>
           ) : (
             <>
               <MenuButton icon={GitBranch} label="Organograma" onClick={() => goTo('/organograma')} />

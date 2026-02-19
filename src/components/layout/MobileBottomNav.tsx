@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Heart, FileText, Users, Menu, ClipboardCheck } from 'lucide-react';
+import { LayoutDashboard, Heart, FileText, Users, Menu, ClipboardCheck, Zap } from 'lucide-react';
 import { useIsPWA } from '@/hooks/useIsPWA';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useRole } from '@/contexts/RoleContext';
@@ -18,21 +18,29 @@ export function MobileBottomNav() {
   const isMobile = useIsMobile();
   const location = useLocation();
   const navigate = useNavigate();
-  const { isSupervisor } = useRole();
+  const { isSupervisor, isCoordenador, isRedeLeader } = useRole();
   const [menuOpen, setMenuOpen] = useState(false);
 
   // Only render in PWA + mobile
   if (!isPWA || !isMobile) return null;
 
-  // Supervisor PWA: simplified nav without Pulso, Relatórios, Pessoas
   let navItems: NavItem[];
   if (isSupervisor) {
+    // Supervisor: simplified nav
     navItems = [
       { label: 'Início', icon: LayoutDashboard, path: '/dashboard' },
       { label: 'Supervisões', icon: ClipboardCheck, path: '/presenca' },
       { label: 'Células', icon: Users, path: '/celulas' },
     ];
+  } else if (isCoordenador || isRedeLeader) {
+    // Coordenador / Líder de Rede: app enxuto com 3 abas + menu
+    navItems = [
+      { label: 'Início', icon: LayoutDashboard, path: '/dashboard' },
+      { label: 'Pulso', icon: Heart, path: '/dashboard?tab=pulso' },
+      { label: 'Ações', icon: Zap, path: '/dashboard?tab=acoes' },
+    ];
   } else {
+    // Default (cell leader, admin, pastor, etc.)
     navItems = [
       { label: 'Início', icon: LayoutDashboard, path: '/dashboard' },
       { label: 'Pulso', icon: Heart, path: '/dashboard?tab=pulso' },
