@@ -49,7 +49,7 @@ function buildBloco2(data: WhatsAppShareDialogProps['reportData']): string {
   if (instas.length > 0) {
     lines.push('');
     lines.push('Instagram:');
-    instas.forEach(ig => lines.push(ig.startsWith('@') ? ig : `@${ig}`));
+    instas.forEach(ig => lines.push((ig ?? '').startsWith('@') ? ig! : `@${ig}`));
   }
   return lines.join('\n');
 }
@@ -150,14 +150,17 @@ export function WhatsAppShareDialog({ open, onOpenChange, reportData }: WhatsApp
   };
 
   const openWhatsAppText = (text: string) => {
-    const encoded = encodeURIComponent(text);
-    // Detecta mobile pelo userAgent para usar deep-link nativo (evita aba em branco no Chrome)
-    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-    const url = isMobile
-      ? `whatsapp://send?text=${encoded}`
-      : `https://web.whatsapp.com/send?text=${encoded}`;
-    // noopener,noreferrer previne que o WhatsApp mantenha referência à aba do sistema
-    window.open(url, '_blank', 'noopener,noreferrer');
+    // Normaliza quebras de linha e aplica encoding
+    const normalized = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    const encoded = encodeURIComponent(normalized);
+    // wa.me é o link universal: redireciona para app no mobile e WhatsApp Web no desktop
+    // Evita aba em branco causada por whatsapp:// no desktop ou web.whatsapp.com/send com popup bloqueado
+    const url = `https://wa.me/?text=${encoded}`;
+    const newTab = window.open(url, '_blank', 'noopener,noreferrer');
+    // Fallback se popup foi bloqueado: navegar na mesma aba
+    if (!newTab || newTab.closed || typeof newTab.closed === 'undefined') {
+      window.location.href = url;
+    }
   };
 
   const copyToClipboard = async (text: string) => {
