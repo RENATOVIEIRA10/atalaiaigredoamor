@@ -182,9 +182,9 @@ export function CelulaDetailsDialog({ open, onOpenChange, celulaId, celulaName }
           {/* PWA Mobile: fixed back header replacing the X */}
           {isPWAMobile && (
             <div
-              className="sticky top-0 z-30 -mx-4 -mt-12 px-3 flex items-center gap-2 bg-background border-b border-border/30 mb-4 shadow-sm"
+              className="sticky top-0 z-30 -mx-6 -mt-6 px-3 flex items-center gap-2 bg-background border-b border-border/30 mb-2 shadow-sm"
               style={{
-                minHeight: 'calc(52px + env(safe-area-inset-top, 0px))',
+                minHeight: 'calc(48px + env(safe-area-inset-top, 0px))',
                 paddingTop: 'env(safe-area-inset-top, 0px)',
               }}
             >
