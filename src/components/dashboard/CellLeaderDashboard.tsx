@@ -1,8 +1,9 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, Users, Search, MapPin, Calendar, FileText } from 'lucide-react';
+import { Loader2, Users, Search, MapPin, Calendar, FileText, Heart } from 'lucide-react';
 import { useCelulas } from '@/hooks/useCelulas';
 import { CelulaDetailsDialog } from './CelulaDetailsDialog';
 import { PageHeader } from '@/components/ui/page-header';
@@ -10,10 +11,13 @@ import { MissionVerse } from './MissionVerse';
 import { EmptyState } from '@/components/ui/empty-state';
 import { useRole } from '@/contexts/RoleContext';
 import { CellLeaderMembrosTab } from './cellleader/CellLeaderMembrosTab';
+import { CellLeaderPulsoTab } from './cellleader/CellLeaderPulsoTab';
 
 export function CellLeaderDashboard() {
   const { data: celulas, isLoading } = useCelulas();
   const { scopeId } = useRole();
+  const [searchParams] = useSearchParams();
+  const urlTab = searchParams.get('tab');
   const [selectedCelula, setSelectedCelula] = useState<{ id: string; name: string } | null>(null);
   const [search, setSearch] = useState('');
 
@@ -45,8 +49,12 @@ export function CellLeaderDashboard() {
 
       {singleCell ? (
         // Scoped leader: show tabs (Célula + Membros)
-        <Tabs defaultValue="celula" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2 h-auto p-1">
+        <Tabs defaultValue={urlTab === 'pulso' ? 'pulso' : 'celula'} className="space-y-4">
+          <TabsList className="grid w-full grid-cols-3 h-auto p-1">
+            <TabsTrigger value="pulso" className="gap-2 py-2.5">
+              <Heart className="h-4 w-4" />
+              Pulso
+            </TabsTrigger>
             <TabsTrigger value="celula" className="gap-2 py-2.5">
               <FileText className="h-4 w-4" />
               Célula
@@ -56,6 +64,10 @@ export function CellLeaderDashboard() {
               Membros
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="pulso">
+            <CellLeaderPulsoTab celulaId={singleCell.id} />
+          </TabsContent>
 
           <TabsContent value="celula">
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

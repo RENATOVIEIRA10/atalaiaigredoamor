@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Activity, FileText, Users, Menu, MessageSquare } from 'lucide-react';
+import { LayoutDashboard, Heart, FileText, Users, Menu } from 'lucide-react';
 import { useIsPWA } from '@/hooks/useIsPWA';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useRole } from '@/contexts/RoleContext';
 import { MobileMenuSheet } from './MobileMenuSheet';
 import { cn } from '@/lib/utils';
 
@@ -18,70 +17,25 @@ export function MobileBottomNav() {
   const isMobile = useIsMobile();
   const location = useLocation();
   const navigate = useNavigate();
-  const { isPastor, isCelulaLeader, isSupervisor, isCoordenador, isRedeLeader, isAdmin } = useRole();
   const [menuOpen, setMenuOpen] = useState(false);
 
   // Only render in PWA + mobile
   if (!isPWA || !isMobile) return null;
 
-  const isCellLeaderOnly = isCelulaLeader && !isSupervisor && !isCoordenador && !isRedeLeader && !isAdmin && !isPastor;
-  const isSupervisorOnly = isSupervisor && !isCoordenador && !isRedeLeader && !isAdmin && !isPastor;
-
-  let navItems: NavItem[];
-
-  if (isCellLeaderOnly) {
-    // Líder de Célula: Início, Relatório (own dashboard), Pessoas
-    navItems = [
-      { label: 'Início', icon: LayoutDashboard, path: '/dashboard' },
-      { label: 'Pessoas', icon: Users, path: '/membros' },
-    ];
-  } else if (isSupervisorOnly) {
-    // Supervisor: Início, Pulso (dentro do dashboard), Relatórios, Pessoas
-    navItems = [
-      { label: 'Início', icon: LayoutDashboard, path: '/dashboard' },
-      { label: 'Pulso', icon: Activity, path: '/dashboard?tab=pulso' },
-      { label: 'Relatórios', icon: FileText, path: '/presenca' },
-      { label: 'Pessoas', icon: Users, path: '/membros' },
-    ];
-  } else if (isCoordenador && !isRedeLeader && !isAdmin && !isPastor) {
-    // Coordenador: Início, Pulso (dentro do dashboard), Relatórios, Pessoas
-    navItems = [
-      { label: 'Início', icon: LayoutDashboard, path: '/dashboard' },
-      { label: 'Pulso', icon: Activity, path: '/dashboard?tab=pulso' },
-      { label: 'Relatórios', icon: FileText, path: '/presenca' },
-      { label: 'Pessoas', icon: Users, path: '/membros' },
-    ];
-  } else if (isRedeLeader && !isAdmin && !isPastor) {
-    // Líder de Rede: Início, Pulso (dentro do dashboard), Relatórios, Pessoas
-    navItems = [
-      { label: 'Início', icon: LayoutDashboard, path: '/dashboard' },
-      { label: 'Pulso', icon: Activity, path: '/dashboard?tab=pulso' },
-      { label: 'Relatórios', icon: FileText, path: '/presenca' },
-      { label: 'Pessoas', icon: Users, path: '/membros' },
-    ];
-  } else if (isPastor) {
-    // Pastor: Início, Pulso (dentro do dashboard), Relatórios, Pessoas
-    navItems = [
-      { label: 'Início', icon: LayoutDashboard, path: '/dashboard' },
-      { label: 'Pulso', icon: Activity, path: '/dashboard?tab=pulso' },
-      { label: 'Relatórios', icon: FileText, path: '/presenca' },
-      { label: 'Pessoas', icon: Users, path: '/membros' },
-    ];
-  } else {
-    // Admin: Início, Dados, Relatórios, Pessoas
-    navItems = [
-      { label: 'Início', icon: LayoutDashboard, path: '/dashboard' },
-      { label: 'Dados', icon: Activity, path: '/dados' },
-      { label: 'Relatórios', icon: FileText, path: '/presenca' },
-      { label: 'Pessoas', icon: Users, path: '/membros' },
-    ];
-  }
+  // Same 5 items for ALL roles
+  const navItems: NavItem[] = [
+    { label: 'Início', icon: LayoutDashboard, path: '/dashboard' },
+    { label: 'Pulso', icon: Heart, path: '/dashboard?tab=pulso' },
+    { label: 'Relatórios', icon: FileText, path: '/presenca' },
+    { label: 'Pessoas', icon: Users, path: '/membros' },
+  ];
 
   const isActive = (path: string) => {
     const [pathPart, queryPart] = path.split('?');
     if (queryPart) {
       return location.pathname === pathPart && location.search === `?${queryPart}`;
     }
+    // "Início" is active only when on /dashboard without query params
     return location.pathname === pathPart && !location.search;
   };
 
