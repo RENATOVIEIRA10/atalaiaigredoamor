@@ -150,7 +150,14 @@ export function WhatsAppShareDialog({ open, onOpenChange, reportData }: WhatsApp
   };
 
   const openWhatsAppText = (text: string) => {
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+    const encoded = encodeURIComponent(text);
+    // Detecta mobile pelo userAgent para usar deep-link nativo (evita aba em branco no Chrome)
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    const url = isMobile
+      ? `whatsapp://send?text=${encoded}`
+      : `https://web.whatsapp.com/send?text=${encoded}`;
+    // noopener,noreferrer previne que o WhatsApp mantenha referência à aba do sistema
+    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   const copyToClipboard = async (text: string) => {
