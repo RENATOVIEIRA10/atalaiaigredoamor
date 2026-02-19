@@ -191,12 +191,12 @@ export default function HomePage() {
                   }}
                   className="pl-10 h-12 text-base border-0 focus-visible:ring-1"
                   style={{
-                    background: 'rgba(255,255,255,0.04)',
-                    color: '#F6F4F1',
+                    background: 'rgba(0,0,0,0.06)',
+                    color: '#1a1a1a',
                     borderRadius: '12px',
                     border: error
                       ? '1px solid #D32F2F'
-                      : '1px solid rgba(201,162,77,0.15)',
+                      : '1px solid rgba(201,162,77,0.25)',
                     fontFamily: "'Inter', sans-serif",
                   }}
                   autoFocus
