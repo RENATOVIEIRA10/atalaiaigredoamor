@@ -36,6 +36,27 @@ const avaliacaoLabels: Record<string, string> = {
   interatividade: '4) Interatividade',
 };
 
+const roteiroLabelsWA: Record<string, string> = {
+  oracao_inicial: 'Oração inicial',
+  louvor: 'Louvor',
+  apresentacao_visitantes: 'Apresentação de visitantes',
+  momento_visao_triade: 'Momento da visão e Tríade',
+  avisos: 'Avisos',
+  quebra_gelo: 'Quebra gelo',
+  licao: 'Lição',
+  cadeira_amor: 'Cadeira do amor',
+  oracao_final: 'Oração final',
+  selfie: 'Selfie',
+  comunhao: 'Comunhão',
+};
+
+const avaliacaoLabelsWA: Record<string, string> = {
+  pontualidade: 'Pontualidade',
+  dinamica: 'Dinâmica',
+  organizacao: 'Organização',
+  interatividade: 'Interatividade',
+};
+
 function buildSupervisaoWhatsApp(supervisao: Supervisao): string {
   const dateStr = format(new Date(supervisao.data_supervisao + 'T12:00:00'), "dd/MM/yyyy", { locale: ptBR });
   const celulaName = supervisao.celula?.name || 'Célula';
@@ -67,6 +88,38 @@ function buildSupervisaoWhatsApp(supervisao: Supervisao): string {
       lines.push(`Motivo: ${supervisao.motivo_cancelamento}`);
     }
   } else {
+    // Roteiro da Célula
+    const roteiroEntries = Object.entries(roteiroLabelsWA);
+    const roteiroOk = roteiroEntries.filter(([k]) => supervisao[k as keyof Supervisao] === true).map(([, v]) => v);
+    const roteiroNok = roteiroEntries.filter(([k]) => !supervisao[k as keyof Supervisao]).map(([, v]) => v);
+    const roteiroTotal = roteiroEntries.length;
+    const roteiroScore = roteiroOk.length;
+
+    lines.push(`📋 *Roteiro da Célula (${roteiroScore}/${roteiroTotal})*`);
+    if (roteiroOk.length > 0) {
+      lines.push(`✅ Realizados: ${roteiroOk.join(', ')}`);
+    }
+    if (roteiroNok.length > 0) {
+      lines.push(`❌ Não realizados: ${roteiroNok.join(', ')}`);
+    }
+    lines.push('');
+
+    // Avaliação Geral
+    const avaliacaoEntries = Object.entries(avaliacaoLabelsWA);
+    const avaliacaoOk = avaliacaoEntries.filter(([k]) => supervisao[k as keyof Supervisao] === true).map(([, v]) => v);
+    const avaliacaoNok = avaliacaoEntries.filter(([k]) => !supervisao[k as keyof Supervisao]).map(([, v]) => v);
+    const avaliacaoTotal = avaliacaoEntries.length;
+    const avaliacaoScore = avaliacaoOk.length;
+
+    lines.push(`📊 *Avaliação Geral (${avaliacaoScore}/${avaliacaoTotal})*`);
+    if (avaliacaoOk.length > 0) {
+      lines.push(`✅ OK: ${avaliacaoOk.join(', ')}`);
+    }
+    if (avaliacaoNok.length > 0) {
+      lines.push(`⚠️ A melhorar: ${avaliacaoNok.join(', ')}`);
+    }
+    lines.push('');
+
     // Pontos positivos
     if (supervisao.pontos_positivos) {
       lines.push(`✅ *Pontos positivos:*`);

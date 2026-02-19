@@ -25,27 +25,48 @@ interface ReportEditDialogProps {
 }
 
 export function ReportEditDialog({ open, onOpenChange, report, onSave, isLoading }: ReportEditDialogProps) {
+  // Use string state to allow clearing the field while typing (avoids "01" bug)
   const [formData, setFormData] = useState({
-    members_present: 0,
-    leaders_in_training: 0,
-    discipleships: 0,
-    visitors: 0,
-    children: 0,
+    members_present: '',
+    leaders_in_training: '',
+    discipleships: '',
+    visitors: '',
+    children: '',
     notes: '',
   });
 
   useEffect(() => {
     if (report) {
       setFormData({
-        members_present: report.members_present,
-        leaders_in_training: report.leaders_in_training,
-        discipleships: report.discipleships,
-        visitors: report.visitors,
-        children: report.children,
+        members_present: String(report.members_present),
+        leaders_in_training: String(report.leaders_in_training),
+        discipleships: String(report.discipleships),
+        visitors: String(report.visitors),
+        children: String(report.children),
         notes: report.notes || '',
       });
     }
   }, [report]);
+
+  const toInt = (val: string) => {
+    const n = parseInt(val, 10);
+    return isNaN(n) || n < 0 ? 0 : n;
+  };
+
+  const handleNumericChange = (field: keyof typeof formData, value: string) => {
+    // Allow empty string while typing; strip leading zeros except single "0"
+    const sanitized = value.replace(/[^0-9]/g, '');
+    const cleaned = sanitized === '' ? '' : String(parseInt(sanitized, 10));
+    setFormData(prev => ({ ...prev, [field]: cleaned }));
+  };
+
+  const handleBlur = (field: keyof typeof formData) => {
+    // On blur, ensure empty becomes "0"
+    setFormData(prev => ({
+      ...prev,
+      [field]: prev[field] === '' ? '0' : prev[field],
+    }));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,7 +74,11 @@ export function ReportEditDialog({ open, onOpenChange, report, onSave, isLoading
     
     onSave({
       id: report.id,
-      ...formData,
+      members_present: toInt(formData.members_present),
+      leaders_in_training: toInt(formData.leaders_in_training),
+      discipleships: toInt(formData.discipleships),
+      visitors: toInt(formData.visitors),
+      children: toInt(formData.children),
       notes: formData.notes || null,
     });
   };
@@ -75,50 +100,65 @@ export function ReportEditDialog({ open, onOpenChange, report, onSave, isLoading
               <Label htmlFor="members_present">Membros Presentes</Label>
               <Input
                 id="members_present"
-                type="number"
-                min="0"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 value={formData.members_present}
-                onChange={(e) => setFormData({ ...formData, members_present: parseInt(e.target.value) || 0 })}
+                onChange={(e) => handleNumericChange('members_present', e.target.value)}
+                onBlur={() => handleBlur('members_present')}
+                placeholder="0"
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="leaders_in_training">Líderes em Treinamento</Label>
               <Input
                 id="leaders_in_training"
-                type="number"
-                min="0"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 value={formData.leaders_in_training}
-                onChange={(e) => setFormData({ ...formData, leaders_in_training: parseInt(e.target.value) || 0 })}
+                onChange={(e) => handleNumericChange('leaders_in_training', e.target.value)}
+                onBlur={() => handleBlur('leaders_in_training')}
+                placeholder="0"
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="discipleships">Discipulados</Label>
               <Input
                 id="discipleships"
-                type="number"
-                min="0"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 value={formData.discipleships}
-                onChange={(e) => setFormData({ ...formData, discipleships: parseInt(e.target.value) || 0 })}
+                onChange={(e) => handleNumericChange('discipleships', e.target.value)}
+                onBlur={() => handleBlur('discipleships')}
+                placeholder="0"
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="visitors">Visitantes</Label>
               <Input
                 id="visitors"
-                type="number"
-                min="0"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 value={formData.visitors}
-                onChange={(e) => setFormData({ ...formData, visitors: parseInt(e.target.value) || 0 })}
+                onChange={(e) => handleNumericChange('visitors', e.target.value)}
+                onBlur={() => handleBlur('visitors')}
+                placeholder="0"
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="children">Crianças</Label>
               <Input
                 id="children"
-                type="number"
-                min="0"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 value={formData.children}
-                onChange={(e) => setFormData({ ...formData, children: parseInt(e.target.value) || 0 })}
+                onChange={(e) => handleNumericChange('children', e.target.value)}
+                onBlur={() => handleBlur('children')}
+                placeholder="0"
               />
             </div>
           </div>
