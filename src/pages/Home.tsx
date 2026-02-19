@@ -97,7 +97,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden bg-background">
+    <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden" style={{ background: 'linear-gradient(160deg, #0e0e10 0%, #1a0a0b 40%, #121212 100%)' }}>
       {/* Subtle radial glow */}
       <div
         className="absolute inset-0 pointer-events-none"
