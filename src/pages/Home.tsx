@@ -97,16 +97,12 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden"
-      style={{
-        background: 'linear-gradient(160deg, #0e0e10 0%, #1a0a0b 40%, #121212 100%)',
-      }}
-    >
+    <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden bg-background">
       {/* Subtle radial glow */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
-          background: 'radial-gradient(ellipse at 50% 20%, rgba(140,15,20,0.15) 0%, transparent 60%)',
+          background: 'radial-gradient(ellipse at 50% 20%, rgba(140,15,20,0.18) 0%, transparent 60%)',
         }}
       />
       <div
@@ -153,10 +149,8 @@ export default function HomePage() {
 
         {/* Login card — slide-up */}
         <div
-          className="w-full rounded-2xl p-6 sm:p-8 opacity-0 animate-slide-up stagger-3"
+          className="w-full rounded-2xl p-6 sm:p-8 opacity-0 animate-slide-up stagger-3 bg-card border border-border"
           style={{
-            background: 'linear-gradient(180deg, #1e1e22 0%, #1a1a1e 100%)',
-            border: '1px solid rgba(201,162,77,0.18)',
             boxShadow: '0 16px 48px rgba(0,0,0,0.5), 0 0 0 1px rgba(201,162,77,0.06)',
           }}
         >
