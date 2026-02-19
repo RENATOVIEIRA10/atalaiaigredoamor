@@ -1,12 +1,56 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Cake, Loader2 } from 'lucide-react';
-import { useAniversariantesSemana } from '@/hooks/useAniversariantesSemana';
+import { Button } from '@/components/ui/button';
+import { Loader2, MessageSquare } from 'lucide-react';
+import { useAniversariantesSemana, AniversarianteSemana } from '@/hooks/useAniversariantesSemana';
 
 interface AniversariantesSemanaCardProps {
   scopeType: 'coordenacao' | 'rede';
   scopeId: string;
+}
+
+function buildBirthdayMessage(name: string): string {
+  const firstName = name.split(' ')[0];
+  return `Feliz aniversário, ${firstName}! 🎉\n\nQue Jesus te abençoe muito e que esse novo ano seja cheio de graça, paz e propósito.\n\nConte com a gente. ❤️\n\n— Rede Amor a 2`;
+}
+
+function openWhatsAppBirthday(name: string) {
+  const message = buildBirthdayMessage(name);
+  const encoded = encodeURIComponent(message);
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  // Abre WhatsApp sem número pré-definido — líder escolhe o contato
+  const url = isMobile
+    ? `whatsapp://send?text=${encoded}`
+    : `https://web.whatsapp.com/send?text=${encoded}`;
+  window.open(url, '_blank', 'noopener,noreferrer');
+}
+
+function BirthdayRow({ b }: { b: AniversarianteSemana }) {
+  return (
+    <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50">
+      <Avatar className="h-8 w-8 flex-shrink-0">
+        <AvatarImage src={b.avatar_url || undefined} />
+        <AvatarFallback className="text-xs">{b.name.charAt(0)}</AvatarFallback>
+      </Avatar>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium truncate">{b.name}</p>
+        <p className="text-xs text-muted-foreground">{b.celula_name} · {b.display_date}</p>
+      </div>
+      <div className="flex items-center gap-1.5 flex-shrink-0">
+        {b.is_today && <Badge className="bg-primary/10 text-primary text-xs">Hoje! 🎂</Badge>}
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-7 w-7 p-0 text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-950"
+          onClick={() => openWhatsAppBirthday(b.name)}
+          title={`Enviar parabéns no WhatsApp para ${b.name}`}
+        >
+          <MessageSquare className="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  );
 }
 
 export function AniversariantesSemanaCard({ scopeType, scopeId }: AniversariantesSemanaCardProps) {
@@ -28,19 +72,9 @@ export function AniversariantesSemanaCard({ scopeType, scopeId }: Aniversariante
       <Card>
         <CardContent className="p-4">
           {aniversariantes && aniversariantes.length > 0 ? (
-            <div className="space-y-2 max-h-48 overflow-y-auto">
+            <div className="space-y-2 max-h-56 overflow-y-auto">
               {aniversariantes.map((b) => (
-                <div key={b.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={b.avatar_url || undefined} />
-                    <AvatarFallback className="text-xs">{b.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{b.name}</p>
-                    <p className="text-xs text-muted-foreground">{b.celula_name} · {b.display_date}</p>
-                  </div>
-                  {b.is_today && <Badge className="bg-primary/10 text-primary text-xs">Hoje! 🎂</Badge>}
-                </div>
+                <BirthdayRow key={b.id} b={b} />
               ))}
             </div>
           ) : (

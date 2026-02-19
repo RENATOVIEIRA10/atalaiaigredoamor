@@ -1,9 +1,10 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { Calendar, Clock, MapPin, User, AlertCircle } from 'lucide-react';
+import { Calendar, Clock, MapPin, User, AlertCircle, MessageSquare } from 'lucide-react';
 import { Supervisao } from '@/hooks/useSupervisoes';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -35,6 +36,66 @@ const avaliacaoLabels: Record<string, string> = {
   interatividade: '4) Interatividade',
 };
 
+function buildSupervisaoWhatsApp(supervisao: Supervisao): string {
+  const dateStr = format(new Date(supervisao.data_supervisao + 'T12:00:00'), "dd/MM/yyyy", { locale: ptBR });
+  const celulaName = supervisao.celula?.name || 'Célula';
+  const coordName = supervisao.celula?.coordenacao?.name || '';
+
+  // Nome do supervisor (casal ou individual)
+  const sup = supervisao.supervisor;
+  let supervisorName = '';
+  if (sup?.leadership_couple) {
+    const s1 = sup.leadership_couple.spouse1?.name || '';
+    const s2 = sup.leadership_couple.spouse2?.name || '';
+    supervisorName = s1 && s2 ? `${s1} & ${s2}` : s1 || s2;
+  } else {
+    supervisorName = sup?.profile?.name || 'Supervisor';
+  }
+
+  const lines: string[] = [];
+  lines.push(`*Supervisão – ${celulaName}*`);
+  lines.push('');
+  lines.push(`📅 Data: ${dateStr}`);
+  lines.push(`⏱ Horário: ${supervisao.horario_inicio} – ${supervisao.horario_termino}`);
+  lines.push(`👥 Supervisor(a): ${supervisorName}`);
+  if (coordName) lines.push(`📍 Coordenação: ${coordName}`);
+  lines.push('');
+
+  if (!supervisao.celula_realizada) {
+    lines.push(`❌ *Célula não realizada*`);
+    if (supervisao.motivo_cancelamento) {
+      lines.push(`Motivo: ${supervisao.motivo_cancelamento}`);
+    }
+  } else {
+    // Pontos positivos
+    if (supervisao.pontos_positivos) {
+      lines.push(`✅ *Pontos positivos:*`);
+      lines.push(supervisao.pontos_positivos);
+      lines.push('');
+    }
+
+    // Pontos a alinhar
+    if (supervisao.pontos_alinhar) {
+      lines.push(`🔄 *Pontos a alinhar:*`);
+      lines.push(supervisao.pontos_alinhar);
+      lines.push('');
+    }
+  }
+
+  lines.push('_— Rede Amor a 2_');
+  return lines.join('\n');
+}
+
+function openWhatsAppSupervisao(supervisao: Supervisao) {
+  const text = buildSupervisaoWhatsApp(supervisao);
+  const encoded = encodeURIComponent(text);
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const url = isMobile
+    ? `whatsapp://send?text=${encoded}`
+    : `https://web.whatsapp.com/send?text=${encoded}`;
+  window.open(url, '_blank', 'noopener,noreferrer');
+}
+
 export function SupervisaoDetailsDialog({ open, onOpenChange, supervisao }: SupervisaoDetailsDialogProps) {
   const roteiroItems = Object.entries(roteiroLabels).map(([key, label]) => ({
     key,
@@ -55,14 +116,25 @@ export function SupervisaoDetailsDialog({ open, onOpenChange, supervisao }: Supe
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl flex flex-col" style={{ maxHeight: '90vh' }}>
         <DialogHeader className="flex-shrink-0">
-          <DialogTitle className="flex items-center gap-2 flex-wrap">
-            Supervisão - {supervisao.celula?.name}
-            {supervisao.celula_realizada ? (
-              <Badge variant="default">Realizada</Badge>
-            ) : (
-              <Badge variant="destructive">Não Realizada</Badge>
-            )}
-          </DialogTitle>
+          <div className="flex items-start justify-between gap-2 flex-wrap">
+            <DialogTitle className="flex items-center gap-2 flex-wrap">
+              Supervisão - {supervisao.celula?.name}
+              {supervisao.celula_realizada ? (
+                <Badge variant="default">Realizada</Badge>
+              ) : (
+                <Badge variant="destructive">Não Realizada</Badge>
+              )}
+            </DialogTitle>
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-green-600 border-green-300 hover:bg-green-50 dark:hover:bg-green-950 flex-shrink-0"
+              onClick={() => openWhatsAppSupervisao(supervisao)}
+            >
+              <MessageSquare className="h-4 w-4 mr-1.5" />
+              Enviar no WhatsApp
+            </Button>
+          </div>
         </DialogHeader>
         
         <ScrollArea className="flex-1 overflow-y-auto pr-4" style={{ maxHeight: 'calc(90vh - 80px)' }}>
@@ -74,7 +146,7 @@ export function SupervisaoDetailsDialog({ open, onOpenChange, supervisao }: Supe
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm">
-                      {format(new Date(supervisao.data_supervisao), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                      {format(new Date(supervisao.data_supervisao + 'T12:00:00'), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
