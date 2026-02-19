@@ -6,25 +6,25 @@
 
 @layer base {
   :root {
-    --background: 350 18% 7%;
+    --background: 350 20% 12%;
     --foreground: 40 10% 95%;
 
-    --card: 348 16% 11%;
+    --card: 348 18% 16%;
     --card-foreground: 40 10% 95%;
 
-    --popover: 350 16% 10%;
+    --popover: 350 18% 14%;
     --popover-foreground: 40 10% 95%;
 
     --primary: 34 55% 50%;
-    --primary-foreground: 350 18% 7%;
+    --primary-foreground: 350 20% 10%;
 
-    --secondary: 348 12% 14%;
-    --secondary-foreground: 40 6% 68%;
+    --secondary: 348 14% 19%;
+    --secondary-foreground: 40 6% 72%;
 
-    --muted: 348 12% 14%;
-    --muted-foreground: 40 4% 58%;
+    --muted: 348 14% 19%;
+    --muted-foreground: 40 4% 62%;
 
-    --accent: 34 22% 16%;
+    --accent: 34 22% 20%;
     --accent-foreground: 34 55% 55%;
 
     --destructive: 0 45% 42%;
@@ -34,21 +34,21 @@
     --success-foreground: 40 10% 95%;
 
     --warning: 40 65% 52%;
-    --warning-foreground: 350 18% 7%;
+    --warning-foreground: 350 20% 10%;
 
-    --border: 348 10% 16%;
-    --input: 348 10% 16%;
+    --border: 348 12% 22%;
+    --input: 348 12% 22%;
     --ring: 34 55% 50%;
 
     --radius: 0.75rem;
 
-    --sidebar-background: 350 18% 8%;
+    --sidebar-background: 350 20% 13%;
     --sidebar-foreground: 40 10% 95%;
     --sidebar-primary: 34 55% 50%;
-    --sidebar-primary-foreground: 350 18% 7%;
-    --sidebar-accent: 348 16% 13%;
+    --sidebar-primary-foreground: 350 20% 10%;
+    --sidebar-accent: 348 18% 18%;
     --sidebar-accent-foreground: 40 10% 95%;
-    --sidebar-border: 348 10% 13%;
+    --sidebar-border: 348 12% 19%;
     --sidebar-ring: 34 55% 50%;
   }
 
