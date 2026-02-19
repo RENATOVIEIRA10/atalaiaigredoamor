@@ -191,8 +191,8 @@ export default function HomePage() {
                   }}
                   className="pl-10 h-12 text-base border-0 focus-visible:ring-1"
                   style={{
-                    background: 'rgba(0,0,0,0.06)',
-                    color: '#1a1a1a',
+                    background: 'rgba(255,255,255,0.08)',
+                    color: '#F6F4F1',
                     borderRadius: '12px',
                     border: error
                       ? '1px solid #D32F2F'
