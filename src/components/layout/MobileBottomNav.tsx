@@ -25,19 +25,32 @@ export function MobileBottomNav() {
   if (!isPWA || !isMobile) return null;
 
   // Build nav items based on role
-  const navItems: NavItem[] = [
-    { label: 'Início', icon: LayoutDashboard, path: '/dashboard' },
-    { label: 'Dados', icon: Activity, path: '/dados' },
-    { label: 'Relatórios', icon: FileText, path: '/presenca' },
-    { label: 'Pessoas', icon: Users, path: '/membros' },
-  ];
+  const isCellLeaderOnly = isCelulaLeader && !isSupervisor && !isCoordenador && !isRedeLeader && !isAdmin && !isPastor;
+  const isSupervisorOnly = isSupervisor && !isCoordenador && !isRedeLeader && !isAdmin && !isPastor;
 
-  // Simpler nav for cell leaders
-  if ((isCelulaLeader || isSupervisor) && !isCoordenador && !isRedeLeader && !isAdmin && !isPastor) {
-    navItems.splice(1, 2,
+  let navItems: NavItem[];
+
+  if (isCellLeaderOnly) {
+    // Cell leaders: NO general reports access — only Início, Pessoas, Menu
+    navItems = [
+      { label: 'Início', icon: LayoutDashboard, path: '/dashboard' },
+      { label: 'Pessoas', icon: Users, path: '/membros' },
+    ];
+  } else if (isSupervisorOnly) {
+    // Supervisors: Início, Relatórios, Pessoas
+    navItems = [
+      { label: 'Início', icon: LayoutDashboard, path: '/dashboard' },
       { label: 'Relatórios', icon: FileText, path: '/presenca' },
-    );
-    // Result: Início, Relatórios, Pessoas, Menu
+      { label: 'Pessoas', icon: Users, path: '/membros' },
+    ];
+  } else {
+    // Coordinators, Rede Leaders, Admin, Pastor: full nav
+    navItems = [
+      { label: 'Início', icon: LayoutDashboard, path: '/dashboard' },
+      { label: 'Dados', icon: Activity, path: '/dados' },
+      { label: 'Relatórios', icon: FileText, path: '/presenca' },
+      { label: 'Pessoas', icon: Users, path: '/membros' },
+    ];
   }
 
   const isActive = (path: string) => location.pathname === path;
