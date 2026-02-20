@@ -303,6 +303,14 @@ export default function HomePage() {
             1 Coríntios 14:40
           </p>
         </div>
+
+        {/* Versão do sistema */}
+        <p
+          className="mt-4 text-[9px] opacity-0 animate-fade-in stagger-6"
+          style={{ color: 'rgba(184,182,179,0.3)', fontFamily: "'Inter', sans-serif" }}
+        >
+          v2026.02.20-01
+        </p>
       </div>
     </div>
   );
