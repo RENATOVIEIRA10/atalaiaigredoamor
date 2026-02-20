@@ -26,6 +26,7 @@ import { format, subDays } from 'date-fns';
 import ReactMarkdown from 'react-markdown';
 import { PastoralGrowthCharts } from './PastoralGrowthCharts';
 import { MissionVerse } from './MissionVerse';
+import { RadarSaudePanel } from './RadarSaudePanel';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 export function PastorDashboard() {
@@ -365,6 +366,11 @@ export function PastorDashboard() {
             </CardContent>
           </Card>
         )}
+      </section>
+
+      {/* Radar de Saúde (baseado em supervisões) */}
+      <section>
+        <RadarSaudePanel scopeType="all" title="Radar de Saúde da Rede" />
       </section>
 
       {/* Frutos e Celebrações */}

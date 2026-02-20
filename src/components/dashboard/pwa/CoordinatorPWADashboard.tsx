@@ -15,6 +15,7 @@ import { useRole } from '@/contexts/RoleContext';
 import { StatCard } from '@/components/ui/stat-card';
 import { MissionVerse } from '../MissionVerse';
 import { PulsoRedeSection } from '../PulsoRedeSection';
+import { RadarSaudePanel } from '../RadarSaudePanel';
 import { SupervisoesList } from '../SupervisoesList';
 import { useSupervisoesByCoordenacao } from '@/hooks/useSupervisoes';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -68,7 +69,12 @@ export function CoordinatorPWADashboard() {
       {selectedCoordenacao ? (
         <>
           {activeTab === 'inicio' && <CoordInicio coordId={selectedCoordenacao} coordData={selectedCoordData} />}
-          {activeTab === 'pulso' && <PulsoRedeSection scopeType="coordenacao" scopeId={selectedCoordenacao} title="Pulso da Coordenação" />}
+          {activeTab === 'pulso' && (
+            <div className="space-y-6">
+              <PulsoRedeSection scopeType="coordenacao" scopeId={selectedCoordenacao} title="Pulso da Coordenação" />
+              <RadarSaudePanel scopeType="coordenacao" scopeId={selectedCoordenacao} title="Radar de Saúde" compact />
+            </div>
+          )}
           {activeTab === 'acoes' && <CoordAcoes coordId={selectedCoordenacao} />}
         </>
       ) : (
