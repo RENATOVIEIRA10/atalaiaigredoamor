@@ -34,6 +34,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { useRole } from '@/contexts/RoleContext';
 import { PulsoRedeSection } from './PulsoRedeSection';
 import { RedeEmailReportDialog } from './RedeEmailReportDialog';
+import { RadarSaudePanel } from './RadarSaudePanel';
 
 export function NetworkLeaderDashboard() {
   const [searchParams] = useSearchParams();
@@ -204,6 +205,7 @@ export function NetworkLeaderDashboard() {
           <Tabs defaultValue={urlTab === 'pulso' ? 'pulso' : 'coordenacoes'} className="space-y-4">
             <TabsList className="flex flex-wrap h-auto gap-1">
               <TabsTrigger value="pulso" className="gap-1.5"><Activity className="h-4 w-4" />Pulso</TabsTrigger>
+              <TabsTrigger value="saude" className="gap-1.5"><Heart className="h-4 w-4" />Saúde</TabsTrigger>
               <TabsTrigger value="coordenacoes" className="gap-1.5"><Network className="h-4 w-4" />Coordenações</TabsTrigger>
               <TabsTrigger value="multiplicacoes" className="gap-1.5"><GitBranch className="h-4 w-4" />Multiplicação</TabsTrigger>
               <TabsTrigger value="multiplicacoes-visual" className="gap-1.5"><GitBranch className="h-4 w-4" />Visual</TabsTrigger>
@@ -217,6 +219,10 @@ export function NetworkLeaderDashboard() {
 
             <TabsContent value="pulso">
               <PulsoRedeSection scopeType="rede" scopeId={selectedRede} title="Pulso da Rede" />
+            </TabsContent>
+
+            <TabsContent value="saude">
+              <RadarSaudePanel scopeType="rede" scopeId={selectedRede} title="Radar de Saúde da Rede" />
             </TabsContent>
 
             <TabsContent value="multiplicacoes"><MultiplicacoesTab /></TabsContent>

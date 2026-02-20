@@ -17,6 +17,7 @@ import { useRole } from '@/contexts/RoleContext';
 import { StatCard } from '@/components/ui/stat-card';
 import { MissionVerse } from '../MissionVerse';
 import { PulsoRedeSection } from '../PulsoRedeSection';
+import { RadarSaudePanel } from '../RadarSaudePanel';
 import { EmptyState } from '@/components/ui/empty-state';
 import { getDateString } from '../DateRangeSelector';
 import { subDays } from 'date-fns';
@@ -65,7 +66,12 @@ export function NetworkLeaderPWADashboard() {
       {selectedRede ? (
         <>
           {activeTab === 'inicio' && <RedeInicio redeId={selectedRede} redeData={selectedRedeData} />}
-          {activeTab === 'pulso' && <PulsoRedeSection scopeType="rede" scopeId={selectedRede} title="Pulso da Rede" />}
+          {activeTab === 'pulso' && (
+            <div className="space-y-6">
+              <PulsoRedeSection scopeType="rede" scopeId={selectedRede} title="Pulso da Rede" />
+              <RadarSaudePanel scopeType="rede" scopeId={selectedRede} title="Radar de Saúde" compact />
+            </div>
+          )}
           {activeTab === 'acoes' && <RedeAcoes redeId={selectedRede} />}
         </>
       ) : (
