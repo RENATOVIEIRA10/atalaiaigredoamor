@@ -309,7 +309,7 @@ export default function HomePage() {
           className="mt-4 text-[9px] opacity-0 animate-fade-in stagger-6"
           style={{ color: 'rgba(184,182,179,0.3)', fontFamily: "'Inter', sans-serif" }}
         >
-          v2026.02.20-01
+          v2026.02.20-02
         </p>
       </div>
     </div>
