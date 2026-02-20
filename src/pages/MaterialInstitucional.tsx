@@ -299,6 +299,15 @@ export default function MaterialInstitucional() {
             <Button
               variant="ghost"
               size="sm"
+              onClick={() => navigate('/manual-lider')}
+              className="rounded-full px-5"
+              style={{ background: 'rgba(201,162,77,0.1)', color: '#C9A24D', border: '1px solid rgba(201,162,77,0.2)' }}
+            >
+              <BookOpen className="h-4 w-4 mr-2" /> Manual do Líder de Célula
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => navigate('/faq')}
               className="rounded-full px-5"
               style={{ background: 'rgba(201,162,77,0.1)', color: '#C9A24D', border: '1px solid rgba(201,162,77,0.2)' }}
