@@ -186,14 +186,14 @@ export default function ManualLiderCelula() {
         <Section>
           <SectionTitle icon={Camera}>Como enviar o relatório pelo WhatsApp</SectionTitle>
           <p className="text-sm mb-5 leading-relaxed" style={{ color: textBody }}>
-            Siga os <strong style={{ color: textMain }}>5 passos</strong> abaixo. Cada imagem mostra exatamente o que você vai ver na tela.
+            Siga os <strong style={{ color: textMain }}>5 passos</strong> abaixo. Cada imagem mostra exatamente o que aparece na sua tela.
           </p>
 
           <div className="space-y-5">
             <StepCard
               n={1}
               title="Abrir o relatório"
-              description="Na tela inicial, toque no card da sua célula. A tela de detalhes vai abrir com o formulário do relatório semanal."
+              description="Toque no card da sua célula. O formulário do relatório semanal vai abrir."
               image={print1}
               imageAlt="Tela inicial do líder com card da célula"
             />
@@ -205,9 +205,9 @@ export default function ManualLiderCelula() {
             <StepCard
               n={2}
               title="Preencher os números"
-              description="Preencha: membros presentes, visitantes, crianças e discipulados. Só números — leva menos de 1 minuto."
+              description="Preencha: presentes, visitantes, crianças e discipulados. Só números — menos de 1 minuto."
               image={print2}
-              imageAlt="Formulário do relatório com campos numéricos"
+              imageAlt="Formulário do relatório com campos numéricos preenchidos"
             />
 
             <div className="flex justify-center">
@@ -217,9 +217,9 @@ export default function ManualLiderCelula() {
             <StepCard
               n={3}
               title="Tocar em 'Enviar no WhatsApp'"
-              description="Depois de salvar, toque no botão verde 'Enviar no WhatsApp'. Você não precisa copiar nada — o sistema monta tudo sozinho."
+              description="Toque no botão verde. O sistema monta tudo sozinho — você não precisa copiar nada."
               image={print3}
-              imageAlt="Botão verde Enviar no WhatsApp destacado"
+              imageAlt="Tela com blocos do relatório e botão Enviar no WhatsApp"
             />
 
             <div className="flex justify-center">
@@ -228,10 +228,10 @@ export default function ManualLiderCelula() {
 
             <StepCard
               n={4}
-              title="Mensagem pronta no WhatsApp"
-              description="O WhatsApp vai abrir com a mensagem já formatada. Escolha o grupo ou contato e envie. O padrão já está correto — não precisa editar nada."
+              title="Enviar bloco a bloco no WhatsApp"
+              description="O WhatsApp abre com cada bloco pronto. Toque em enviar e avance — o padrão já está correto."
               image={print4}
-              imageAlt="WhatsApp aberto com mensagem estruturada do relatório"
+              imageAlt="WhatsApp aberto com bloco de informações da célula"
             />
 
             <div className="flex justify-center">
@@ -240,10 +240,10 @@ export default function ManualLiderCelula() {
 
             <StepCard
               n={5}
-              title="Voltar para o app"
-              description="Depois de enviar, volte ao sistema. Pronto — seu relatório está salvo e enviado! ✅"
+              title="Pronto! Envio concluído ✅"
+              description="Quando aparecer 'Envio concluído. Deus abençoe!', seu relatório está salvo e enviado."
               image={print5}
-              imageAlt="Tela de confirmação do relatório enviado"
+              imageAlt="Tela de confirmação com envio concluído"
             />
           </div>
         </Section>
