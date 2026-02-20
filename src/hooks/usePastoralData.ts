@@ -58,42 +58,21 @@ export function usePastoralStats() {
     queryFn: async () => {
       const now = new Date();
       const ninetyDaysAgo = subDays(now, 90);
-      const thirtyDaysAgo = subDays(now, 30);
-      const sevenDaysAgo = subDays(now, 7);
+      const currentMonday = startOfWeek(now, { weekStartsOn: 1 });
+      const currentSaturday = addDays(currentMonday, 5);
 
-      const [celulasRes, membersRes, multRes, reportsRes] = await Promise.all([
-        supabase.from('celulas').select('id', { count: 'exact', head: true }),
+      const [celulasRes, membersRes, multRes] = await Promise.all([
+        supabase.from('celulas').select('id', { count: 'exact', head: true }).eq('is_test_data', false),
         supabase.from('members').select('id', { count: 'exact', head: true }).eq('is_active', true),
         supabase.from('multiplicacoes').select('id', { count: 'exact', head: true }).gte('data_multiplicacao', format(ninetyDaysAgo, 'yyyy-MM-dd')),
-        supabase.from('weekly_reports').select('celula_id').gte('week_start', format(sevenDaysAgo, 'yyyy-MM-dd')),
       ]);
 
-      const totalCelulas = celulasRes.count || 0;
-      const reportedCelulas = new Set((reportsRes.data || []).map(r => r.celula_id)).size;
-      const celulasEmRisco = Math.max(0, totalCelulas - reportedCelulas);
-
-      // Células em acompanhamento: sem relatório nas últimas 2 semanas mas com relatório no mês
-      const fourteenDaysAgo = subDays(now, 14);
-      const { data: recentReports } = await supabase
-        .from('weekly_reports')
-        .select('celula_id')
-        .gte('week_start', format(fourteenDaysAgo, 'yyyy-MM-dd'));
-      
-      const recentCelulas = new Set((recentReports || []).map(r => r.celula_id));
-      
-      const { data: monthReports } = await supabase
-        .from('weekly_reports')
-        .select('celula_id')
-        .gte('week_start', format(thirtyDaysAgo, 'yyyy-MM-dd'));
-      
-      const monthCelulas = new Set((monthReports || []).map(r => r.celula_id));
-      const celulasEmAcompanhamento = [...monthCelulas].filter(id => !recentCelulas.has(id)).length;
-
       return {
-        totalCelulas,
+        totalCelulas: celulasRes.count || 0,
         totalMembers: membersRes.count || 0,
-        celulasEmRisco,
-        celulasEmAcompanhamento,
+        // These are now derived from usePulsoEngine in the dashboard
+        celulasEmRisco: 0,
+        celulasEmAcompanhamento: 0,
         multiplicacoes90dias: multRes.count || 0,
       } as PastoralStats;
     },
@@ -296,15 +275,25 @@ export function usePastoralAlerts() {
     queryFn: async () => {
       const alerts: PastoralAlert[] = [];
       const now = new Date();
-      const sevenDaysAgo = subDays(now, 7);
-      const fourteenDaysAgo = subDays(now, 14);
+      const currentMonday = startOfWeek(now, { weekStartsOn: 1 });
+      const lastMonday = subDays(currentMonday, 7);
+      const twoWeeksAgoMonday = subDays(currentMonday, 14);
+      const currentSaturday = addDays(currentMonday, 5);
+      const lastSaturday = addDays(lastMonday, 5);
 
-      // 1. Células sem relatório na semana
-      const { data: allCelulas } = await supabase.from('celulas').select('id, name, coordenacao_id');
+      // 1. Células sem relatório na semana operacional (Seg→Sáb)
+      const { data: allCelulas } = await supabase.from('celulas').select('id, name, coordenacao_id').eq('is_test_data', false);
+      const celulaIds = (allCelulas || []).map(c => c.id);
+      
       const { data: weekReports } = await supabase
         .from('weekly_reports')
         .select('celula_id')
-        .gte('week_start', format(sevenDaysAgo, 'yyyy-MM-dd'));
+        .in('celula_id', celulaIds)
+        .eq('is_test_data', false)
+        .or(
+          `and(meeting_date.gte.${format(currentMonday, 'yyyy-MM-dd')},meeting_date.lte.${format(currentSaturday, 'yyyy-MM-dd')}),` +
+          `and(meeting_date.is.null,week_start.gte.${format(currentMonday, 'yyyy-MM-dd')},week_start.lte.${format(currentSaturday, 'yyyy-MM-dd')})`
+        );
 
       const reportedIds = new Set((weekReports || []).map(r => r.celula_id));
       const missingCelulas = (allCelulas || []).filter(c => !reportedIds.has(c.id));
@@ -313,8 +302,8 @@ export function usePastoralAlerts() {
         alerts.push({
           type: 'missing_report',
           severity: missingCelulas.length > 3 ? 'critical' : 'warning',
-          title: `${missingCelulas.length} célula(s) sem relatório`,
-          description: `As células ${missingCelulas.slice(0, 3).map(c => c.name).join(', ')}${missingCelulas.length > 3 ? ` e mais ${missingCelulas.length - 3}` : ''} não enviaram relatório esta semana.`,
+          title: `${missingCelulas.length} célula(s) com relatório pendente`,
+          description: `As células ${missingCelulas.slice(0, 3).map(c => c.name).join(', ')}${missingCelulas.length > 3 ? ` e mais ${missingCelulas.length - 3}` : ''} ainda não enviaram relatório esta semana.`,
           entity_name: 'Relatórios',
         });
       }
@@ -331,17 +320,24 @@ export function usePastoralAlerts() {
           .from('weekly_reports')
           .select('members_present')
           .in('celula_id', coordCelulaIds)
-          .gte('week_start', format(sevenDaysAgo, 'yyyy-MM-dd'));
+          .eq('is_test_data', false)
+          .or(
+            `and(meeting_date.gte.${format(currentMonday, 'yyyy-MM-dd')},meeting_date.lte.${format(currentSaturday, 'yyyy-MM-dd')}),` +
+            `and(meeting_date.is.null,week_start.gte.${format(currentMonday, 'yyyy-MM-dd')},week_start.lte.${format(currentSaturday, 'yyyy-MM-dd')})`
+          );
 
-        const { data: lastWeek } = await supabase
+        const { data: lastWeekData } = await supabase
           .from('weekly_reports')
           .select('members_present')
           .in('celula_id', coordCelulaIds)
-          .gte('week_start', format(fourteenDaysAgo, 'yyyy-MM-dd'))
-          .lt('week_start', format(sevenDaysAgo, 'yyyy-MM-dd'));
+          .eq('is_test_data', false)
+          .or(
+            `and(meeting_date.gte.${format(lastMonday, 'yyyy-MM-dd')},meeting_date.lte.${format(lastSaturday, 'yyyy-MM-dd')}),` +
+            `and(meeting_date.is.null,week_start.gte.${format(lastMonday, 'yyyy-MM-dd')},week_start.lte.${format(lastSaturday, 'yyyy-MM-dd')})`
+          );
 
         const thisTotal = (thisWeek || []).reduce((s, r) => s + r.members_present, 0);
-        const lastTotal = (lastWeek || []).reduce((s, r) => s + r.members_present, 0);
+        const lastTotal = (lastWeekData || []).reduce((s, r) => s + r.members_present, 0);
 
         if (lastTotal > 0 && thisTotal < lastTotal * 0.7) {
           alerts.push({

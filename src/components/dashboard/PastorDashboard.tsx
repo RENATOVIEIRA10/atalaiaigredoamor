@@ -94,13 +94,28 @@ export function PastorDashboard() {
       {/* 1. Visão Geral */}
       <section>
         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Visão Geral</h2>
-        <div className="grid gap-4 grid-cols-2 lg:grid-cols-5">
-          <StatCard icon={Home} label="Células Ativas" value={stats?.totalCelulas || 0} />
-          <StatCard icon={Users} label="Membros" value={stats?.totalMembers || 0} />
-          <StatCard icon={Eye} label="Acompanhamento" value={stats?.celulasEmAcompanhamento || 0} subtitle="sem relatório 2 sem." />
-          <StatCard icon={AlertTriangle} label="Em Risco" value={stats?.celulasEmRisco || 0} subtitle="sem relatório esta sem." className={stats?.celulasEmRisco && stats.celulasEmRisco > 0 ? 'border-destructive/30' : ''} />
-          <StatCard icon={GitBranch} label="Multiplicações" value={stats?.multiplicacoes90dias || 0} subtitle="últimos 90 dias" />
-        </div>
+        {(() => {
+          const pendentesNaSemana = (pulso?.totalCelulas || 0) - (pulso?.celulasComRelatorio || 0);
+          const pendenciaRecorrente = (pulso?.celulasAlerta2Semanas.length || 0) + (pulso?.celulasAlerta3Semanas.length || 0);
+          // Sanity check
+          if (pulso && pendentesNaSemana !== (pulso.celulasAlerta1Semana.length + pulso.celulasAlerta2Semanas.length + pulso.celulasAlerta3Semanas.length)) {
+            console.warn('[Pulso Sanity] pendentesNaSemana !== soma dos alertas', {
+              pendentesNaSemana,
+              alerta1: pulso.celulasAlerta1Semana.length,
+              alerta2: pulso.celulasAlerta2Semanas.length,
+              alerta3: pulso.celulasAlerta3Semanas.length,
+            });
+          }
+          return (
+            <div className="grid gap-4 grid-cols-2 lg:grid-cols-5">
+              <StatCard icon={Home} label="Células Ativas" value={pulso?.totalCelulas || 0} />
+              <StatCard icon={Users} label="Membros" value={stats?.totalMembers || 0} />
+              <StatCard icon={Eye} label="Pendência recorrente" value={pendenciaRecorrente} subtitle="sem relatório há 2+ sem." />
+              <StatCard icon={AlertTriangle} label="Relatórios pendentes" value={pendentesNaSemana} subtitle="sem relatório esta semana" className={pendentesNaSemana > 0 ? 'border-amber-500/30' : ''} />
+              <StatCard icon={GitBranch} label="Multiplicações" value={stats?.multiplicacoes90dias || 0} subtitle="últimos 90 dias" />
+            </div>
+          );
+        })()}
       </section>
 
       {/* 2. Pulso Pastoral da Rede */}
@@ -143,14 +158,14 @@ export function PastorDashboard() {
             </CardContent>
           </Card>
 
-          {/* Células em Alerta */}
+           {/* Relatórios Pendentes */}
           <Card className={totalAlertas > 0 ? 'border-amber-500/30' : ''}>
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
                 <AlertTriangle className="h-4 w-4 text-amber-600" />
-                Células em Alerta
+                Relatórios Pendentes
               </CardTitle>
-              <CardDescription>Sem envio de relatório</CardDescription>
+              <CardDescription>Células sem envio de relatório</CardDescription>
             </CardHeader>
             <CardContent className="space-y-2">
               <div className="flex items-center justify-between p-2.5 rounded-lg bg-muted/50">
@@ -173,7 +188,7 @@ export function PastorDashboard() {
                   onClick={() => setShowAlertCells(!showAlertCells)}
                 >
                   {showAlertCells ? <ChevronUp className="h-3 w-3 mr-1" /> : <ChevronDown className="h-3 w-3 mr-1" />}
-                  {showAlertCells ? 'Ocultar detalhes' : 'Ver células em risco'}
+                  {showAlertCells ? 'Ocultar detalhes' : 'Ver células pendentes'}
                 </Button>
               )}
             </CardContent>
