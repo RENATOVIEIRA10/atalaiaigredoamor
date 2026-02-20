@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRole } from '@/contexts/RoleContext';
+import { useTheme } from '@/contexts/ThemeContext';
+import { themeIcons } from '@/lib/icons';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,6 +15,8 @@ import { supabase } from '@/integrations/supabase/client';
 export default function HomePage() {
   const navigate = useNavigate();
   const { setScopeAccess } = useRole();
+  const { theme, toggleTheme } = useTheme();
+  const ThemeIcon = themeIcons[theme];
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
   const [attempts, setAttempts] = useState(0);
@@ -98,6 +102,15 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden" style={{ background: 'linear-gradient(160deg, #0e0e10 0%, #1a0a0b 40%, #121212 100%)' }}>
+      {/* Theme toggle */}
+      <button
+        onClick={toggleTheme}
+        className="absolute top-4 right-4 z-20 flex items-center gap-2 px-3.5 py-2 rounded-full text-xs font-medium transition-colors"
+        style={{ background: 'rgba(201,162,77,0.1)', color: '#B8B6B3', border: '1px solid rgba(201,162,77,0.15)' }}
+      >
+        <ThemeIcon className="h-4 w-4" style={{ color: '#C9A24D' }} />
+        {theme === 'padrao' ? 'Tema Padrão' : 'Tema Amor'}
+      </button>
       {/* Subtle radial glow */}
       <div
         className="absolute inset-0 pointer-events-none"
