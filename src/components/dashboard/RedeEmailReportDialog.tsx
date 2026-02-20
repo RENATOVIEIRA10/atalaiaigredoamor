@@ -63,7 +63,7 @@ ${alertasBullets}
 ✅ PRÓXIMOS PASSOS
 ━━━━━━━━━━━━━━━━━━━━
 
-• Acompanhar células em risco de forma personalizada
+• Acompanhar células com relatórios pendentes de forma personalizada
 • Orar pelos aniversariantes da semana
 • Registrar as multiplicações no sistema
 
@@ -211,7 +211,7 @@ export function RedeEmailReportDialog({ open, onOpenChange, redeId, redeName, re
                 { label: 'Células', value: data.totalCelulasAtivas },
                 { label: 'Enviaram', value: `${data.relatoriosEnviados} (${data.percEnvio}%)` },
                 { label: 'Pessoas', value: data.pessoasNasCelulas },
-                { label: 'Em risco', value: data.celulasRisco1.length + data.celulasRisco2.length + data.celulasRisco3.length },
+                { label: 'Pendentes', value: data.celulasRisco1.length + data.celulasRisco2.length + data.celulasRisco3.length },
               ].map(kpi => (
                 <div key={kpi.label} className="rounded-lg bg-muted/50 p-3 text-center">
                   <p className="text-lg font-bold text-primary">{kpi.value}</p>
