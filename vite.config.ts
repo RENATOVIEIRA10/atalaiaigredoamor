@@ -14,7 +14,7 @@ export default defineConfig(({ mode }) => ({
     react(),
     mode === "development" && componentTagger(),
     VitePWA({
-      registerType: "autoUpdate",
+      registerType: "prompt",
       includeAssets: ["favicon.ico", "placeholder.svg"],
       workbox: {
         // Cache only static assets – never cache API / dynamic data
@@ -22,6 +22,11 @@ export default defineConfig(({ mode }) => ({
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         // Never cache OAuth redirects or Supabase / API calls
         navigateFallbackDenylist: [/^\/~oauth/, /^\/rest/, /^\/auth/],
+        // Clean old caches on new SW activation
+        cleanupOutdatedCaches: true,
+        // Listen for SKIP_WAITING message from client
+        skipWaiting: false, // we control via message
+        clientsClaim: true,
         runtimeCaching: [
           {
             // Google Fonts

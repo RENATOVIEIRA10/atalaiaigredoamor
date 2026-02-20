@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle
 } from '@/components/ui/sheet';
-import { GitBranch, Settings, Network, FolderTree, LogOut, Moon, Heart, Eye, Home, FlaskConical, FileText, Activity } from 'lucide-react';
+import { GitBranch, Settings, Network, FolderTree, LogOut, Moon, Heart, Eye, Home, FlaskConical, FileText, Activity, RefreshCw } from 'lucide-react';
+import { useServiceWorkerUpdate } from '@/hooks/useServiceWorkerUpdate';
 import { useRole } from '@/contexts/RoleContext';
 import { useDemoMode } from '@/contexts/DemoModeContext';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -18,6 +20,19 @@ export function MobileMenuSheet({ open, onOpenChange }: MobileMenuSheetProps) {
   const { clearAccess, isAdmin, isRedeLeader, isCoordenador, isCelulaLeader, isSupervisor, isPastor } = useRole();
   const { isDemoActive, deactivateDemo } = useDemoMode();
   const { theme, toggleTheme } = useTheme();
+  const { checkForUpdate, applyUpdate } = useServiceWorkerUpdate();
+  const [checking, setChecking] = useState(false);
+
+  const handleCheckUpdate = async () => {
+    setChecking(true);
+    const found = await checkForUpdate();
+    if (found) {
+      applyUpdate();
+    } else {
+      // No update found – let user know
+      setTimeout(() => setChecking(false), 1500);
+    }
+  };
 
   const showAdminItems = isAdmin || isRedeLeader || isDemoActive;
   const isCellLeaderOnly = isCelulaLeader && !isSupervisor && !isCoordenador && !isRedeLeader && !isAdmin && !isPastor;
@@ -101,6 +116,12 @@ export function MobileMenuSheet({ open, onOpenChange }: MobileMenuSheetProps) {
             icon={theme === 'padrao' ? Heart : Moon}
             label={theme === 'padrao' ? 'Tema Amor' : 'Tema Padrão'}
             onClick={() => { toggleTheme(); onOpenChange(false); }}
+          />
+
+          <MenuButton
+            icon={RefreshCw}
+            label={checking ? 'Verificando…' : 'Atualizar app'}
+            onClick={handleCheckUpdate}
           />
 
           <div className="border-t border-border/30 my-2" />
