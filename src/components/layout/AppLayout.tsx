@@ -25,20 +25,19 @@ export function AppLayout({ children, title }: AppLayoutProps) {
   const isRootPage = location.pathname === '/dashboard';
   const showBackButton = isPWAMobile && !isRootPage;
 
-  return (
-    <SidebarProvider>
-      {/* Hide sidebar completely in PWA mobile — bottom nav replaces it */}
-      {!isPWAMobile && <AppSidebar />}
-      <SidebarInset className={isDemoActive ? 'pt-10' : ''}>
+  // --- PWA App Shell ---
+  if (isPWAMobile) {
+    return (
+      <div className="flex flex-col h-[100dvh] bg-background" style={{ height: '-webkit-fill-available' }}>
+        {/* PWA Top App Bar */}
         <header
-          className="flex shrink-0 items-center gap-2 border-b border-border/30 px-4 bg-background/95 backdrop-blur-md sticky top-0 z-10"
+          className="flex shrink-0 items-center gap-2 border-b border-border/30 px-4 bg-background/95 backdrop-blur-md z-30"
           style={{
-            boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
-            height: isPWAMobile ? 'calc(48px + env(safe-area-inset-top, 0px))' : '56px',
-            paddingTop: isPWAMobile ? 'env(safe-area-inset-top, 0px)' : undefined,
+            boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+            minHeight: 'calc(48px + env(safe-area-inset-top, 0px))',
+            paddingTop: 'env(safe-area-inset-top, 0px)',
           }}
         >
-          {/* PWA mobile: back button */}
           {showBackButton && (
             <button
               onClick={() => navigate(-1)}
@@ -48,13 +47,45 @@ export function AppLayout({ children, title }: AppLayoutProps) {
               <ArrowLeft className="h-5 w-5 text-foreground" />
             </button>
           )}
+          {title && (
+            <h1
+              className="text-sm font-semibold text-foreground tracking-wide truncate"
+              style={{ fontFamily: "'Inter', sans-serif" }}
+            >
+              {title}
+            </h1>
+          )}
+        </header>
 
-          {/* Desktop: sidebar trigger */}
-          {!isPWAMobile && <SidebarTrigger className="-ml-1" />}
+        {/* PWA scrollable content area */}
+        <main
+          className="flex-1 overflow-y-auto overscroll-y-contain p-4 internal-page-bg pwa-scroll-area"
+          style={{ paddingBottom: 'calc(72px + env(safe-area-inset-bottom, 0px))' }}
+        >
+          <div className="pwa-page-enter" key={location.pathname + location.search}>
+            {children}
+          </div>
+        </main>
 
+        {/* Bottom navigation */}
+        <MobileBottomNav />
+      </div>
+    );
+  }
+
+  // --- Web / Desktop layout (unchanged) ---
+  return (
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset className={isDemoActive ? 'pt-10' : ''}>
+        <header
+          className="flex shrink-0 items-center gap-2 border-b border-border/30 px-4 bg-background/95 backdrop-blur-md sticky top-0 z-10"
+          style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.2)', height: '56px' }}
+        >
+          <SidebarTrigger className="-ml-1" />
           {title && (
             <>
-              {!isPWAMobile && <Separator orientation="vertical" className="mr-2 h-4" />}
+              <Separator orientation="vertical" className="mr-2 h-4" />
               <h1
                 className="text-sm font-semibold text-foreground tracking-wide truncate"
                 style={{ fontFamily: "'Inter', sans-serif" }}
@@ -64,18 +95,12 @@ export function AppLayout({ children, title }: AppLayoutProps) {
             </>
           )}
         </header>
-        <main
-          className="flex-1 overflow-auto p-4 md:p-6 lg:p-8 internal-page-bg"
-          style={isPWAMobile ? { paddingBottom: 'calc(72px + env(safe-area-inset-bottom, 0px))' } : undefined}
-        >
+        <main className="flex-1 overflow-auto p-4 md:p-6 lg:p-8 internal-page-bg">
           <div className="animate-fade-in">
             {children}
           </div>
         </main>
       </SidebarInset>
-
-      {/* Bottom navigation — only renders in PWA mobile */}
-      <MobileBottomNav />
     </SidebarProvider>
   );
 }
