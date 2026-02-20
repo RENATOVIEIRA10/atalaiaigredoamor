@@ -405,7 +405,7 @@ export function usePastoralCelebrations() {
       }
 
       // Células constantes (todas as semanas com relatório no último mês)
-      const { data: allCelulas } = await supabase.from('celulas').select('id, name');
+      const { data: allCelulas } = await supabase.from('celulas').select('id, name').eq('is_test_data', false);
       const { data: monthReports } = await supabase
         .from('weekly_reports')
         .select('celula_id, week_start')
@@ -445,7 +445,7 @@ export function useRedeGrowthData() {
       if (!redes) return [];
 
       const { data: coordenacoes } = await supabase.from('coordenacoes').select('id, rede_id');
-      const { data: celulas } = await supabase.from('celulas').select('id, coordenacao_id');
+      const { data: celulas } = await supabase.from('celulas').select('id, coordenacao_id').eq('is_test_data', false);
       const { data: members } = await supabase.from('members').select('id, celula_id').eq('is_active', true);
 
       const sixMonthsAgo = subDays(new Date(), 180);

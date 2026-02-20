@@ -18,10 +18,11 @@ export function useDashboardStats() {
         .select('*', { count: 'exact', head: true })
         .eq('is_active', true);
       
-      // Get total celulas
+      // Get total celulas (somente ativas, sem dados de teste)
       const { count: totalCelulas } = await supabase
         .from('celulas')
-        .select('*', { count: 'exact', head: true });
+        .select('*', { count: 'exact', head: true })
+        .eq('is_test_data', false);
       
       // Calculate attendance rate from last 30 days
       const thirtyDaysAgo = new Date();
