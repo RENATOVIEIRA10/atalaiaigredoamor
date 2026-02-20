@@ -70,7 +70,8 @@ export function useRadarSaude({ scopeType, scopeId }: UseRadarSaudeOptions) {
       // 1) Fetch all cells in scope
       let celulasQuery = supabase
         .from('celulas')
-        .select('id, name, coordenacao_id, coordenacao:coordenacoes(id, name, rede_id)');
+        .select('id, name, coordenacao_id, coordenacao:coordenacoes(id, name, rede_id)')
+        .eq('is_test_data', false);
 
       if (scopeType === 'coordenacao' && scopeId) {
         celulasQuery = celulasQuery.eq('coordenacao_id', scopeId);

@@ -35,7 +35,7 @@ export function usePastoralGrowthCharts() {
       const [redesRes, coordsRes, celulasRes, reportsRes] = await Promise.all([
         supabase.from('redes').select('id, name'),
         supabase.from('coordenacoes').select('id, name, rede_id'),
-        supabase.from('celulas').select('id, coordenacao_id'),
+        supabase.from('celulas').select('id, coordenacao_id').eq('is_test_data', false),
         supabase.from('weekly_reports')
           .select('celula_id, members_present, visitors, week_start')
           .gte('week_start', months[0].start)
