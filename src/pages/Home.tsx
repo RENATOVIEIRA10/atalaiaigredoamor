@@ -4,7 +4,7 @@ import { useRole } from '@/contexts/RoleContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { AlertCircle, Loader2, Lock as LockIcon, BookOpen, HelpCircle } from 'lucide-react';
+import { AlertCircle, Loader2, Lock as LockIcon, BookOpen, HelpCircle, ClipboardList } from 'lucide-react';
 import { actionIcons } from '@/lib/icons';
 import logoRedeAmor from '@/assets/logo-rede-amor-a2.png';
 import logoAnoSantidade from '@/assets/logo-ano-santidade.png';
@@ -249,7 +249,7 @@ export default function HomePage() {
         </div>
 
         {/* Links institucionais */}
-        <div className="mt-6 flex items-center justify-center gap-3 opacity-0 animate-fade-in stagger-5">
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-2.5 opacity-0 animate-fade-in stagger-5">
           <button
             onClick={() => navigate('/material')}
             className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-medium transition-colors"
@@ -257,6 +257,14 @@ export default function HomePage() {
           >
             <BookOpen className="h-3.5 w-3.5" />
             Material Institucional
+          </button>
+          <button
+            onClick={() => navigate('/manual-lider')}
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-medium transition-colors"
+            style={{ background: 'rgba(201,162,77,0.1)', color: '#C9A24D', border: '1px solid rgba(201,162,77,0.2)' }}
+          >
+            <ClipboardList className="h-3.5 w-3.5" />
+            Manual do Líder
           </button>
           <button
             onClick={() => navigate('/faq')}
