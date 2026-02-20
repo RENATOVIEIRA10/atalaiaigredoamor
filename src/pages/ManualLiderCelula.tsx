@@ -1,9 +1,14 @@
 import logoRedeAmor from '@/assets/logo-rede-amor-a2.png';
 import logoIgreja from '@/assets/logo-igreja-do-amor.png';
+import print1 from '@/assets/manual/print1-tela-inicial.png';
+import print2 from '@/assets/manual/print2-formulario.png';
+import print3 from '@/assets/manual/print3-botao-whatsapp.png';
+import print4 from '@/assets/manual/print4-whatsapp-mensagem.png';
+import print5 from '@/assets/manual/print5-retorno-app.png';
 import {
   ArrowLeft, Printer, Users, ClipboardList, Send, CheckSquare,
   AlertTriangle, Heart, Headphones, Smartphone, CalendarDays,
-  MessageCircle, FileText, Camera, Info, ImageIcon, ArrowRight
+  MessageCircle, FileText, Camera, Info, ArrowRight
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
@@ -47,23 +52,9 @@ const FaqItem = ({ q, a }: { q: string; a: string }) => (
   </div>
 );
 
-const PrintPlaceholder = ({ n, label, hint }: { n: number; label: string; hint: string }) => (
-  <div className="rounded-xl border-2 border-dashed p-6 flex flex-col items-center justify-center text-center gap-2 min-h-[180px] sm:min-h-[220px]"
-    style={{ borderColor: 'rgba(201,162,77,0.35)', background: 'rgba(201,162,77,0.03)' }}>
-    <div className="h-10 w-10 rounded-full flex items-center justify-center" style={{ background: 'rgba(201,162,77,0.12)' }}>
-      <ImageIcon className="h-5 w-5" style={{ color: gold }} />
-    </div>
-    <p className="text-xs font-bold uppercase tracking-wider" style={{ color: gold }}>
-      📸 Print {n}
-    </p>
-    <p className="text-sm font-semibold" style={{ color: textMain }}>{label}</p>
-    <p className="text-xs max-w-[260px]" style={{ color: textMuted }}>{hint}</p>
-  </div>
-);
-
-const StepCard = ({ n, title, description, printN, printLabel, printHint }: {
+const StepCard = ({ n, title, description, image, imageAlt }: {
   n: number; title: string; description: string;
-  printN: number; printLabel: string; printHint: string;
+  image: string; imageAlt: string;
 }) => (
   <div className="rounded-xl overflow-hidden" style={{ border: `1px solid ${goldBorder}`, background: goldBg }}>
     {/* Header */}
@@ -72,12 +63,17 @@ const StepCard = ({ n, title, description, printN, printLabel, printHint }: {
         style={{ background: gold, color: '#1a0a0b' }}>{n}</span>
       <h3 className="font-semibold text-sm" style={{ color: textMain, fontFamily: serif }}>{title}</h3>
     </div>
-    {/* Print placeholder */}
-    <div className="p-4">
-      <PrintPlaceholder n={printN} label={printLabel} hint={printHint} />
+    {/* Image */}
+    <div className="px-4 pt-4 flex justify-center">
+      <img
+        src={image}
+        alt={imageAlt}
+        className="rounded-lg shadow-lg max-h-[320px] sm:max-h-[380px] w-auto object-contain border"
+        style={{ borderColor: goldBorder }}
+      />
     </div>
     {/* Description */}
-    <div className="px-4 pb-4">
+    <div className="px-4 py-4">
       <p className="text-sm leading-relaxed" style={{ color: textBody }}>{description}</p>
     </div>
   </div>
@@ -198,9 +194,8 @@ export default function ManualLiderCelula() {
               n={1}
               title="Abrir o relatório"
               description="Na tela inicial, toque no card da sua célula. A tela de detalhes vai abrir com o formulário do relatório semanal."
-              printN={1}
-              printLabel="Tela inicial do líder"
-              printHint="Destaque com seta o card da célula ou botão 'Fazer Relatório'"
+              image={print1}
+              imageAlt="Tela inicial do líder com card da célula"
             />
 
             <div className="flex justify-center">
@@ -211,9 +206,8 @@ export default function ManualLiderCelula() {
               n={2}
               title="Preencher os números"
               description="Preencha: membros presentes, visitantes, crianças e discipulados. Só números — leva menos de 1 minuto."
-              printN={2}
-              printLabel="Formulário do relatório"
-              printHint="Destaque os campos numéricos e o botão 'Salvar'"
+              image={print2}
+              imageAlt="Formulário do relatório com campos numéricos"
             />
 
             <div className="flex justify-center">
@@ -224,9 +218,8 @@ export default function ManualLiderCelula() {
               n={3}
               title="Tocar em 'Enviar no WhatsApp'"
               description="Depois de salvar, toque no botão verde 'Enviar no WhatsApp'. Você não precisa copiar nada — o sistema monta tudo sozinho."
-              printN={3}
-              printLabel="Botão 'Enviar no WhatsApp'"
-              printHint="Destaque com círculo o botão verde de envio"
+              image={print3}
+              imageAlt="Botão verde Enviar no WhatsApp destacado"
             />
 
             <div className="flex justify-center">
@@ -237,9 +230,8 @@ export default function ManualLiderCelula() {
               n={4}
               title="Mensagem pronta no WhatsApp"
               description="O WhatsApp vai abrir com a mensagem já formatada. Escolha o grupo ou contato e envie. O padrão já está correto — não precisa editar nada."
-              printN={4}
-              printLabel="WhatsApp com mensagem estruturada"
-              printHint="Mostre a mensagem pronta com foto, dados e números"
+              image={print4}
+              imageAlt="WhatsApp aberto com mensagem estruturada do relatório"
             />
 
             <div className="flex justify-center">
@@ -250,9 +242,8 @@ export default function ManualLiderCelula() {
               n={5}
               title="Voltar para o app"
               description="Depois de enviar, volte ao sistema. Pronto — seu relatório está salvo e enviado! ✅"
-              printN={5}
-              printLabel="Retorno ao sistema"
-              printHint="Mostre a tela confirmando que o relatório foi enviado"
+              image={print5}
+              imageAlt="Tela de confirmação do relatório enviado"
             />
           </div>
         </Section>
@@ -269,32 +260,6 @@ export default function ManualLiderCelula() {
                 Os textos de <strong style={{ color: textMain }}>"Nossa Mensagem"</strong>, <strong style={{ color: textMain }}>"Paixão"</strong> e <strong style={{ color: textMain }}>"Cultura"</strong> já vêm prontos — <strong style={{ color: gold }}>não precisa editar</strong>.
               </CheckItem>
             </ul>
-          </div>
-        </Section>
-
-        {/* ── LISTA DE PRINTS NECESSÁRIOS ── */}
-        <Section>
-          <SectionTitle icon={Camera}>Prints que precisam ser capturados</SectionTitle>
-          <div className="rounded-xl p-5" style={{ background: goldBg, border: `1px solid ${goldBorder}` }}>
-            <p className="text-xs uppercase font-bold tracking-wider mb-3" style={{ color: gold }}>Checklist para quem vai montar o PDF</p>
-            <ol className="space-y-3">
-              {[
-                { n: 1, screen: 'Tela inicial do líder', what: 'Card da célula visível, com seta apontando para onde tocar.' },
-                { n: 2, screen: 'Formulário do relatório', what: 'Campos de presentes, visitantes, crianças e discipulados preenchidos. Botão "Salvar" visível.' },
-                { n: 3, screen: 'Botão "Enviar no WhatsApp"', what: 'Botão verde destacado com círculo ou seta.' },
-                { n: 4, screen: 'WhatsApp com mensagem pronta', what: 'Mensagem formatada com foto, dados e números. Campo de destinatário visível.' },
-                { n: 5, screen: 'Retorno ao sistema', what: 'Tela do app confirmando envio ou tela inicial após conclusão.' },
-              ].map(({ n, screen, what }) => (
-                <li key={n} className="flex items-start gap-3 text-sm" style={{ color: textBody }}>
-                  <span className="h-6 w-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5"
-                    style={{ background: gold, color: '#1a0a0b' }}>{n}</span>
-                  <div>
-                    <p className="font-semibold" style={{ color: textMain }}>{screen}</p>
-                    <p className="text-xs leading-relaxed mt-0.5" style={{ color: textMuted }}>{what}</p>
-                  </div>
-                </li>
-              ))}
-            </ol>
           </div>
         </Section>
 
