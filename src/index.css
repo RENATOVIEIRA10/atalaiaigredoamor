@@ -96,6 +96,16 @@
     --sidebar-border: 28 12% 87%;
     --sidebar-ring: 348 40% 48%;
   }
+
+  /* Fix input visibility on Home page for Tema Amor */
+  .theme-amor .theme-amor-input {
+    background: hsl(28 12% 92%) !important;
+    color: hsl(18 12% 15%) !important;
+    border-color: hsl(28 12% 82%) !important;
+  }
+  .theme-amor .theme-amor-input::placeholder {
+    color: hsl(18 8% 55%) !important;
+  }
 }
 
 @layer base {
