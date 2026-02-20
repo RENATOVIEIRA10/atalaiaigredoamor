@@ -10,6 +10,7 @@ import { DemoModeProvider } from "@/contexts/DemoModeContext";
 import { RoleProtectedRoute } from "@/components/RoleProtectedRoute";
 import { DemoModeBanner } from "@/components/demo/DemoModeBanner";
 import { UpdateBanner } from "@/components/pwa/UpdateBanner";
+import { useVersionCheck } from "@/hooks/useVersionCheck";
 
 // Eager: landing + onboarding (first paint)
 import Home from "./pages/Home";
@@ -41,6 +42,38 @@ const LazyFallback = () => (
   </div>
 );
 
+function AppInner() {
+  useVersionCheck();
+  return (
+    <>
+      <UpdateBanner />
+      <DemoModeBanner />
+      <Suspense fallback={<LazyFallback />}>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/onboarding" element={<Onboarding />} />
+          <Route path="/dashboard" element={<RoleProtectedRoute><Dashboard /></RoleProtectedRoute>} />
+          <Route path="/celulas" element={<RoleProtectedRoute><Celulas /></RoleProtectedRoute>} />
+          <Route path="/membros" element={<RoleProtectedRoute><Membros /></RoleProtectedRoute>} />
+          <Route path="/presenca" element={<RoleProtectedRoute><Presenca /></RoleProtectedRoute>} />
+          <Route path="/redes" element={<RoleProtectedRoute><Redes /></RoleProtectedRoute>} />
+          <Route path="/coordenacoes" element={<RoleProtectedRoute><Coordenacoes /></RoleProtectedRoute>} />
+          <Route path="/configuracoes" element={<RoleProtectedRoute><Configuracoes /></RoleProtectedRoute>} />
+          <Route path="/dados" element={<RoleProtectedRoute><Dados /></RoleProtectedRoute>} />
+          <Route path="/organograma" element={<RoleProtectedRoute><Organograma /></RoleProtectedRoute>} />
+          <Route path="/perfil/casal/:coupleId" element={<RoleProtectedRoute><PerfilCasal /></RoleProtectedRoute>} />
+          <Route path="/perfil/membro/:memberId" element={<RoleProtectedRoute><PerfilMembro /></RoleProtectedRoute>} />
+          <Route path="/ferramentas-teste" element={<RoleProtectedRoute><FerramentasTeste /></RoleProtectedRoute>} />
+          <Route path="/material" element={<MaterialInstitucional />} />
+          <Route path="/faq" element={<FaqInstitucional />} />
+          <Route path="/manual-lider" element={<ManualLiderCelula />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
+    </>
+  );
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
@@ -50,30 +83,7 @@ const App = () => (
         <BrowserRouter>
           <RoleProvider>
             <DemoModeProvider>
-              <UpdateBanner />
-              <DemoModeBanner />
-              <Suspense fallback={<LazyFallback />}>
-                <Routes>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/onboarding" element={<Onboarding />} />
-                  <Route path="/dashboard" element={<RoleProtectedRoute><Dashboard /></RoleProtectedRoute>} />
-                  <Route path="/celulas" element={<RoleProtectedRoute><Celulas /></RoleProtectedRoute>} />
-                  <Route path="/membros" element={<RoleProtectedRoute><Membros /></RoleProtectedRoute>} />
-                  <Route path="/presenca" element={<RoleProtectedRoute><Presenca /></RoleProtectedRoute>} />
-                  <Route path="/redes" element={<RoleProtectedRoute><Redes /></RoleProtectedRoute>} />
-                  <Route path="/coordenacoes" element={<RoleProtectedRoute><Coordenacoes /></RoleProtectedRoute>} />
-                  <Route path="/configuracoes" element={<RoleProtectedRoute><Configuracoes /></RoleProtectedRoute>} />
-                  <Route path="/dados" element={<RoleProtectedRoute><Dados /></RoleProtectedRoute>} />
-                  <Route path="/organograma" element={<RoleProtectedRoute><Organograma /></RoleProtectedRoute>} />
-                  <Route path="/perfil/casal/:coupleId" element={<RoleProtectedRoute><PerfilCasal /></RoleProtectedRoute>} />
-                  <Route path="/perfil/membro/:memberId" element={<RoleProtectedRoute><PerfilMembro /></RoleProtectedRoute>} />
-                  <Route path="/ferramentas-teste" element={<RoleProtectedRoute><FerramentasTeste /></RoleProtectedRoute>} />
-                  <Route path="/material" element={<MaterialInstitucional />} />
-                  <Route path="/faq" element={<FaqInstitucional />} />
-                  <Route path="/manual-lider" element={<ManualLiderCelula />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </Suspense>
+              <AppInner />
             </DemoModeProvider>
           </RoleProvider>
         </BrowserRouter>
