@@ -79,7 +79,7 @@ export function RadarSaudePanel({ scopeType, scopeId, title = 'Radar de Saúde',
             <CardDescription>Pontuação abaixo de 3.0 nas últimas supervisões</CardDescription>
           </CardHeader>
           <CardContent>
-            <ScrollArea className="max-h-64">
+            <ScrollArea className="h-64">
               <div className="space-y-2">
                 {criticalCells.map(cel => (
                   <CelulaHealthRow key={cel.celula_id} celula={cel} />
@@ -101,7 +101,7 @@ export function RadarSaudePanel({ scopeType, scopeId, title = 'Radar de Saúde',
             <CardDescription>Pontuação entre 3.0 e 3.9</CardDescription>
           </CardHeader>
           <CardContent>
-            <ScrollArea className="max-h-48">
+            <ScrollArea className="h-48">
               <div className="space-y-2">
                 {attentionCells.map(cel => (
                   <CelulaHealthRow key={cel.celula_id} celula={cel} />
@@ -122,7 +122,7 @@ export function RadarSaudePanel({ scopeType, scopeId, title = 'Radar de Saúde',
           <CardDescription>{data.totalCelulas} célula(s) no escopo</CardDescription>
         </CardHeader>
         <CardContent>
-          <ScrollArea className="max-h-80">
+          <ScrollArea className="h-80">
             <div className="space-y-2">
               {data.celulas.map(cel => (
                 <CelulaHealthRow key={cel.celula_id} celula={cel} />
