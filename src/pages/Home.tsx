@@ -4,7 +4,7 @@ import { useRole } from '@/contexts/RoleContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { AlertCircle, Loader2, Lock as LockIcon } from 'lucide-react';
+import { AlertCircle, Loader2, Lock as LockIcon, BookOpen, HelpCircle } from 'lucide-react';
 import { actionIcons } from '@/lib/icons';
 import logoRedeAmor from '@/assets/logo-rede-amor-a2.png';
 import logoAnoSantidade from '@/assets/logo-ano-santidade.png';
@@ -248,8 +248,28 @@ export default function HomePage() {
           </form>
         </div>
 
+        {/* Links institucionais */}
+        <div className="mt-6 flex items-center justify-center gap-3 opacity-0 animate-fade-in stagger-5">
+          <button
+            onClick={() => navigate('/material')}
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-medium transition-colors"
+            style={{ background: 'rgba(201,162,77,0.1)', color: '#C9A24D', border: '1px solid rgba(201,162,77,0.2)' }}
+          >
+            <BookOpen className="h-3.5 w-3.5" />
+            Material Institucional
+          </button>
+          <button
+            onClick={() => navigate('/faq')}
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-medium transition-colors"
+            style={{ background: 'rgba(201,162,77,0.1)', color: '#C9A24D', border: '1px solid rgba(201,162,77,0.2)' }}
+          >
+            <HelpCircle className="h-3.5 w-3.5" />
+            Perguntas Frequentes
+          </button>
+        </div>
+
         {/* Ano da Santidade badge */}
-        <div className="mt-6 flex justify-center opacity-0 animate-fade-in stagger-5">
+        <div className="mt-4 flex justify-center opacity-0 animate-fade-in stagger-5">
           <img
             src={logoAnoSantidade}
             alt="Ano da Santidade 2026"
