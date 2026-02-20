@@ -9,6 +9,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { DemoModeProvider } from "@/contexts/DemoModeContext";
 import { RoleProtectedRoute } from "@/components/RoleProtectedRoute";
 import { DemoModeBanner } from "@/components/demo/DemoModeBanner";
+import { UpdateBanner } from "@/components/pwa/UpdateBanner";
 
 // Eager: landing + onboarding (first paint)
 import Home from "./pages/Home";
@@ -49,6 +50,7 @@ const App = () => (
         <BrowserRouter>
           <RoleProvider>
             <DemoModeProvider>
+              <UpdateBanner />
               <DemoModeBanner />
               <Suspense fallback={<LazyFallback />}>
                 <Routes>
