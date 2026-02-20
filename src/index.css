@@ -181,3 +181,77 @@
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* ===== PWA STANDALONE POLISH ===== */
+@media all and (display-mode: standalone) {
+  /* Full viewport height using dynamic viewport units */
+  html, body, #root {
+    height: 100dvh;
+    height: -webkit-fill-available;
+    overflow: hidden;
+  }
+
+  /* Prevent overscroll bounce on the body */
+  body {
+    overscroll-behavior-y: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Prevent iOS zoom on inputs (must be >= 16px) */
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+
+  /* Smooth momentum scroll for content areas */
+  .pwa-scroll-area {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+  }
+
+  /* Page transition */
+  .pwa-page-enter {
+    animation: pwaSlideIn 0.18s ease-out;
+  }
+
+  /* Sticky action bars above safe area */
+  .pwa-sticky-bottom {
+    position: sticky;
+    bottom: 0;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    background: hsl(var(--background));
+    z-index: 20;
+  }
+
+  /* Hide scrollbar but keep scroll functional (cleaner native feel) */
+  *::-webkit-scrollbar {
+    display: none;
+  }
+  * {
+    scrollbar-width: none;
+  }
+
+  /* Disable text selection for UI elements (app-like) */
+  button, nav, header {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* Prevent pull-to-refresh on the main container */
+  #root {
+    overscroll-behavior-y: none;
+  }
+}
+
+@keyframes pwaSlideIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* iOS standalone status bar spacing helper */
+@supports (-webkit-touch-callout: none) {
+  @media all and (display-mode: standalone) {
+    .pwa-safe-top {
+      padding-top: env(safe-area-inset-top, 0px);
+    }
+  }
+}
