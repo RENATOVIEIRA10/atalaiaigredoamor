@@ -29,6 +29,7 @@ const PerfilCasal = lazy(() => import("./pages/PerfilCasal"));
 const PerfilMembro = lazy(() => import("./pages/PerfilMembro"));
 const FerramentasTeste = lazy(() => import("./pages/FerramentasTeste"));
 const MaterialInstitucional = lazy(() => import("./pages/MaterialInstitucional"));
+const FaqInstitucional = lazy(() => import("./pages/FaqInstitucional"));
 
 const queryClient = new QueryClient();
 
@@ -65,6 +66,7 @@ const App = () => (
                   <Route path="/perfil/membro/:memberId" element={<RoleProtectedRoute><PerfilMembro /></RoleProtectedRoute>} />
                   <Route path="/ferramentas-teste" element={<RoleProtectedRoute><FerramentasTeste /></RoleProtectedRoute>} />
                   <Route path="/material" element={<MaterialInstitucional />} />
+                  <Route path="/faq" element={<FaqInstitucional />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>

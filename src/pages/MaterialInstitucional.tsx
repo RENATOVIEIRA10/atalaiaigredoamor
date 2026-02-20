@@ -1,7 +1,7 @@
 import logoRedeAmor from '@/assets/logo-rede-amor-a2.png';
 import logoIgreja from '@/assets/logo-igreja-do-amor.png';
 import logoAnoSantidade from '@/assets/logo-ano-santidade.png';
-import { BookOpen, Heart, Users, Shield, Eye, MessageCircle, BarChart3, Church, Crown, Waypoints, UserCheck, Sparkles, ArrowLeft, Printer } from 'lucide-react';
+import { BookOpen, Heart, Users, Shield, Eye, MessageCircle, BarChart3, Church, Crown, Waypoints, UserCheck, Sparkles, ArrowLeft, Printer, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 
@@ -295,7 +295,16 @@ export default function MaterialInstitucional() {
             </div>
           </div>
 
-          <div className="mt-10 text-center">
+          <div className="mt-10 flex flex-col items-center gap-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/faq')}
+              className="rounded-full px-5"
+              style={{ background: 'rgba(201,162,77,0.1)', color: '#C9A24D', border: '1px solid rgba(201,162,77,0.2)' }}
+            >
+              <HelpCircle className="h-4 w-4 mr-2" /> Ver Perguntas Frequentes (FAQ)
+            </Button>
             <p className="text-xs" style={{ color: '#B8B6B3' }}>
               Igreja do Amor • Rede Amor a 2 • 2026
             </p>
