@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Users, FileText, Cake, AlertTriangle, MessageSquare, ClipboardCheck, Eye, ChevronRight } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { Loader2, Users, FileText, Cake, AlertTriangle, MessageSquare, ClipboardCheck, Eye, ChevronRight, Calendar } from 'lucide-react';
 import { useCoordenacoes } from '@/hooks/useCoordenacoes';
 import { useCelulas } from '@/hooks/useCelulas';
 import { useWeeklyReportsByCoordenacao } from '@/hooks/useWeeklyReports';
@@ -18,9 +19,12 @@ import { PulsoRedeSection } from '../PulsoRedeSection';
 import { RadarSaudePanel } from '../RadarSaudePanel';
 import { SupervisoesList } from '../SupervisoesList';
 import { useSupervisoesByCoordenacao } from '@/hooks/useSupervisoes';
+import { usePlanejamentoBimestral } from '@/hooks/usePlanejamentoBimestral';
+import { useSupervisores } from '@/hooks/useSupervisoes';
 import { EmptyState } from '@/components/ui/empty-state';
 import { getDateString } from '../DateRangeSelector';
-import { subDays } from 'date-fns';
+import { subDays, startOfWeek, endOfWeek, format, parseISO } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 export function CoordinatorPWADashboard() {
   const [searchParams] = useSearchParams();
@@ -35,7 +39,6 @@ export function CoordinatorPWADashboard() {
 
   const [selectedCoordenacao, setSelectedCoordenacao] = useState<string>('');
 
-  // Auto-select if scoped
   if (scopeType === 'coordenacao' && scopeId && !selectedCoordenacao && userCoordenacoes.length > 0) {
     setSelectedCoordenacao(scopeId);
   }
@@ -48,7 +51,6 @@ export function CoordinatorPWADashboard() {
 
   return (
     <div className="space-y-4">
-      {/* Coordenação selector (only if multiple) */}
       {userCoordenacoes.length > 1 && (
         <Card>
           <CardContent className="p-4">
@@ -90,12 +92,29 @@ function CoordInicio({ coordId, coordData }: { coordId: string; coordData: any }
   const dateRange = { from: getDateString(subDays(new Date(), 6)), to: getDateString(new Date()) };
   const { data: reports } = useWeeklyReportsByCoordenacao(coordId, dateRange);
   const { data: aniversariantes } = useAniversariantesSemana({ scopeType: 'coordenacao', scopeId: coordId });
-  const { data: pulso } = usePulsoRede({ scopeType: 'coordenacao', scopeId: coordId });
+  const { data: supervisoes } = useSupervisoesByCoordenacao(coordId);
+
+  // Drill-down state
+  const [drillDown, setDrillDown] = useState<'pendentes' | 'aniversariantes' | 'supervisoes_semana' | null>(null);
 
   const coordCelulas = celulas?.filter(c => c.coordenacao_id === coordId) || [];
   const totalCelulas = coordCelulas.length;
   const celulasComRelatorio = new Set((reports || []).map(r => r.celula_id)).size;
   const pendentes = totalCelulas - celulasComRelatorio;
+
+  // Supervisões desta semana
+  const now = new Date();
+  const weekStart = startOfWeek(now, { weekStartsOn: 1 });
+  const weekEnd = endOfWeek(now, { weekStartsOn: 1 });
+  const supervisoesSemana = (supervisoes || []).filter(s => {
+    const d = new Date(s.data_supervisao);
+    return d >= weekStart && d <= weekEnd;
+  });
+
+  // Drill-down views
+  if (drillDown === 'pendentes') return <PendentesView coordId={coordId} onBack={() => setDrillDown(null)} />;
+  if (drillDown === 'aniversariantes') return <AniversariantesView coordId={coordId} onBack={() => setDrillDown(null)} />;
+  if (drillDown === 'supervisoes_semana') return <SupervisoesSemanaCoordView supervisoes={supervisoesSemana} onBack={() => setDrillDown(null)} />;
 
   return (
     <div className="space-y-4">
@@ -129,34 +148,78 @@ function CoordInicio({ coordId, coordData }: { coordId: string; coordData: any }
         </Card>
       )}
 
-      {/* KPIs */}
+      {/* KPIs — clickable */}
       <div className="grid grid-cols-3 gap-3">
         <StatCard icon={Users} label="Células" value={totalCelulas} />
-        <StatCard icon={FileText} label="Pendentes" value={pendentes} className={pendentes > 0 ? 'border-amber-500/30' : ''} />
-        <StatCard icon={Cake} label="Aniversários" value={aniversariantes?.length || 0} />
+        <div onClick={() => setDrillDown('pendentes')} className="cursor-pointer active:scale-[0.97] transition-transform touch-manipulation">
+          <StatCard icon={FileText} label="Pendentes" value={pendentes} className={pendentes > 0 ? 'border-amber-500/30' : ''} />
+        </div>
+        <div onClick={() => setDrillDown('aniversariantes')} className="cursor-pointer active:scale-[0.97] transition-transform touch-manipulation">
+          <StatCard icon={Cake} label="Aniversários" value={aniversariantes?.length || 0} />
+        </div>
       </div>
 
-      {/* Quick actions */}
+      {/* Ações da semana (NEW) */}
       <Card>
         <CardHeader className="pb-2 pt-4 px-4">
-          <CardTitle className="text-sm text-muted-foreground">Próximas ações</CardTitle>
+          <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
+            <Calendar className="h-4 w-4" /> Ações da semana
+          </CardTitle>
         </CardHeader>
         <CardContent className="px-4 pb-4 space-y-2">
-          <ActionButton
-            label={`Ver células sem relatório (${pendentes})`}
-            icon={AlertTriangle}
-            disabled={pendentes === 0}
-            href="/dashboard?tab=acoes"
+          <TappableRow
+            label="Supervisões desta semana"
+            value={supervisoesSemana.length}
+            onClick={() => setDrillDown('supervisoes_semana')}
           />
-          <ActionButton
-            label={`Ver aniversariantes (${aniversariantes?.length || 0})`}
-            icon={Cake}
-            disabled={!aniversariantes?.length}
-            href="/dashboard?tab=acoes"
+          <TappableRow
+            label="Células sem relatório"
+            value={pendentes}
+            variant={pendentes > 0 ? 'warning' : 'ok'}
+            onClick={() => setDrillDown('pendentes')}
+          />
+          <TappableRow
+            label="Aniversariantes"
+            value={aniversariantes?.length || 0}
+            onClick={() => setDrillDown('aniversariantes')}
           />
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+// ────────── Drill-down: Supervisões da Semana (Coord) ──────────
+function SupervisoesSemanaCoordView({ supervisoes, onBack }: { supervisoes: any[]; onBack: () => void }) {
+  return (
+    <DrillDownContainer title="Supervisões desta semana" onBack={onBack}>
+      {supervisoes.length === 0 ? (
+        <Card><CardContent className="p-6 text-center text-sm text-muted-foreground">Nenhuma supervisão esta semana</CardContent></Card>
+      ) : (
+        supervisoes.map(s => (
+          <Card key={s.id} className={`border-l-4 ${s.celula_realizada ? 'border-l-green-500' : 'border-l-amber-500'}`}>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium text-sm truncate">{s.celula?.name || 'Célula'}</p>
+                  <p className="text-xs text-muted-foreground">
+                    👤 {s.supervisor?.profile?.name || 'Supervisor'}
+                  </p>
+                </div>
+                <div className="text-right shrink-0">
+                  <Badge variant={s.celula_realizada ? 'default' : 'outline'} className="text-xs">
+                    {s.celula_realizada ? 'Realizada' : 'Planejada'}
+                  </Badge>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {format(parseISO(s.data_supervisao), "dd/MM", { locale: ptBR })}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))
+      )}
+    </DrillDownContainer>
   );
 }
 
@@ -191,9 +254,7 @@ function PendentesView({ coordId, onBack }: { coordId: string; onBack: () => voi
   const pendentes = coordCelulas.filter(c => !celulasComRelatorio.has(c.id));
 
   return (
-    <div className="space-y-3">
-      <Button variant="ghost" size="sm" onClick={onBack} className="gap-1 -ml-2">← Voltar</Button>
-      <h3 className="text-sm font-semibold text-muted-foreground">Células sem relatório esta semana</h3>
+    <DrillDownContainer title="Células sem relatório esta semana" onBack={onBack}>
       {pendentes.length === 0 ? (
         <Card><CardContent className="p-6 text-center text-sm text-muted-foreground">Todas as células enviaram relatório! 🎉</CardContent></Card>
       ) : (
@@ -215,8 +276,7 @@ function PendentesView({ coordId, onBack }: { coordId: string; onBack: () => voi
                   className="shrink-0 gap-1 text-green-600 border-green-600/30 h-10"
                   onClick={() => {
                     const msg = encodeURIComponent(`Olá! 👋\n\nEste é um lembrete amigável para enviar o relatório semanal da célula *${cel.name}*.\n\nContamos com vocês! ❤️`);
-                    const url = `https://wa.me/?text=${msg}`;
-                    window.location.href = url;
+                    window.location.href = `https://wa.me/?text=${msg}`;
                   }}
                 >
                   <MessageSquare className="h-4 w-4" />
@@ -227,7 +287,7 @@ function PendentesView({ coordId, onBack }: { coordId: string; onBack: () => voi
           </Card>
         ))
       )}
-    </div>
+    </DrillDownContainer>
   );
 }
 
@@ -237,9 +297,7 @@ function AniversariantesView({ coordId, onBack }: { coordId: string; onBack: () 
   if (isLoading) return <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
 
   return (
-    <div className="space-y-3">
-      <Button variant="ghost" size="sm" onClick={onBack} className="gap-1 -ml-2">← Voltar</Button>
-      <h3 className="text-sm font-semibold text-muted-foreground">Aniversariantes da semana</h3>
+    <DrillDownContainer title="Aniversariantes da semana" onBack={onBack}>
       {!aniversariantes?.length ? (
         <Card><CardContent className="p-6 text-center text-sm text-muted-foreground">Nenhum aniversário esta semana</CardContent></Card>
       ) : (
@@ -247,7 +305,7 @@ function AniversariantesView({ coordId, onBack }: { coordId: string; onBack: () 
           <BirthdayCard key={b.id} b={b} />
         ))
       )}
-    </div>
+    </DrillDownContainer>
   );
 }
 
@@ -257,19 +315,53 @@ function SupervisoesView({ coordId, onBack }: { coordId: string; onBack: () => v
   if (isLoading) return <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
 
   return (
-    <div className="space-y-3">
-      <Button variant="ghost" size="sm" onClick={onBack} className="gap-1 -ml-2">← Voltar</Button>
-      <h3 className="text-sm font-semibold text-muted-foreground">Supervisões</h3>
+    <DrillDownContainer title="Supervisões" onBack={onBack}>
       {supervisoes && supervisoes.length > 0 ? (
         <SupervisoesList supervisoes={supervisoes} />
       ) : (
         <EmptyState icon={ClipboardCheck} title="Nenhuma supervisão" description="As supervisões aparecerão aqui" />
       )}
-    </div>
+    </DrillDownContainer>
   );
 }
 
 // ────────── Shared components ──────────
+function DrillDownContainer({ title, onBack, children }: { title: string; onBack: () => void; children: React.ReactNode }) {
+  return (
+    <div className="space-y-3">
+      <Button variant="ghost" size="sm" onClick={onBack} className="gap-1 -ml-2 h-11 touch-manipulation">← Voltar</Button>
+      <h3 className="text-sm font-semibold text-muted-foreground">{title}</h3>
+      {children}
+    </div>
+  );
+}
+
+function TappableRow({ label, value, variant, onClick }: {
+  label: string;
+  value: number | string;
+  variant?: 'warning' | 'ok';
+  onClick: () => void;
+}) {
+  return (
+    <div
+      className="flex items-center justify-between p-3 rounded-lg bg-muted/40 cursor-pointer active:bg-accent/50 touch-manipulation transition-colors"
+      onClick={onClick}
+    >
+      <span className="text-sm">{label}</span>
+      <div className="flex items-center gap-2 shrink-0">
+        <Badge variant="outline" className={
+          variant === 'warning' ? 'border-amber-500/50 text-amber-600' :
+          variant === 'ok' ? 'border-green-500/50 text-green-600' :
+          ''
+        }>
+          {value}
+        </Badge>
+        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+      </div>
+    </div>
+  );
+}
+
 function BirthdayCard({ b }: { b: AniversarianteSemana }) {
   const firstName = b.name.split(' ')[0];
   return (
@@ -303,23 +395,6 @@ function BirthdayCard({ b }: { b: AniversarianteSemana }) {
         </div>
       </CardContent>
     </Card>
-  );
-}
-
-function ActionButton({ label, icon: Icon, disabled, href }: { label: string; icon: any; disabled?: boolean; href: string }) {
-  return (
-    <Button
-      variant="outline"
-      className="w-full justify-between h-12 text-sm"
-      disabled={disabled}
-      onClick={() => { if (!disabled) window.location.href = href; }}
-    >
-      <span className="flex items-center gap-2">
-        <Icon className="h-4 w-4" />
-        {label}
-      </span>
-      <ChevronRight className="h-4 w-4 text-muted-foreground" />
-    </Button>
   );
 }
 

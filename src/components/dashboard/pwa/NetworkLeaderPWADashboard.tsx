@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Users, FileText, Cake, AlertTriangle, MessageSquare, Network, ChevronRight, GitBranch, ExternalLink } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { Loader2, Users, FileText, Cake, AlertTriangle, MessageSquare, Network, ChevronRight, ClipboardCheck, Calendar, Eye, ExternalLink } from 'lucide-react';
 import { useRedes } from '@/hooks/useRedes';
 import { useCoordenacoes } from '@/hooks/useCoordenacoes';
 import { useCelulas } from '@/hooks/useCelulas';
@@ -13,6 +14,7 @@ import { useWeeklyReportsByRede } from '@/hooks/useWeeklyReports';
 import { usePulsoRede } from '@/hooks/usePulsoRede';
 import { useAniversariantesSemana, AniversarianteSemana } from '@/hooks/useAniversariantesSemana';
 import { useMultiplicacoes } from '@/hooks/useMultiplicacoes';
+import { useSupervisaoRedeOverview } from '@/hooks/useSupervisaoRedeOverview';
 import { useRole } from '@/contexts/RoleContext';
 import { StatCard } from '@/components/ui/stat-card';
 import { MissionVerse } from '../MissionVerse';
@@ -20,7 +22,8 @@ import { PulsoRedeSection } from '../PulsoRedeSection';
 import { RadarSaudePanel } from '../RadarSaudePanel';
 import { EmptyState } from '@/components/ui/empty-state';
 import { getDateString } from '../DateRangeSelector';
-import { subDays } from 'date-fns';
+import { subDays, format, parseISO } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 export function NetworkLeaderPWADashboard() {
   const [searchParams] = useSearchParams();
@@ -32,7 +35,6 @@ export function NetworkLeaderPWADashboard() {
   const userRedes = redes || [];
   const [selectedRede, setSelectedRede] = useState<string>('');
 
-  // Auto-select if scoped
   if (scopeType === 'rede' && scopeId && !selectedRede && userRedes.length > 0) {
     setSelectedRede(scopeId);
   }
@@ -45,7 +47,6 @@ export function NetworkLeaderPWADashboard() {
 
   return (
     <div className="space-y-4">
-      {/* Rede selector (only if multiple) */}
       {userRedes.length > 1 && (
         <Card>
           <CardContent className="p-4">
@@ -84,25 +85,29 @@ export function NetworkLeaderPWADashboard() {
 // ────────── Aba Início ──────────
 function RedeInicio({ redeId, redeData }: { redeId: string; redeData: any }) {
   const { data: coordenacoes } = useCoordenacoes();
-  const { data: celulas } = useCelulas();
   const dateRange = { from: getDateString(subDays(new Date(), 6)), to: getDateString(new Date()) };
-  const { data: redeReports } = useWeeklyReportsByRede(redeId, dateRange);
   const { data: aniversariantes } = useAniversariantesSemana({ scopeType: 'rede', scopeId: redeId });
   const { data: pulso } = usePulsoRede({ scopeType: 'rede', scopeId: redeId });
   const { data: multiplicacoes } = useMultiplicacoes();
+  const { data: supOverview } = useSupervisaoRedeOverview(redeId);
 
-  const redeCoordenacoes = coordenacoes?.filter(c => {
-    // Filter coordenacoes belonging to this rede
-    return (c as any).rede_id === redeId;
-  }) || [];
+  // Drill-down state
+  const [drillDown, setDrillDown] = useState<'pendentes' | 'aniversariantes' | 'supervisoes_semana' | 'cobertura' | 'pendencias_bimestre' | null>(null);
 
+  const redeCoordenacoes = coordenacoes?.filter(c => (c as any).rede_id === redeId) || [];
   const totalCelulas = pulso?.totalCelulas || 0;
   const celulasComRelatorio = pulso?.celulasComRelatorio || 0;
   const pendentes = totalCelulas - celulasComRelatorio;
 
-  // Multiplicações últimos 90 dias
   const ninetyDaysAgo = subDays(new Date(), 90);
   const recentMultiplicacoes = (multiplicacoes || []).filter((m: any) => new Date(m.data_multiplicacao) >= ninetyDaysAgo).length;
+
+  // Drill-down views
+  if (drillDown === 'pendentes') return <PendentesRedeView redeId={redeId} pulso={pulso} onBack={() => setDrillDown(null)} />;
+  if (drillDown === 'aniversariantes') return <AniversariantesRedeView redeId={redeId} onBack={() => setDrillDown(null)} />;
+  if (drillDown === 'supervisoes_semana') return <SupervisoesSemanaView data={supOverview?.supervisoes_semana || []} onBack={() => setDrillDown(null)} />;
+  if (drillDown === 'cobertura') return <CoberturaBimestreView overview={supOverview} onBack={() => setDrillDown(null)} />;
+  if (drillDown === 'pendencias_bimestre') return <PendenciasBimestreView pendencias={supOverview?.pendencias || []} onBack={() => setDrillDown(null)} />;
 
   return (
     <div className="space-y-4">
@@ -136,13 +141,47 @@ function RedeInicio({ redeId, redeData }: { redeId: string; redeData: any }) {
         </Card>
       )}
 
-      {/* KPIs */}
+      {/* KPIs — clickable */}
       <div className="grid grid-cols-2 gap-3">
+        <div onClick={() => setDrillDown('pendentes')} className="cursor-pointer active:scale-[0.97] transition-transform touch-manipulation">
+          <StatCard icon={FileText} label="Pendentes" value={pendentes} className={pendentes > 0 ? 'border-amber-500/30' : ''} />
+        </div>
+        <div onClick={() => setDrillDown('aniversariantes')} className="cursor-pointer active:scale-[0.97] transition-transform touch-manipulation">
+          <StatCard icon={Cake} label="Aniversários" value={aniversariantes?.length || 0} />
+        </div>
         <StatCard icon={Network} label="Coordenações" value={redeCoordenacoes.length} />
         <StatCard icon={Users} label="Células" value={totalCelulas} />
-        <StatCard icon={FileText} label="Pendentes" value={pendentes} className={pendentes > 0 ? 'border-amber-500/30' : ''} />
-        <StatCard icon={Cake} label="Aniversários" value={aniversariantes?.length || 0} />
       </div>
+
+      {/* ── Supervisões section (NEW) ── */}
+      <Card>
+        <CardHeader className="pb-2 pt-4 px-4">
+          <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
+            <ClipboardCheck className="h-4 w-4" /> Supervisões
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="px-4 pb-4 space-y-2">
+          <TappableRow
+            label="Supervisões desta semana"
+            value={supOverview?.supervisoes_semana.length || 0}
+            onClick={() => setDrillDown('supervisoes_semana')}
+          />
+          <TappableRow
+            label="Cobertura do bimestre"
+            value={`${supOverview?.cobertura_percentual || 0}%`}
+            onClick={() => setDrillDown('cobertura')}
+            extra={
+              <Progress value={supOverview?.cobertura_percentual || 0} className="h-1.5 mt-1" />
+            }
+          />
+          <TappableRow
+            label="Pendências do bimestre"
+            value={supOverview?.pendencias.length || 0}
+            variant={(supOverview?.pendencias.length || 0) > 0 ? 'warning' : 'ok'}
+            onClick={() => setDrillDown('pendencias_bimestre')}
+          />
+        </CardContent>
+      </Card>
 
       {/* Radar card */}
       <Card>
@@ -150,11 +189,16 @@ function RedeInicio({ redeId, redeData }: { redeId: string; redeData: any }) {
           <CardTitle className="text-sm text-muted-foreground">📡 Radar</CardTitle>
         </CardHeader>
         <CardContent className="px-4 pb-4 space-y-3">
-          <RadarItem
-            label="Células 3+ sem relatório"
-            value={pulso?.celulasAlerta3Semanas?.length || 0}
-            variant={pulso?.celulasAlerta3Semanas?.length ? 'danger' : 'ok'}
-          />
+          <div
+            className="cursor-pointer active:bg-accent/30 rounded-lg transition-colors touch-manipulation"
+            onClick={() => setDrillDown('pendentes')}
+          >
+            <RadarItem
+              label="Células 3+ sem relatório"
+              value={pulso?.celulasAlerta3Semanas?.length || 0}
+              variant={pulso?.celulasAlerta3Semanas?.length ? 'danger' : 'ok'}
+            />
+          </div>
           <RadarItem
             label="Multiplicações (90 dias)"
             value={recentMultiplicacoes}
@@ -171,31 +215,8 @@ function RedeInicio({ redeId, redeData }: { redeId: string; redeData: any }) {
   );
 }
 
-// ────────── Aba Ações ──────────
-function RedeAcoes({ redeId }: { redeId: string }) {
-  const [activeAction, setActiveAction] = useState<'cobranca' | 'aniversariantes' | 'relatorio' | null>(null);
-
-  return (
-    <div className="space-y-3">
-      {!activeAction && (
-        <>
-          <ActionCard label="Cobrança em massa" icon={MessageSquare} description="Selecionar coordenações e cobrar via WhatsApp" onClick={() => setActiveAction('cobranca')} />
-          <ActionCard label="Aniversariantes da semana" icon={Cake} description="Enviar parabéns via WhatsApp" onClick={() => setActiveAction('aniversariantes')} />
-          <ActionCard label="Relatório para Pastores" icon={ExternalLink} description="Abrir no navegador (versão completa)" onClick={() => {
-            window.open(window.location.origin + '/dashboard', '_blank');
-          }} />
-        </>
-      )}
-
-      {activeAction === 'cobranca' && <CobrancaMassaView redeId={redeId} onBack={() => setActiveAction(null)} />}
-      {activeAction === 'aniversariantes' && <AniversariantesRedeView redeId={redeId} onBack={() => setActiveAction(null)} />}
-    </div>
-  );
-}
-
-function CobrancaMassaView({ redeId, onBack }: { redeId: string; onBack: () => void }) {
-  const { data: pulso } = usePulsoRede({ scopeType: 'rede', scopeId: redeId });
-
+// ────────── Drill-down: Pendentes ──────────
+function PendentesRedeView({ redeId, pulso, onBack }: { redeId: string; pulso: any; onBack: () => void }) {
   const allAlertCells = [
     ...(pulso?.celulasAlerta3Semanas || []),
     ...(pulso?.celulasAlerta2Semanas || []),
@@ -203,9 +224,7 @@ function CobrancaMassaView({ redeId, onBack }: { redeId: string; onBack: () => v
   ];
 
   return (
-    <div className="space-y-3">
-      <Button variant="ghost" size="sm" onClick={onBack} className="gap-1 -ml-2">← Voltar</Button>
-      <h3 className="text-sm font-semibold text-muted-foreground">Células sem relatório</h3>
+    <DrillDownContainer title="Células sem relatório" onBack={onBack}>
       {allAlertCells.length === 0 ? (
         <Card><CardContent className="p-6 text-center text-sm text-muted-foreground">Todas as células estão em dia! 🎉</CardContent></Card>
       ) : (
@@ -234,7 +253,160 @@ function CobrancaMassaView({ redeId, onBack }: { redeId: string; onBack: () => v
           </Card>
         ))
       )}
+    </DrillDownContainer>
+  );
+}
+
+// ────────── Drill-down: Supervisões da Semana ──────────
+function SupervisoesSemanaView({ data, onBack }: { data: any[]; onBack: () => void }) {
+  return (
+    <DrillDownContainer title="Supervisões desta semana" onBack={onBack}>
+      {data.length === 0 ? (
+        <Card><CardContent className="p-6 text-center text-sm text-muted-foreground">Nenhuma supervisão esta semana</CardContent></Card>
+      ) : (
+        data.map(s => (
+          <Card key={s.id} className={`border-l-4 ${s.celula_realizada ? 'border-l-green-500' : 'border-l-amber-500'}`}>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium text-sm truncate">{s.celula_name}</p>
+                  <p className="text-xs text-muted-foreground">{s.coordenacao_name}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    👤 {s.supervisor_name}
+                    {s.is_coordinator_supervision && <Badge variant="outline" className="ml-2 text-[10px] px-1">Coord.</Badge>}
+                  </p>
+                </div>
+                <div className="text-right shrink-0">
+                  <Badge variant={s.celula_realizada ? 'default' : 'outline'} className="text-xs">
+                    {s.celula_realizada ? 'Realizada' : 'Planejada'}
+                  </Badge>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {format(parseISO(s.data_supervisao), "dd/MM", { locale: ptBR })}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))
+      )}
+    </DrillDownContainer>
+  );
+}
+
+// ────────── Drill-down: Cobertura do Bimestre ──────────
+function CoberturaBimestreView({ overview, onBack }: { overview: any; onBack: () => void }) {
+  return (
+    <DrillDownContainer title="Cobertura do Bimestre" onBack={onBack}>
+      <Card>
+        <CardContent className="p-4 space-y-3">
+          <div className="text-center">
+            <p className="text-4xl font-bold text-primary">{overview?.cobertura_percentual || 0}%</p>
+            <p className="text-xs text-muted-foreground mt-1">{overview?.bimestre_label}</p>
+          </div>
+          <Progress value={overview?.cobertura_percentual || 0} className="h-2" />
+          <div className="grid grid-cols-2 gap-3 text-center">
+            <div>
+              <p className="text-lg font-semibold">{overview?.celulas_supervisionadas_bimestre || 0}</p>
+              <p className="text-xs text-muted-foreground">Supervisionadas</p>
+            </div>
+            <div>
+              <p className="text-lg font-semibold">{overview?.pendencias?.length || 0}</p>
+              <p className="text-xs text-muted-foreground">Pendentes</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </DrillDownContainer>
+  );
+}
+
+// ────────── Drill-down: Pendências do Bimestre ──────────
+function PendenciasBimestreView({ pendencias, onBack }: { pendencias: any[]; onBack: () => void }) {
+  return (
+    <DrillDownContainer title="Pendências do Bimestre" onBack={onBack}>
+      {pendencias.length === 0 ? (
+        <Card><CardContent className="p-6 text-center text-sm text-muted-foreground">Todas as células foram supervisionadas! 🎉</CardContent></Card>
+      ) : (
+        pendencias.map(p => (
+          <Card key={p.celula_id}>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium text-sm truncate">{p.celula_name}</p>
+                  <p className="text-xs text-muted-foreground">{p.coordenacao_name}</p>
+                  <p className="text-xs text-muted-foreground">👫 {p.leadership_couple_name}</p>
+                </div>
+                <Badge variant="outline" className={`text-xs shrink-0 ${p.days_since_last === null ? 'border-destructive/50 text-destructive' : p.days_since_last > 30 ? 'border-amber-500/50 text-amber-600' : ''}`}>
+                  {p.days_since_last === null ? 'Nunca' : `${p.days_since_last}d atrás`}
+                </Badge>
+              </div>
+            </CardContent>
+          </Card>
+        ))
+      )}
+    </DrillDownContainer>
+  );
+}
+
+// ────────── Aba Ações ──────────
+function RedeAcoes({ redeId }: { redeId: string }) {
+  const [activeAction, setActiveAction] = useState<'cobranca' | 'aniversariantes' | null>(null);
+
+  return (
+    <div className="space-y-3">
+      {!activeAction && (
+        <>
+          <ActionCard label="Cobrança em massa" icon={MessageSquare} description="Selecionar coordenações e cobrar via WhatsApp" onClick={() => setActiveAction('cobranca')} />
+          <ActionCard label="Aniversariantes da semana" icon={Cake} description="Enviar parabéns via WhatsApp" onClick={() => setActiveAction('aniversariantes')} />
+        </>
+      )}
+
+      {activeAction === 'cobranca' && <CobrancaMassaView redeId={redeId} onBack={() => setActiveAction(null)} />}
+      {activeAction === 'aniversariantes' && <AniversariantesRedeView redeId={redeId} onBack={() => setActiveAction(null)} />}
     </div>
+  );
+}
+
+function CobrancaMassaView({ redeId, onBack }: { redeId: string; onBack: () => void }) {
+  const { data: pulso } = usePulsoRede({ scopeType: 'rede', scopeId: redeId });
+
+  const allAlertCells = [
+    ...(pulso?.celulasAlerta3Semanas || []),
+    ...(pulso?.celulasAlerta2Semanas || []),
+    ...(pulso?.celulasAlerta1Semana || []),
+  ];
+
+  return (
+    <DrillDownContainer title="Células sem relatório" onBack={onBack}>
+      {allAlertCells.length === 0 ? (
+        <Card><CardContent className="p-6 text-center text-sm text-muted-foreground">Todas as células estão em dia! 🎉</CardContent></Card>
+      ) : (
+        allAlertCells.map(cel => (
+          <Card key={cel.celula_id}>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium text-sm truncate">{cel.celula_name}</p>
+                  <p className="text-xs text-muted-foreground">{cel.coordenacao_name}</p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="shrink-0 gap-1 text-green-600 border-green-600/30 h-10"
+                  onClick={() => {
+                    const msg = encodeURIComponent(`Olá! 👋\n\nEste é um lembrete para enviar o relatório semanal da célula *${cel.celula_name}*.\n\nContamos com vocês! ❤️`);
+                    window.location.href = `https://wa.me/?text=${msg}`;
+                  }}
+                >
+                  <MessageSquare className="h-4 w-4" />
+                  Cobrar
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))
+      )}
+    </DrillDownContainer>
   );
 }
 
@@ -244,9 +416,7 @@ function AniversariantesRedeView({ redeId, onBack }: { redeId: string; onBack: (
   if (isLoading) return <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
 
   return (
-    <div className="space-y-3">
-      <Button variant="ghost" size="sm" onClick={onBack} className="gap-1 -ml-2">← Voltar</Button>
-      <h3 className="text-sm font-semibold text-muted-foreground">Aniversariantes da semana</h3>
+    <DrillDownContainer title="Aniversariantes da semana" onBack={onBack}>
       {!aniversariantes?.length ? (
         <Card><CardContent className="p-6 text-center text-sm text-muted-foreground">Nenhum aniversário esta semana</CardContent></Card>
       ) : (
@@ -254,11 +424,51 @@ function AniversariantesRedeView({ redeId, onBack }: { redeId: string; onBack: (
           <BirthdayCard key={b.id} b={b} />
         ))
       )}
-    </div>
+    </DrillDownContainer>
   );
 }
 
 // ────────── Shared components ──────────
+function DrillDownContainer({ title, onBack, children }: { title: string; onBack: () => void; children: React.ReactNode }) {
+  return (
+    <div className="space-y-3">
+      <Button variant="ghost" size="sm" onClick={onBack} className="gap-1 -ml-2 h-11 touch-manipulation">← Voltar</Button>
+      <h3 className="text-sm font-semibold text-muted-foreground">{title}</h3>
+      {children}
+    </div>
+  );
+}
+
+function TappableRow({ label, value, variant, onClick, extra }: {
+  label: string;
+  value: number | string;
+  variant?: 'warning' | 'ok';
+  onClick: () => void;
+  extra?: React.ReactNode;
+}) {
+  return (
+    <div
+      className="flex items-center justify-between p-3 rounded-lg bg-muted/40 cursor-pointer active:bg-accent/50 touch-manipulation transition-colors"
+      onClick={onClick}
+    >
+      <div className="flex-1 min-w-0">
+        <span className="text-sm">{label}</span>
+        {extra}
+      </div>
+      <div className="flex items-center gap-2 shrink-0">
+        <Badge variant="outline" className={
+          variant === 'warning' ? 'border-amber-500/50 text-amber-600' :
+          variant === 'ok' ? 'border-green-500/50 text-green-600' :
+          ''
+        }>
+          {value}
+        </Badge>
+        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+      </div>
+    </div>
+  );
+}
+
 function BirthdayCard({ b }: { b: AniversarianteSemana }) {
   const firstName = b.name.split(' ')[0];
   return (
