@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Heart, FileText, Users, Menu, ClipboardCheck, Zap, History } from 'lucide-react';
+import { LayoutDashboard, Heart, FileText, Users, Menu, ClipboardCheck, Zap, History, Calendar } from 'lucide-react';
 import { useIsPWA } from '@/hooks/useIsPWA';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useRole } from '@/contexts/RoleContext';
@@ -35,9 +35,10 @@ export function MobileBottomNav() {
       { label: 'Histórico', icon: History, path: '/dashboard?tab=historico' },
     ];
   } else if (isSupervisor) {
-    // Supervisor: Início, Ações, Histórico
+    // Supervisor: Início, Plano, Ações, Histórico
     navItems = [
       { label: 'Início', icon: LayoutDashboard, path: '/dashboard' },
+      { label: 'Plano', icon: Calendar, path: '/dashboard?tab=plano' },
       { label: 'Ações', icon: Zap, path: '/dashboard?tab=acoes' },
       { label: 'Histórico', icon: History, path: '/dashboard?tab=historico' },
     ];

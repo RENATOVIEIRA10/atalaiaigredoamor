@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Loader2, ClipboardCheck, Plus, Eye, Calendar, Users, ChevronRight, AlertTriangle, MessageSquare, Heart } from 'lucide-react';
 import { usePlanejamentoBimestral } from '@/hooks/usePlanejamentoBimestral';
 import { ProgressoCuidadoBar } from '../supervisor/ProgressoCuidadoBar';
+import { PlanejamentoBimestralPanel } from '../supervisor/PlanejamentoBimestralPanel';
 import { useCoordenacoes } from '@/hooks/useCoordenacoes';
 import { useSupervisores, useSupervisoesBySupervisor, Supervisao } from '@/hooks/useSupervisoes';
 import { useCelulas } from '@/hooks/useCelulas';
@@ -106,6 +107,20 @@ export function SupervisorPWADashboard() {
       </div>
     );
   }
+
+  if (activeTab === 'plano') return (
+    <div className="space-y-4">
+      <PlanejamentoBimestralPanel
+        supervisorId={selectedSupervisor}
+        coordenacaoId={selectedCoordenacao}
+        compact
+      />
+      <SupervisaoFormDialog open={isFormOpen} onOpenChange={setIsFormOpen} supervisorId={selectedSupervisor} celulas={filteredCelulas} />
+      {selectedSupervisao && (
+        <SupervisaoDetailsDialog open={!!selectedSupervisao} onOpenChange={(open) => !open && setSelectedSupervisao(null)} supervisao={selectedSupervisao} />
+      )}
+    </div>
+  );
 
   if (activeTab === 'acoes') return (
     <AcoesTab

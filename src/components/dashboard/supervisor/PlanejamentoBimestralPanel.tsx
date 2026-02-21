@@ -4,12 +4,14 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Calendar, RefreshCw, ChevronDown, ChevronUp, CheckCircle2, Heart, Users, ShieldAlert, ArrowLeftRight, Loader2, GripVertical } from 'lucide-react';
+import { Calendar, RefreshCw, ChevronDown, ChevronUp, CheckCircle2, Heart, Users, ShieldAlert, ArrowLeftRight, Loader2, GripVertical, Move } from 'lucide-react';
 import { usePlanejamentoBimestral, SemanaPlano, CelulaPlanItem, CelulaPlanejamento, SupervisorInfo } from '@/hooks/usePlanejamentoBimestral';
 import { useSupervisionSwaps, useCreateSwap, useRespondSwap, SwapProposal } from '@/hooks/useSupervisionSwaps';
 import { ProgressoCuidadoBar } from './ProgressoCuidadoBar';
 import { useQueryClient } from '@tanstack/react-query';
 import { EmptyState } from '@/components/ui/empty-state';
+import { useIsPWA } from '@/hooks/useIsPWA';
+import { useIsMobile } from '@/hooks/use-mobile';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from '@/components/ui/dialog';
@@ -82,6 +84,12 @@ export function PlanejamentoBimestralPanel({ supervisorId, coordenacaoId, compac
   const { data: swaps, isLoading: swapsLoading } = useSupervisionSwaps(coordenacaoId);
   const queryClient = useQueryClient();
   const [overrides, setOverrides] = useState<Map<string, number>>(new Map());
+  const isPWA = useIsPWA();
+  const isMobile = useIsMobile();
+  const isTouchMode = isPWA && isMobile;
+
+  // Touch-based move state: selected cell waiting to be placed
+  const [selectedForMove, setSelectedForMove] = useState<{ celula: CelulaPlanItem; fromWeek: number } | null>(null);
 
   const regenerate = () => {
     setOverrides(new Map());
@@ -94,8 +102,23 @@ export function PlanejamentoBimestralPanel({ supervisorId, coordenacaoId, compac
       next.set(celulaId, toWeek);
       return next;
     });
+    setSelectedForMove(null);
     toast.success('Visita movida com sucesso');
   }, []);
+
+  const handleTouchSelect = useCallback((celula: CelulaPlanItem, fromWeek: number) => {
+    if (selectedForMove?.celula.celula_id === celula.celula_id) {
+      setSelectedForMove(null); // deselect
+    } else {
+      setSelectedForMove({ celula, fromWeek });
+      toast('Toque em uma semana com slot livre para mover', { duration: 2000 });
+    }
+  }, [selectedForMove]);
+
+  const handleTouchPlace = useCallback((targetWeek: number) => {
+    if (!selectedForMove) return;
+    handleMove(selectedForMove.celula.celula_id, selectedForMove.fromWeek, targetWeek);
+  }, [selectedForMove, handleMove]);
 
   if (isLoading) {
     return (
@@ -214,7 +237,11 @@ export function PlanejamentoBimestralPanel({ supervisorId, coordenacaoId, compac
             otherSupervisor={data.outro_supervisor?.info || null}
             otherCelulas={data.outro_supervisor?.semanas.flatMap(s => s.celulas) || []}
             coordenacaoId={coordenacaoId}
-            onMove={handleMove}
+            onMove={isTouchMode ? undefined : handleMove}
+            isTouchMode={isTouchMode}
+            selectedForMove={selectedForMove}
+            onTouchSelect={isTouchMode ? handleTouchSelect : undefined}
+            onTouchPlace={isTouchMode ? handleTouchPlace : undefined}
           />
         </TabsContent>
 
@@ -266,8 +293,18 @@ export function PlanejamentoBimestralPanel({ supervisorId, coordenacaoId, compac
         </TabsContent>
       </Tabs>
 
+      {selectedForMove && (
+        <div className="fixed bottom-20 left-4 right-4 z-40 bg-primary text-primary-foreground rounded-xl p-3 text-center text-sm font-medium shadow-lg animate-fade-in"
+          style={{ paddingBottom: 'calc(12px + env(safe-area-inset-bottom, 0px))' }}
+        >
+          <p>📦 <strong>{selectedForMove.celula.celula_name}</strong> selecionada</p>
+          <p className="text-xs opacity-80 mt-1">Toque em uma semana com slot livre para encaixar</p>
+          <button className="underline text-xs mt-1 opacity-80" onClick={() => setSelectedForMove(null)}>Cancelar</button>
+        </div>
+      )}
+
       <p className="text-xs text-muted-foreground text-center italic px-4">
-        💡 Arraste os cards de visita para encaixar em semanas livres!
+        💡 {isTouchMode ? 'Toque no ícone ↕ para selecionar e depois toque na semana destino' : 'Arraste os cards de visita para encaixar em semanas livres!'}
       </p>
     </div>
   );
@@ -336,7 +373,7 @@ function PendingSwapsList({ swaps, supervisorId, data }: {
 
 // ── Weeks List ──
 
-function WeeksList({ semanas, compact, showSwapButton, supervisorId, otherSupervisor, otherCelulas, coordenacaoId, onMove }: {
+function WeeksList({ semanas, compact, showSwapButton, supervisorId, otherSupervisor, otherCelulas, coordenacaoId, onMove, isTouchMode, selectedForMove, onTouchSelect, onTouchPlace }: {
   semanas: SemanaPlano[];
   compact?: boolean;
   showSwapButton?: boolean;
@@ -345,6 +382,10 @@ function WeeksList({ semanas, compact, showSwapButton, supervisorId, otherSuperv
   otherCelulas?: CelulaPlanItem[];
   coordenacaoId?: string;
   onMove?: (celulaId: string, fromWeek: number, toWeek: number) => void;
+  isTouchMode?: boolean;
+  selectedForMove?: { celula: CelulaPlanItem; fromWeek: number } | null;
+  onTouchSelect?: (celula: CelulaPlanItem, fromWeek: number) => void;
+  onTouchPlace?: (targetWeek: number) => void;
 }) {
   const [expandedWeeks, setExpandedWeeks] = useState<Set<number>>(new Set([1, 2]));
 
@@ -372,6 +413,10 @@ function WeeksList({ semanas, compact, showSwapButton, supervisorId, otherSuperv
           otherCelulas={otherCelulas}
           coordenacaoId={coordenacaoId}
           onMove={onMove}
+          isTouchMode={isTouchMode}
+          selectedForMove={selectedForMove}
+          onTouchSelect={onTouchSelect}
+          onTouchPlace={onTouchPlace}
         />
       ))}
     </div>
@@ -380,7 +425,7 @@ function WeeksList({ semanas, compact, showSwapButton, supervisorId, otherSuperv
 
 // ── Week Card ──
 
-function WeekCard({ semana, expanded, onToggle, compact, showSwapButton, supervisorId, otherSupervisor, otherCelulas, coordenacaoId, onMove }: {
+function WeekCard({ semana, expanded, onToggle, compact, showSwapButton, supervisorId, otherSupervisor, otherCelulas, coordenacaoId, onMove, isTouchMode, selectedForMove, onTouchSelect, onTouchPlace }: {
   semana: SemanaPlano;
   expanded: boolean;
   onToggle: () => void;
@@ -391,19 +436,24 @@ function WeekCard({ semana, expanded, onToggle, compact, showSwapButton, supervi
   otherCelulas?: CelulaPlanItem[];
   coordenacaoId?: string;
   onMove?: (celulaId: string, fromWeek: number, toWeek: number) => void;
+  isTouchMode?: boolean;
+  selectedForMove?: { celula: CelulaPlanItem; fromWeek: number } | null;
+  onTouchSelect?: (celula: CelulaPlanItem, fromWeek: number) => void;
+  onTouchPlace?: (targetWeek: number) => void;
 }) {
   const [isDragOver, setIsDragOver] = useState(false);
   const allRealizadas = semana.celulas.length > 0 && semana.celulas.every(c => c.realizada);
   const hasItems = semana.celulas.length > 0;
   const slotsLivres = (semana.capacity_max || 2) - (semana.capacity_used || 0);
-  const canDrop = slotsLivres > 0 && onMove;
+  const canDrop = slotsLivres > 0 && (onMove || onTouchPlace);
+  const isDropTarget = selectedForMove && slotsLivres > 0 && selectedForMove.fromWeek !== semana.week_number;
 
   const handleDragOver = useCallback((e: DragEvent) => {
-    if (!canDrop) return;
+    if (!onMove || slotsLivres <= 0) return;
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
     setIsDragOver(true);
-  }, [canDrop]);
+  }, [onMove, slotsLivres]);
 
   const handleDragLeave = useCallback(() => {
     setIsDragOver(false);
@@ -417,7 +467,7 @@ function WeekCard({ semana, expanded, onToggle, compact, showSwapButton, supervi
     try {
       const raw = e.dataTransfer.getData('application/json');
       const dragData: DragData = JSON.parse(raw);
-      if (dragData.fromWeekNumber === semana.week_number) return; // same week, no-op
+      if (dragData.fromWeekNumber === semana.week_number) return;
       if (slotsLivres <= 0) {
         toast.error('Semana sem slots disponíveis');
         return;
@@ -428,24 +478,42 @@ function WeekCard({ semana, expanded, onToggle, compact, showSwapButton, supervi
     }
   }, [onMove, semana.week_number, slotsLivres]);
 
+  const handleTouchPlaceClick = () => {
+    if (isDropTarget && onTouchPlace) {
+      onTouchPlace(semana.week_number);
+    }
+  };
+
   return (
     <Card
       className={`transition-all ${allRealizadas ? 'opacity-60' : ''} ${
         isDragOver && canDrop ? 'ring-2 ring-primary/50 bg-primary/5' : ''
-      }`}
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
+      } ${isDropTarget ? 'ring-2 ring-primary/40 bg-primary/5' : ''}`}
+      onDragOver={isTouchMode ? undefined : handleDragOver}
+      onDragLeave={isTouchMode ? undefined : handleDragLeave}
+      onDrop={isTouchMode ? undefined : handleDrop}
     >
-      <div className="flex items-center justify-between p-3 cursor-pointer" onClick={onToggle}>
+      <div
+        className={`flex items-center justify-between p-3 cursor-pointer ${isDropTarget ? 'min-h-[56px]' : ''}`}
+        onClick={() => {
+          if (isDropTarget) {
+            handleTouchPlaceClick();
+          } else {
+            onToggle();
+          }
+        }}
+      >
         <div className="flex items-center gap-3">
           <div className={`h-8 w-8 rounded-lg flex items-center justify-center text-xs font-bold ${
+            isDropTarget ? 'bg-primary/20 text-primary animate-pulse' :
             allRealizadas ? 'bg-green-500/10 text-green-600' : 'bg-primary/10 text-primary'
           }`}>
-            S{semana.week_number}
+            {isDropTarget ? '📥' : `S${semana.week_number}`}
           </div>
           <div>
-            <p className="text-sm font-medium">Semana {semana.week_number}</p>
+            <p className="text-sm font-medium">
+              {isDropTarget ? 'Encaixar aqui' : `Semana ${semana.week_number}`}
+            </p>
             <p className="text-xs text-muted-foreground">{semana.week_label}</p>
           </div>
         </div>
@@ -457,19 +525,24 @@ function WeekCard({ semana, expanded, onToggle, compact, showSwapButton, supervi
             <Badge variant="secondary" className="text-xs">{semana.celulas.length} visita(s)</Badge>
           )}
           {allRealizadas && <CheckCircle2 className="h-4 w-4 text-green-600" />}
-          {expanded ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+          {!isDropTarget && (expanded ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />)}
         </div>
       </div>
 
       {expanded && (
         <CardContent className="pt-0 pb-3 px-3">
           {!hasItems ? (
-            <div className={`text-xs text-muted-foreground text-center py-4 rounded-lg border-2 border-dashed transition-colors ${
-              isDragOver && canDrop ? 'border-primary/50 bg-primary/5 text-primary' : 'border-muted'
-            }`}>
-              {isDragOver && canDrop
-                ? '📥 Solte aqui para encaixar a visita'
-                : `Semana livre · ${slotsLivres} slot(s) disponível(is) — arraste uma visita para cá`}
+            <div
+              className={`text-xs text-muted-foreground text-center py-4 rounded-lg border-2 border-dashed transition-colors ${
+                (isDragOver && canDrop) || isDropTarget ? 'border-primary/50 bg-primary/5 text-primary' : 'border-muted'
+              }`}
+              onClick={isDropTarget ? handleTouchPlaceClick : undefined}
+            >
+              {isDropTarget
+                ? '📥 Toque aqui para encaixar a visita'
+                : isDragOver && canDrop
+                  ? '📥 Solte aqui para encaixar a visita'
+                  : `Semana livre · ${slotsLivres} slot(s) disponível(is)`}
             </div>
           ) : (
             <div className="space-y-2">
@@ -484,14 +557,20 @@ function WeekCard({ semana, expanded, onToggle, compact, showSwapButton, supervi
                   otherCelulas={otherCelulas}
                   coordenacaoId={coordenacaoId}
                   weekNumber={semana.week_number}
-                  isDraggable={!!onMove && !cel.realizada}
+                  isDraggable={!isTouchMode && !!onMove && !cel.realizada}
+                  isTouchMode={isTouchMode}
+                  isSelected={selectedForMove?.celula.celula_id === cel.celula_id}
+                  onTouchSelect={onTouchSelect}
                 />
               ))}
-              {slotsLivres > 0 && onMove && (
-                <div className={`text-[10px] text-center py-2 rounded-lg border-2 border-dashed transition-colors ${
-                  isDragOver ? 'border-primary/50 bg-primary/5 text-primary' : 'border-muted text-muted-foreground'
-                }`}>
-                  {isDragOver ? '📥 Solte aqui' : `+${slotsLivres} slot(s) livre(s)`}
+              {slotsLivres > 0 && (onMove || isDropTarget) && (
+                <div
+                  className={`text-[10px] text-center py-3 rounded-lg border-2 border-dashed transition-colors cursor-pointer ${
+                    (isDragOver || isDropTarget) ? 'border-primary/50 bg-primary/5 text-primary' : 'border-muted text-muted-foreground'
+                  }`}
+                  onClick={isDropTarget ? handleTouchPlaceClick : undefined}
+                >
+                  {isDropTarget ? '📥 Toque para encaixar aqui' : isDragOver ? '📥 Solte aqui' : `+${slotsLivres} slot(s) livre(s)`}
                 </div>
               )}
             </div>
@@ -504,7 +583,7 @@ function WeekCard({ semana, expanded, onToggle, compact, showSwapButton, supervi
 
 // ── Cell Plan Row ──
 
-function CelulaPlanRow({ item, compact, showSwapButton, supervisorId, otherSupervisor, otherCelulas, coordenacaoId, weekNumber, isDraggable }: {
+function CelulaPlanRow({ item, compact, showSwapButton, supervisorId, otherSupervisor, otherCelulas, coordenacaoId, weekNumber, isDraggable, isTouchMode, isSelected, onTouchSelect }: {
   item: CelulaPlanItem;
   compact?: boolean;
   showSwapButton?: boolean;
@@ -514,6 +593,9 @@ function CelulaPlanRow({ item, compact, showSwapButton, supervisorId, otherSuper
   coordenacaoId?: string;
   weekNumber: number;
   isDraggable?: boolean;
+  isTouchMode?: boolean;
+  isSelected?: boolean;
+  onTouchSelect?: (celula: CelulaPlanItem, fromWeek: number) => void;
 }) {
   const cfg = PRIORITY_CONFIG[item.priority_label];
   const [swapOpen, setSwapOpen] = useState(false);
@@ -536,13 +618,27 @@ function CelulaPlanRow({ item, compact, showSwapButton, supervisorId, otherSuper
         className={`flex items-center gap-3 p-2.5 rounded-lg ${cfg.bg} border ${cfg.border} ${
           item.realizada ? 'opacity-60' : ''
         } ${isDragging ? 'opacity-40 scale-95' : ''} ${
-          isDraggable ? 'cursor-grab active:cursor-grabbing' : ''
+          isSelected ? 'ring-2 ring-primary shadow-md scale-[1.02]' : ''
+        } ${isDraggable ? 'cursor-grab active:cursor-grabbing' : ''
         } transition-all`}
         draggable={isDraggable}
         onDragStart={isDraggable ? handleDragStart : undefined}
         onDragEnd={isDraggable ? handleDragEnd : undefined}
       >
-        {isDraggable && (
+        {/* Touch move button (PWA) */}
+        {isTouchMode && !item.realizada && onTouchSelect && (
+          <button
+            onClick={() => onTouchSelect(item, weekNumber)}
+            className={`flex items-center justify-center h-11 w-11 -ml-1 rounded-xl shrink-0 touch-manipulation transition-colors ${
+              isSelected ? 'bg-primary text-primary-foreground' : 'bg-muted/60 text-muted-foreground active:bg-accent'
+            }`}
+            aria-label="Mover visita"
+          >
+            <Move className="h-4 w-4" />
+          </button>
+        )}
+        {/* Desktop drag handle */}
+        {isDraggable && !isTouchMode && (
           <GripVertical className="h-4 w-4 text-muted-foreground/50 shrink-0" />
         )}
         <span className="text-base shrink-0">{cfg.emoji}</span>
@@ -559,7 +655,7 @@ function CelulaPlanRow({ item, compact, showSwapButton, supervisorId, otherSuper
               <span className="ml-2 opacity-70">· Encontro: {item.meeting_day}</span>
             )}
           </p>
-          {!item.realizada && item.alt_weeks && item.alt_weeks.length > 0 && !compact && (
+          {!item.realizada && item.alt_weeks && item.alt_weeks.length > 0 && !compact && !isTouchMode && (
             <p className="text-[10px] text-blue-600 mt-0.5">
               🔄 Flexível: {item.alt_weeks.map(a => `S${a.week_number} (${a.week_label})`).join(' · ')}
             </p>
@@ -570,7 +666,7 @@ function CelulaPlanRow({ item, compact, showSwapButton, supervisorId, otherSuper
             {item.priority_label === 'Prioridade de cuidado' ? 'Cuidado' : item.priority_label}
           </Badge>
           {showSwapButton && otherSupervisor && !item.realizada && (
-            <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => setSwapOpen(true)} title="Propor troca">
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setSwapOpen(true)} title="Propor troca">
               <ArrowLeftRight className="h-3.5 w-3.5" />
             </Button>
           )}
