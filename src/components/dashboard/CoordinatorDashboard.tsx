@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, UserCheck, Heart, UserPlus, Baby, Loader2, LayoutGrid, Eye, ClipboardCheck, Image, FileSpreadsheet, Sparkles, History, Plus, Activity, Heart as HeartIcon } from 'lucide-react';
+import { Users, UserCheck, Heart, UserPlus, Baby, Loader2, LayoutGrid, Eye, ClipboardCheck, Image, FileSpreadsheet, Sparkles, History, Plus, Activity, Heart as HeartIcon, Calendar } from 'lucide-react';
 import { useCoordenacoes } from '@/hooks/useCoordenacoes';
 import { useCelulas } from '@/hooks/useCelulas';
 import { useWeeklyReportsByCoordenacao, useUpdateWeeklyReport, useDeleteWeeklyReport } from '@/hooks/useWeeklyReports';
@@ -31,6 +31,7 @@ import { useRole } from '@/contexts/RoleContext';
 import { SupervisorFormDialog } from '@/components/settings/SupervisorFormDialog';
 import { PulsoRedeSection } from './PulsoRedeSection';
 import { RadarSaudePanel } from './RadarSaudePanel';
+import { PlanejamentoCoordenadorPanel } from './coordenador/PlanejamentoCoordenadorPanel';
 
 export function CoordinatorDashboard() {
   const [searchParams] = useSearchParams();
@@ -179,8 +180,9 @@ export function CoordinatorDashboard() {
             <StatCard icon={ClipboardCheck} label="Supervisões" value={supervisoes?.length || 0} />
           </div>
 
-          <Tabs defaultValue={urlTab === 'pulso' ? 'pulso' : 'relatorios'} className="space-y-4">
+          <Tabs defaultValue={urlTab === 'pulso' ? 'pulso' : urlTab === 'planejamento' ? 'planejamento' : 'relatorios'} className="space-y-4">
             <TabsList className="flex flex-wrap h-auto gap-1">
+              <TabsTrigger value="planejamento" className="gap-1.5"><Calendar className="h-4 w-4" />Planejamento</TabsTrigger>
               <TabsTrigger value="pulso" className="gap-1.5"><Activity className="h-4 w-4" />Pulso</TabsTrigger>
               <TabsTrigger value="saude" className="gap-1.5"><Heart className="h-4 w-4" />Saúde</TabsTrigger>
               <TabsTrigger value="relatorios" className="gap-1.5"><LayoutGrid className="h-4 w-4" />Relatórios</TabsTrigger>
@@ -189,6 +191,10 @@ export function CoordinatorDashboard() {
               <TabsTrigger value="fotos" className="gap-1.5"><Image className="h-4 w-4" />Fotos</TabsTrigger>
               <TabsTrigger value="supervisoes" className="gap-1.5"><ClipboardCheck className="h-4 w-4" />Supervisões</TabsTrigger>
             </TabsList>
+
+            <TabsContent value="planejamento">
+              <PlanejamentoCoordenadorPanel coordenacaoId={selectedCoordenacao} />
+            </TabsContent>
 
             <TabsContent value="pulso">
               <PulsoRedeSection scopeType="coordenacao" scopeId={selectedCoordenacao} title="Pulso da Coordenação" />
