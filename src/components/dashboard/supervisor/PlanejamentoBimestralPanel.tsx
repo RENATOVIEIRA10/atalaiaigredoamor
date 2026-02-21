@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, useCallback, DragEvent } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Calendar, RefreshCw, ChevronDown, ChevronUp, CheckCircle2, Heart, Users, ShieldAlert, ArrowLeftRight, Loader2 } from 'lucide-react';
+import { Calendar, RefreshCw, ChevronDown, ChevronUp, CheckCircle2, Heart, Users, ShieldAlert, ArrowLeftRight, Loader2, GripVertical } from 'lucide-react';
 import { usePlanejamentoBimestral, SemanaPlano, CelulaPlanItem, CelulaPlanejamento, SupervisorInfo } from '@/hooks/usePlanejamentoBimestral';
 import { useSupervisionSwaps, useCreateSwap, useRespondSwap, SwapProposal } from '@/hooks/useSupervisionSwaps';
 import { ProgressoCuidadoBar } from './ProgressoCuidadoBar';
@@ -14,6 +14,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { toast } from 'sonner';
 
 interface PlanejamentoBimestralPanelProps {
   supervisorId: string;
@@ -27,14 +28,74 @@ const PRIORITY_CONFIG = {
   'Rotina': { emoji: '🟢', color: 'text-green-600', bg: 'bg-green-500/10', border: 'border-green-500/30' },
 } as const;
 
+// ── Drag-and-drop helpers ──
+
+interface DragData {
+  celula: CelulaPlanItem;
+  fromWeekNumber: number;
+}
+
+/** Apply local overrides (moves) on top of computed weeks */
+function applyOverrides(
+  semanas: SemanaPlano[],
+  overrides: Map<string, number> // celula_id -> target week_number
+): SemanaPlano[] {
+  if (overrides.size === 0) return semanas;
+
+  // Clone weeks with empty celulas
+  const result: SemanaPlano[] = semanas.map(s => ({
+    ...s,
+    celulas: [...s.celulas],
+    capacity_used: s.celulas.length,
+  }));
+
+  // Collect cells that need moving
+  const cellsToMove: { cel: CelulaPlanItem; targetWeek: number }[] = [];
+
+  for (const [celulaId, targetWeek] of overrides) {
+    // Find and remove from current week
+    for (const week of result) {
+      const idx = week.celulas.findIndex(c => c.celula_id === celulaId);
+      if (idx !== -1) {
+        const [cel] = week.celulas.splice(idx, 1);
+        week.capacity_used = week.celulas.length;
+        cellsToMove.push({ cel, targetWeek });
+        break;
+      }
+    }
+  }
+
+  // Add to target weeks
+  for (const { cel, targetWeek } of cellsToMove) {
+    const target = result.find(w => w.week_number === targetWeek);
+    if (target) {
+      target.celulas.push(cel);
+      target.capacity_used = target.celulas.length;
+    }
+  }
+
+  return result;
+}
+
 export function PlanejamentoBimestralPanel({ supervisorId, coordenacaoId, compact = false }: PlanejamentoBimestralPanelProps) {
   const { data, isLoading } = usePlanejamentoBimestral({ supervisorId, coordenacaoId });
   const { data: swaps, isLoading: swapsLoading } = useSupervisionSwaps(coordenacaoId);
   const queryClient = useQueryClient();
+  const [overrides, setOverrides] = useState<Map<string, number>>(new Map());
 
   const regenerate = () => {
+    setOverrides(new Map());
     queryClient.invalidateQueries({ queryKey: ['planejamento-bimestral', supervisorId, coordenacaoId] });
   };
+
+  const handleMove = useCallback((celulaId: string, fromWeek: number, toWeek: number) => {
+    setOverrides(prev => {
+      const next = new Map(prev);
+      next.set(celulaId, toWeek);
+      return next;
+    });
+    toast.success('Visita movida com sucesso');
+  }, []);
 
   if (isLoading) {
     return (
@@ -49,9 +110,12 @@ export function PlanejamentoBimestralPanel({ supervisorId, coordenacaoId, compac
     return <EmptyState icon={Calendar} title="Sem células para planejar" description="Nenhuma célula encontrada no seu escopo de supervisão" />;
   }
 
+  // Apply local overrides to computed plan
+  const minhasSemanas = applyOverrides(data.minhas_semanas, overrides);
+
   // Summary KPIs
-  const totalPlanejadas = data.minhas_semanas.reduce((sum, s) => sum + s.celulas.length, 0);
-  const realizadas = data.minhas_semanas.reduce((sum, s) => sum + s.celulas.filter(c => c.realizada).length, 0);
+  const totalPlanejadas = minhasSemanas.reduce((sum, s) => sum + s.celulas.length, 0);
+  const realizadas = minhasSemanas.reduce((sum, s) => sum + s.celulas.filter(c => c.realizada).length, 0);
   const prioridadeCuidado = data.celulas_no_escopo.filter(c => c.priority_label === 'Prioridade de cuidado').length;
 
   // Pending swaps for me
@@ -123,6 +187,12 @@ export function PlanejamentoBimestralPanel({ supervisorId, coordenacaoId, compac
         <PendingSwapsList swaps={pendingForMe} supervisorId={supervisorId} data={data} />
       )}
 
+      {overrides.size > 0 && (
+        <p className="text-[10px] text-muted-foreground text-center">
+          ✋ Você moveu {overrides.size} visita(s). <button className="underline text-primary" onClick={() => setOverrides(new Map())}>Desfazer tudo</button>
+        </p>
+      )}
+
       {/* Tabs: Minhas, Outro Supervisor, Coordenador */}
       <Tabs defaultValue="minhas" className="space-y-3">
         <TabsList className="grid w-full grid-cols-3">
@@ -137,13 +207,14 @@ export function PlanejamentoBimestralPanel({ supervisorId, coordenacaoId, compac
 
         <TabsContent value="minhas">
           <WeeksList
-            semanas={data.minhas_semanas}
+            semanas={minhasSemanas}
             compact={compact}
             showSwapButton
             supervisorId={supervisorId}
             otherSupervisor={data.outro_supervisor?.info || null}
             otherCelulas={data.outro_supervisor?.semanas.flatMap(s => s.celulas) || []}
             coordenacaoId={coordenacaoId}
+            onMove={handleMove}
           />
         </TabsContent>
 
@@ -186,6 +257,7 @@ export function PlanejamentoBimestralPanel({ supervisorId, coordenacaoId, compac
                       assigned_supervisor_id: '',
                     }}
                     compact
+                    weekNumber={0}
                   />
                 ))}
               </div>
@@ -195,7 +267,7 @@ export function PlanejamentoBimestralPanel({ supervisorId, coordenacaoId, compac
       </Tabs>
 
       <p className="text-xs text-muted-foreground text-center italic px-4">
-        💡 Este planejamento é uma sugestão. Ajuste como preferir!
+        💡 Arraste os cards de visita para encaixar em semanas livres!
       </p>
     </div>
   );
@@ -210,7 +282,6 @@ function PendingSwapsList({ swaps, supervisorId, data }: {
 }) {
   const respondSwap = useRespondSwap();
 
-  // Build cell name lookup
   const cellNames = new Map<string, string>();
   for (const s of (data.minhas_semanas || [])) {
     for (const c of s.celulas) cellNames.set(c.celula_id, c.celula_name);
@@ -265,7 +336,7 @@ function PendingSwapsList({ swaps, supervisorId, data }: {
 
 // ── Weeks List ──
 
-function WeeksList({ semanas, compact, showSwapButton, supervisorId, otherSupervisor, otherCelulas, coordenacaoId }: {
+function WeeksList({ semanas, compact, showSwapButton, supervisorId, otherSupervisor, otherCelulas, coordenacaoId, onMove }: {
   semanas: SemanaPlano[];
   compact?: boolean;
   showSwapButton?: boolean;
@@ -273,6 +344,7 @@ function WeeksList({ semanas, compact, showSwapButton, supervisorId, otherSuperv
   otherSupervisor?: SupervisorInfo | null;
   otherCelulas?: CelulaPlanItem[];
   coordenacaoId?: string;
+  onMove?: (celulaId: string, fromWeek: number, toWeek: number) => void;
 }) {
   const [expandedWeeks, setExpandedWeeks] = useState<Set<number>>(new Set([1, 2]));
 
@@ -299,6 +371,7 @@ function WeeksList({ semanas, compact, showSwapButton, supervisorId, otherSuperv
           otherSupervisor={otherSupervisor}
           otherCelulas={otherCelulas}
           coordenacaoId={coordenacaoId}
+          onMove={onMove}
         />
       ))}
     </div>
@@ -307,7 +380,7 @@ function WeeksList({ semanas, compact, showSwapButton, supervisorId, otherSuperv
 
 // ── Week Card ──
 
-function WeekCard({ semana, expanded, onToggle, compact, showSwapButton, supervisorId, otherSupervisor, otherCelulas, coordenacaoId }: {
+function WeekCard({ semana, expanded, onToggle, compact, showSwapButton, supervisorId, otherSupervisor, otherCelulas, coordenacaoId, onMove }: {
   semana: SemanaPlano;
   expanded: boolean;
   onToggle: () => void;
@@ -317,13 +390,53 @@ function WeekCard({ semana, expanded, onToggle, compact, showSwapButton, supervi
   otherSupervisor?: SupervisorInfo | null;
   otherCelulas?: CelulaPlanItem[];
   coordenacaoId?: string;
+  onMove?: (celulaId: string, fromWeek: number, toWeek: number) => void;
 }) {
+  const [isDragOver, setIsDragOver] = useState(false);
   const allRealizadas = semana.celulas.length > 0 && semana.celulas.every(c => c.realizada);
   const hasItems = semana.celulas.length > 0;
   const slotsLivres = (semana.capacity_max || 2) - (semana.capacity_used || 0);
+  const canDrop = slotsLivres > 0 && onMove;
+
+  const handleDragOver = useCallback((e: DragEvent) => {
+    if (!canDrop) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setIsDragOver(true);
+  }, [canDrop]);
+
+  const handleDragLeave = useCallback(() => {
+    setIsDragOver(false);
+  }, []);
+
+  const handleDrop = useCallback((e: DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    if (!onMove) return;
+
+    try {
+      const raw = e.dataTransfer.getData('application/json');
+      const dragData: DragData = JSON.parse(raw);
+      if (dragData.fromWeekNumber === semana.week_number) return; // same week, no-op
+      if (slotsLivres <= 0) {
+        toast.error('Semana sem slots disponíveis');
+        return;
+      }
+      onMove(dragData.celula.celula_id, dragData.fromWeekNumber, semana.week_number);
+    } catch {
+      // ignore bad data
+    }
+  }, [onMove, semana.week_number, slotsLivres]);
 
   return (
-    <Card className={`transition-all ${allRealizadas ? 'opacity-60' : ''}`}>
+    <Card
+      className={`transition-all ${allRealizadas ? 'opacity-60' : ''} ${
+        isDragOver && canDrop ? 'ring-2 ring-primary/50 bg-primary/5' : ''
+      }`}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
       <div className="flex items-center justify-between p-3 cursor-pointer" onClick={onToggle}>
         <div className="flex items-center gap-3">
           <div className={`h-8 w-8 rounded-lg flex items-center justify-center text-xs font-bold ${
@@ -337,7 +450,6 @@ function WeekCard({ semana, expanded, onToggle, compact, showSwapButton, supervi
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {/* Capacity indicator */}
           <span className={`text-[10px] px-1.5 py-0.5 rounded ${slotsLivres > 0 ? 'bg-blue-500/10 text-blue-600' : 'bg-muted text-muted-foreground'}`}>
             {semana.capacity_used || 0}/{semana.capacity_max || 2}
           </span>
@@ -352,7 +464,13 @@ function WeekCard({ semana, expanded, onToggle, compact, showSwapButton, supervi
       {expanded && (
         <CardContent className="pt-0 pb-3 px-3">
           {!hasItems ? (
-            <p className="text-xs text-muted-foreground text-center py-2">Semana livre · {slotsLivres} slot(s) disponível(is)</p>
+            <div className={`text-xs text-muted-foreground text-center py-4 rounded-lg border-2 border-dashed transition-colors ${
+              isDragOver && canDrop ? 'border-primary/50 bg-primary/5 text-primary' : 'border-muted'
+            }`}>
+              {isDragOver && canDrop
+                ? '📥 Solte aqui para encaixar a visita'
+                : `Semana livre · ${slotsLivres} slot(s) disponível(is) — arraste uma visita para cá`}
+            </div>
           ) : (
             <div className="space-y-2">
               {semana.celulas.map(cel => (
@@ -365,8 +483,17 @@ function WeekCard({ semana, expanded, onToggle, compact, showSwapButton, supervi
                   otherSupervisor={otherSupervisor}
                   otherCelulas={otherCelulas}
                   coordenacaoId={coordenacaoId}
+                  weekNumber={semana.week_number}
+                  isDraggable={!!onMove && !cel.realizada}
                 />
               ))}
+              {slotsLivres > 0 && onMove && (
+                <div className={`text-[10px] text-center py-2 rounded-lg border-2 border-dashed transition-colors ${
+                  isDragOver ? 'border-primary/50 bg-primary/5 text-primary' : 'border-muted text-muted-foreground'
+                }`}>
+                  {isDragOver ? '📥 Solte aqui' : `+${slotsLivres} slot(s) livre(s)`}
+                </div>
+              )}
             </div>
           )}
         </CardContent>
@@ -377,7 +504,7 @@ function WeekCard({ semana, expanded, onToggle, compact, showSwapButton, supervi
 
 // ── Cell Plan Row ──
 
-function CelulaPlanRow({ item, compact, showSwapButton, supervisorId, otherSupervisor, otherCelulas, coordenacaoId }: {
+function CelulaPlanRow({ item, compact, showSwapButton, supervisorId, otherSupervisor, otherCelulas, coordenacaoId, weekNumber, isDraggable }: {
   item: CelulaPlanItem;
   compact?: boolean;
   showSwapButton?: boolean;
@@ -385,13 +512,39 @@ function CelulaPlanRow({ item, compact, showSwapButton, supervisorId, otherSuper
   otherSupervisor?: SupervisorInfo | null;
   otherCelulas?: CelulaPlanItem[];
   coordenacaoId?: string;
+  weekNumber: number;
+  isDraggable?: boolean;
 }) {
   const cfg = PRIORITY_CONFIG[item.priority_label];
   const [swapOpen, setSwapOpen] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleDragStart = useCallback((e: DragEvent<HTMLDivElement>) => {
+    const dragData: DragData = { celula: item, fromWeekNumber: weekNumber };
+    e.dataTransfer.setData('application/json', JSON.stringify(dragData));
+    e.dataTransfer.effectAllowed = 'move';
+    setIsDragging(true);
+  }, [item, weekNumber]);
+
+  const handleDragEnd = useCallback(() => {
+    setIsDragging(false);
+  }, []);
 
   return (
     <>
-      <div className={`flex items-center gap-3 p-2.5 rounded-lg ${cfg.bg} border ${cfg.border} ${item.realizada ? 'opacity-60' : ''}`}>
+      <div
+        className={`flex items-center gap-3 p-2.5 rounded-lg ${cfg.bg} border ${cfg.border} ${
+          item.realizada ? 'opacity-60' : ''
+        } ${isDragging ? 'opacity-40 scale-95' : ''} ${
+          isDraggable ? 'cursor-grab active:cursor-grabbing' : ''
+        } transition-all`}
+        draggable={isDraggable}
+        onDragStart={isDraggable ? handleDragStart : undefined}
+        onDragEnd={isDraggable ? handleDragEnd : undefined}
+      >
+        {isDraggable && (
+          <GripVertical className="h-4 w-4 text-muted-foreground/50 shrink-0" />
+        )}
         <span className="text-base shrink-0">{cfg.emoji}</span>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
@@ -406,7 +559,6 @@ function CelulaPlanRow({ item, compact, showSwapButton, supervisorId, otherSuper
               <span className="ml-2 opacity-70">· Encontro: {item.meeting_day}</span>
             )}
           </p>
-          {/* Flexible weeks */}
           {!item.realizada && item.alt_weeks && item.alt_weeks.length > 0 && !compact && (
             <p className="text-[10px] text-blue-600 mt-0.5">
               🔄 Flexível: {item.alt_weeks.map(a => `S${a.week_number} (${a.week_label})`).join(' · ')}
