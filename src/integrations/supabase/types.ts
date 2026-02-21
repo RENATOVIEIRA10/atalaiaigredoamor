@@ -722,6 +722,71 @@ export type Database = {
           },
         ]
       }
+      supervision_swaps: {
+        Row: {
+          bimestre_start: string
+          created_at: string
+          id: string
+          proposer_celula_id: string
+          proposer_supervisor_id: string
+          responded_at: string | null
+          status: string
+          target_celula_id: string
+          target_supervisor_id: string
+        }
+        Insert: {
+          bimestre_start: string
+          created_at?: string
+          id?: string
+          proposer_celula_id: string
+          proposer_supervisor_id: string
+          responded_at?: string | null
+          status?: string
+          target_celula_id: string
+          target_supervisor_id: string
+        }
+        Update: {
+          bimestre_start?: string
+          created_at?: string
+          id?: string
+          proposer_celula_id?: string
+          proposer_supervisor_id?: string
+          responded_at?: string | null
+          status?: string
+          target_celula_id?: string
+          target_supervisor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supervision_swaps_proposer_celula_id_fkey"
+            columns: ["proposer_celula_id"]
+            isOneToOne: false
+            referencedRelation: "celulas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supervision_swaps_proposer_supervisor_id_fkey"
+            columns: ["proposer_supervisor_id"]
+            isOneToOne: false
+            referencedRelation: "supervisores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supervision_swaps_target_celula_id_fkey"
+            columns: ["target_celula_id"]
+            isOneToOne: false
+            referencedRelation: "celulas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supervision_swaps_target_supervisor_id_fkey"
+            columns: ["target_supervisor_id"]
+            isOneToOne: false
+            referencedRelation: "supervisores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       supervisoes: {
         Row: {
           apresentacao_visitantes: boolean | null
