@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, UserCheck, Heart, UserPlus, Baby, Loader2, Network, FileSpreadsheet, ChevronDown, ChevronUp, Eye, ClipboardCheck, Image, Sparkles, History, GitBranch, User, Activity, Mail } from 'lucide-react';
+import { Users, UserCheck, Heart, UserPlus, Baby, Loader2, Network, FileSpreadsheet, ChevronDown, ChevronUp, Eye, ClipboardCheck, Image, Sparkles, History, GitBranch, User, Activity, Mail, Calendar } from 'lucide-react';
 import { useRedes } from '@/hooks/useRedes';
 import { useCoordenacoes } from '@/hooks/useCoordenacoes';
 import { useCelulas } from '@/hooks/useCelulas';
@@ -35,6 +35,8 @@ import { useRole } from '@/contexts/RoleContext';
 import { PulsoRedeSection } from './PulsoRedeSection';
 import { RedeEmailReportDialog } from './RedeEmailReportDialog';
 import { RadarSaudePanel } from './RadarSaudePanel';
+import { PlanejamentoRedePanel } from './rede/PlanejamentoRedePanel';
+import { SupervisoesRedeHistoryPanel } from './rede/SupervisoesRedeHistoryPanel';
 
 export function NetworkLeaderDashboard() {
   const [searchParams] = useSearchParams();
@@ -206,15 +208,14 @@ export function NetworkLeaderDashboard() {
             <TabsList className="flex flex-wrap h-auto gap-1">
               <TabsTrigger value="pulso" className="gap-1.5"><Activity className="h-4 w-4" />Pulso</TabsTrigger>
               <TabsTrigger value="saude" className="gap-1.5"><Heart className="h-4 w-4" />Saúde</TabsTrigger>
+              <TabsTrigger value="planejamento" className="gap-1.5"><Calendar className="h-4 w-4" />Planejamento</TabsTrigger>
+              <TabsTrigger value="supervisoes-historico" className="gap-1.5"><ClipboardCheck className="h-4 w-4" />Supervisões</TabsTrigger>
               <TabsTrigger value="coordenacoes" className="gap-1.5"><Network className="h-4 w-4" />Coordenações</TabsTrigger>
               <TabsTrigger value="multiplicacoes" className="gap-1.5"><GitBranch className="h-4 w-4" />Multiplicação</TabsTrigger>
               <TabsTrigger value="multiplicacoes-visual" className="gap-1.5"><GitBranch className="h-4 w-4" />Visual</TabsTrigger>
               <TabsTrigger value="historico" className="gap-1.5"><History className="h-4 w-4" />Histórico</TabsTrigger>
               <TabsTrigger value="insights" className="gap-1.5"><Sparkles className="h-4 w-4" />IA</TabsTrigger>
               <TabsTrigger value="fotos" className="gap-1.5"><Image className="h-4 w-4" />Fotos</TabsTrigger>
-              {supervisoes && supervisoes.length > 0 && (
-                <TabsTrigger value="supervisoes" className="gap-1.5"><ClipboardCheck className="h-4 w-4" />Supervisões</TabsTrigger>
-              )}
             </TabsList>
 
             <TabsContent value="pulso">
@@ -223,6 +224,14 @@ export function NetworkLeaderDashboard() {
 
             <TabsContent value="saude">
               <RadarSaudePanel scopeType="rede" scopeId={selectedRede} title="Radar de Saúde da Rede" />
+            </TabsContent>
+
+            <TabsContent value="planejamento">
+              <PlanejamentoRedePanel redeId={selectedRede} />
+            </TabsContent>
+
+            <TabsContent value="supervisoes-historico">
+              <SupervisoesRedeHistoryPanel redeId={selectedRede} />
             </TabsContent>
 
             <TabsContent value="multiplicacoes"><MultiplicacoesTab /></TabsContent>
@@ -331,9 +340,6 @@ export function NetworkLeaderDashboard() {
 
             <TabsContent value="fotos"><CelulaPhotoGallery reports={currentReports} /></TabsContent>
             
-            {supervisoes && supervisoes.length > 0 && (
-              <TabsContent value="supervisoes"><SupervisoesList supervisoes={supervisoes} /></TabsContent>
-            )}
           </Tabs>
         </>
       )}
