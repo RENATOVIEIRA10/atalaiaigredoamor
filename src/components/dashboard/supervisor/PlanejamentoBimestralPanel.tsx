@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar, RefreshCw, ChevronDown, ChevronUp, CheckCircle2, Heart, Users, ShieldAlert, ArrowLeftRight, Loader2 } from 'lucide-react';
 import { usePlanejamentoBimestral, SemanaPlano, CelulaPlanItem, CelulaPlanejamento, SupervisorInfo } from '@/hooks/usePlanejamentoBimestral';
 import { useSupervisionSwaps, useCreateSwap, useRespondSwap, SwapProposal } from '@/hooks/useSupervisionSwaps';
+import { ProgressoCuidadoBar } from './ProgressoCuidadoBar';
 import { useQueryClient } from '@tanstack/react-query';
 import { EmptyState } from '@/components/ui/empty-state';
 import {
@@ -109,6 +110,13 @@ export function PlanejamentoBimestralPanel({ supervisorId, coordenacaoId, compac
           )}
         </CardContent>
       </Card>
+
+      {/* Progress bar */}
+      <ProgressoCuidadoBar
+        totalCells={totalPlanejadas}
+        completedCells={realizadas}
+        bimestreLabel={data.bimestre_label}
+      />
 
       {/* Pending swap notifications */}
       {pendingForMe.length > 0 && (
