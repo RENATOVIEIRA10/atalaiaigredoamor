@@ -68,11 +68,12 @@ export function CelulaDetailsDialog({ open, onOpenChange, celulaId, celulaName }
 
   // week_start is now derived from meetingDate at submission time
   const [meetingDate, setMeetingDate] = useState('');
-  const [membersPresent, setMembersPresent] = useState(0);
-  const [leadersInTraining, setLeadersInTraining] = useState(0);
-  const [discipleships, setDiscipleships] = useState(0);
-  const [visitors, setVisitors] = useState(0);
-  const [children, setChildren] = useState(0);
+  // PWA: use string state for numeric fields to allow empty initial state (avoids "01" bug)
+  const [membersPresent, setMembersPresent] = useState('');
+  const [leadersInTraining, setLeadersInTraining] = useState('');
+  const [discipleships, setDiscipleships] = useState('');
+  const [visitors, setVisitors] = useState('');
+  const [children, setChildren] = useState('');
   const [notes, setNotes] = useState('');
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [mensagemWa, setMensagemWa] = useState('');
@@ -80,6 +81,14 @@ export function CelulaDetailsDialog({ open, onOpenChange, celulaId, celulaName }
   const [culturaWa, setCulturaWa] = useState('');
 
   const isLoading = membersLoading || casaisLoading;
+
+  // Helper: parse string to safe int
+  const toInt = (val: string) => { const n = parseInt(val, 10); return isNaN(n) || n < 0 ? 0 : n; };
+  // Helper: sanitize numeric input (strip non-digits, remove leading zeros)
+  const handleNumericInput = (value: string) => {
+    const sanitized = value.replace(/[^0-9]/g, '');
+    return sanitized === '' ? '' : String(parseInt(sanitized, 10));
+  };
 
   const toggleExpanded = (memberId: string) => {
     setExpandedMembers(prev => { const next = new Set(prev); if (next.has(memberId)) next.delete(memberId); else next.add(memberId); return next; });
@@ -113,10 +122,15 @@ export function CelulaDetailsDialog({ open, onOpenChange, celulaId, celulaName }
     if (!meetingDate) { toast({ title: 'Informe a data da reunião', variant: 'destructive' }); return; }
     try {
       const weekStart = getWeekStartFromDate(meetingDate);
+      const mpInt = toInt(membersPresent);
+      const ltInt = toInt(leadersInTraining);
+      const dInt = toInt(discipleships);
+      const vInt = toInt(visitors);
+      const cInt = toInt(children);
       await createReport.mutateAsync({
         celula_id: celulaId, week_start: weekStart, meeting_date: meetingDate,
-        members_present: membersPresent, leaders_in_training: leadersInTraining,
-        discipleships, visitors, children, notes: notes || undefined, photo_url: photoUrl,
+        members_present: mpInt, leaders_in_training: ltInt,
+        discipleships: dInt, visitors: vInt, children: cInt, notes: notes || undefined, photo_url: photoUrl,
         mensagem_whatsapp: mensagemWa || undefined,
         paixao_whatsapp: paixaoWa || undefined,
         cultura_whatsapp: culturaWa || undefined,
@@ -138,11 +152,11 @@ export function CelulaDetailsDialog({ open, onOpenChange, celulaId, celulaName }
         instagram_lider2: cel?.instagram_lider2 || '',
         instagram_celula: cel?.instagram_celula || '',
         meeting_date: meetingDate,
-        members_present: membersPresent,
-        visitors,
-        children,
-        leaders_in_training: leadersInTraining,
-        discipleships,
+        members_present: mpInt,
+        visitors: vInt,
+        children: cInt,
+        leaders_in_training: ltInt,
+        discipleships: dInt,
         mensagem: mensagemWa,
         paixao: 'PESSOAS',
         cultura: 'AMOR',
@@ -150,8 +164,8 @@ export function CelulaDetailsDialog({ open, onOpenChange, celulaId, celulaName }
       });
       setWhatsappDialogOpen(true);
       
-      setMeetingDate(''); setMembersPresent(0); setLeadersInTraining(0);
-      setDiscipleships(0); setVisitors(0); setChildren(0); setNotes(''); setPhotoUrl(null);
+      setMeetingDate(''); setMembersPresent(''); setLeadersInTraining('');
+      setDiscipleships(''); setVisitors(''); setChildren(''); setNotes(''); setPhotoUrl(null);
       setMensagemWa(''); setPaixaoWa(''); setCulturaWa('');
     } catch { toast({ title: 'Erro ao enviar relatório', variant: 'destructive' }); }
   };
@@ -178,7 +192,10 @@ export function CelulaDetailsDialog({ open, onOpenChange, celulaId, celulaName }
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-4xl" hideCloseButton={isPWAMobile}>
+        <DialogContent className={isPWAMobile
+          ? 'max-w-full h-[100dvh] max-h-[100dvh] rounded-none flex flex-col overflow-hidden p-0'
+          : 'sm:max-w-4xl'
+        } hideCloseButton={isPWAMobile}>
           {/* PWA Mobile: fixed back header replacing the X */}
           {isPWAMobile && (
             <div
@@ -213,6 +230,7 @@ export function CelulaDetailsDialog({ open, onOpenChange, celulaId, celulaName }
           {isLoading ? (
             <div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
           ) : (
+            <div className={isPWAMobile ? 'flex-1 overflow-y-auto px-4 pb-4' : ''}>
             <Tabs defaultValue="relatorio" className="space-y-4">
               <TabsList className="grid w-full grid-cols-5 h-auto p-1">
                 <TabsTrigger value="relatorio" className="text-xs sm:text-sm gap-1 py-2.5 px-1">
@@ -252,23 +270,23 @@ export function CelulaDetailsDialog({ open, onOpenChange, celulaId, celulaName }
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                       <div className="space-y-1.5">
                         <Label className="text-sm">Membros Presentes</Label>
-                        <Input type="number" min={0} value={membersPresent} onChange={(e) => setMembersPresent(Number(e.target.value))} className="h-12 text-base text-center" inputMode="numeric" />
+                        <Input type="text" inputMode="numeric" pattern="[0-9]*" value={membersPresent} onChange={(e) => setMembersPresent(handleNumericInput(e.target.value))} onBlur={() => { if (membersPresent === '') setMembersPresent(''); }} placeholder="0" className="h-12 text-base text-center" />
                       </div>
                       <div className="space-y-1.5">
                         <Label className="text-sm">Líd. em Trein.</Label>
-                        <Input type="number" min={0} value={leadersInTraining} onChange={(e) => setLeadersInTraining(Number(e.target.value))} className="h-12 text-base text-center" inputMode="numeric" />
+                        <Input type="text" inputMode="numeric" pattern="[0-9]*" value={leadersInTraining} onChange={(e) => setLeadersInTraining(handleNumericInput(e.target.value))} placeholder="0" className="h-12 text-base text-center" />
                       </div>
                       <div className="space-y-1.5">
                         <Label className="text-sm">Discipulados</Label>
-                        <Input type="number" min={0} value={discipleships} onChange={(e) => setDiscipleships(Number(e.target.value))} className="h-12 text-base text-center" inputMode="numeric" />
+                        <Input type="text" inputMode="numeric" pattern="[0-9]*" value={discipleships} onChange={(e) => setDiscipleships(handleNumericInput(e.target.value))} placeholder="0" className="h-12 text-base text-center" />
                       </div>
                       <div className="space-y-1.5">
                         <Label className="text-sm">Visitantes</Label>
-                        <Input type="number" min={0} value={visitors} onChange={(e) => setVisitors(Number(e.target.value))} className="h-12 text-base text-center" inputMode="numeric" />
+                        <Input type="text" inputMode="numeric" pattern="[0-9]*" value={visitors} onChange={(e) => setVisitors(handleNumericInput(e.target.value))} placeholder="0" className="h-12 text-base text-center" />
                       </div>
                       <div className="space-y-1.5">
                         <Label className="text-sm">Crianças</Label>
-                        <Input type="number" min={0} value={children} onChange={(e) => setChildren(Number(e.target.value))} className="h-12 text-base text-center" inputMode="numeric" />
+                        <Input type="text" inputMode="numeric" pattern="[0-9]*" value={children} onChange={(e) => setChildren(handleNumericInput(e.target.value))} placeholder="0" className="h-12 text-base text-center" />
                       </div>
                     </div>
                   </div>
@@ -410,6 +428,7 @@ export function CelulaDetailsDialog({ open, onOpenChange, celulaId, celulaName }
                 </ScrollArea>
               </TabsContent>
             </Tabs>
+            </div>
           )}
         </DialogContent>
       </Dialog>
