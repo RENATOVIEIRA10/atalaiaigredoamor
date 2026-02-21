@@ -31,6 +31,9 @@ export interface SemanaPlano {
   week_end: string;
   week_label: string;
   celulas: CelulaPlanItem[];
+  /** Capacidade: slots livres / max por semana */
+  capacity_used: number;
+  capacity_max: number;
 }
 
 export interface CelulaPlanItem {
@@ -43,6 +46,8 @@ export interface CelulaPlanItem {
   meeting_day: string | null;
   realizada: boolean;
   assigned_supervisor_id: string;
+  /** Semanas alternativas (flexíveis) para encaixe */
+  alt_weeks?: { week_number: number; week_label: string; week_start: string }[];
 }
 
 export interface SupervisorInfo {
@@ -170,27 +175,45 @@ function distributeIntoWeeks(
   const N = cells.length;
   if (W === 0 || N === 0) return weeks.map((w, i) => makeEmptyWeek(w, i));
 
-  const base = Math.floor(N / W);
-  const extra = N % W;
   const assignments: CelulaPlanejamento[][] = weeks.map(() => []);
-  let idx = 0;
 
-  for (let w = 0; w < W; w++) {
-    const count = Math.min(w < extra ? base + 1 : base, MAX_PER_WEEK);
-    for (let j = 0; j < count && idx < N; j++) {
-      assignments[w].push(cells[idx++]);
+  if (N <= W) {
+    // ── Espalhamento: step-based distribution ──
+    const step = W / N;
+    for (let i = 0; i < N; i++) {
+      let wIdx = Math.min(Math.round(i * step), W - 1);
+      // Se já atingiu capacidade, procurar semana livre mais próxima
+      if (assignments[wIdx].length >= MAX_PER_WEEK) {
+        wIdx = findNearestFreeWeek(assignments, wIdx, W);
+      }
+      assignments[wIdx].push(cells[i]);
     }
-  }
-  // Overflow
-  while (idx < N) {
-    for (let w = 0; w < W && idx < N; w++) {
-      if (assignments[w].length < MAX_PER_WEEK) {
+  } else {
+    // ── N > W: distribuição uniforme alternada ──
+    let idx = 0;
+    // First pass: fill evenly up to MAX_PER_WEEK using alternating (even then odd weeks)
+    const order: number[] = [];
+    for (let w = 0; w < W; w += 2) order.push(w);
+    for (let w = 1; w < W; w += 2) order.push(w);
+
+    for (const w of order) {
+      while (assignments[w].length < MAX_PER_WEEK && idx < N) {
         assignments[w].push(cells[idx++]);
       }
     }
+    // Overflow (shouldn't happen with MAX_PER_WEEK=2 and typical loads)
+    while (idx < N) {
+      for (let w = 0; w < W && idx < N; w++) {
+        if (assignments[w].length < MAX_PER_WEEK) {
+          assignments[w].push(cells[idx++]);
+        }
+      }
+      if (idx < N) break; // all full, stop
+    }
   }
 
-  return weeks.map((week, wIdx) => {
+  // Build SemanaPlano with capacity and alt_weeks
+  const result = weeks.map((week, wIdx) => {
     const assigned = assignments[wIdx];
     const usedDays = new Set<number>();
 
@@ -223,6 +246,7 @@ function distributeIntoWeeks(
         meeting_day: cel.meeting_day,
         realizada: realizadasSet.has(cel.celula_id),
         assigned_supervisor_id: supervisorId,
+        alt_weeks: [], // filled below
       };
     });
 
@@ -235,8 +259,43 @@ function distributeIntoWeeks(
       week_end: week.end,
       week_label: `${format(monDate, 'dd/MM', { locale: ptBR })} → ${format(satDate, 'dd/MM', { locale: ptBR })}`,
       celulas: items,
+      capacity_used: items.length,
+      capacity_max: MAX_PER_WEEK,
     };
   });
+
+  // ── Generate alt_weeks (2 flexible alternatives per cell) ──
+  for (const semana of result) {
+    for (const cel of semana.celulas) {
+      const alts: CelulaPlanItem['alt_weeks'] = [];
+      const currentIdx = semana.week_number - 1;
+      // Forward search
+      for (let w = currentIdx + 1; w < W && alts.length < 1; w++) {
+        if (result[w].capacity_used < result[w].capacity_max) {
+          alts.push({ week_number: result[w].week_number, week_label: result[w].week_label, week_start: result[w].week_start });
+        }
+      }
+      // Backward search
+      for (let w = currentIdx - 1; w >= 0 && alts.length < 2; w--) {
+        if (result[w].capacity_used < result[w].capacity_max) {
+          alts.push({ week_number: result[w].week_number, week_label: result[w].week_label, week_start: result[w].week_start });
+        }
+      }
+      cel.alt_weeks = alts;
+    }
+  }
+
+  return result;
+}
+
+function findNearestFreeWeek(assignments: CelulaPlanejamento[][], fromIdx: number, W: number): number {
+  for (let offset = 1; offset < W; offset++) {
+    const fwd = fromIdx + offset;
+    if (fwd < W && assignments[fwd].length < MAX_PER_WEEK) return fwd;
+    const bwd = fromIdx - offset;
+    if (bwd >= 0 && assignments[bwd].length < MAX_PER_WEEK) return bwd;
+  }
+  return fromIdx; // fallback
 }
 
 function makeEmptyWeek(week: { start: string; end: string }, idx: number): SemanaPlano {
@@ -248,6 +307,8 @@ function makeEmptyWeek(week: { start: string; end: string }, idx: number): Seman
     week_end: week.end,
     week_label: `${format(monDate, 'dd/MM', { locale: ptBR })} → ${format(satDate, 'dd/MM', { locale: ptBR })}`,
     celulas: [],
+    capacity_used: 0,
+    capacity_max: MAX_PER_WEEK,
   };
 }
 
