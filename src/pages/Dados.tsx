@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   Network, FolderTree, Home, Users, UserPlus, FileText,
-  GitBranch, Trophy, Loader2, FileSpreadsheet, Database
+  GitBranch, Heart, Loader2, FileSpreadsheet, Database, Sparkles, ShieldCheck
 } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { DateRangeSelector, DateRangeValue, getDateString } from '@/components/dashboard/DateRangeSelector';
@@ -33,7 +33,7 @@ const milestoneLabels: Record<string, string> = {
   is_discipulado: 'Discipulado', is_lider_em_treinamento: 'Líder Trein.',
 };
 
-const medalEmojis = ['🥇', '🥈', '🥉'];
+const BASIC_MILESTONES = ['batismo', 'encontro_com_deus', 'is_discipulado'] as const;
 
 export default function Dados() {
   const { isSupervisor, isCelulaLeader, isAdmin, isRedeLeader, isCoordenador } = useRole();
@@ -178,7 +178,7 @@ export default function Dados() {
             <TabsTrigger value="lideres" className="gap-1.5"><Users className="h-4 w-4" />Líderes</TabsTrigger>
             <TabsTrigger value="relatorios" className="gap-1.5"><FileText className="h-4 w-4" />Relatórios</TabsTrigger>
             <TabsTrigger value="multiplicacoes" className="gap-1.5"><GitBranch className="h-4 w-4" />Multiplicações</TabsTrigger>
-            <TabsTrigger value="ranking" className="gap-1.5"><Trophy className="h-4 w-4" />Ranking</TabsTrigger>
+            <TabsTrigger value="jornada" className="gap-1.5"><Heart className="h-4 w-4" />Jornada Espiritual</TabsTrigger>
           </TabsList>
 
           {/* Por Rede */}
@@ -400,56 +400,146 @@ export default function Dados() {
             </Card>
           </TabsContent>
 
-          {/* Ranking */}
-          <TabsContent value="ranking">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Trophy className="h-5 w-5 text-primary" />Ranking de Membros
-                </CardTitle>
-                <CardDescription>Pontuação: tempo de igreja (1 pt/mês) + marcos espirituais (10 pts cada)</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="rounded-lg border overflow-hidden">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="bg-muted/50">
-                        <TableHead className="w-12">#</TableHead><TableHead>Nome</TableHead><TableHead>Célula</TableHead>
-                        <TableHead className="text-center">Meses</TableHead><TableHead>Marcos</TableHead>
-                        <TableHead className="text-center">Pontuação</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {ranking.slice(0, 100).map((r, i) => (
-                        <TableRow key={r.memberId} className="hover:bg-muted/30">
-                          <TableCell className="font-bold text-muted-foreground">
-                            {i < 3 ? <span className="text-lg">{medalEmojis[i]}</span> : i + 1}
-                          </TableCell>
-                          <TableCell className="font-medium">{r.name}</TableCell>
-                          <TableCell className="text-sm text-muted-foreground">{r.celulaName}</TableCell>
-                          <TableCell className="text-center">{r.monthsInChurch}</TableCell>
-                          <TableCell>
-                            <div className="flex flex-wrap gap-1">
-                              {Object.entries(r.milestones).map(([key, val]) =>
-                                val ? (<Badge key={key} variant="secondary" className="text-xs">{milestoneLabels[key]}</Badge>) : null
-                              )}
-                              {r.milestonesCount === 0 && <span className="text-xs text-muted-foreground">—</span>}
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-center"><Badge>{r.totalScore}</Badge></TableCell>
-                        </TableRow>
-                      ))}
-                      {ranking.length === 0 && (
-                        <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Nenhum membro encontrado</TableCell></TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
-              </CardContent>
-            </Card>
+          {/* Jornada Espiritual */}
+          <TabsContent value="jornada">
+            <JornadaEspiritualTab ranking={ranking} />
           </TabsContent>
         </Tabs>
       </div>
     </AppLayout>
+  );
+}
+
+// ────────── Jornada Espiritual ──────────
+function JornadaEspiritualTab({ ranking }: { ranking: RankedMember[] }) {
+  const [viewFilter, setViewFilter] = useState<'all' | 'potencial' | 'cuidado'>('all');
+
+  const classified = useMemo(() => {
+    return ranking.map(r => {
+      const hasBasics = BASIC_MILESTONES.every(key => r.milestones[key as keyof typeof r.milestones]);
+      const missingBasics = BASIC_MILESTONES.filter(key => !r.milestones[key as keyof typeof r.milestones]);
+
+      let category: 'potencial' | 'cuidado' | 'caminhando';
+      if (r.monthsInChurch >= 12 && hasBasics && r.milestonesCount >= 4) {
+        category = 'potencial';
+      } else if (r.monthsInChurch >= 12 && missingBasics.length > 0) {
+        category = 'cuidado';
+      } else {
+        category = 'caminhando';
+      }
+
+      return { ...r, category, missingBasics };
+    });
+  }, [ranking]);
+
+  const filtered = viewFilter === 'all'
+    ? classified.filter(c => c.category !== 'caminhando')
+    : classified.filter(c => c.category === viewFilter);
+
+  const potencialCount = classified.filter(c => c.category === 'potencial').length;
+  const cuidadoCount = classified.filter(c => c.category === 'cuidado').length;
+
+  return (
+    <div className="space-y-4">
+      <Card className="border-l-4 border-l-primary bg-primary/5">
+        <CardContent className="p-4">
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            <strong className="text-foreground">Jornada Espiritual</strong> — Esta ferramenta auxilia a liderança no discernimento pastoral,
+            identificando vidas com <strong>potencial para levantamento</strong> e aquelas que <strong>necessitam de acompanhamento</strong> em
+            sua caminhada de fé. Não se trata de comparação, mas de cuidado intencional.
+          </p>
+        </CardContent>
+      </Card>
+
+      <div className="grid grid-cols-2 gap-3">
+        <Card className="cursor-pointer transition-colors hover:bg-accent/50" onClick={() => setViewFilter(viewFilter === 'potencial' ? 'all' : 'potencial')}>
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/10">
+              <Sparkles className="h-5 w-5 text-emerald-600" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold">{potencialCount}</p>
+              <p className="text-xs text-muted-foreground">Potencial para levantamento</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="cursor-pointer transition-colors hover:bg-accent/50" onClick={() => setViewFilter(viewFilter === 'cuidado' ? 'all' : 'cuidado')}>
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-500/10">
+              <ShieldCheck className="h-5 w-5 text-amber-600" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold">{cuidadoCount}</p>
+              <p className="text-xs text-muted-foreground">Necessita acompanhamento</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {viewFilter !== 'all' && (
+        <Button variant="ghost" size="sm" onClick={() => setViewFilter('all')} className="-ml-2">← Ver todos</Button>
+      )}
+
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">
+            {viewFilter === 'potencial' ? 'Potencial para Levantamento' : viewFilter === 'cuidado' ? 'Necessita Acompanhamento' : 'Visão Pastoral'}
+          </CardTitle>
+          <CardDescription>{filtered.length} membro(s)</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-lg border overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50">
+                  <TableHead>Nome</TableHead>
+                  <TableHead>Célula</TableHead>
+                  <TableHead className="text-center">Tempo de Igreja</TableHead>
+                  <TableHead>Marcos Alcançados</TableHead>
+                  <TableHead>Situação</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filtered.slice(0, 100).map(r => (
+                  <TableRow key={r.memberId} className="hover:bg-muted/30">
+                    <TableCell className="font-medium">{r.name}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{r.celulaName}</TableCell>
+                    <TableCell className="text-center text-sm">
+                      {r.monthsInChurch > 0 ? (
+                        r.monthsInChurch >= 12
+                          ? `${Math.floor(r.monthsInChurch / 12)}a ${r.monthsInChurch % 12 > 0 ? `${r.monthsInChurch % 12}m` : ''}`
+                          : `${r.monthsInChurch}m`
+                      ) : '—'}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1">
+                        {Object.entries(r.milestones).map(([key, val]) =>
+                          val ? (<Badge key={key} variant="secondary" className="text-xs">{milestoneLabels[key]}</Badge>) : null
+                        )}
+                        {r.milestonesCount === 0 && <span className="text-xs text-muted-foreground">Nenhum</span>}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {r.category === 'potencial' ? (
+                        <Badge className="bg-emerald-500/10 text-emerald-700 border-emerald-500/20 text-xs">
+                          <Sparkles className="h-3 w-3 mr-1" />Potencial
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-amber-500/10 text-amber-700 border-amber-500/20 text-xs">
+                          <ShieldCheck className="h-3 w-3 mr-1" />Acompanhar
+                        </Badge>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {filtered.length === 0 && (
+                  <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">Nenhum membro identificado nesta categoria</TableCell></TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
