@@ -47,7 +47,8 @@ const MARCOS_ESPIRITUAIS = [
 export function CelulaDetailsDialog({ open, onOpenChange, celulaId, celulaName }: CelulaDetailsDialogProps) {
   const isPWA = useIsPWA();
   const isMobile = useIsMobile();
-  const isPWAMobile = isPWA && isMobile;
+  // PWA fullscreen applies to ALL PWA installs (iOS + Android), not just narrow screens
+  const isPWAMobile = isPWA;
   const { toast } = useToast();
   const { data: members, isLoading: membersLoading } = useMembers(celulaId);
   const { data: casais, isLoading: casaisLoading } = useCasais(celulaId);
@@ -192,10 +193,25 @@ export function CelulaDetailsDialog({ open, onOpenChange, celulaId, celulaName }
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className={isPWAMobile
-          ? 'fixed inset-0 z-50 flex flex-col bg-background p-0 m-0 rounded-none border-none shadow-none max-w-none w-full h-[100dvh] max-h-[100dvh] translate-x-0 translate-y-0 sm:translate-x-0 sm:translate-y-0 sm:inset-0 sm:max-w-none sm:rounded-none sm:border-none data-[state=open]:slide-in-from-bottom-0 data-[state=closed]:slide-out-to-bottom-0 data-[state=open]:zoom-in-100 data-[state=closed]:zoom-out-100 overflow-hidden'
-          : 'sm:max-w-4xl'
-        } hideCloseButton={isPWAMobile}>
+        <DialogContent
+          className={isPWAMobile
+            ? 'flex flex-col bg-background rounded-none border-none shadow-none overflow-hidden'
+            : 'sm:max-w-4xl'
+          }
+          style={isPWAMobile ? {
+            position: 'fixed',
+            inset: 0,
+            width: '100%',
+            height: '100dvh',
+            maxWidth: 'none',
+            maxHeight: '100dvh',
+            margin: 0,
+            padding: 0,
+            transform: 'none',
+            borderRadius: 0,
+          } : undefined}
+          hideCloseButton={isPWAMobile}
+        >
           {/* PWA Mobile: fixed back header */}
           {isPWAMobile && (
             <div
