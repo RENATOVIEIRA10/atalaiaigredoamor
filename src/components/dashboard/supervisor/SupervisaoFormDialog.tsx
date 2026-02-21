@@ -13,6 +13,8 @@ import { Loader2 } from 'lucide-react';
 import { useCreateSupervisao } from '@/hooks/useSupervisoes';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import { useIsPWA } from '@/hooks/useIsPWA';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface Celula {
   id: string;
@@ -54,6 +56,9 @@ type AvaliacaoKey = typeof avaliacaoItems[number]['key'];
 export function SupervisaoFormDialog({ open, onOpenChange, supervisorId, celulas }: SupervisaoFormDialogProps) {
   const createSupervisao = useCreateSupervisao();
   const { toast } = useToast();
+  const isPWA = useIsPWA();
+  const isMobile = useIsMobile();
+  const isFullScreen = isPWA && isMobile;
   
   const [celulaId, setCelulaId] = useState('');
   const [dataSupervisao, setDataSupervisao] = useState(format(new Date(), 'yyyy-MM-dd'));
@@ -182,13 +187,16 @@ export function SupervisaoFormDialog({ open, onOpenChange, supervisorId, celulas
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
-        <DialogHeader className="flex-shrink-0">
+      <DialogContent className={isFullScreen
+        ? 'max-w-full h-[100dvh] max-h-[100dvh] rounded-none flex flex-col overflow-hidden p-0'
+        : 'max-w-2xl max-h-[90vh] flex flex-col overflow-hidden'
+      }>
+        <DialogHeader className={`flex-shrink-0 ${isFullScreen ? 'px-4 pt-4 pb-2' : ''}`}>
           <DialogTitle>Registrar Supervisão</DialogTitle>
           <DialogDescription>Preencha o formulário de supervisão da célula</DialogDescription>
         </DialogHeader>
         
-        <div className="flex-1 overflow-y-auto pr-2 -mr-2">
+        <div className={`flex-1 overflow-y-auto ${isFullScreen ? 'px-4 pb-4' : 'pr-2 -mr-2'}`}>
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Basic Info */}
             <div className="grid gap-4 md:grid-cols-2">

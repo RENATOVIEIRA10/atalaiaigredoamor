@@ -8,6 +8,8 @@ import { Calendar, Clock, MapPin, User, AlertCircle, MessageSquare } from 'lucid
 import { Supervisao } from '@/hooks/useSupervisoes';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useIsPWA } from '@/hooks/useIsPWA';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface SupervisaoDetailsDialogProps {
   open: boolean;
@@ -150,6 +152,10 @@ function openWhatsAppSupervisao(supervisao: Supervisao) {
 }
 
 export function SupervisaoDetailsDialog({ open, onOpenChange, supervisao }: SupervisaoDetailsDialogProps) {
+  const isPWA = useIsPWA();
+  const isMobile = useIsMobile();
+  const isFullScreen = isPWA && isMobile;
+
   const roteiroItems = Object.entries(roteiroLabels).map(([key, label]) => ({
     key,
     label,
@@ -167,8 +173,11 @@ export function SupervisaoDetailsDialog({ open, onOpenChange, supervisao }: Supe
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl flex flex-col" style={{ maxHeight: '90vh' }}>
-        <DialogHeader className="flex-shrink-0">
+      <DialogContent className={isFullScreen
+        ? 'max-w-full h-[100dvh] max-h-[100dvh] rounded-none flex flex-col p-0'
+        : 'max-w-2xl flex flex-col'
+      } style={isFullScreen ? undefined : { maxHeight: '90vh' }}>
+        <DialogHeader className={`flex-shrink-0 ${isFullScreen ? 'px-4 pt-4 pb-2' : ''}`}>
           <div className="flex items-start justify-between gap-2 flex-wrap">
             <DialogTitle className="flex items-center gap-2 flex-wrap">
               Supervisão - {supervisao.celula?.name}
@@ -190,7 +199,7 @@ export function SupervisaoDetailsDialog({ open, onOpenChange, supervisao }: Supe
           </div>
         </DialogHeader>
         
-        <ScrollArea className="flex-1 overflow-y-auto pr-4" style={{ maxHeight: 'calc(90vh - 80px)' }}>
+        <ScrollArea className={`flex-1 overflow-y-auto ${isFullScreen ? 'px-4' : 'pr-4'}`} style={isFullScreen ? undefined : { maxHeight: 'calc(90vh - 80px)' }}>
           <div className="space-y-6">
             {/* Header Info */}
             <Card>
