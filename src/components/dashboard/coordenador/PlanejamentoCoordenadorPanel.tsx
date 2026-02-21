@@ -11,6 +11,7 @@ import type { SemanaPlano, CelulaPlanItem } from '@/hooks/usePlanejamentoBimestr
 import { EmptyState } from '@/components/ui/empty-state';
 import { useQueryClient } from '@tanstack/react-query';
 import { RefreshCw } from 'lucide-react';
+import { MiniProgressBar } from '../supervisor/ProgressoCuidadoBar';
 
 const PRIORITY_CONFIG = {
   'Prioridade de cuidado': { emoji: '🔴', color: 'text-destructive', bg: 'bg-destructive/10', border: 'border-destructive/30' },
@@ -167,10 +168,20 @@ function CoberturaSection({ data }: { data: ReturnType<typeof usePlanejamentoCoo
   if (!data) return null;
   const totalPlan = data.pendentes_supervisores + data.realizadas_supervisores + data.pendentes_coordenador + data.realizadas_coordenador;
   const pctTotal = totalPlan > 0 ? Math.round((data.total_realizadas / totalPlan) * 100) : 0;
-  const pctSup = (data.pendentes_supervisores + data.realizadas_supervisores) > 0
-    ? Math.round((data.realizadas_supervisores / (data.pendentes_supervisores + data.realizadas_supervisores)) * 100) : 0;
-  const pctCoord = (data.pendentes_coordenador + data.realizadas_coordenador) > 0
-    ? Math.round((data.realizadas_coordenador / (data.pendentes_coordenador + data.realizadas_coordenador)) * 100) : 0;
+
+  // Per-supervisor progress
+  const supervisorProgress = data.plans_by_supervisor.map(plan => {
+    const allCels = plan.semanas.flatMap(s => s.celulas);
+    const total = allCels.length;
+    // Count unique completed cells (each cell counts once)
+    const completedIds = new Set(allCels.filter(c => c.realizada).map(c => c.celula_id));
+    return { info: plan.info, total, completed: completedIds.size };
+  });
+
+  // Coordinator cells progress
+  const coordCels = data.celulas_coordenador_semanas.flatMap(s => s.celulas);
+  const coordTotal = coordCels.length;
+  const coordCompleted = new Set(coordCels.filter(c => c.realizada).map(c => c.celula_id)).size;
 
   return (
     <Card>
@@ -181,37 +192,29 @@ function CoberturaSection({ data }: { data: ReturnType<typeof usePlanejamentoCoo
         </CardTitle>
         <CardDescription className="text-xs">Cobertura em andamento</CardDescription>
       </CardHeader>
-      <CardContent className="px-4 pb-4 space-y-4">
-        {/* Total */}
-        <div>
-          <div className="flex justify-between text-xs mb-1">
-            <span>Total</span>
-            <span className="font-medium">{data.total_realizadas}/{totalPlan} ({pctTotal}%)</span>
-          </div>
-          <Progress value={pctTotal} className="h-2.5" />
-        </div>
+      <CardContent className="px-4 pb-4 space-y-5">
+        {/* Overall */}
+        <MiniProgressBar label="Cobertura Geral" total={totalPlan} completed={data.total_realizadas} />
 
-        {/* By role */}
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <p className="text-xs text-muted-foreground mb-1">Supervisores</p>
-            <div className="flex justify-between text-xs mb-1">
-              <span>{data.realizadas_supervisores} feitas</span>
-              <span>{data.pendentes_supervisores} faltam</span>
-            </div>
-            <Progress value={pctSup} className="h-2" />
+        {/* Per supervisor */}
+        {supervisorProgress.length > 0 && (
+          <div className="space-y-3">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Progresso dos Supervisores</p>
+            {supervisorProgress.map(sp => (
+              <MiniProgressBar key={sp.info.id} label={sp.info.name} total={sp.total} completed={sp.completed} />
+            ))}
           </div>
-          <div>
-            <p className="text-xs text-muted-foreground mb-1">Coordenador</p>
-            <div className="flex justify-between text-xs mb-1">
-              <span>{data.realizadas_coordenador} feitas</span>
-              <span>{data.pendentes_coordenador} faltam</span>
-            </div>
-            <Progress value={pctCoord} className="h-2" />
-          </div>
-        </div>
+        )}
 
-        {/* Cells total */}
+        {/* Coordinator */}
+        {coordTotal > 0 && (
+          <div className="space-y-3">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Progresso do Coordenador</p>
+            <MiniProgressBar label="Supervisões do Coordenador" total={coordTotal} completed={coordCompleted} />
+          </div>
+        )}
+
+        {/* Summary */}
         <p className="text-xs text-muted-foreground">
           {data.total_celulas} células no total · {data.supervisors.length} supervisor(es)
           {data.celulas_coordenador.length > 0 && ` · ${data.celulas_coordenador.length} do coordenador`}

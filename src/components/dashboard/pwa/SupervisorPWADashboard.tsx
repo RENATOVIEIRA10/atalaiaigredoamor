@@ -4,7 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, ClipboardCheck, Plus, Eye, Calendar, Users, ChevronRight, AlertTriangle, MessageSquare } from 'lucide-react';
+import { Loader2, ClipboardCheck, Plus, Eye, Calendar, Users, ChevronRight, AlertTriangle, MessageSquare, Heart } from 'lucide-react';
+import { usePlanejamentoBimestral } from '@/hooks/usePlanejamentoBimestral';
+import { ProgressoCuidadoBar } from '../supervisor/ProgressoCuidadoBar';
 import { useCoordenacoes } from '@/hooks/useCoordenacoes';
 import { useSupervisores, useSupervisoesBySupervisor, Supervisao } from '@/hooks/useSupervisoes';
 import { useCelulas } from '@/hooks/useCelulas';
@@ -129,6 +131,37 @@ export function SupervisorPWADashboard() {
 
   // ── Início ──
   return (
+    <SupervisorInicioTab
+      supName={supName}
+      supervisoesThisMonth={supervisoesThisMonth}
+      celulasNoEscopo={celulasNoEscopo}
+      supervisoes={supervisoes || []}
+      selectedSupervisor={selectedSupervisor}
+      selectedCoordenacao={selectedCoordenacao}
+      isFormOpen={isFormOpen}
+      setIsFormOpen={setIsFormOpen}
+      filteredCelulas={filteredCelulas}
+      selectedSupervisao={selectedSupervisao}
+      setSelectedSupervisao={setSelectedSupervisao}
+    />
+  );
+}
+
+function SupervisorInicioTab({
+  supName, supervisoesThisMonth, celulasNoEscopo, supervisoes,
+  selectedSupervisor, selectedCoordenacao, isFormOpen, setIsFormOpen,
+  filteredCelulas, selectedSupervisao, setSelectedSupervisao,
+}: {
+  supName: string; supervisoesThisMonth: any[]; celulasNoEscopo: number; supervisoes: any[];
+  selectedSupervisor: string; selectedCoordenacao: string; isFormOpen: boolean; setIsFormOpen: (v: boolean) => void;
+  filteredCelulas: any[]; selectedSupervisao: any; setSelectedSupervisao: (v: any) => void;
+}) {
+  const { data: planejamento } = usePlanejamentoBimestral({ supervisorId: selectedSupervisor, coordenacaoId: selectedCoordenacao });
+
+  const totalPlanejadas = planejamento?.minhas_semanas.reduce((sum, s) => sum + s.celulas.length, 0) || 0;
+  const realizadas = planejamento?.minhas_semanas.reduce((sum, s) => sum + s.celulas.filter(c => c.realizada).length, 0) || 0;
+
+  return (
     <div className="space-y-4">
       {/* Supervisor card */}
       <Card>
@@ -144,6 +177,15 @@ export function SupervisorPWADashboard() {
       </Card>
 
       <MissionVerse role="supervisor" />
+
+      {/* Progress bar */}
+      {planejamento && (
+        <ProgressoCuidadoBar
+          totalCells={totalPlanejadas}
+          completedCells={realizadas}
+          bimestreLabel={planejamento.bimestre_label}
+        />
+      )}
 
       {/* KPIs */}
       <div className="grid grid-cols-3 gap-3">
@@ -164,7 +206,7 @@ export function SupervisorPWADashboard() {
         <Card>
           <CardContent className="p-3 flex flex-col items-center text-center">
             <Calendar className="h-4 w-4 text-muted-foreground mb-1" />
-            <span className="text-lg font-bold">{(supervisoes || []).length}</span>
+            <span className="text-lg font-bold">{supervisoes.length}</span>
             <span className="text-xs text-muted-foreground">Total geral</span>
           </CardContent>
         </Card>
