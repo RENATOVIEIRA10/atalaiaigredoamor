@@ -193,13 +193,13 @@ export function CelulaDetailsDialog({ open, onOpenChange, celulaId, celulaName }
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className={isPWAMobile
-          ? 'max-w-full h-[100dvh] max-h-[100dvh] rounded-none flex flex-col overflow-hidden p-0'
+          ? 'fixed inset-0 z-50 flex flex-col bg-background p-0 m-0 rounded-none border-none shadow-none max-w-none w-full h-[100dvh] max-h-[100dvh] translate-x-0 translate-y-0 sm:translate-x-0 sm:translate-y-0 sm:inset-0 sm:max-w-none sm:rounded-none sm:border-none data-[state=open]:slide-in-from-bottom-0 data-[state=closed]:slide-out-to-bottom-0 data-[state=open]:zoom-in-100 data-[state=closed]:zoom-out-100 overflow-hidden'
           : 'sm:max-w-4xl'
         } hideCloseButton={isPWAMobile}>
-          {/* PWA Mobile: fixed back header replacing the X */}
+          {/* PWA Mobile: fixed back header */}
           {isPWAMobile && (
             <div
-              className="sticky top-0 z-30 -mx-6 -mt-6 px-3 flex items-center gap-2 bg-background border-b border-border/30 mb-2 shadow-sm"
+              className="flex-shrink-0 flex items-center gap-2 bg-background border-b border-border/40 px-3 shadow-sm"
               style={{
                 minHeight: 'calc(48px + env(safe-area-inset-top, 0px))',
                 paddingTop: 'env(safe-area-inset-top, 0px)',
@@ -230,8 +230,8 @@ export function CelulaDetailsDialog({ open, onOpenChange, celulaId, celulaName }
           {isLoading ? (
             <div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
           ) : (
-            <div className={isPWAMobile ? 'flex-1 overflow-y-auto px-4 pb-4' : ''}>
-            <Tabs defaultValue="relatorio" className="space-y-4">
+            <div className={isPWAMobile ? 'flex-1 overflow-y-auto overscroll-contain px-4 pb-4' : ''}>
+            <Tabs defaultValue="relatorio" className={isPWAMobile ? 'flex flex-col h-full' : 'space-y-4'}>
               <TabsList className="grid w-full grid-cols-5 h-auto p-1">
                 <TabsTrigger value="relatorio" className="text-xs sm:text-sm gap-1 py-2.5 px-1">
                   <FileText className="h-4 w-4" />
@@ -299,7 +299,10 @@ export function CelulaDetailsDialog({ open, onOpenChange, celulaId, celulaName }
 
                   <CelulaPhotoUpload photoUrl={photoUrl} onPhotoChange={setPhotoUrl} celulaId={celulaId} weekStart={meetingDate ? getWeekStartFromDate(meetingDate) : ''} />
 
-                  <div className="sticky bottom-0 bg-background pt-3 pb-1 -mx-4 px-4 sm:-mx-6 sm:px-6 border-t border-border/50">
+                  <div className={isPWAMobile
+                    ? 'sticky bottom-0 bg-background pt-3 border-t border-border/50'
+                    : 'sticky bottom-0 bg-background pt-3 pb-1 -mx-4 px-4 sm:-mx-6 sm:px-6 border-t border-border/50'
+                  } style={isPWAMobile ? { paddingBottom: 'calc(8px + env(safe-area-inset-bottom, 0px))' } : undefined}>
                     <Button onClick={handleSubmitReport} disabled={createReport.isPending} className="w-full h-12 text-base font-semibold" size="lg">
                       {createReport.isPending ? <Loader2 className="h-5 w-5 mr-2 animate-spin" /> : <Send className="h-5 w-5 mr-2" />}
                       Enviar Relatório
