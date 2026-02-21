@@ -278,9 +278,10 @@ function CronogramaSection({ data }: { data: NonNullable<ReturnType<typeof usePl
                       <p className="text-sm font-medium">Semana {week.week_number}</p>
                       <p className="text-xs text-muted-foreground">{week.week_label}</p>
                     </div>
-                    {allItems.length > 0 && (
-                      <Badge variant="secondary" className="text-xs mr-2">{allItems.length}</Badge>
-                    )}
+                    {/* Capacity per week */}
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground mr-1">
+                      {allItems.length} visita(s)
+                    </span>
                     {allDone && <CheckCircle2 className="h-4 w-4 text-green-600 mr-2" />}
                   </div>
                 </AccordionTrigger>

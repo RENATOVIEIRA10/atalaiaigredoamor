@@ -320,6 +320,7 @@ function WeekCard({ semana, expanded, onToggle, compact, showSwapButton, supervi
 }) {
   const allRealizadas = semana.celulas.length > 0 && semana.celulas.every(c => c.realizada);
   const hasItems = semana.celulas.length > 0;
+  const slotsLivres = (semana.capacity_max || 2) - (semana.capacity_used || 0);
 
   return (
     <Card className={`transition-all ${allRealizadas ? 'opacity-60' : ''}`}>
@@ -336,6 +337,10 @@ function WeekCard({ semana, expanded, onToggle, compact, showSwapButton, supervi
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {/* Capacity indicator */}
+          <span className={`text-[10px] px-1.5 py-0.5 rounded ${slotsLivres > 0 ? 'bg-blue-500/10 text-blue-600' : 'bg-muted text-muted-foreground'}`}>
+            {semana.capacity_used || 0}/{semana.capacity_max || 2}
+          </span>
           {hasItems && (
             <Badge variant="secondary" className="text-xs">{semana.celulas.length} visita(s)</Badge>
           )}
@@ -347,7 +352,7 @@ function WeekCard({ semana, expanded, onToggle, compact, showSwapButton, supervi
       {expanded && (
         <CardContent className="pt-0 pb-3 px-3">
           {!hasItems ? (
-            <p className="text-xs text-muted-foreground text-center py-2">Semana livre</p>
+            <p className="text-xs text-muted-foreground text-center py-2">Semana livre · {slotsLivres} slot(s) disponível(is)</p>
           ) : (
             <div className="space-y-2">
               {semana.celulas.map(cel => (
@@ -401,6 +406,12 @@ function CelulaPlanRow({ item, compact, showSwapButton, supervisorId, otherSuper
               <span className="ml-2 opacity-70">· Encontro: {item.meeting_day}</span>
             )}
           </p>
+          {/* Flexible weeks */}
+          {!item.realizada && item.alt_weeks && item.alt_weeks.length > 0 && !compact && (
+            <p className="text-[10px] text-blue-600 mt-0.5">
+              🔄 Flexível: {item.alt_weeks.map(a => `S${a.week_number} (${a.week_label})`).join(' · ')}
+            </p>
+          )}
         </div>
         <div className="flex items-center gap-1.5 shrink-0">
           <Badge variant="outline" className={`${cfg.color} text-[10px]`}>
