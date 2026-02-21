@@ -39,10 +39,18 @@ export default function Dados() {
   const { isSupervisor, isCelulaLeader, isAdmin, isRedeLeader, isCoordenador } = useRole();
 
   const [dateRange, setDateRange] = useState<DateRangeValue>({ from: subDays(new Date(), 29), to: new Date() });
+  const { scopeType, scopeId } = useRole();
+
+  // Coordenador: lock filters to their own coordenação
+  const isCoordScope = isCoordenador && !isAdmin && !isRedeLeader && scopeType === 'coordenacao' && scopeId;
+
   const [filterRede, setFilterRede] = useState<string>('all');
-  const [filterCoord, setFilterCoord] = useState<string>('all');
+  const [filterCoord, setFilterCoord] = useState<string>(isCoordScope ? scopeId : 'all');
 
   const dateRangeFilter: DateRangeFilter = { from: getDateString(dateRange.from), to: getDateString(dateRange.to) };
+
+  // Ensure coord filter stays locked for coordenador scope
+  const effectiveFilterCoord = isCoordScope ? scopeId : filterCoord;
 
   const { data: redes, isLoading: l1 } = useRedes();
   const { data: coordenacoes, isLoading: l2 } = useCoordenacoes();
@@ -55,17 +63,18 @@ export default function Dados() {
 
   const filteredCoords = useMemo(() => {
     if (!coordenacoes) return [];
+    if (isCoordScope) return coordenacoes.filter(c => c.id === scopeId);
     if (filterRede === 'all') return coordenacoes;
     return coordenacoes.filter(c => c.rede_id === filterRede);
-  }, [coordenacoes, filterRede]);
+  }, [coordenacoes, filterRede, isCoordScope, scopeId]);
 
   const filteredCelulas = useMemo(() => {
     if (!celulas) return [];
     const validCoordIds = filteredCoords.map(c => c.id);
     let result = celulas.filter(c => validCoordIds.includes(c.coordenacao_id));
-    if (filterCoord !== 'all') result = result.filter(c => c.coordenacao_id === filterCoord);
+    if (effectiveFilterCoord !== 'all') result = result.filter(c => c.coordenacao_id === effectiveFilterCoord);
     return result;
-  }, [celulas, filteredCoords, filterCoord]);
+  }, [celulas, filteredCoords, effectiveFilterCoord]);
 
   const filteredReports = useMemo(() => {
     if (!reports) return [];
@@ -80,8 +89,8 @@ export default function Dados() {
   }, [members, filteredCelulas]);
 
   const { byRede, byCoordenacao, byCelula, byLider, kpis } = useDadosAggregations(
-    filterRede === 'all' ? redes : redes?.filter(r => r.id === filterRede),
-    filterCoord === 'all' ? filteredCoords : filteredCoords.filter(c => c.id === filterCoord),
+    isCoordScope ? [] : (filterRede === 'all' ? redes : redes?.filter(r => r.id === filterRede)),
+    effectiveFilterCoord === 'all' ? filteredCoords : filteredCoords.filter(c => c.id === effectiveFilterCoord),
     filteredCelulas, filteredMembers, filteredReports,
   );
 
@@ -91,7 +100,7 @@ export default function Dados() {
     if (!multiplicacoes) return [];
     return multiplicacoes.filter(m => m.data_multiplicacao >= dateRangeFilter.from && m.data_multiplicacao <= dateRangeFilter.to);
   }, [multiplicacoes, dateRangeFilter]);
-
+  const scopedCoordName = isCoordScope ? coordenacoes?.find(c => c.id === scopeId)?.name : null;
   const periodLabel = `${format(dateRange.from, "dd/MM/yyyy", { locale: ptBR })} - ${format(dateRange.to, "dd/MM/yyyy", { locale: ptBR })}`;
 
   const handleExportCSV = () => {
@@ -114,7 +123,7 @@ export default function Dados() {
       <div className="space-y-6">
         <PageHeader
           title="Central de Dados"
-          subtitle={`Período: ${periodLabel}`}
+          subtitle={scopedCoordName ? `${scopedCoordName} · ${periodLabel}` : `Período: ${periodLabel}`}
           icon={Database}
           actions={
             <div className="flex flex-wrap items-center gap-2">
@@ -126,27 +135,29 @@ export default function Dados() {
           }
         />
 
-        {/* Filters */}
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex flex-wrap gap-3">
-              <Select value={filterRede} onValueChange={(v) => { setFilterRede(v); setFilterCoord('all'); }}>
-                <SelectTrigger className="w-[200px]"><SelectValue placeholder="Todas as Redes" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas as Redes</SelectItem>
-                  {redes?.map(r => (<SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>))}
-                </SelectContent>
-              </Select>
-              <Select value={filterCoord} onValueChange={setFilterCoord}>
-                <SelectTrigger className="w-[220px]"><SelectValue placeholder="Todas Coordenações" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas Coordenações</SelectItem>
-                  {filteredCoords.map(c => (<SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>))}
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Filters - hidden for coordenador (scope is locked) */}
+        {!isCoordScope && (
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex flex-wrap gap-3">
+                <Select value={filterRede} onValueChange={(v) => { setFilterRede(v); setFilterCoord('all'); }}>
+                  <SelectTrigger className="w-[200px]"><SelectValue placeholder="Todas as Redes" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas as Redes</SelectItem>
+                    {redes?.map(r => (<SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>))}
+                  </SelectContent>
+                </Select>
+                <Select value={filterCoord} onValueChange={setFilterCoord}>
+                  <SelectTrigger className="w-[220px]"><SelectValue placeholder="Todas Coordenações" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas Coordenações</SelectItem>
+                    {filteredCoords.map(c => (<SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* KPI Cards */}
         {kpis && (
@@ -159,10 +170,10 @@ export default function Dados() {
         )}
 
         {/* Tabs */}
-        <Tabs defaultValue="redes" className="space-y-4">
+        <Tabs defaultValue={isCoordScope ? "celulas" : "redes"} className="space-y-4">
           <TabsList className="flex flex-wrap h-auto gap-1">
-            <TabsTrigger value="redes" className="gap-1.5"><Network className="h-4 w-4" />Redes</TabsTrigger>
-            <TabsTrigger value="coordenacoes" className="gap-1.5"><FolderTree className="h-4 w-4" />Coordenações</TabsTrigger>
+            {!isCoordScope && <TabsTrigger value="redes" className="gap-1.5"><Network className="h-4 w-4" />Redes</TabsTrigger>}
+            {!isCoordScope && <TabsTrigger value="coordenacoes" className="gap-1.5"><FolderTree className="h-4 w-4" />Coordenações</TabsTrigger>}
             <TabsTrigger value="celulas" className="gap-1.5"><Home className="h-4 w-4" />Células</TabsTrigger>
             <TabsTrigger value="lideres" className="gap-1.5"><Users className="h-4 w-4" />Líderes</TabsTrigger>
             <TabsTrigger value="relatorios" className="gap-1.5"><FileText className="h-4 w-4" />Relatórios</TabsTrigger>
