@@ -3,12 +3,15 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, ClipboardCheck, Plus, Eye, Calendar } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Loader2, ClipboardCheck, Plus, Eye, Calendar, Activity } from 'lucide-react';
 import { useCoordenacoes } from '@/hooks/useCoordenacoes';
 import { useSupervisores, useSupervisoesBySupervisor, Supervisao } from '@/hooks/useSupervisoes';
 import { useCelulas } from '@/hooks/useCelulas';
 import { SupervisaoFormDialog } from './supervisor/SupervisaoFormDialog';
 import { SupervisaoDetailsDialog } from './supervisor/SupervisaoDetailsDialog';
+import { RadarSaudeSupervisorPanel } from './supervisor/RadarSaudeSupervisorPanel';
+import { PlanejamentoBimestralPanel } from './supervisor/PlanejamentoBimestralPanel';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { PageHeader } from '@/components/ui/page-header';
@@ -110,51 +113,85 @@ export function SupervisorDashboard() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                <ClipboardCheck className="h-5 w-5 text-primary" />
-                Histórico de Supervisões
-              </CardTitle>
-              <CardDescription>{supervisoes?.length || 0} supervisão(ões)</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {supervisoesLoading ? (
-                <div className="flex items-center justify-center py-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
-              ) : supervisoes && supervisoes.length > 0 ? (
-                <div className="space-y-3">
-                  {supervisoes.map(supervisao => (
-                    <Card key={supervisao.id}
-                      className={`cursor-pointer card-hover border-l-4 ${supervisao.celula_realizada ? 'border-l-success' : 'border-l-destructive'}`}
-                      onClick={() => setSelectedSupervisao(supervisao)}>
-                      <CardContent className="py-3 px-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="text-xs text-muted-foreground flex items-center gap-1">
-                              <Calendar className="h-3 w-3" />
-                              {format(new Date(supervisao.data_supervisao), "dd/MM/yyyy", { locale: ptBR })}
+          {/* Tabs: Radar, Planejamento, Histórico */}
+          <Tabs defaultValue="radar" className="space-y-4">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="radar" className="text-xs gap-1">
+                <Activity className="h-3.5 w-3.5" />
+                Radar
+              </TabsTrigger>
+              <TabsTrigger value="planejamento" className="text-xs gap-1">
+                <Calendar className="h-3.5 w-3.5" />
+                Planejamento
+              </TabsTrigger>
+              <TabsTrigger value="historico" className="text-xs gap-1">
+                <ClipboardCheck className="h-3.5 w-3.5" />
+                Histórico
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="radar">
+              <RadarSaudeSupervisorPanel
+                supervisorId={selectedSupervisor}
+                coordenacaoId={selectedCoordenacao}
+              />
+            </TabsContent>
+
+            <TabsContent value="planejamento">
+              <PlanejamentoBimestralPanel
+                supervisorId={selectedSupervisor}
+                coordenacaoId={selectedCoordenacao}
+              />
+            </TabsContent>
+
+            <TabsContent value="historico">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <ClipboardCheck className="h-5 w-5 text-primary" />
+                    Histórico de Supervisões
+                  </CardTitle>
+                  <CardDescription>{supervisoes?.length || 0} supervisão(ões)</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {supervisoesLoading ? (
+                    <div className="flex items-center justify-center py-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
+                  ) : supervisoes && supervisoes.length > 0 ? (
+                    <div className="space-y-3">
+                      {supervisoes.map(supervisao => (
+                        <Card key={supervisao.id}
+                          className={`cursor-pointer card-hover border-l-4 ${supervisao.celula_realizada ? 'border-l-green-500' : 'border-l-destructive'}`}
+                          onClick={() => setSelectedSupervisao(supervisao)}>
+                          <CardContent className="py-3 px-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <div className="text-xs text-muted-foreground flex items-center gap-1">
+                                  <Calendar className="h-3 w-3" />
+                                  {format(new Date(supervisao.data_supervisao), "dd/MM/yyyy", { locale: ptBR })}
+                                </div>
+                                <div>
+                                  <h4 className="font-semibold text-sm">{supervisao.celula?.name}</h4>
+                                  <p className="text-xs text-muted-foreground">{supervisao.horario_inicio} - {supervisao.horario_termino}</p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Badge variant={supervisao.celula_realizada ? "default" : "destructive"} className="text-xs">
+                                  {supervisao.celula_realizada ? 'Realizada' : 'Não Realizada'}
+                                </Badge>
+                                <Button variant="ghost" size="sm"><Eye className="h-4 w-4" /></Button>
+                              </div>
                             </div>
-                            <div>
-                              <h4 className="font-semibold text-sm">{supervisao.celula?.name}</h4>
-                              <p className="text-xs text-muted-foreground">{supervisao.horario_inicio} - {supervisao.horario_termino}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Badge variant={supervisao.celula_realizada ? "default" : "destructive"} className="text-xs">
-                              {supervisao.celula_realizada ? 'Realizada' : 'Não Realizada'}
-                            </Badge>
-                            <Button variant="ghost" size="sm"><Eye className="h-4 w-4" /></Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              ) : (
-                <EmptyState icon={ClipboardCheck} title="Nenhuma supervisão" description='Clique em "Registrar" para começar' />
-              )}
-            </CardContent>
-          </Card>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  ) : (
+                    <EmptyState icon={ClipboardCheck} title="Nenhuma supervisão" description='Clique em "Registrar" para começar' />
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </>
       )}
 
