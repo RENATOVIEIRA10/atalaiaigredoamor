@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { AlertCircle, Loader2, Lock as LockIcon, BookOpen, HelpCircle, ClipboardList, PlayCircle } from 'lucide-react';
 import { actionIcons } from '@/lib/icons';
 import logoRedeAmor from '@/assets/logo-rede-amor-a2.png';
+import logoIgrejaDoAmor from '@/assets/logo-igreja-do-amor-new.png';
 import logoAnoSantidade from '@/assets/logo-ano-santidade.png';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -143,11 +144,21 @@ export default function HomePage() {
           {/* Divider */}
           <div className="h-14 w-px" style={{ background: 'rgba(197,160,89,0.25)' }} />
 
-          {/* Rede Amor a 2 logo */}
+          {/* Igreja do Amor logo (left) */}
+          <img
+            src={logoIgrejaDoAmor}
+            alt="Igreja do Amor"
+            className="h-14 w-auto object-contain opacity-90"
+          />
+
+          {/* Divider */}
+          <div className="h-14 w-px" style={{ background: 'rgba(197,160,89,0.25)' }} />
+
+          {/* Rede Amor a 2 logo (right) */}
           <img
             src={logoRedeAmor}
             alt="Rede Amor a 2"
-            className="h-16 w-16 rounded-full object-cover shadow-lg ring-1 ring-[#C5A059]/20"
+            className="h-14 w-auto object-contain opacity-90"
           />
         </div>
 
