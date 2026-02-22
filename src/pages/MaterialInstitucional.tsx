@@ -1,9 +1,15 @@
-import logoRedeAmor from '@/assets/logo-rede-amor-a2.png';
-import logoIgreja from '@/assets/logo-igreja-do-amor.png';
+import { AtalaiaLogoHeader, AtalaiaFooterSignature } from '@/components/institutional/AtalaiaLogoHeader';
 import logoAnoSantidade from '@/assets/logo-ano-santidade.png';
 import { BookOpen, Heart, Users, Shield, Eye, MessageCircle, BarChart3, Church, Crown, Waypoints, UserCheck, Sparkles, ArrowLeft, Printer, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+
+const gold = '#C5A059';
+const textMain = '#F4EDE4';
+const textBody = '#D4D2CF';
+const textMuted = '#B8B6B3';
+const headingFont = "'Outfit', sans-serif";
+const bodyFont = "'Inter', sans-serif";
 
 const Section = ({ id, children }: { id?: string; children: React.ReactNode }) => (
   <section id={id} className="mb-12 print:mb-8 print:break-inside-avoid">
@@ -14,42 +20,42 @@ const Section = ({ id, children }: { id?: string; children: React.ReactNode }) =
 const SectionTitle = ({ icon: Icon, children }: { icon?: any; children: React.ReactNode }) => (
   <div className="flex items-center gap-3 mb-4">
     {Icon && (
-      <div className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'linear-gradient(135deg, #C9A24D 0%, #D4B366 100%)' }}>
-        <Icon className="h-5 w-5 text-[#1a0a0b]" />
+      <div className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: `linear-gradient(135deg, ${gold} 0%, #D4B366 100%)` }}>
+        <Icon className="h-5 w-5 text-[#1A2F4B]" />
       </div>
     )}
-    <h2 className="text-xl sm:text-2xl font-bold" style={{ fontFamily: "'DM Serif Display', serif", color: '#C9A24D' }}>
+    <h2 className="text-xl sm:text-2xl font-bold" style={{ fontFamily: headingFont, color: gold }}>
       {children}
     </h2>
   </div>
 );
 
 const RoleCard = ({ icon: Icon, title, description }: { icon: any; title: string; description: string }) => (
-  <div className="rounded-xl border p-5 flex gap-4 items-start" style={{ borderColor: 'rgba(201,162,77,0.2)', background: 'rgba(201,162,77,0.04)' }}>
-    <div className="h-9 w-9 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(201,162,77,0.15)' }}>
-      <Icon className="h-4.5 w-4.5" style={{ color: '#C9A24D' }} />
+  <div className="rounded-xl border p-5 flex gap-4 items-start" style={{ borderColor: `${gold}33`, background: `${gold}0A` }}>
+    <div className="h-9 w-9 rounded-lg flex items-center justify-center shrink-0" style={{ background: `${gold}26` }}>
+      <Icon className="h-4.5 w-4.5" style={{ color: gold }} />
     </div>
     <div>
-      <h3 className="font-semibold text-base mb-1" style={{ color: '#F6F4F1', fontFamily: "'DM Serif Display', serif" }}>{title}</h3>
-      <p className="text-sm leading-relaxed" style={{ color: '#B8B6B3' }}>{description}</p>
+      <h3 className="font-semibold text-base mb-1" style={{ color: textMain, fontFamily: headingFont }}>{title}</h3>
+      <p className="text-sm leading-relaxed" style={{ color: textMuted, fontFamily: bodyFont }}>{description}</p>
     </div>
   </div>
 );
 
 const BulletItem = ({ children }: { children: React.ReactNode }) => (
-  <li className="flex items-start gap-3 text-sm leading-relaxed" style={{ color: '#D4D2CF' }}>
-    <span className="mt-1.5 h-2 w-2 rounded-full shrink-0" style={{ background: '#C9A24D' }} />
+  <li className="flex items-start gap-3 text-sm leading-relaxed" style={{ color: textBody }}>
+    <span className="mt-1.5 h-2 w-2 rounded-full shrink-0" style={{ background: gold }} />
     <span>{children}</span>
   </li>
 );
 
 const ValueCard = ({ icon: Icon, title, description }: { icon: any; title: string; description: string }) => (
-  <div className="text-center p-5 rounded-xl" style={{ background: 'rgba(201,162,77,0.06)', border: '1px solid rgba(201,162,77,0.12)' }}>
-    <div className="h-12 w-12 rounded-full flex items-center justify-center mx-auto mb-3" style={{ background: 'rgba(201,162,77,0.15)' }}>
-      <Icon className="h-5 w-5" style={{ color: '#C9A24D' }} />
+  <div className="text-center p-5 rounded-xl" style={{ background: `${gold}0F`, border: `1px solid ${gold}1F` }}>
+    <div className="h-12 w-12 rounded-full flex items-center justify-center mx-auto mb-3" style={{ background: `${gold}26` }}>
+      <Icon className="h-5 w-5" style={{ color: gold }} />
     </div>
-    <h3 className="font-semibold text-sm mb-1" style={{ color: '#F6F4F1', fontFamily: "'DM Serif Display', serif" }}>{title}</h3>
-    <p className="text-xs leading-relaxed" style={{ color: '#B8B6B3' }}>{description}</p>
+    <h3 className="font-semibold text-sm mb-1" style={{ color: textMain, fontFamily: headingFont }}>{title}</h3>
+    <p className="text-xs leading-relaxed" style={{ color: textMuted }}>{description}</p>
   </div>
 );
 
@@ -57,25 +63,15 @@ export default function MaterialInstitucional() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen" style={{ background: 'linear-gradient(160deg, #0e0e10 0%, #1a0a0b 40%, #121212 100%)' }}>
+    <div className="min-h-screen" style={{ background: 'linear-gradient(160deg, #0e0e10 0%, #1A2F4B 40%, #121212 100%)' }}>
       {/* Print-hidden controls */}
       <div className="fixed top-4 left-4 right-4 z-50 flex justify-between print:hidden">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => navigate(-1)}
-          className="backdrop-blur-md rounded-full px-4"
-          style={{ background: 'rgba(0,0,0,0.5)', color: '#F6F4F1' }}
-        >
+        <Button variant="ghost" size="sm" onClick={() => navigate(-1)}
+          className="backdrop-blur-md rounded-full px-4" style={{ background: 'rgba(0,0,0,0.5)', color: textMain }}>
           <ArrowLeft className="h-4 w-4 mr-2" /> Voltar
         </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => window.print()}
-          className="backdrop-blur-md rounded-full px-4"
-          style={{ background: 'rgba(201,162,77,0.2)', color: '#C9A24D' }}
-        >
+        <Button variant="ghost" size="sm" onClick={() => window.print()}
+          className="backdrop-blur-md rounded-full px-4" style={{ background: `${gold}33`, color: gold }}>
           <Printer className="h-4 w-4 mr-2" /> Imprimir / PDF
         </Button>
       </div>
@@ -84,23 +80,18 @@ export default function MaterialInstitucional() {
         {/* ── CAPA ── */}
         <Section id="capa">
           <div className="text-center py-12 sm:py-20 print:py-16">
-            <div className="flex justify-center gap-6 mb-8">
-              <img src={logoIgreja} alt="Igreja do Amor" className="h-16 sm:h-20 w-auto object-contain opacity-80" />
-              <img src={logoRedeAmor} alt="Rede Amor a 2" className="h-16 sm:h-20 w-auto object-contain rounded-full shadow-xl ring-2 ring-[#C9A24D]/20" />
+            <div className="mb-8">
+              <AtalaiaLogoHeader />
             </div>
-            <h1
-              className="text-3xl sm:text-5xl mb-4 leading-tight"
-              style={{ fontFamily: "'DM Serif Display', serif", color: '#F6F4F1', letterSpacing: '-0.02em' }}
-            >
-              Sistema Rede Amor a 2
+            <h1 className="text-3xl sm:text-5xl mb-4 leading-tight"
+              style={{ fontFamily: headingFont, color: textMain, letterSpacing: '-0.02em' }}>
+              ATALAIA
             </h1>
-            <p
-              className="text-base sm:text-lg max-w-lg mx-auto leading-relaxed"
-              style={{ color: '#C9A24D', fontFamily: "'DM Serif Display', serif" }}
-            >
-              Cuidando de pessoas. Organizando vidas.<br />Fortalecendo a visão.
+            <p className="text-base sm:text-lg max-w-lg mx-auto leading-relaxed"
+              style={{ color: gold, fontFamily: headingFont }}>
+              Saúde e Cuidado da Rede Amor a Dois
             </p>
-            <div className="mt-10 h-px w-24 mx-auto" style={{ background: 'linear-gradient(90deg, transparent, #C9A24D, transparent)' }} />
+            <div className="mt-10 h-px w-24 mx-auto" style={{ background: `linear-gradient(90deg, transparent, ${gold}, transparent)` }} />
             <div className="mt-6 flex justify-center">
               <img src={logoAnoSantidade} alt="Ano da Santidade 2026" className="h-12 w-auto object-contain opacity-50" />
             </div>
@@ -109,16 +100,16 @@ export default function MaterialInstitucional() {
 
         {/* ── POR QUE EXISTE ── */}
         <Section id="por-que">
-          <SectionTitle icon={Heart}>Por que esse sistema existe?</SectionTitle>
-          <div className="space-y-4 text-sm leading-relaxed" style={{ color: '#D4D2CF' }}>
+          <SectionTitle icon={Heart}>Por que o Atalaia existe?</SectionTitle>
+          <div className="space-y-4 text-sm leading-relaxed" style={{ color: textBody }}>
             <p>
               A Igreja do Amor cresce. E com o crescimento, vem a necessidade de cuidar melhor, organizar com sabedoria e garantir que nenhuma vida fique para trás.
             </p>
             <p>
-              O <strong style={{ color: '#F6F4F1' }}>Sistema Rede Amor a 2</strong> nasceu para apoiar o trabalho das lideranças — não para substituí-lo. Ele existe para que cada líder tenha clareza, cada coordenador tenha visão, e cada pastor tenha a memória viva do que Deus está fazendo em cada célula.
+              O <strong style={{ color: textMain }}>Atalaia</strong> nasceu para apoiar o trabalho das lideranças — não para substituí-lo. Ele existe para que cada líder tenha clareza, cada coordenador tenha visão, e cada pastor tenha a memória viva do que Deus está fazendo em cada célula.
             </p>
             <p>
-              <strong style={{ color: '#C9A24D' }}>O sistema não substitui pessoas. Ele apoia pessoas.</strong>
+              <strong style={{ color: gold }}>O Atalaia não substitui pessoas. Ele apoia pessoas.</strong>
             </p>
             <p>
               Ele organiza informações para que o cuidado pastoral aconteça com excelência, para que a visão da igreja avance com ordem, e para que cada vida seja acompanhada com amor.
@@ -128,75 +119,60 @@ export default function MaterialInstitucional() {
 
         {/* ── PARA QUEM É ── */}
         <Section id="para-quem">
-          <SectionTitle icon={Users}>Para quem é o sistema?</SectionTitle>
-          <p className="text-sm mb-6 leading-relaxed" style={{ color: '#B8B6B3' }}>
-            Cada nível de liderança tem uma visão diferente dentro do sistema, com acesso adequado à sua responsabilidade:
+          <SectionTitle icon={Users}>Para quem é o Atalaia?</SectionTitle>
+          <p className="text-sm mb-6 leading-relaxed" style={{ color: textMuted }}>
+            Cada nível de liderança tem uma visão diferente dentro do Atalaia, com acesso adequado à sua responsabilidade:
           </p>
           <div className="grid gap-4">
-            <RoleCard
-              icon={Crown}
-              title="Pastores Sêniores"
-              description="Visão geral de toda a rede: saúde das células, crescimento, tendências e pontos de atenção pastoral. Tudo em um painel claro e direto."
-            />
-            <RoleCard
-              icon={Waypoints}
-              title="Líder de Rede"
-              description="Acompanhamento de todas as coordenações, supervisores e células. Identifica padrões, celebra avanços e direciona esforços onde mais precisa."
-            />
-            <RoleCard
-              icon={Shield}
-              title="Coordenadores"
-              description="Visão detalhada das células da sua coordenação. Acompanha relatórios, supervisões e a saúde de cada grupo sob sua responsabilidade."
-            />
-            <RoleCard
-              icon={Eye}
-              title="Supervisores"
-              description="Registra supervisões das células do seu escopo. Acompanha de perto a qualidade dos encontros e apoia os líderes de célula."
-            />
-            <RoleCard
-              icon={UserCheck}
-              title="Líderes de Célula"
-              description="Preenche o relatório semanal da célula de forma simples e rápida. Gerencia membros, aniversários e envia informações pelo WhatsApp."
-            />
+            <RoleCard icon={Crown} title="Pastores Sêniores"
+              description="Visão geral de toda a rede: saúde das células, crescimento, tendências e pontos de atenção pastoral. Tudo em um painel claro e direto." />
+            <RoleCard icon={Waypoints} title="Líder de Rede"
+              description="Acompanhamento de todas as coordenações, supervisores e células. Identifica padrões, celebra avanços e direciona esforços onde mais precisa." />
+            <RoleCard icon={Shield} title="Coordenadores"
+              description="Visão detalhada das células da sua coordenação. Acompanha relatórios, supervisões e a saúde de cada grupo sob sua responsabilidade." />
+            <RoleCard icon={Eye} title="Supervisores"
+              description="Registra supervisões das células do seu escopo. Acompanha de perto a qualidade dos encontros e apoia os líderes de célula." />
+            <RoleCard icon={UserCheck} title="Líderes de Célula"
+              description="Preenche o relatório semanal da célula de forma simples e rápida. Gerencia membros, aniversários e envia informações pelo WhatsApp." />
           </div>
         </Section>
 
         {/* ── O QUE FAZ ── */}
         <Section id="o-que-faz">
-          <SectionTitle icon={BarChart3}>O que o sistema faz?</SectionTitle>
-          <p className="text-sm mb-5 leading-relaxed" style={{ color: '#B8B6B3' }}>
-            De forma prática e objetiva, o sistema oferece:
+          <SectionTitle icon={BarChart3}>O que o Atalaia faz?</SectionTitle>
+          <p className="text-sm mb-5 leading-relaxed" style={{ color: textMuted }}>
+            De forma prática e objetiva, o Atalaia oferece:
           </p>
           <ul className="space-y-3">
-            <BulletItem><strong style={{ color: '#F6F4F1' }}>Relatórios de célula</strong> — padronizados, simples de preencher, com histórico completo.</BulletItem>
-            <BulletItem><strong style={{ color: '#F6F4F1' }}>Acompanhamento pastoral</strong> — visão clara de quem precisa de atenção, quem está crescendo, quem está ausente.</BulletItem>
-            <BulletItem><strong style={{ color: '#F6F4F1' }}>Histórico e memória</strong> — tudo fica registrado. Nenhuma informação se perde.</BulletItem>
-            <BulletItem><strong style={{ color: '#F6F4F1' }}>Organização por rede, coordenação e célula</strong> — estrutura visual clara e hierárquica.</BulletItem>
-            <BulletItem><strong style={{ color: '#F6F4F1' }}>Comunicação via WhatsApp</strong> — envio de relatórios e supervisões formatados diretamente pelo app.</BulletItem>
-            <BulletItem><strong style={{ color: '#F6F4F1' }}>Dados para decisão, não para cobrança</strong> — informações que ajudam a cuidar melhor, não a fiscalizar.</BulletItem>
+            <BulletItem><strong style={{ color: textMain }}>Relatórios de célula</strong> — padronizados, simples de preencher, com histórico completo.</BulletItem>
+            <BulletItem><strong style={{ color: textMain }}>Acompanhamento pastoral</strong> — visão clara de quem precisa de atenção, quem está crescendo, quem está ausente.</BulletItem>
+            <BulletItem><strong style={{ color: textMain }}>Histórico e memória</strong> — tudo fica registrado. Nenhuma informação se perde.</BulletItem>
+            <BulletItem><strong style={{ color: textMain }}>Organização por rede, coordenação e célula</strong> — estrutura visual clara e hierárquica.</BulletItem>
+            <BulletItem><strong style={{ color: textMain }}>Comunicação via WhatsApp</strong> — envio de relatórios e supervisões formatados diretamente pelo app.</BulletItem>
+            <BulletItem><strong style={{ color: textMain }}>Dados para decisão, não para cobrança</strong> — informações que ajudam a cuidar melhor, não a fiscalizar.</BulletItem>
           </ul>
         </Section>
 
         {/* ── O QUE NÃO É ── */}
         <Section id="o-que-nao-e">
-          <SectionTitle icon={Shield}>O que o sistema NÃO é</SectionTitle>
+          <SectionTitle icon={Shield}>O que o Atalaia NÃO é</SectionTitle>
           <div className="rounded-xl p-6" style={{ background: 'rgba(211,47,47,0.06)', border: '1px solid rgba(211,47,47,0.15)' }}>
             <ul className="space-y-3">
-              <li className="flex items-start gap-3 text-sm" style={{ color: '#D4D2CF' }}>
+              <li className="flex items-start gap-3 text-sm" style={{ color: textBody }}>
                 <span className="text-red-400 font-bold mt-0.5">✕</span>
-                <span><strong style={{ color: '#F6F4F1' }}>Não é fiscalização.</strong> O objetivo é cuidar, não vigiar.</span>
+                <span><strong style={{ color: textMain }}>Não é fiscalização.</strong> O objetivo é cuidar, não vigiar.</span>
               </li>
-              <li className="flex items-start gap-3 text-sm" style={{ color: '#D4D2CF' }}>
+              <li className="flex items-start gap-3 text-sm" style={{ color: textBody }}>
                 <span className="text-red-400 font-bold mt-0.5">✕</span>
-                <span><strong style={{ color: '#F6F4F1' }}>Não é controle frio.</strong> Cada número representa uma vida, uma família, uma história.</span>
+                <span><strong style={{ color: textMain }}>Não é controle frio.</strong> Cada número representa uma vida, uma família, uma história.</span>
               </li>
-              <li className="flex items-start gap-3 text-sm" style={{ color: '#D4D2CF' }}>
+              <li className="flex items-start gap-3 text-sm" style={{ color: textBody }}>
                 <span className="text-red-400 font-bold mt-0.5">✕</span>
-                <span><strong style={{ color: '#F6F4F1' }}>Não é burocracia.</strong> Foi pensado para ser simples — preencher um relatório leva menos de 2 minutos.</span>
+                <span><strong style={{ color: textMain }}>Não é burocracia.</strong> Foi pensado para ser simples — preencher um relatório leva menos de 2 minutos.</span>
               </li>
-              <li className="flex items-start gap-3 text-sm" style={{ color: '#D4D2CF' }}>
+              <li className="flex items-start gap-3 text-sm" style={{ color: textBody }}>
                 <span className="text-red-400 font-bold mt-0.5">✕</span>
-                <span><strong style={{ color: '#F6F4F1' }}>Não substitui relacionamento.</strong> O sistema organiza; o cuidado é feito por pessoas.</span>
+                <span><strong style={{ color: textMain }}>Não substitui relacionamento.</strong> O Atalaia organiza; o cuidado é feito por pessoas.</span>
               </li>
             </ul>
           </div>
@@ -207,7 +183,7 @@ export default function MaterialInstitucional() {
           <SectionTitle icon={Sparkles}>Benefícios práticos</SectionTitle>
           <div className="space-y-6">
             <div>
-              <h3 className="text-sm font-semibold mb-2 uppercase tracking-wider" style={{ color: '#C9A24D' }}>Para o Líder de Célula</h3>
+              <h3 className="text-sm font-semibold mb-2 uppercase tracking-wider" style={{ color: gold }}>Para o Líder de Célula</h3>
               <ul className="space-y-2">
                 <BulletItem>Relatório semanal rápido e padronizado (sem esquecer o que reportar)</BulletItem>
                 <BulletItem>Controle dos membros e aniversários da célula na palma da mão</BulletItem>
@@ -216,7 +192,7 @@ export default function MaterialInstitucional() {
               </ul>
             </div>
             <div>
-              <h3 className="text-sm font-semibold mb-2 uppercase tracking-wider" style={{ color: '#C9A24D' }}>Para o Supervisor</h3>
+              <h3 className="text-sm font-semibold mb-2 uppercase tracking-wider" style={{ color: gold }}>Para o Supervisor</h3>
               <ul className="space-y-2">
                 <BulletItem>Registro de supervisão organizado e com checklist</BulletItem>
                 <BulletItem>Visão de quais células estão ativas e quais precisam de atenção</BulletItem>
@@ -224,7 +200,7 @@ export default function MaterialInstitucional() {
               </ul>
             </div>
             <div>
-              <h3 className="text-sm font-semibold mb-2 uppercase tracking-wider" style={{ color: '#C9A24D' }}>Para o Coordenador</h3>
+              <h3 className="text-sm font-semibold mb-2 uppercase tracking-wider" style={{ color: gold }}>Para o Coordenador</h3>
               <ul className="space-y-2">
                 <BulletItem>Painel com todas as células da coordenação em um só lugar</BulletItem>
                 <BulletItem>Indicadores de saúde: relatórios enviados, pendências, crescimento</BulletItem>
@@ -232,7 +208,7 @@ export default function MaterialInstitucional() {
               </ul>
             </div>
             <div>
-              <h3 className="text-sm font-semibold mb-2 uppercase tracking-wider" style={{ color: '#C9A24D' }}>Para o Líder de Rede e Pastores</h3>
+              <h3 className="text-sm font-semibold mb-2 uppercase tracking-wider" style={{ color: gold }}>Para o Líder de Rede e Pastores</h3>
               <ul className="space-y-2">
                 <BulletItem>Visão macro de toda a rede: onde está crescendo, onde precisa de cuidado</BulletItem>
                 <BulletItem>Memória institucional — nada se perde entre uma reunião e outra</BulletItem>
@@ -245,9 +221,9 @@ export default function MaterialInstitucional() {
 
         {/* ── CULTURA ── */}
         <Section id="cultura">
-          <SectionTitle icon={Church}>A cultura do sistema</SectionTitle>
-          <p className="text-sm mb-6 leading-relaxed" style={{ color: '#B8B6B3' }}>
-            Mais do que uma ferramenta, o Sistema Rede Amor a 2 carrega valores que refletem o coração da nossa igreja:
+          <SectionTitle icon={Church}>A cultura do Atalaia</SectionTitle>
+          <p className="text-sm mb-6 leading-relaxed" style={{ color: textMuted }}>
+            Mais do que uma ferramenta, o Atalaia carrega valores que refletem o coração da nossa igreja:
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             <ValueCard icon={Sparkles} title="Simplicidade" description="Fácil de usar, sem complicação" />
@@ -261,34 +237,23 @@ export default function MaterialInstitucional() {
 
         {/* ── ENCERRAMENTO ── */}
         <Section id="encerramento">
-          <div className="rounded-2xl p-8 sm:p-10 text-center" style={{ background: 'rgba(201,162,77,0.06)', border: '1px solid rgba(201,162,77,0.15)' }}>
-            <BookOpen className="h-8 w-8 mx-auto mb-4" style={{ color: '#C9A24D' }} />
-            <p
-              className="text-base sm:text-lg leading-relaxed mb-6 max-w-xl mx-auto"
-              style={{ color: '#F6F4F1', fontFamily: "'DM Serif Display', serif" }}
-            >
-              Esse sistema é uma expressão de amor pela igreja. Ele existe para que cada líder tenha suporte, cada célula seja acompanhada, e cada vida seja cuidada com a excelência que o Reino de Deus merece.
+          <div className="rounded-2xl p-8 sm:p-10 text-center" style={{ background: `${gold}0F`, border: `1px solid ${gold}26` }}>
+            <BookOpen className="h-8 w-8 mx-auto mb-4" style={{ color: gold }} />
+            <p className="text-base sm:text-lg leading-relaxed mb-6 max-w-xl mx-auto"
+              style={{ color: textMain, fontFamily: headingFont }}>
+              O Atalaia é uma expressão de amor pela igreja. Ele existe para que cada líder tenha suporte, cada célula seja acompanhada, e cada vida seja cuidada com a excelência que o Reino de Deus merece.
             </p>
-            <p
-              className="text-base sm:text-lg leading-relaxed mb-6 max-w-xl mx-auto"
-              style={{ color: '#D4D2CF' }}
-            >
+            <p className="text-base sm:text-lg leading-relaxed mb-6 max-w-xl mx-auto" style={{ color: textBody }}>
               Que possamos ser fiéis no pouco, para que o Senhor nos confie o muito. Que a tecnologia esteja a serviço do amor, e que a ordem reflita o caráter de Deus em tudo o que fazemos.
             </p>
-            <div className="h-px w-16 mx-auto mb-6" style={{ background: 'linear-gradient(90deg, transparent, #C9A24D, transparent)' }} />
-            <p
-              className="text-sm italic mb-1"
-              style={{ color: '#C9A24D', fontFamily: "'DM Serif Display', serif" }}
-            >
+            <div className="h-px w-16 mx-auto mb-6" style={{ background: `linear-gradient(90deg, transparent, ${gold}, transparent)` }} />
+            <p className="text-sm italic mb-1" style={{ color: gold, fontFamily: headingFont }}>
               "Cuidem de todo o rebanho sobre o qual o Espírito Santo os colocou como bispos, para pastorearem a igreja de Deus, que ele comprou com o seu próprio sangue."
             </p>
-            <p className="text-xs" style={{ color: '#B8B6B3' }}>Atos 20:28</p>
+            <p className="text-xs" style={{ color: textMuted }}>Atos 20:28</p>
 
-            <div className="mt-8 pt-6" style={{ borderTop: '1px solid rgba(201,162,77,0.1)' }}>
-              <p
-                className="text-xs italic mb-1"
-                style={{ color: 'rgba(201,162,77,0.5)', fontFamily: "'DM Serif Display', serif" }}
-              >
+            <div className="mt-8 pt-6" style={{ borderTop: `1px solid ${gold}1A` }}>
+              <p className="text-xs italic mb-1" style={{ color: `${gold}80`, fontFamily: headingFont }}>
                 "Tudo seja feito com decência e ordem."
               </p>
               <p className="text-[10px]" style={{ color: 'rgba(184,182,179,0.4)' }}>1 Coríntios 14:40</p>
@@ -296,36 +261,21 @@ export default function MaterialInstitucional() {
           </div>
 
           <div className="mt-10 flex flex-col items-center gap-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate('/testemunho')}
-              className="rounded-full px-5"
-              style={{ background: 'rgba(201,162,77,0.1)', color: '#C9A24D', border: '1px solid rgba(201,162,77,0.2)' }}
-            >
+            <Button variant="ghost" size="sm" onClick={() => navigate('/testemunho')}
+              className="rounded-full px-5" style={{ background: `${gold}1A`, color: gold, border: `1px solid ${gold}33` }}>
               <Eye className="h-4 w-4 mr-2" /> Testemunho ATALAIA
             </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate('/manual-lider')}
-              className="rounded-full px-5"
-              style={{ background: 'rgba(201,162,77,0.1)', color: '#C9A24D', border: '1px solid rgba(201,162,77,0.2)' }}
-            >
-              <BookOpen className="h-4 w-4 mr-2" /> Manual do Líder de Célula
+            <Button variant="ghost" size="sm" onClick={() => navigate('/manual-lider')}
+              className="rounded-full px-5" style={{ background: `${gold}1A`, color: gold, border: `1px solid ${gold}33` }}>
+              <BookOpen className="h-4 w-4 mr-2" /> Manual do Líder — Atalaia
             </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate('/faq')}
-              className="rounded-full px-5"
-              style={{ background: 'rgba(201,162,77,0.1)', color: '#C9A24D', border: '1px solid rgba(201,162,77,0.2)' }}
-            >
-              <HelpCircle className="h-4 w-4 mr-2" /> Ver Perguntas Frequentes (FAQ)
+            <Button variant="ghost" size="sm" onClick={() => navigate('/faq')}
+              className="rounded-full px-5" style={{ background: `${gold}1A`, color: gold, border: `1px solid ${gold}33` }}>
+              <HelpCircle className="h-4 w-4 mr-2" /> FAQ — Atalaia
             </Button>
-            <p className="text-xs" style={{ color: '#B8B6B3' }}>
-              Igreja do Amor • Rede Amor a 2 • ATALAIA • 2026
-            </p>
+            <div className="mt-4">
+              <AtalaiaFooterSignature />
+            </div>
           </div>
         </Section>
       </div>

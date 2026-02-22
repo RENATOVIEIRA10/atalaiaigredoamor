@@ -1,5 +1,4 @@
-import logoRedeAmor from '@/assets/logo-rede-amor-a2.png';
-import logoIgreja from '@/assets/logo-igreja-do-amor.png';
+import { AtalaiaLogoHeader, AtalaiaFooterSignature } from '@/components/institutional/AtalaiaLogoHeader';
 import print1 from '@/assets/manual/print1-tela-inicial.png';
 import print2 from '@/assets/manual/print2-formulario.png';
 import print3 from '@/assets/manual/print3-botao-whatsapp.png';
@@ -13,14 +12,14 @@ import {
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 
-const gold = '#C9A24D';
-const goldBg = 'rgba(201,162,77,0.06)';
-const goldBorder = 'rgba(201,162,77,0.15)';
-const goldIcon = 'rgba(201,162,77,0.15)';
-const textMain = '#F6F4F1';
+const gold = '#C5A059';
+const goldBg = `${gold}0F`;
+const goldBorder = `${gold}26`;
+const goldIcon = `${gold}26`;
+const textMain = '#F4EDE4';
 const textBody = '#D4D2CF';
 const textMuted = '#B8B6B3';
-const serif = "'DM Serif Display', serif";
+const headingFont = "'Outfit', sans-serif";
 
 const Section = ({ children, className = '' }: { children: React.ReactNode; className?: string }) => (
   <section className={`mb-10 print:mb-6 print:break-inside-avoid ${className}`}>{children}</section>
@@ -29,9 +28,9 @@ const Section = ({ children, className = '' }: { children: React.ReactNode; clas
 const SectionTitle = ({ icon: Icon, children }: { icon: any; children: React.ReactNode }) => (
   <div className="flex items-center gap-3 mb-4">
     <div className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: `linear-gradient(135deg, ${gold} 0%, #D4B366 100%)` }}>
-      <Icon className="h-4.5 w-4.5 text-[#1a0a0b]" />
+      <Icon className="h-4.5 w-4.5 text-[#1A2F4B]" />
     </div>
-    <h2 className="text-lg sm:text-xl font-bold" style={{ fontFamily: serif, color: gold }}>{children}</h2>
+    <h2 className="text-lg sm:text-xl font-bold" style={{ fontFamily: headingFont, color: gold }}>{children}</h2>
   </div>
 );
 
@@ -53,26 +52,19 @@ const FaqItem = ({ q, a }: { q: string; a: string }) => (
 );
 
 const StepCard = ({ n, title, description, image, imageAlt }: {
-  n: number; title: string; description: string;
-  image: string; imageAlt: string;
+  n: number; title: string; description: string; image: string; imageAlt: string;
 }) => (
   <div className="rounded-xl overflow-hidden" style={{ border: `1px solid ${goldBorder}`, background: goldBg }}>
-    {/* Header */}
-    <div className="flex items-center gap-3 px-4 py-3" style={{ background: 'rgba(201,162,77,0.08)', borderBottom: `1px solid ${goldBorder}` }}>
+    <div className="flex items-center gap-3 px-4 py-3" style={{ background: `${gold}14`, borderBottom: `1px solid ${goldBorder}` }}>
       <span className="h-7 w-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
-        style={{ background: gold, color: '#1a0a0b' }}>{n}</span>
-      <h3 className="font-semibold text-sm" style={{ color: textMain, fontFamily: serif }}>{title}</h3>
+        style={{ background: gold, color: '#1A2F4B' }}>{n}</span>
+      <h3 className="font-semibold text-sm" style={{ color: textMain, fontFamily: headingFont }}>{title}</h3>
     </div>
-    {/* Image */}
     <div className="px-4 pt-4 flex justify-center">
-      <img
-        src={image}
-        alt={imageAlt}
+      <img src={image} alt={imageAlt}
         className="rounded-lg shadow-lg max-h-[320px] sm:max-h-[380px] w-auto object-contain border"
-        style={{ borderColor: goldBorder }}
-      />
+        style={{ borderColor: goldBorder }} />
     </div>
-    {/* Description */}
     <div className="px-4 py-4">
       <p className="text-sm leading-relaxed" style={{ color: textBody }}>{description}</p>
     </div>
@@ -83,15 +75,14 @@ export default function ManualLiderCelula() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen" style={{ background: 'linear-gradient(160deg, #0e0e10 0%, #1a0a0b 40%, #121212 100%)' }}>
-      {/* Controles */}
+    <div className="min-h-screen" style={{ background: 'linear-gradient(160deg, #0e0e10 0%, #1A2F4B 40%, #121212 100%)' }}>
       <div className="fixed top-4 left-4 right-4 z-50 flex justify-between print:hidden">
         <Button variant="ghost" size="sm" onClick={() => navigate(-1)}
           className="backdrop-blur-md rounded-full px-4" style={{ background: 'rgba(0,0,0,0.5)', color: textMain }}>
           <ArrowLeft className="h-4 w-4 mr-2" /> Voltar
         </Button>
         <Button variant="ghost" size="sm" onClick={() => window.print()}
-          className="backdrop-blur-md rounded-full px-4" style={{ background: 'rgba(201,162,77,0.2)', color: gold }}>
+          className="backdrop-blur-md rounded-full px-4" style={{ background: `${gold}33`, color: gold }}>
           <Printer className="h-4 w-4 mr-2" /> Imprimir / PDF
         </Button>
       </div>
@@ -100,15 +91,14 @@ export default function ManualLiderCelula() {
         {/* ── CAPA ── */}
         <Section>
           <div className="text-center py-8 sm:py-12 print:py-8">
-            <div className="flex justify-center gap-5 mb-6">
-              <img src={logoIgreja} alt="Igreja do Amor" className="h-14 sm:h-16 w-auto object-contain opacity-80" />
-              <img src={logoRedeAmor} alt="Rede Amor a 2" className="h-14 sm:h-16 w-auto object-contain rounded-full shadow-xl ring-2 ring-[#C9A24D]/20" />
+            <div className="mb-6">
+              <AtalaiaLogoHeader size="sm" />
             </div>
-            <h1 className="text-2xl sm:text-3xl mb-2 leading-tight" style={{ fontFamily: serif, color: textMain, letterSpacing: '-0.02em' }}>
-              Manual Rápido
+            <h1 className="text-2xl sm:text-3xl mb-2 leading-tight" style={{ fontFamily: headingFont, color: textMain, letterSpacing: '-0.02em' }}>
+              Manual do Líder — Atalaia
             </h1>
-            <p className="text-base sm:text-lg" style={{ color: gold, fontFamily: serif }}>
-              Líder de Célula • Rede Amor a 2
+            <p className="text-base sm:text-lg" style={{ color: gold, fontFamily: headingFont }}>
+              Líder de Célula • Rede Amor a Dois
             </p>
             <div className="mt-6 h-px w-20 mx-auto" style={{ background: `linear-gradient(90deg, transparent, ${gold}, transparent)` }} />
           </div>
@@ -116,10 +106,10 @@ export default function ManualLiderCelula() {
 
         {/* ── PARA QUE SERVE ── */}
         <Section>
-          <SectionTitle icon={Info}>Para que serve o sistema?</SectionTitle>
+          <SectionTitle icon={Info}>Para que serve o Atalaia?</SectionTitle>
           <div className="rounded-xl p-5" style={{ background: goldBg, border: `1px solid ${goldBorder}` }}>
             <p className="text-sm leading-relaxed" style={{ color: textBody }}>
-              O sistema <strong style={{ color: textMain }}>Rede Amor a 2</strong> é a ferramenta da nossa igreja para ajudar você, líder, a:
+              O <strong style={{ color: textMain }}>Atalaia</strong> é a plataforma que cuida da saúde da Rede Amor a Dois, a serviço da Igreja do Amor. Ele ajuda você, líder, a:
             </p>
             <ul className="mt-3 space-y-2">
               <CheckItem><strong style={{ color: textMain }}>Organizar sua célula</strong> — membros, aniversários e contatos em um só lugar.</CheckItem>
@@ -132,7 +122,7 @@ export default function ManualLiderCelula() {
 
         {/* ── O QUE VOCÊ FAZ ── */}
         <Section>
-          <SectionTitle icon={Smartphone}>O que você faz no sistema?</SectionTitle>
+          <SectionTitle icon={Smartphone}>O que você faz no Atalaia?</SectionTitle>
           <div className="grid gap-3">
             {[
               { icon: Users, title: 'Cadastrar e atualizar membros', desc: 'Nome, aniversário, WhatsApp e progresso espiritual de cada pessoa da célula.' },
@@ -144,7 +134,7 @@ export default function ManualLiderCelula() {
                   <Icon className="h-4 w-4" style={{ color: gold }} />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-sm mb-0.5" style={{ color: textMain, fontFamily: serif }}>{title}</h3>
+                  <h3 className="font-semibold text-sm mb-0.5" style={{ color: textMain, fontFamily: headingFont }}>{title}</h3>
                   <p className="text-xs leading-relaxed" style={{ color: textMuted }}>{desc}</p>
                 </div>
               </div>
@@ -159,7 +149,7 @@ export default function ManualLiderCelula() {
             <div>
               <h3 className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: gold }}>✅ Antes da célula</h3>
               <ul className="space-y-2 pl-1">
-                <CheckItem>Confirme a lista de membros no sistema (novos? saíram alguém?).</CheckItem>
+                <CheckItem>Confirme a lista de membros no Atalaia (novos? saíram alguém?).</CheckItem>
                 <CheckItem>Verifique aniversariantes da semana para parabenizar.</CheckItem>
               </ul>
             </div>
@@ -173,78 +163,29 @@ export default function ManualLiderCelula() {
             <div>
               <h3 className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: gold }}>✅ Depois da célula (relatório)</h3>
               <ul className="space-y-2 pl-1">
-                <CheckItem>Abra o sistema no celular e preencha o relatório da semana.</CheckItem>
+                <CheckItem>Abra o Atalaia no celular e preencha o relatório da semana.</CheckItem>
                 <CheckItem>Salve e envie pelo WhatsApp com o botão do app.</CheckItem>
               </ul>
             </div>
           </div>
         </Section>
 
-        {/* ══════════════════════════════════════════════════════════════ */}
-        {/* ── PASSO A PASSO VISUAL COM PRINTS ── */}
-        {/* ══════════════════════════════════════════════════════════════ */}
+        {/* ── PASSO A PASSO VISUAL ── */}
         <Section>
           <SectionTitle icon={Camera}>Como enviar o relatório pelo WhatsApp</SectionTitle>
           <p className="text-sm mb-5 leading-relaxed" style={{ color: textBody }}>
             Siga os <strong style={{ color: textMain }}>5 passos</strong> abaixo. Cada imagem mostra exatamente o que aparece na sua tela.
           </p>
-
           <div className="space-y-5">
-            <StepCard
-              n={1}
-              title="Abrir o relatório"
-              description="Toque no card da sua célula. O formulário do relatório semanal vai abrir."
-              image={print1}
-              imageAlt="Tela inicial do líder com card da célula"
-            />
-
-            <div className="flex justify-center">
-              <ArrowRight className="h-5 w-5 rotate-90" style={{ color: gold, opacity: 0.4 }} />
-            </div>
-
-            <StepCard
-              n={2}
-              title="Preencher os números"
-              description="Preencha: presentes, visitantes, crianças e discipulados. Só números — menos de 1 minuto."
-              image={print2}
-              imageAlt="Formulário do relatório com campos numéricos preenchidos"
-            />
-
-            <div className="flex justify-center">
-              <ArrowRight className="h-5 w-5 rotate-90" style={{ color: gold, opacity: 0.4 }} />
-            </div>
-
-            <StepCard
-              n={3}
-              title="Tocar em 'Enviar no WhatsApp'"
-              description="Toque no botão verde. O sistema monta tudo sozinho — você não precisa copiar nada."
-              image={print3}
-              imageAlt="Tela com blocos do relatório e botão Enviar no WhatsApp"
-            />
-
-            <div className="flex justify-center">
-              <ArrowRight className="h-5 w-5 rotate-90" style={{ color: gold, opacity: 0.4 }} />
-            </div>
-
-            <StepCard
-              n={4}
-              title="Enviar bloco a bloco no WhatsApp"
-              description="O WhatsApp abre com cada bloco pronto. Toque em enviar e avance — o padrão já está correto."
-              image={print4}
-              imageAlt="WhatsApp aberto com bloco de informações da célula"
-            />
-
-            <div className="flex justify-center">
-              <ArrowRight className="h-5 w-5 rotate-90" style={{ color: gold, opacity: 0.4 }} />
-            </div>
-
-            <StepCard
-              n={5}
-              title="Pronto! Envio concluído ✅"
-              description="Quando aparecer 'Envio concluído. Deus abençoe!', seu relatório está salvo e enviado."
-              image={print5}
-              imageAlt="Tela de confirmação com envio concluído"
-            />
+            <StepCard n={1} title="Abrir o relatório" description="Toque no card da sua célula. O formulário do relatório semanal vai abrir." image={print1} imageAlt="Tela inicial do líder com card da célula" />
+            <div className="flex justify-center"><ArrowRight className="h-5 w-5 rotate-90" style={{ color: gold, opacity: 0.4 }} /></div>
+            <StepCard n={2} title="Preencher os números" description="Preencha: presentes, visitantes, crianças e discipulados. Só números — menos de 1 minuto." image={print2} imageAlt="Formulário do relatório com campos numéricos preenchidos" />
+            <div className="flex justify-center"><ArrowRight className="h-5 w-5 rotate-90" style={{ color: gold, opacity: 0.4 }} /></div>
+            <StepCard n={3} title="Tocar em 'Enviar no WhatsApp'" description="Toque no botão verde. O Atalaia monta tudo sozinho — você não precisa copiar nada." image={print3} imageAlt="Tela com blocos do relatório e botão Enviar no WhatsApp" />
+            <div className="flex justify-center"><ArrowRight className="h-5 w-5 rotate-90" style={{ color: gold, opacity: 0.4 }} /></div>
+            <StepCard n={4} title="Enviar bloco a bloco no WhatsApp" description="O WhatsApp abre com cada bloco pronto. Toque em enviar e avance — o padrão já está correto." image={print4} imageAlt="WhatsApp aberto com bloco de informações da célula" />
+            <div className="flex justify-center"><ArrowRight className="h-5 w-5 rotate-90" style={{ color: gold, opacity: 0.4 }} /></div>
+            <StepCard n={5} title="Pronto! Envio concluído ✅" description="Quando aparecer 'Envio concluído. Deus abençoe!', seu relatório está salvo e enviado." image={print5} imageAlt="Tela de confirmação com envio concluído" />
           </div>
         </Section>
 
@@ -253,12 +194,8 @@ export default function ManualLiderCelula() {
           <SectionTitle icon={FileText}>Sobre os blocos do relatório</SectionTitle>
           <div className="rounded-xl p-5" style={{ background: goldBg, border: `1px solid ${goldBorder}` }}>
             <ul className="space-y-2">
-              <CheckItem>
-                O relatório enviado contém blocos automáticos: <strong style={{ color: textMain }}>foto da célula</strong>, <strong style={{ color: textMain }}>dados da célula</strong> e <strong style={{ color: textMain }}>números da semana</strong>.
-              </CheckItem>
-              <CheckItem>
-                Os textos de <strong style={{ color: textMain }}>"Nossa Mensagem"</strong>, <strong style={{ color: textMain }}>"Paixão"</strong> e <strong style={{ color: textMain }}>"Cultura"</strong> já vêm prontos — <strong style={{ color: gold }}>não precisa editar</strong>.
-              </CheckItem>
+              <CheckItem>O relatório enviado contém blocos automáticos: <strong style={{ color: textMain }}>foto da célula</strong>, <strong style={{ color: textMain }}>dados da célula</strong> e <strong style={{ color: textMain }}>números da semana</strong>.</CheckItem>
+              <CheckItem>Os textos de <strong style={{ color: textMain }}>"Nossa Mensagem"</strong>, <strong style={{ color: textMain }}>"Paixão"</strong> e <strong style={{ color: textMain }}>"Cultura"</strong> já vêm prontos — <strong style={{ color: gold }}>não precisa editar</strong>.</CheckItem>
             </ul>
           </div>
         </Section>
@@ -267,22 +204,10 @@ export default function ManualLiderCelula() {
         <Section>
           <SectionTitle icon={AlertTriangle}>Problemas comuns</SectionTitle>
           <div className="grid gap-3">
-            <FaqItem
-              q='"Não consigo enviar no WhatsApp"'
-              a="Verifique se o WhatsApp está instalado no celular. O botão abre o WhatsApp automaticamente — se não abrir, tente atualizar o app ou o navegador."
-            />
-            <FaqItem
-              q='"Meu relatório sumiu"'
-              a="Ele não sumiu! Verifique se está na semana correta. Use o seletor de semana no topo da tela para navegar entre as datas."
-            />
-            <FaqItem
-              q='"Meu número/WhatsApp não aparece"'
-              a="Cadastre o WhatsApp do membro na ficha dele. Sem o número salvo, o sistema não consegue mostrar."
-            />
-            <FaqItem
-              q='"Não achei o botão voltar"'
-              a="No celular, use a seta ← no topo da tela ou o menu inferior para navegar entre as seções."
-            />
+            <FaqItem q='"Não consigo enviar no WhatsApp"' a="Verifique se o WhatsApp está instalado no celular. O botão abre o WhatsApp automaticamente — se não abrir, tente atualizar o app ou o navegador." />
+            <FaqItem q='"Meu relatório sumiu"' a="Ele não sumiu! Verifique se está na semana correta. Use o seletor de semana no topo da tela para navegar entre as datas." />
+            <FaqItem q='"Meu número/WhatsApp não aparece"' a="Cadastre o WhatsApp do membro na ficha dele. Sem o número salvo, o Atalaia não consegue mostrar." />
+            <FaqItem q='"Não achei o botão voltar"' a="No celular, use a seta ← no topo da tela ou o menu inferior para navegar entre as seções." />
           </div>
         </Section>
 
@@ -291,7 +216,7 @@ export default function ManualLiderCelula() {
           <SectionTitle icon={Heart}>Lembre-se</SectionTitle>
           <div className="rounded-xl p-6 text-center" style={{ background: goldBg, border: `1px solid ${goldBorder}` }}>
             <p className="text-sm leading-relaxed max-w-lg mx-auto" style={{ color: textBody }}>
-              Esse sistema é uma <strong style={{ color: textMain }}>ferramenta de cuidado</strong>, não de cobrança.
+              O Atalaia é uma <strong style={{ color: textMain }}>ferramenta de cuidado</strong>, não de cobrança.
               Ele existe para te ajudar a organizar, lembrar e cuidar melhor das vidas que Deus colocou
               sob sua responsabilidade. <strong style={{ color: gold }}>Você não está sozinho.</strong> Sua liderança está com você.
             </p>
@@ -306,18 +231,14 @@ export default function ManualLiderCelula() {
             <p className="text-sm leading-relaxed" style={{ color: textBody }}>
               Tem dúvidas? <strong style={{ color: textMain }}>Fale com seu supervisor ou coordenador.</strong>
             </p>
-            <p className="text-xs mt-2" style={{ color: textMuted }}>
-              Eles estão preparados para te ajudar no que precisar.
-            </p>
+            <p className="text-xs mt-2" style={{ color: textMuted }}>Eles estão preparados para te ajudar no que precisar.</p>
           </div>
         </Section>
 
         {/* ── RODAPÉ ── */}
         <div className="text-center pt-4 pb-8">
           <div className="h-px w-16 mx-auto mb-4" style={{ background: `linear-gradient(90deg, transparent, ${gold}, transparent)` }} />
-          <p className="text-xs" style={{ color: textMuted }}>
-            Igreja do Amor • Rede Amor a 2 • 2026
-          </p>
+          <AtalaiaFooterSignature />
         </div>
       </div>
     </div>
