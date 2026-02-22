@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,73 +6,73 @@
 
 @layer base {
   :root {
-    --background: 350 20% 12%;
-    --foreground: 40 10% 95%;
+    --background: 210 47% 15%;
+    --foreground: 34 47% 93%;
 
-    --card: 348 18% 16%;
-    --card-foreground: 40 10% 95%;
+    --card: 210 40% 18%;
+    --card-foreground: 34 47% 93%;
 
-    --popover: 350 18% 14%;
-    --popover-foreground: 40 10% 95%;
+    --popover: 210 42% 16%;
+    --popover-foreground: 34 47% 93%;
 
-    --primary: 34 55% 50%;
-    --primary-foreground: 350 20% 10%;
+    --primary: 39 47% 56%;
+    --primary-foreground: 210 47% 12%;
 
-    --secondary: 348 14% 19%;
-    --secondary-foreground: 40 6% 72%;
+    --secondary: 210 30% 22%;
+    --secondary-foreground: 34 20% 72%;
 
-    --muted: 348 14% 19%;
-    --muted-foreground: 40 4% 62%;
+    --muted: 210 30% 22%;
+    --muted-foreground: 34 12% 62%;
 
-    --accent: 34 22% 20%;
-    --accent-foreground: 34 55% 55%;
+    --accent: 39 22% 22%;
+    --accent-foreground: 39 47% 58%;
 
     --destructive: 0 45% 42%;
-    --destructive-foreground: 40 10% 95%;
+    --destructive-foreground: 34 47% 93%;
 
     --success: 158 40% 38%;
-    --success-foreground: 40 10% 95%;
+    --success-foreground: 34 47% 93%;
 
     --warning: 40 65% 52%;
-    --warning-foreground: 350 20% 10%;
+    --warning-foreground: 210 47% 12%;
 
-    --border: 348 12% 22%;
-    --input: 348 12% 22%;
-    --ring: 34 55% 50%;
+    --border: 210 25% 24%;
+    --input: 210 25% 24%;
+    --ring: 39 47% 56%;
 
     --radius: 0.75rem;
 
-    --sidebar-background: 350 20% 13%;
-    --sidebar-foreground: 40 10% 95%;
-    --sidebar-primary: 34 55% 50%;
-    --sidebar-primary-foreground: 350 20% 10%;
-    --sidebar-accent: 348 18% 18%;
-    --sidebar-accent-foreground: 40 10% 95%;
-    --sidebar-border: 348 12% 19%;
-    --sidebar-ring: 34 55% 50%;
+    --sidebar-background: 210 47% 16%;
+    --sidebar-foreground: 34 47% 93%;
+    --sidebar-primary: 39 47% 56%;
+    --sidebar-primary-foreground: 210 47% 12%;
+    --sidebar-accent: 210 35% 20%;
+    --sidebar-accent-foreground: 34 47% 93%;
+    --sidebar-border: 210 25% 21%;
+    --sidebar-ring: 39 47% 56%;
   }
 
   .theme-amor {
-    --background: 30 20% 96%;
-    --foreground: 18 12% 15%;
+    --background: 34 47% 93%;
+    --foreground: 210 47% 20%;
 
-    --card: 30 18% 99%;
-    --card-foreground: 18 12% 15%;
+    --card: 34 30% 97%;
+    --card-foreground: 210 47% 20%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 18 12% 15%;
+    --popover-foreground: 210 47% 20%;
 
-    --primary: 348 40% 48%;
+    --primary: 39 47% 56%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 28 14% 91%;
-    --secondary-foreground: 18 12% 32%;
+    --secondary: 34 20% 88%;
+    --secondary-foreground: 210 30% 32%;
 
-    --muted: 28 10% 91%;
-    --muted-foreground: 18 8% 42%;
+    --muted: 34 14% 88%;
+    --muted-foreground: 210 15% 42%;
 
-    --accent: 348 20% 92%;
-    --accent-foreground: 348 40% 42%;
+    --accent: 39 20% 90%;
+    --accent-foreground: 39 47% 42%;
 
     --destructive: 0 48% 45%;
     --destructive-foreground: 0 0% 100%;
@@ -81,30 +81,30 @@
     --success-foreground: 0 0% 100%;
 
     --warning: 36 60% 52%;
-    --warning-foreground: 18 12% 15%;
+    --warning-foreground: 210 47% 20%;
 
-    --border: 28 12% 87%;
-    --input: 28 12% 87%;
-    --ring: 348 40% 48%;
+    --border: 34 18% 85%;
+    --input: 34 18% 85%;
+    --ring: 39 47% 56%;
 
-    --sidebar-background: 348 16% 95%;
-    --sidebar-foreground: 18 12% 15%;
-    --sidebar-primary: 348 40% 48%;
+    --sidebar-background: 34 25% 92%;
+    --sidebar-foreground: 210 47% 20%;
+    --sidebar-primary: 39 47% 56%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 348 20% 89%;
-    --sidebar-accent-foreground: 18 12% 15%;
-    --sidebar-border: 28 12% 87%;
-    --sidebar-ring: 348 40% 48%;
+    --sidebar-accent: 39 20% 87%;
+    --sidebar-accent-foreground: 210 47% 20%;
+    --sidebar-border: 34 18% 85%;
+    --sidebar-ring: 39 47% 56%;
   }
 
   /* Fix input visibility on Home page for Tema Amor */
   .theme-amor .theme-amor-input {
-    background: hsl(28 12% 92%) !important;
-    color: hsl(18 12% 15%) !important;
-    border-color: hsl(28 12% 82%) !important;
+    background: hsl(34 20% 90%) !important;
+    color: hsl(210 47% 20%) !important;
+    border-color: hsl(34 18% 80%) !important;
   }
   .theme-amor .theme-amor-input::placeholder {
-    color: hsl(18 8% 55%) !important;
+    color: hsl(210 15% 55%) !important;
   }
 }
 
@@ -121,10 +121,10 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'DM Serif Display', 'Poppins', serif;
+    font-family: 'Outfit', 'Inter', sans-serif;
     line-height: 1.2;
     letter-spacing: -0.01em;
-    font-weight: 400;
+    font-weight: 600;
   }
 }
 
