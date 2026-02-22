@@ -299,6 +299,15 @@ export default function MaterialInstitucional() {
             <Button
               variant="ghost"
               size="sm"
+              onClick={() => navigate('/testemunho')}
+              className="rounded-full px-5"
+              style={{ background: 'rgba(201,162,77,0.1)', color: '#C9A24D', border: '1px solid rgba(201,162,77,0.2)' }}
+            >
+              <Eye className="h-4 w-4 mr-2" /> Testemunho ATALAIA
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => navigate('/manual-lider')}
               className="rounded-full px-5"
               style={{ background: 'rgba(201,162,77,0.1)', color: '#C9A24D', border: '1px solid rgba(201,162,77,0.2)' }}
@@ -315,7 +324,7 @@ export default function MaterialInstitucional() {
               <HelpCircle className="h-4 w-4 mr-2" /> Ver Perguntas Frequentes (FAQ)
             </Button>
             <p className="text-xs" style={{ color: '#B8B6B3' }}>
-              Igreja do Amor • Rede Amor a 2 • 2026
+              Igreja do Amor • Rede Amor a 2 • ATALAIA • 2026
             </p>
           </div>
         </Section>
