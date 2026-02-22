@@ -3,7 +3,8 @@ import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { moduleIcons, roleIcons, actionIcons, themeIcons, roleLabels } from '@/lib/icons';
 import { Eye, LogOut, FlaskConical, PlayCircle } from 'lucide-react';
 import logoIgreja from '@/assets/logo-igreja-do-amor-new.png';
-import logoRedeAmor from '@/assets/logo-rede-amor-a2.png';
+import logoRedeAmor from '@/assets/logo-amor-a-dois-new.png';
+import { AtalaiaIcon } from '@/components/institutional/AtalaiaLogoHeader';
 import { useRole } from '@/contexts/RoleContext';
 import { useDemoMode } from '@/contexts/DemoModeContext';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -71,10 +72,12 @@ export function AppSidebar() {
     <>
       <Sidebar>
         <SidebarHeader className="border-b border-sidebar-border/50 p-5">
-          <div className="flex items-center gap-3">
-            <img src={logoIgreja} alt="Igreja do Amor" className="h-10 w-auto object-contain" />
-            <div className="h-6 w-px bg-sidebar-border/50" />
-            <img src={logoRedeAmor} alt="Rede Amor a Dois" className="h-10 w-auto object-contain" />
+          <div className="flex items-center gap-2 flex-wrap">
+            <AtalaiaIcon className="h-8 w-auto" />
+            <div className="h-6 w-px bg-sidebar-border/30" />
+            <img src={logoIgreja} alt="Igreja do Amor" className="h-8 w-auto object-contain" />
+            <div className="h-6 w-px bg-sidebar-border/30" />
+            <img src={logoRedeAmor} alt="Rede Amor a Dois" className="h-8 w-auto object-contain" />
           </div>
         </SidebarHeader>
 
