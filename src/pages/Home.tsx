@@ -126,37 +126,53 @@ export default function HomePage() {
       />
 
       <div className="relative z-10 w-full max-w-md px-5 py-8 flex flex-col items-center">
-        {/* Logo — fade-in */}
-        <div className="mb-6 flex flex-col items-center opacity-0 animate-fade-in">
+        {/* Institutional header: Atalaia + Rede Amor a 2 */}
+        <div className="mb-5 flex items-center justify-center gap-5 opacity-0 animate-fade-in">
+          {/* Atalaia icon */}
+          <div className="flex flex-col items-center gap-1">
+            <svg width="56" height="56" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M30 80C30 80 35 45 50 20C65 45 70 80 70 80" stroke="#C9A24D" strokeWidth="6" strokeLinecap="round"/>
+              <path d="M40 65C45 62 55 62 60 65" stroke="#C9A24D" strokeWidth="4" strokeLinecap="round"/>
+              <circle cx="50" cy="15" r="5" fill="#C9A24D" />
+            </svg>
+            <span className="text-[10px] font-semibold tracking-[0.2em] uppercase" style={{ color: '#C9A24D', fontFamily: "'Inter', sans-serif" }}>
+              ATALAIA
+            </span>
+          </div>
+
+          {/* Divider */}
+          <div className="h-14 w-px" style={{ background: 'rgba(201,162,77,0.25)' }} />
+
+          {/* Rede Amor a 2 logo */}
           <img
             src={logoRedeAmor}
             alt="Rede Amor a 2"
-            className="h-28 w-28 rounded-full object-cover shadow-2xl ring-2 ring-[#C9A24D]/30"
+            className="h-16 w-16 rounded-full object-cover shadow-lg ring-1 ring-[#C9A24D]/20"
           />
         </div>
 
-        {/* Welcome text — staggered */}
+        {/* Title — staggered */}
         <div className="text-center mb-8 opacity-0 animate-fade-in-up stagger-2">
           <h1
-            className="text-2xl sm:text-3xl mb-2"
+            className="text-xl sm:text-2xl mb-2"
             style={{
               fontFamily: "'DM Serif Display', serif",
               color: '#F6F4F1',
               letterSpacing: '-0.01em',
-              lineHeight: 1.2,
+              lineHeight: 1.3,
             }}
           >
-            Bem-vindo à Rede Amor a 2
+            Atalaia — a serviço da Rede Amor a Dois
           </h1>
           <p
-            className="text-sm sm:text-base max-w-xs mx-auto"
+            className="text-xs sm:text-sm max-w-xs mx-auto"
             style={{
               color: '#B8B6B3',
               fontFamily: "'Inter', sans-serif",
               lineHeight: 1.6,
             }}
           >
-            Uma ferramenta para servir, cuidar e organizar vidas no Reino.
+            Cuidando da saúde espiritual, organizacional e pastoral da rede
           </p>
         </div>
 
