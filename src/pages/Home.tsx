@@ -101,27 +101,27 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden" style={{ background: 'linear-gradient(160deg, #0e0e10 0%, #1a0a0b 40%, #121212 100%)' }}>
+    <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden" style={{ background: 'linear-gradient(160deg, #0f1a2b 0%, #1A2F4B 40%, #0f1a2b 100%)' }}>
       {/* Theme toggle */}
       <button
         onClick={toggleTheme}
         className="absolute top-4 right-4 z-20 flex items-center gap-2 px-3.5 py-2 rounded-full text-xs font-medium transition-colors"
-        style={{ background: 'rgba(201,162,77,0.1)', color: '#B8B6B3', border: '1px solid rgba(201,162,77,0.15)' }}
+        style={{ background: 'rgba(197,160,89,0.1)', color: '#B8B6B3', border: '1px solid rgba(197,160,89,0.15)' }}
       >
-        <ThemeIcon className="h-4 w-4" style={{ color: '#C9A24D' }} />
+        <ThemeIcon className="h-4 w-4" style={{ color: '#C5A059' }} />
         {theme === 'padrao' ? 'Tema Padrão' : 'Tema Amor'}
       </button>
       {/* Subtle radial glow */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
-          background: 'radial-gradient(ellipse at 50% 20%, rgba(140,15,20,0.18) 0%, transparent 60%)',
+          background: 'radial-gradient(ellipse at 50% 20%, rgba(197,160,89,0.12) 0%, transparent 60%)',
         }}
       />
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
-          background: 'radial-gradient(ellipse at 50% 80%, rgba(201,162,77,0.06) 0%, transparent 50%)',
+          background: 'radial-gradient(ellipse at 50% 80%, rgba(197,160,89,0.06) 0%, transparent 50%)',
         }}
       />
 
@@ -131,23 +131,23 @@ export default function HomePage() {
           {/* Atalaia icon */}
           <div className="flex flex-col items-center gap-1">
             <svg width="56" height="56" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M30 80C30 80 35 45 50 20C65 45 70 80 70 80" stroke="#C9A24D" strokeWidth="6" strokeLinecap="round"/>
-              <path d="M40 65C45 62 55 62 60 65" stroke="#C9A24D" strokeWidth="4" strokeLinecap="round"/>
-              <circle cx="50" cy="15" r="5" fill="#C9A24D" />
+              <path d="M30 80C30 80 35 45 50 20C65 45 70 80 70 80" stroke="#C5A059" strokeWidth="6" strokeLinecap="round"/>
+              <path d="M40 65C45 62 55 62 60 65" stroke="#C5A059" strokeWidth="4" strokeLinecap="round"/>
+              <circle cx="50" cy="15" r="5" fill="#C5A059" />
             </svg>
-            <span className="text-[10px] font-semibold tracking-[0.2em] uppercase" style={{ color: '#C9A24D', fontFamily: "'Inter', sans-serif" }}>
+            <span className="text-[10px] font-semibold tracking-[0.2em] uppercase" style={{ color: '#C5A059', fontFamily: "'Outfit', sans-serif" }}>
               ATALAIA
             </span>
           </div>
 
           {/* Divider */}
-          <div className="h-14 w-px" style={{ background: 'rgba(201,162,77,0.25)' }} />
+          <div className="h-14 w-px" style={{ background: 'rgba(197,160,89,0.25)' }} />
 
           {/* Rede Amor a 2 logo */}
           <img
             src={logoRedeAmor}
             alt="Rede Amor a 2"
-            className="h-16 w-16 rounded-full object-cover shadow-lg ring-1 ring-[#C9A24D]/20"
+            className="h-16 w-16 rounded-full object-cover shadow-lg ring-1 ring-[#C5A059]/20"
           />
         </div>
 
@@ -156,8 +156,9 @@ export default function HomePage() {
           <h1
             className="text-xl sm:text-2xl mb-2"
             style={{
-              fontFamily: "'DM Serif Display', serif",
-              color: '#F6F4F1',
+              fontFamily: "'Outfit', sans-serif",
+              color: '#F4EDE4',
+              fontWeight: 600,
               letterSpacing: '-0.01em',
               lineHeight: 1.3,
             }}
@@ -180,7 +181,7 @@ export default function HomePage() {
         <div
           className="w-full rounded-2xl p-6 sm:p-8 opacity-0 animate-slide-up stagger-3 bg-card border border-border"
           style={{
-            boxShadow: '0 16px 48px rgba(0,0,0,0.5), 0 0 0 1px rgba(201,162,77,0.06)',
+            boxShadow: '0 16px 48px rgba(0,0,0,0.5), 0 0 0 1px rgba(197,160,89,0.06)',
           }}
         >
           <div className="text-center mb-6">
@@ -200,14 +201,14 @@ export default function HomePage() {
               <Label
                 htmlFor="access-code"
                 className="text-xs font-medium uppercase tracking-widest"
-                style={{ color: '#C9A24D', fontFamily: "'Inter', sans-serif" }}
+                style={{ color: '#C5A059', fontFamily: "'Inter', sans-serif" }}
               >
                 Código de Acesso
               </Label>
               <div className="relative">
                 <LockIcon
                   className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4"
-                  style={{ color: '#C9A24D' }}
+                  style={{ color: '#C5A059' }}
                 />
                 <Input
                   id="access-code"
@@ -221,11 +222,11 @@ export default function HomePage() {
                   className="pl-10 h-12 text-base border-0 focus-visible:ring-1 theme-amor-input"
                   style={{
                     background: 'rgba(255,255,255,0.08)',
-                    color: '#F6F4F1',
+                    color: '#F4EDE4',
                     borderRadius: '12px',
                     border: error
                       ? '1px solid #D32F2F'
-                      : '1px solid rgba(201,162,77,0.25)',
+                      : '1px solid rgba(197,160,89,0.25)',
                     fontFamily: "'Inter', sans-serif",
                   }}
                   autoFocus
@@ -257,12 +258,12 @@ export default function HomePage() {
               style={{
                 background: !code.trim() || isLoading
                   ? '#B8B6B3'
-                  : 'linear-gradient(135deg, #C9A24D 0%, #D4B366 100%)',
-                color: '#121212',
+                  : 'linear-gradient(135deg, #C5A059 0%, #D4B366 100%)',
+                color: '#1A2F4B',
                 borderRadius: '12px',
                 fontFamily: "'Inter', sans-serif",
                 boxShadow: code.trim() && !isLoading
-                  ? '0 4px 20px rgba(201,162,77,0.25)'
+                  ? '0 4px 20px rgba(197,160,89,0.25)'
                   : 'none',
                 transition: 'all 0.2s ease-out',
               }}
@@ -282,7 +283,7 @@ export default function HomePage() {
           <button
             onClick={() => navigate('/material')}
             className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-medium transition-colors"
-            style={{ background: 'rgba(201,162,77,0.1)', color: '#C9A24D', border: '1px solid rgba(201,162,77,0.2)' }}
+            style={{ background: 'rgba(197,160,89,0.1)', color: '#C5A059', border: '1px solid rgba(197,160,89,0.2)' }}
           >
             <BookOpen className="h-3.5 w-3.5" />
             Material Institucional
@@ -290,7 +291,7 @@ export default function HomePage() {
           <button
             onClick={() => navigate('/manual-lider')}
             className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-medium transition-colors"
-            style={{ background: 'rgba(201,162,77,0.1)', color: '#C9A24D', border: '1px solid rgba(201,162,77,0.2)' }}
+            style={{ background: 'rgba(197,160,89,0.1)', color: '#C5A059', border: '1px solid rgba(197,160,89,0.2)' }}
           >
             <ClipboardList className="h-3.5 w-3.5" />
             Manual do Líder
@@ -298,7 +299,7 @@ export default function HomePage() {
           <button
             onClick={() => navigate('/faq')}
             className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-medium transition-colors"
-            style={{ background: 'rgba(201,162,77,0.1)', color: '#C9A24D', border: '1px solid rgba(201,162,77,0.2)' }}
+            style={{ background: 'rgba(197,160,89,0.1)', color: '#C5A059', border: '1px solid rgba(197,160,89,0.2)' }}
           >
             <HelpCircle className="h-3.5 w-3.5" />
             Perguntas Frequentes
@@ -319,8 +320,8 @@ export default function HomePage() {
           <p
             className="text-xs italic"
             style={{
-              color: 'rgba(201,162,77,0.5)',
-              fontFamily: "'DM Serif Display', serif",
+              color: 'rgba(197,160,89,0.5)',
+              fontFamily: "'Outfit', sans-serif",
             }}
           >
             "Tudo seja feito com decência e ordem."
