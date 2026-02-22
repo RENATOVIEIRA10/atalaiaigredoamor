@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle
 } from '@/components/ui/sheet';
-import { GitBranch, Settings, Network, FolderTree, LogOut, Moon, Heart, Eye, Home, FlaskConical, FileText, Activity, RefreshCw } from 'lucide-react';
+import { GitBranch, Settings, Network, FolderTree, LogOut, Moon, Heart, Eye, Home, FlaskConical, FileText, Activity, RefreshCw, PlayCircle } from 'lucide-react';
 import { useServiceWorkerUpdate } from '@/hooks/useServiceWorkerUpdate';
 import { useRole } from '@/contexts/RoleContext';
 import { useDemoMode } from '@/contexts/DemoModeContext';
@@ -99,6 +99,8 @@ export function MobileMenuSheet({ open, onOpenChange }: MobileMenuSheetProps) {
             </>
           )}
 
+          <div className="border-t border-border/30 my-2" />
+          <MenuButton icon={PlayCircle} label="Manual do Usuário" onClick={() => goTo('/manual-usuario')} />
           <div className="border-t border-border/30 my-2" />
 
           {(isAdmin || isDemoActive) && (
