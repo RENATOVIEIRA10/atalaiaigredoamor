@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AlertCircle, Loader2, Lock as LockIcon, BookOpen, HelpCircle, ClipboardList, PlayCircle } from 'lucide-react';
 import { actionIcons } from '@/lib/icons';
-import logoRedeAmor from '@/assets/logo-rede-amor-a2.png';
+import logoRedeAmor from '@/assets/logo-amor-a-dois-new.png';
 import logoIgrejaDoAmor from '@/assets/logo-igreja-do-amor-new.png';
 import logoAnoSantidade from '@/assets/logo-ano-santidade.png';
 import { supabase } from '@/integrations/supabase/client';
