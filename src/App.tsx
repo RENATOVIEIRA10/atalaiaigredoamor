@@ -33,6 +33,7 @@ const FerramentasTeste = lazy(() => import("./pages/FerramentasTeste"));
 const MaterialInstitucional = lazy(() => import("./pages/MaterialInstitucional"));
 const FaqInstitucional = lazy(() => import("./pages/FaqInstitucional"));
 const ManualLiderCelula = lazy(() => import("./pages/ManualLiderCelula"));
+const TestemunhoAtalaia = lazy(() => import("./pages/TestemunhoAtalaia"));
 
 const queryClient = new QueryClient();
 
@@ -67,6 +68,7 @@ function AppInner() {
           <Route path="/material" element={<MaterialInstitucional />} />
           <Route path="/faq" element={<FaqInstitucional />} />
           <Route path="/manual-lider" element={<ManualLiderCelula />} />
+          <Route path="/testemunho" element={<TestemunhoAtalaia />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
