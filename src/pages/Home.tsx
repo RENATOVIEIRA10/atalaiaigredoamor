@@ -6,7 +6,7 @@ import { themeIcons } from '@/lib/icons';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { AlertCircle, Loader2, Lock as LockIcon, BookOpen, HelpCircle, ClipboardList } from 'lucide-react';
+import { AlertCircle, Loader2, Lock as LockIcon, BookOpen, HelpCircle, ClipboardList, PlayCircle } from 'lucide-react';
 import { actionIcons } from '@/lib/icons';
 import logoRedeAmor from '@/assets/logo-rede-amor-a2.png';
 import logoAnoSantidade from '@/assets/logo-ano-santidade.png';
@@ -295,6 +295,14 @@ export default function HomePage() {
           >
             <ClipboardList className="h-3.5 w-3.5" />
             Manual do Líder
+          </button>
+          <button
+            onClick={() => navigate('/manual-usuario')}
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-medium transition-colors"
+            style={{ background: 'rgba(197,160,89,0.1)', color: '#C5A059', border: '1px solid rgba(197,160,89,0.2)' }}
+          >
+            <PlayCircle className="h-3.5 w-3.5" />
+            Manual do Usuário
           </button>
           <button
             onClick={() => navigate('/faq')}
