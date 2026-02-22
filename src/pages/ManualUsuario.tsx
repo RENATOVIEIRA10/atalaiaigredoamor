@@ -1,5 +1,7 @@
 import { useRef, useState } from 'react';
 import { AtalaiaLogoHeader, AtalaiaFooterSignature } from '@/components/institutional/AtalaiaLogoHeader';
+import videoRelatorio from '@/assets/manual/video-relatorio.mp4';
+import videoMembro from '@/assets/manual/video-membro.mp4';
 import {
   ArrowLeft, Printer, Play, Send, UserPlus, CheckSquare,
   Heart, Headphones, MessageCircle, ClipboardList, Smartphone,
@@ -17,8 +19,8 @@ const textMuted = '#B8B6B3';
 const headingFont = "'Outfit', sans-serif";
 
 /* ── Video placeholder URLs (replace with real URLs) ── */
-const VIDEO_RELATORIO = '';
-const VIDEO_MEMBRO = '';
+const VIDEO_RELATORIO = videoRelatorio;
+const VIDEO_MEMBRO = videoMembro;
 
 /* ── Reusable pieces ── */
 
@@ -106,6 +108,7 @@ function VideoEmbed({ src, title }: { src: string; title: string }) {
         ref={videoRef}
         src={src}
         controls
+        muted
         controlsList="nodownload"
         className="w-full"
         playsInline
