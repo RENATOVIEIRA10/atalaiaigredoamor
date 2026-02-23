@@ -264,7 +264,7 @@ function EncaminharForm({ novaVidaId, novaVidaNome, bairro, cidade, onSuccess }:
       <div className="grid grid-cols-3 gap-2">
         <Input placeholder="Bairro" value={filterBairro} onChange={e => setFilterBairro(e.target.value)} className="bg-white/5 border-white/10 text-[#F4EDE4] text-xs h-9" />
         <Input placeholder="Cidade" value={filterCidade} onChange={e => setFilterCidade(e.target.value)} className="bg-white/5 border-white/10 text-[#F4EDE4] text-xs h-9" />
-        <Select value={filterRedeId} onValueChange={setFilterRedeId}>
+        <Select value={filterRedeId} onValueChange={v => setFilterRedeId(v === 'all' ? '' : v)}>
           <SelectTrigger className="bg-white/5 border-white/10 text-[#F4EDE4] text-xs h-9"><SelectValue placeholder="Todas redes" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas as redes</SelectItem>
