@@ -28,6 +28,7 @@ import { PastoralGrowthCharts } from './PastoralGrowthCharts';
 import { MissionVerse } from './MissionVerse';
 import { RadarSaudePanel } from './RadarSaudePanel';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { RecomecoPastorTab } from './recomeco/RecomecoPastorTab';
 
 export function PastorDashboard() {
   const { data: stats, isLoading: statsLoading } = usePastoralStats();
@@ -413,6 +414,12 @@ export function PastorDashboard() {
             </CardContent>
           </Card>
         )}
+      </section>
+
+      {/* Recomeço — Caminho das Novas Vidas */}
+      <section>
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">🕊️ Recomeço — Caminho das Novas Vidas</h2>
+        <RecomecoPastorTab />
       </section>
 
       {/* Evolução Temporal */}
