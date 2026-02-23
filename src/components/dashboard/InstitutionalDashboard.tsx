@@ -92,11 +92,11 @@ function MockStat({ icon: Icon, label, value, color = 'text-primary' }: {
 
 function StepIntro({ onNext }: { onNext: () => void }) {
   const hierarchy = [
-    { icon: Users, label: 'Líder de Célula', color: 'bg-emerald-500' },
-    { icon: Shield, label: 'Supervisor', color: 'bg-blue-500' },
-    { icon: ClipboardCheck, label: 'Coordenador', color: 'bg-violet-500' },
-    { icon: Network, label: 'Líder de Rede', color: 'bg-amber-500' },
     { icon: Church, label: 'Pastores', color: 'bg-primary' },
+    { icon: Network, label: 'Líder de Rede', color: 'bg-amber-500' },
+    { icon: ClipboardCheck, label: 'Coordenador', color: 'bg-violet-500' },
+    { icon: Shield, label: 'Supervisor', color: 'bg-blue-500' },
+    { icon: Users, label: 'Líder de Célula', color: 'bg-emerald-500' },
   ];
 
   return (
