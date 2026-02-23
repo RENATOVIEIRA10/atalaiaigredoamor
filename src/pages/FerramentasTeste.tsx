@@ -99,6 +99,8 @@ function SeedRunCard({ run, onSelect, isSelected }: { run: SeedRun; onSelect: ()
             {totals.reports && <span>📋 {totals.reports} relatórios</span>}
             {totals.supervisoes && <span>🔍 {totals.supervisoes} supervisões</span>}
             {totals.multiplicacoes && <span>🌱 {totals.multiplicacoes} multiplicações</span>}
+            {totals.novas_vidas && <span>🕊️ {totals.novas_vidas} novas vidas</span>}
+            {totals.encaminhamentos && <span>📍 {totals.encaminhamentos} encaminhamentos</span>}
           </div>
         )}
         {isSelected && (
@@ -250,6 +252,7 @@ function CleanupDialog({
               <li>• Supervisões de teste</li>
               <li>• Multiplicações e células destino de teste</li>
               <li>• Perfis de membros sintéticos</li>
+              <li>• Novas Vidas e Encaminhamentos (Recomeço)</li>
             </ul>
           </div>
 
@@ -400,10 +403,12 @@ function SeedActionPanel({ seedRun, onCleanup }: { seedRun: SeedRun; onCleanup: 
   const estimatedReports = celulaCount * weekCount;
 
   const SEED_ACTIONS = [
-    { action: 'seed_members', label: '👥 Gerar Membros + Marcos', desc: `7 membros fictícios por célula (≈${estimatedMembers})`, needsPeriod: false },
+    { action: 'seed_members', label: '👥 Gerar Membros + Marcos', desc: `7 membros por célula com endereço real (≈${estimatedMembers})`, needsPeriod: false },
     { action: 'seed_reports', label: '📋 Gerar Relatórios Semanais', desc: `1 por semana por célula (≈${estimatedReports})`, needsPeriod: true },
-    { action: 'seed_supervisoes', label: '🔍 Gerar Supervisões', desc: 'Mínimo 2 por supervisor no período', needsPeriod: true },
+    { action: 'seed_supervisoes', label: '🔍 Gerar Supervisões', desc: 'Mínimo 2-3 por supervisor no período', needsPeriod: true },
     { action: 'seed_multiplicacoes', label: '🌱 Gerar Multiplicações', desc: '~20% das células multiplicam', needsPeriod: true },
+    { action: 'seed_novas_vidas', label: '🕊️ Gerar Novas Vidas (Recomeço)', desc: '30 visitantes com endereço Olinda/Paulista', needsPeriod: false },
+    { action: 'seed_encaminhamentos', label: '📍 Gerar Encaminhamentos', desc: 'Encaminha novas vidas para células cross-rede', needsPeriod: false },
   ];
 
   const run = async (action: string, label: string, needsPeriod: boolean) => {
