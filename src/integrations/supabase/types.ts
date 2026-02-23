@@ -833,6 +833,109 @@ export type Database = {
           },
         ]
       }
+      roteiro_itens: {
+        Row: {
+          created_at: string
+          id: string
+          observacao: string | null
+          responsavel_membro_id: string | null
+          responsavel_nome: string | null
+          roteiro_id: string
+          tipo: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          observacao?: string | null
+          responsavel_membro_id?: string | null
+          responsavel_nome?: string | null
+          roteiro_id: string
+          tipo: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          observacao?: string | null
+          responsavel_membro_id?: string | null
+          responsavel_nome?: string | null
+          roteiro_id?: string
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "roteiro_itens_responsavel_membro_id_fkey"
+            columns: ["responsavel_membro_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "roteiro_itens_roteiro_id_fkey"
+            columns: ["roteiro_id"]
+            isOneToOne: false
+            referencedRelation: "roteiros_celula"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      roteiros_celula: {
+        Row: {
+          celula_id: string
+          created_at: string
+          criado_por: string | null
+          data_reuniao: string
+          id: string
+          rede_id: string | null
+          semana_inicio: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          celula_id: string
+          created_at?: string
+          criado_por?: string | null
+          data_reuniao: string
+          id?: string
+          rede_id?: string | null
+          semana_inicio: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          celula_id?: string
+          created_at?: string
+          criado_por?: string | null
+          data_reuniao?: string
+          id?: string
+          rede_id?: string | null
+          semana_inicio?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "roteiros_celula_celula_id_fkey"
+            columns: ["celula_id"]
+            isOneToOne: false
+            referencedRelation: "celulas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "roteiros_celula_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "roteiros_celula_rede_id_fkey"
+            columns: ["rede_id"]
+            isOneToOne: false
+            referencedRelation: "redes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       seed_runs: {
         Row: {
           cleaned_at: string | null
