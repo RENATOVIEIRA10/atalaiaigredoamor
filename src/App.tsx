@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { RoleProvider } from "@/contexts/RoleContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { DemoModeProvider } from "@/contexts/DemoModeContext";
+import { RedeProvider } from "@/contexts/RedeContext";
 import { RoleProtectedRoute } from "@/components/RoleProtectedRoute";
 import { DemoModeBanner } from "@/components/demo/DemoModeBanner";
 import { UpdateBanner } from "@/components/pwa/UpdateBanner";
@@ -86,9 +87,11 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <RoleProvider>
-            <DemoModeProvider>
-              <AppInner />
-            </DemoModeProvider>
+            <RedeProvider>
+              <DemoModeProvider>
+                <AppInner />
+              </DemoModeProvider>
+            </RedeProvider>
           </RoleProvider>
         </BrowserRouter>
       </TooltipProvider>
