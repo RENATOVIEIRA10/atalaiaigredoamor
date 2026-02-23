@@ -36,6 +36,7 @@ const FaqInstitucional = lazy(() => import("./pages/FaqInstitucional"));
 const ManualLiderCelula = lazy(() => import("./pages/ManualLiderCelula"));
 const ManualUsuario = lazy(() => import("./pages/ManualUsuario"));
 const TestemunhoAtalaia = lazy(() => import("./pages/TestemunhoAtalaia"));
+const Recomeco = lazy(() => import("./pages/Recomeco"));
 
 const queryClient = new QueryClient();
 
@@ -67,6 +68,7 @@ function AppInner() {
           <Route path="/perfil/casal/:coupleId" element={<RoleProtectedRoute><PerfilCasal /></RoleProtectedRoute>} />
           <Route path="/perfil/membro/:memberId" element={<RoleProtectedRoute><PerfilMembro /></RoleProtectedRoute>} />
           <Route path="/ferramentas-teste" element={<RoleProtectedRoute><FerramentasTeste /></RoleProtectedRoute>} />
+          <Route path="/recomeco" element={<RoleProtectedRoute><Recomeco /></RoleProtectedRoute>} />
           <Route path="/material" element={<MaterialInstitucional />} />
           <Route path="/faq" element={<FaqInstitucional />} />
           <Route path="/manual-lider" element={<ManualLiderCelula />} />

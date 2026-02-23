@@ -96,7 +96,15 @@ export default function HomePage() {
         });
       } catch (_) { /* silent */ }
 
-      const scopeType = match.scope_type as 'pastor' | 'admin' | 'rede' | 'coordenacao' | 'supervisor' | 'celula' | 'demo_institucional';
+      const scopeType = match.scope_type as 'pastor' | 'admin' | 'rede' | 'coordenacao' | 'supervisor' | 'celula' | 'demo_institucional' | 'recomeco_operador' | 'recomeco_leitura';
+
+      // Recomeco scopes go directly to /recomeco
+      if (scopeType === 'recomeco_operador' || scopeType === 'recomeco_leitura') {
+        setScopeAccess(scopeType, match.scope_id, match.id);
+        navigate('/recomeco');
+        setIsLoading(false);
+        return;
+      }
 
       // Pastor/admin can pick any rede; others auto-set from access_key.rede_id
       if (scopeType === 'pastor' || scopeType === 'admin') {
