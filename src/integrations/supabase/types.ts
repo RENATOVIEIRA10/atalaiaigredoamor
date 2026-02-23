@@ -363,36 +363,48 @@ export type Database = {
       encaminhamentos_recomeco: {
         Row: {
           celula_id: string
+          contatado_at: string | null
           created_at: string
           data_encaminhamento: string
           encaminhado_por: string | null
           id: string
+          integrado_at: string | null
+          membro_id: string | null
           notas: string | null
           nova_vida_id: string
+          promovido_membro_at: string | null
           rede_id: string | null
           status: string
           updated_at: string
         }
         Insert: {
           celula_id: string
+          contatado_at?: string | null
           created_at?: string
           data_encaminhamento?: string
           encaminhado_por?: string | null
           id?: string
+          integrado_at?: string | null
+          membro_id?: string | null
           notas?: string | null
           nova_vida_id: string
+          promovido_membro_at?: string | null
           rede_id?: string | null
           status?: string
           updated_at?: string
         }
         Update: {
           celula_id?: string
+          contatado_at?: string | null
           created_at?: string
           data_encaminhamento?: string
           encaminhado_por?: string | null
           id?: string
+          integrado_at?: string | null
+          membro_id?: string | null
           notas?: string | null
           nova_vida_id?: string
+          promovido_membro_at?: string | null
           rede_id?: string | null
           status?: string
           updated_at?: string

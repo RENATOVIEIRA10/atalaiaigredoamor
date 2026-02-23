@@ -88,7 +88,10 @@ export function CellLeaderNovasVidasTab({ celulaId, celulaName, coupleNames }: C
   }
 
   async function handleStatusChange(encId: string, newStatus: string) {
-    updateEnc.mutate({ id: encId, status: newStatus } as any);
+    const extra: Record<string, any> = { status: newStatus };
+    if (newStatus === 'contatado') extra.contatado_at = new Date().toISOString();
+    if (newStatus === 'integrado') extra.integrado_at = new Date().toISOString();
+    updateEnc.mutate({ id: encId, ...extra } as any);
   }
 
   async function handleReturn(enc: any) {
@@ -144,10 +147,15 @@ export function CellLeaderNovasVidasTab({ celulaId, celulaName, coupleNames }: C
         whatsapp: normalizedWa,
       } as any);
 
-      // Update encaminhamento status
+      // Update encaminhamento status with audit fields
       await supabase
         .from('encaminhamentos_recomeco')
-        .update({ status: 'integrado' })
+        .update({
+          status: 'integrado',
+          integrado_at: new Date().toISOString(),
+          promovido_membro_at: new Date().toISOString(),
+          membro_id: profile.id,
+        })
         .eq('id', promoteTarget.id);
 
       // Update nova_vida status
