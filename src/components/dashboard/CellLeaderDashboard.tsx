@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, Users, Search, MapPin, Calendar, FileText, Heart, DoorOpen } from 'lucide-react';
+import { Loader2, Users, Search, MapPin, Calendar, FileText, Heart, DoorOpen, ClipboardList } from 'lucide-react';
 import { useCelulas } from '@/hooks/useCelulas';
 import { useEncaminhamentos } from '@/hooks/useEncaminhamentos';
 import { CelulaDetailsDialog } from './CelulaDetailsDialog';
@@ -14,6 +14,7 @@ import { useRole } from '@/contexts/RoleContext';
 import { CellLeaderMembrosTab } from './cellleader/CellLeaderMembrosTab';
 import { CellLeaderPulsoTab } from './cellleader/CellLeaderPulsoTab';
 import { CellLeaderNovasVidasTab } from './cellleader/CellLeaderNovasVidasTab';
+import { CellLeaderRoteiroTab } from './cellleader/CellLeaderRoteiroTab';
 import { StatCard } from '@/components/ui/stat-card';
 import { Badge } from '@/components/ui/badge';
 
@@ -39,16 +40,13 @@ export function CellLeaderDashboard() {
     return c.name.toLowerCase().includes(search.toLowerCase());
   });
 
-  // If leader has exactly one cell (scoped), show tabs with Membros
   const singleCell = scopeId ? userCelulas[0] : null;
 
-  // Count encaminhamentos for this cell
   const cellEncaminhamentos = singleCell
     ? (allEnc || []).filter(e => e.celula_id === singleCell.id && e.status !== 'devolvido')
     : [];
   const pendingNovasVidas = cellEncaminhamentos.filter(e => e.status === 'pendente').length;
 
-  // Get couple names for WhatsApp message
   const coupleNames = singleCell
     ? (celulas || []).find(c => c.id === singleCell.id)?.leadership_couple
       ? `${(celulas || []).find(c => c.id === singleCell.id)?.leadership_couple?.spouse1?.name} e ${(celulas || []).find(c => c.id === singleCell.id)?.leadership_couple?.spouse2?.name}`
@@ -66,9 +64,7 @@ export function CellLeaderDashboard() {
       <MissionVerse role="celula_leader" />
 
       {singleCell ? (
-        // Scoped leader: show tabs
         <>
-          {/* Stat card for novas vidas */}
           {cellEncaminhamentos.length > 0 && (
             <StatCard
               icon={DoorOpen}
@@ -78,8 +74,8 @@ export function CellLeaderDashboard() {
             />
           )}
 
-          <Tabs defaultValue={urlTab === 'novas-vidas' ? 'novas-vidas' : urlTab === 'pulso' ? 'pulso' : 'celula'} className="space-y-4">
-            <TabsList className="grid w-full grid-cols-4 h-auto p-1">
+          <Tabs defaultValue={urlTab === 'novas-vidas' ? 'novas-vidas' : urlTab === 'roteiro' ? 'roteiro' : urlTab === 'pulso' ? 'pulso' : 'celula'} className="space-y-4">
+            <TabsList className="grid w-full grid-cols-5 h-auto p-1">
               <TabsTrigger value="pulso" className="gap-1.5 py-2.5 text-xs sm:text-sm">
                 <Heart className="h-4 w-4" />
                 <span className="hidden sm:inline">Pulso</span>
@@ -91,6 +87,10 @@ export function CellLeaderDashboard() {
               <TabsTrigger value="membros" className="gap-1.5 py-2.5 text-xs sm:text-sm">
                 <Users className="h-4 w-4" />
                 <span className="hidden sm:inline">Membros</span>
+              </TabsTrigger>
+              <TabsTrigger value="roteiro" className="gap-1.5 py-2.5 text-xs sm:text-sm">
+                <ClipboardList className="h-4 w-4" />
+                <span className="hidden sm:inline">Roteiro</span>
               </TabsTrigger>
               <TabsTrigger value="novas-vidas" className="gap-1.5 py-2.5 text-xs sm:text-sm relative">
                 <DoorOpen className="h-4 w-4" />
@@ -151,13 +151,22 @@ export function CellLeaderDashboard() {
             <CellLeaderMembrosTab celulaId={singleCell.id} celulaName={singleCell.name} />
           </TabsContent>
 
+          <TabsContent value="roteiro">
+            <CellLeaderRoteiroTab
+              celulaId={singleCell.id}
+              celulaName={singleCell.name}
+              meetingDay={singleCell.meeting_day}
+              redeId={singleCell.rede_id}
+              coupleNames={coupleNames}
+            />
+          </TabsContent>
+
           <TabsContent value="novas-vidas">
             <CellLeaderNovasVidasTab celulaId={singleCell.id} celulaName={singleCell.name} coupleNames={coupleNames} />
           </TabsContent>
         </Tabs>
         </>
       ) : (
-        // Multiple cells or no scope: original layout
         <>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
