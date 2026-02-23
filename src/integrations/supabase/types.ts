@@ -23,6 +23,7 @@ export type Database = {
           failed_attempts: number | null
           id: string
           last_used_at: string | null
+          rede_id: string | null
           scope_id: string | null
           scope_type: string
         }
@@ -34,6 +35,7 @@ export type Database = {
           failed_attempts?: number | null
           id?: string
           last_used_at?: string | null
+          rede_id?: string | null
           scope_id?: string | null
           scope_type: string
         }
@@ -45,10 +47,19 @@ export type Database = {
           failed_attempts?: number | null
           id?: string
           last_used_at?: string | null
+          rede_id?: string | null
           scope_id?: string | null
           scope_type?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "access_keys_rede_id_fkey"
+            columns: ["rede_id"]
+            isOneToOne: false
+            referencedRelation: "redes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       access_logs: {
         Row: {
@@ -200,6 +211,7 @@ export type Database = {
           meeting_time: string | null
           name: string
           ordem: number | null
+          rede_id: string | null
           seed_run_id: string | null
           supervisor_id: string | null
           updated_at: string
@@ -221,6 +233,7 @@ export type Database = {
           meeting_time?: string | null
           name: string
           ordem?: number | null
+          rede_id?: string | null
           seed_run_id?: string | null
           supervisor_id?: string | null
           updated_at?: string
@@ -242,6 +255,7 @@ export type Database = {
           meeting_time?: string | null
           name?: string
           ordem?: number | null
+          rede_id?: string | null
           seed_run_id?: string | null
           supervisor_id?: string | null
           updated_at?: string
@@ -266,6 +280,13 @@ export type Database = {
             columns: ["leadership_couple_id"]
             isOneToOne: false
             referencedRelation: "leadership_couples"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "celulas_rede_id_fkey"
+            columns: ["rede_id"]
+            isOneToOne: false
+            referencedRelation: "redes"
             referencedColumns: ["id"]
           },
           {
@@ -424,6 +445,7 @@ export type Database = {
           is_test_data: boolean | null
           joined_at: string
           profile_id: string
+          rede_id: string | null
           renovo: boolean | null
           seed_run_id: string | null
           whatsapp: string | null
@@ -441,6 +463,7 @@ export type Database = {
           is_test_data?: boolean | null
           joined_at?: string
           profile_id: string
+          rede_id?: string | null
           renovo?: boolean | null
           seed_run_id?: string | null
           whatsapp?: string | null
@@ -458,6 +481,7 @@ export type Database = {
           is_test_data?: boolean | null
           joined_at?: string
           profile_id?: string
+          rede_id?: string | null
           renovo?: boolean | null
           seed_run_id?: string | null
           whatsapp?: string | null
@@ -478,6 +502,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "members_rede_id_fkey"
+            columns: ["rede_id"]
+            isOneToOne: false
+            referencedRelation: "redes"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "members_seed_run_id_fkey"
             columns: ["seed_run_id"]
             isOneToOne: false
@@ -495,6 +526,7 @@ export type Database = {
           id: string
           is_test_data: boolean | null
           notes: string | null
+          rede_id: string | null
           seed_run_id: string | null
           updated_at: string
         }
@@ -506,6 +538,7 @@ export type Database = {
           id?: string
           is_test_data?: boolean | null
           notes?: string | null
+          rede_id?: string | null
           seed_run_id?: string | null
           updated_at?: string
         }
@@ -517,6 +550,7 @@ export type Database = {
           id?: string
           is_test_data?: boolean | null
           notes?: string | null
+          rede_id?: string | null
           seed_run_id?: string | null
           updated_at?: string
         }
@@ -533,6 +567,13 @@ export type Database = {
             columns: ["celula_origem_id"]
             isOneToOne: false
             referencedRelation: "celulas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "multiplicacoes_rede_id_fkey"
+            columns: ["rede_id"]
+            isOneToOne: false
+            referencedRelation: "redes"
             referencedColumns: ["id"]
           },
           {
@@ -628,27 +669,36 @@ export type Database = {
       }
       redes: {
         Row: {
+          ativa: boolean
+          branding: Json | null
           created_at: string
           id: string
           leader_id: string | null
           leadership_couple_id: string | null
           name: string
+          slug: string | null
           updated_at: string
         }
         Insert: {
+          ativa?: boolean
+          branding?: Json | null
           created_at?: string
           id?: string
           leader_id?: string | null
           leadership_couple_id?: string | null
           name: string
+          slug?: string | null
           updated_at?: string
         }
         Update: {
+          ativa?: boolean
+          branding?: Json | null
           created_at?: string
           id?: string
           leader_id?: string | null
           leadership_couple_id?: string | null
           name?: string
+          slug?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -814,6 +864,7 @@ export type Database = {
           pontos_positivos: string | null
           pontualidade: boolean | null
           quebra_gelo: boolean | null
+          rede_id: string | null
           seed_run_id: string | null
           selfie: boolean | null
           supervisor_id: string
@@ -845,6 +896,7 @@ export type Database = {
           pontos_positivos?: string | null
           pontualidade?: boolean | null
           quebra_gelo?: boolean | null
+          rede_id?: string | null
           seed_run_id?: string | null
           selfie?: boolean | null
           supervisor_id: string
@@ -876,6 +928,7 @@ export type Database = {
           pontos_positivos?: string | null
           pontualidade?: boolean | null
           quebra_gelo?: boolean | null
+          rede_id?: string | null
           seed_run_id?: string | null
           selfie?: boolean | null
           supervisor_id?: string
@@ -887,6 +940,13 @@ export type Database = {
             columns: ["celula_id"]
             isOneToOne: false
             referencedRelation: "celulas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supervisoes_rede_id_fkey"
+            columns: ["rede_id"]
+            isOneToOne: false
+            referencedRelation: "redes"
             referencedColumns: ["id"]
           },
           {
@@ -913,6 +973,7 @@ export type Database = {
           leadership_couple_id: string | null
           ordem: number | null
           profile_id: string
+          rede_id: string | null
           updated_at: string
         }
         Insert: {
@@ -922,6 +983,7 @@ export type Database = {
           leadership_couple_id?: string | null
           ordem?: number | null
           profile_id: string
+          rede_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -931,6 +993,7 @@ export type Database = {
           leadership_couple_id?: string | null
           ordem?: number | null
           profile_id?: string
+          rede_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -953,6 +1016,13 @@ export type Database = {
             columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supervisores_rede_id_fkey"
+            columns: ["rede_id"]
+            isOneToOne: false
+            referencedRelation: "redes"
             referencedColumns: ["id"]
           },
         ]
@@ -1041,6 +1111,7 @@ export type Database = {
           notes: string | null
           paixao_whatsapp: string | null
           photo_url: string | null
+          rede_id: string | null
           seed_run_id: string | null
           updated_at: string
           visitors: number
@@ -1062,6 +1133,7 @@ export type Database = {
           notes?: string | null
           paixao_whatsapp?: string | null
           photo_url?: string | null
+          rede_id?: string | null
           seed_run_id?: string | null
           updated_at?: string
           visitors?: number
@@ -1083,6 +1155,7 @@ export type Database = {
           notes?: string | null
           paixao_whatsapp?: string | null
           photo_url?: string | null
+          rede_id?: string | null
           seed_run_id?: string | null
           updated_at?: string
           visitors?: number
@@ -1101,6 +1174,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "weekly_reports_rede_id_fkey"
+            columns: ["rede_id"]
+            isOneToOne: false
+            referencedRelation: "redes"
             referencedColumns: ["id"]
           },
           {
