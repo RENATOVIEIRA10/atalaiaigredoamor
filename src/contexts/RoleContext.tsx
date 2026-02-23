@@ -1,8 +1,8 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-type UserRole = 'pastor' | 'admin' | 'rede_leader' | 'coordenador' | 'supervisor' | 'celula_leader';
-type ScopeType = 'pastor' | 'admin' | 'rede' | 'coordenacao' | 'supervisor' | 'celula';
+type UserRole = 'pastor' | 'admin' | 'rede_leader' | 'coordenador' | 'supervisor' | 'celula_leader' | 'demo_institucional';
+type ScopeType = 'pastor' | 'admin' | 'rede' | 'coordenacao' | 'supervisor' | 'celula' | 'demo_institucional';
 
 const SESSION_KEY = 'rede_amor_session';
 const SESSION_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
@@ -28,6 +28,7 @@ interface RoleContextType {
   isCoordenador: boolean;
   isSupervisor: boolean;
   isCelulaLeader: boolean;
+  isDemoInstitucional: boolean;
 }
 
 const RoleContext = createContext<RoleContextType | undefined>(undefined);
@@ -40,6 +41,7 @@ function scopeTypeToRole(scopeType: ScopeType): UserRole {
     case 'coordenacao': return 'coordenador';
     case 'supervisor': return 'supervisor';
     case 'celula': return 'celula_leader';
+    case 'demo_institucional': return 'demo_institucional';
   }
 }
 
@@ -129,6 +131,7 @@ export function RoleProvider({ children }: { children: ReactNode }) {
     isCoordenador: selectedRole === 'coordenador',
     isSupervisor: selectedRole === 'supervisor',
     isCelulaLeader: selectedRole === 'celula_leader',
+    isDemoInstitucional: selectedRole === 'demo_institucional',
   };
 
   return (

@@ -107,6 +107,7 @@ export const roleLabels: Record<string, string> = {
   supervisor: 'Supervisor',
   celula_leader: 'Líder de Célula',
   membro: 'Membro',
+  demo_institucional: 'Demonstração Institucional',
 };
 
 // ========================================

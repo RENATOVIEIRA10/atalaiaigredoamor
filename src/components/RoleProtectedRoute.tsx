@@ -17,12 +17,15 @@ const COORD_REDE_PWA_BLOCKED = ['/membros', '/dados', '/redes', '/coordenacoes',
 // Routes blocked for Cell Leader in PWA mode
 const CELULA_PWA_BLOCKED = ['/dados', '/redes', '/coordenacoes', '/configuracoes', '/ferramentas-teste'];
 
+// Routes allowed for Demo Institucional (read-only)
+const DEMO_INSTITUCIONAL_ALLOWED = ['/dashboard', '/organograma', '/material', '/manual-usuario', '/manual-lider', '/faq'];
+
 interface RoleProtectedRouteProps {
   children: React.ReactNode;
 }
 
 export function RoleProtectedRoute({ children }: RoleProtectedRouteProps) {
-  const { selectedRole, accessKeyId, isSupervisor, isCoordenador, isRedeLeader, isCelulaLeader, isAdmin, isPastor } = useRole();
+  const { selectedRole, accessKeyId, isSupervisor, isCoordenador, isRedeLeader, isCelulaLeader, isAdmin, isPastor, isDemoInstitucional } = useRole();
   const { isDemoActive } = useDemoMode();
   const accepted = usePolicyAcceptance(accessKeyId);
   const isPWA = useIsPWA();
@@ -43,7 +46,10 @@ export function RoleProtectedRoute({ children }: RoleProtectedRouteProps) {
   // PWA Cell Leader route guard
   const isCelulaBlocked = isPWAMobile && isCellLeaderOnly && CELULA_PWA_BLOCKED.includes(location.pathname);
 
-  const isBlocked = isSupervisorBlocked || isPulsoBlocked || isCoordRedeBlocked || isCelulaBlocked;
+  // Demo Institucional route guard - only allow specific routes
+  const isDemoBlocked = isDemoInstitucional && !DEMO_INSTITUCIONAL_ALLOWED.includes(location.pathname);
+
+  const isBlocked = isSupervisorBlocked || isPulsoBlocked || isCoordRedeBlocked || isCelulaBlocked || isDemoBlocked;
 
   useEffect(() => {
     if (isBlocked) {
