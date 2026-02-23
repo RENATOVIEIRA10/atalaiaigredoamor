@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -665,13 +666,23 @@ export function InstitutionalDashboard() {
       )}
 
       {/* Step Content */}
-      {step === 0 && <StepIntro onNext={next} />}
-      {step === 1 && <StepCelula />}
-      {step === 2 && <StepSupervisor />}
-      {step === 3 && <StepCoordenador />}
-      {step === 4 && <StepRede />}
-      {step === 5 && <StepPastoral />}
-      {step === 6 && <StepResumo />}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={step}
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -12 }}
+          transition={{ duration: 0.3, ease: 'easeOut' }}
+        >
+          {step === 0 && <StepIntro onNext={next} />}
+          {step === 1 && <StepCelula />}
+          {step === 2 && <StepSupervisor />}
+          {step === 3 && <StepCoordenador />}
+          {step === 4 && <StepRede />}
+          {step === 5 && <StepPastoral />}
+          {step === 6 && <StepResumo />}
+        </motion.div>
+      </AnimatePresence>
 
       {/* Navigation */}
       {step > 0 && (
