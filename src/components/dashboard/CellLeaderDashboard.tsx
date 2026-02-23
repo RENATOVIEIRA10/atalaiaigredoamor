@@ -3,8 +3,9 @@ import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, Users, Search, MapPin, Calendar, FileText, Heart } from 'lucide-react';
+import { Loader2, Users, Search, MapPin, Calendar, FileText, Heart, DoorOpen } from 'lucide-react';
 import { useCelulas } from '@/hooks/useCelulas';
+import { useEncaminhamentos } from '@/hooks/useEncaminhamentos';
 import { CelulaDetailsDialog } from './CelulaDetailsDialog';
 import { PageHeader } from '@/components/ui/page-header';
 import { MissionVerse } from './MissionVerse';
@@ -12,10 +13,14 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { useRole } from '@/contexts/RoleContext';
 import { CellLeaderMembrosTab } from './cellleader/CellLeaderMembrosTab';
 import { CellLeaderPulsoTab } from './cellleader/CellLeaderPulsoTab';
+import { CellLeaderNovasVidasTab } from './cellleader/CellLeaderNovasVidasTab';
+import { StatCard } from '@/components/ui/stat-card';
+import { Badge } from '@/components/ui/badge';
 
 export function CellLeaderDashboard() {
   const { data: celulas, isLoading } = useCelulas();
   const { scopeId } = useRole();
+  const { data: allEnc } = useEncaminhamentos();
   const [searchParams] = useSearchParams();
   const urlTab = searchParams.get('tab');
   const [selectedCelula, setSelectedCelula] = useState<{ id: string; name: string } | null>(null);
@@ -37,6 +42,19 @@ export function CellLeaderDashboard() {
   // If leader has exactly one cell (scoped), show tabs with Membros
   const singleCell = scopeId ? userCelulas[0] : null;
 
+  // Count encaminhamentos for this cell
+  const cellEncaminhamentos = singleCell
+    ? (allEnc || []).filter(e => e.celula_id === singleCell.id && e.status !== 'devolvido')
+    : [];
+  const pendingNovasVidas = cellEncaminhamentos.filter(e => e.status === 'pendente').length;
+
+  // Get couple names for WhatsApp message
+  const coupleNames = singleCell
+    ? (celulas || []).find(c => c.id === singleCell.id)?.leadership_couple
+      ? `${(celulas || []).find(c => c.id === singleCell.id)?.leadership_couple?.spouse1?.name} e ${(celulas || []).find(c => c.id === singleCell.id)?.leadership_couple?.spouse2?.name}`
+      : undefined
+    : undefined;
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -48,22 +66,42 @@ export function CellLeaderDashboard() {
       <MissionVerse role="celula_leader" />
 
       {singleCell ? (
-        // Scoped leader: show tabs (Célula + Membros)
-        <Tabs defaultValue={urlTab === 'pulso' ? 'pulso' : 'celula'} className="space-y-4">
-          <TabsList className="grid w-full grid-cols-3 h-auto p-1">
-            <TabsTrigger value="pulso" className="gap-2 py-2.5">
-              <Heart className="h-4 w-4" />
-              Pulso
-            </TabsTrigger>
-            <TabsTrigger value="celula" className="gap-2 py-2.5">
-              <FileText className="h-4 w-4" />
-              Célula
-            </TabsTrigger>
-            <TabsTrigger value="membros" className="gap-2 py-2.5">
-              <Users className="h-4 w-4" />
-              Membros
-            </TabsTrigger>
-          </TabsList>
+        // Scoped leader: show tabs
+        <>
+          {/* Stat card for novas vidas */}
+          {cellEncaminhamentos.length > 0 && (
+            <StatCard
+              icon={DoorOpen}
+              label="Novas Vidas Encaminhadas"
+              value={cellEncaminhamentos.length}
+              subtitle={pendingNovasVidas > 0 ? `${pendingNovasVidas} aguardando contato` : 'Todas contatadas'}
+            />
+          )}
+
+          <Tabs defaultValue={urlTab === 'novas-vidas' ? 'novas-vidas' : urlTab === 'pulso' ? 'pulso' : 'celula'} className="space-y-4">
+            <TabsList className="grid w-full grid-cols-4 h-auto p-1">
+              <TabsTrigger value="pulso" className="gap-1.5 py-2.5 text-xs sm:text-sm">
+                <Heart className="h-4 w-4" />
+                <span className="hidden sm:inline">Pulso</span>
+              </TabsTrigger>
+              <TabsTrigger value="celula" className="gap-1.5 py-2.5 text-xs sm:text-sm">
+                <FileText className="h-4 w-4" />
+                <span className="hidden sm:inline">Célula</span>
+              </TabsTrigger>
+              <TabsTrigger value="membros" className="gap-1.5 py-2.5 text-xs sm:text-sm">
+                <Users className="h-4 w-4" />
+                <span className="hidden sm:inline">Membros</span>
+              </TabsTrigger>
+              <TabsTrigger value="novas-vidas" className="gap-1.5 py-2.5 text-xs sm:text-sm relative">
+                <DoorOpen className="h-4 w-4" />
+                <span className="hidden sm:inline">Vidas</span>
+                {pendingNovasVidas > 0 && (
+                  <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-[10px] bg-primary">
+                    {pendingNovasVidas}
+                  </Badge>
+                )}
+              </TabsTrigger>
+            </TabsList>
 
           <TabsContent value="pulso">
             <CellLeaderPulsoTab celulaId={singleCell.id} />
@@ -112,7 +150,12 @@ export function CellLeaderDashboard() {
           <TabsContent value="membros">
             <CellLeaderMembrosTab celulaId={singleCell.id} celulaName={singleCell.name} />
           </TabsContent>
+
+          <TabsContent value="novas-vidas">
+            <CellLeaderNovasVidasTab celulaId={singleCell.id} celulaName={singleCell.name} coupleNames={coupleNames} />
+          </TabsContent>
         </Tabs>
+        </>
       ) : (
         // Multiple cells or no scope: original layout
         <>
