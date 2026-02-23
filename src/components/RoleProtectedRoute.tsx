@@ -66,8 +66,8 @@ export function RoleProtectedRoute({ children }: RoleProtectedRouteProps) {
     return <Navigate to="/" replace />;
   }
 
-  // During demo mode, skip onboarding guard entirely (admin already accepted)
-  if (isDemoActive) {
+  // During demo mode or demo_institucional, skip onboarding guard
+  if (isDemoActive || isDemoInstitucional) {
     return <>{children}</>;
   }
 
