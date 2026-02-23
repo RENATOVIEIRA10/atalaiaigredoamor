@@ -360,6 +360,67 @@ export type Database = {
           },
         ]
       }
+      encaminhamentos_recomeco: {
+        Row: {
+          celula_id: string
+          created_at: string
+          data_encaminhamento: string
+          encaminhado_por: string | null
+          id: string
+          notas: string | null
+          nova_vida_id: string
+          rede_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          celula_id: string
+          created_at?: string
+          data_encaminhamento?: string
+          encaminhado_por?: string | null
+          id?: string
+          notas?: string | null
+          nova_vida_id: string
+          rede_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          celula_id?: string
+          created_at?: string
+          data_encaminhamento?: string
+          encaminhado_por?: string | null
+          id?: string
+          notas?: string | null
+          nova_vida_id?: string
+          rede_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "encaminhamentos_recomeco_celula_id_fkey"
+            columns: ["celula_id"]
+            isOneToOne: false
+            referencedRelation: "celulas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "encaminhamentos_recomeco_nova_vida_id_fkey"
+            columns: ["nova_vida_id"]
+            isOneToOne: false
+            referencedRelation: "novas_vidas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "encaminhamentos_recomeco_rede_id_fkey"
+            columns: ["rede_id"]
+            isOneToOne: false
+            referencedRelation: "redes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leadership_couples: {
         Row: {
           created_at: string
@@ -584,6 +645,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      novas_vidas: {
+        Row: {
+          bairro: string | null
+          cidade: string | null
+          created_at: string
+          estado_civil: string | null
+          faixa_etaria: string | null
+          id: string
+          nome: string
+          observacao: string | null
+          status: string
+          updated_at: string
+          whatsapp: string | null
+        }
+        Insert: {
+          bairro?: string | null
+          cidade?: string | null
+          created_at?: string
+          estado_civil?: string | null
+          faixa_etaria?: string | null
+          id?: string
+          nome: string
+          observacao?: string | null
+          status?: string
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Update: {
+          bairro?: string | null
+          cidade?: string | null
+          created_at?: string
+          estado_civil?: string | null
+          faixa_etaria?: string | null
+          id?: string
+          nome?: string
+          observacao?: string | null
+          status?: string
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Relationships: []
       }
       policy_acceptances: {
         Row: {

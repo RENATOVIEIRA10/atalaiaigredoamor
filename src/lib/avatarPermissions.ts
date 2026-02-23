@@ -11,7 +11,7 @@
  *   pastor > rede > coordenacao > supervisor > celula > membro
  */
 
-type ScopeType = 'pastor' | 'admin' | 'rede' | 'coordenacao' | 'supervisor' | 'celula' | 'demo_institucional';
+type ScopeType = 'pastor' | 'admin' | 'rede' | 'coordenacao' | 'supervisor' | 'celula' | 'demo_institucional' | 'recomeco_operador' | 'recomeco_leitura';
 type EntityType = 'celula' | 'supervisor' | 'coordenacao' | 'rede' | 'pastor' | 'membro';
 
 // Numeric rank: higher = more authority
@@ -23,6 +23,8 @@ const SCOPE_RANK: Record<ScopeType, number> = {
   supervisor: 60,
   celula: 50,
   demo_institucional: 0,
+  recomeco_operador: 10,
+  recomeco_leitura: 5,
 };
 
 // The minimum viewer rank required to edit a given entity type

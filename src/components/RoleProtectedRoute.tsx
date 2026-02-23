@@ -20,12 +20,15 @@ const CELULA_PWA_BLOCKED = ['/dados', '/redes', '/coordenacoes', '/configuracoes
 // Routes allowed for Demo Institucional (read-only)
 const DEMO_INSTITUCIONAL_ALLOWED = ['/dashboard', '/organograma', '/material', '/manual-usuario', '/manual-lider', '/faq'];
 
+// Routes allowed for Recomeço scopes
+const RECOMECO_ALLOWED = ['/recomeco'];
+
 interface RoleProtectedRouteProps {
   children: React.ReactNode;
 }
 
 export function RoleProtectedRoute({ children }: RoleProtectedRouteProps) {
-  const { selectedRole, accessKeyId, isSupervisor, isCoordenador, isRedeLeader, isCelulaLeader, isAdmin, isPastor, isDemoInstitucional } = useRole();
+  const { selectedRole, accessKeyId, isSupervisor, isCoordenador, isRedeLeader, isCelulaLeader, isAdmin, isPastor, isDemoInstitucional, isRecomecoOperador, isRecomecoLeitura } = useRole();
   const { isDemoActive } = useDemoMode();
   const accepted = usePolicyAcceptance(accessKeyId);
   const isPWA = useIsPWA();
@@ -49,7 +52,10 @@ export function RoleProtectedRoute({ children }: RoleProtectedRouteProps) {
   // Demo Institucional route guard - only allow specific routes
   const isDemoBlocked = isDemoInstitucional && !DEMO_INSTITUCIONAL_ALLOWED.includes(location.pathname);
 
-  const isBlocked = isSupervisorBlocked || isPulsoBlocked || isCoordRedeBlocked || isCelulaBlocked || isDemoBlocked;
+  // Recomeço route guard - only allow /recomeco
+  const isRecomecoBlocked = (isRecomecoOperador || isRecomecoLeitura) && !RECOMECO_ALLOWED.includes(location.pathname);
+
+  const isBlocked = isSupervisorBlocked || isPulsoBlocked || isCoordRedeBlocked || isCelulaBlocked || isDemoBlocked || isRecomecoBlocked;
 
   useEffect(() => {
     if (isBlocked) {
@@ -58,6 +64,9 @@ export function RoleProtectedRoute({ children }: RoleProtectedRouteProps) {
   }, [isBlocked]);
 
   if (isBlocked) {
+    if (isRecomecoOperador || isRecomecoLeitura) {
+      return <Navigate to="/recomeco" replace />;
+    }
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -66,8 +75,8 @@ export function RoleProtectedRoute({ children }: RoleProtectedRouteProps) {
     return <Navigate to="/" replace />;
   }
 
-  // During demo mode or demo_institucional, skip onboarding guard
-  if (isDemoActive || isDemoInstitucional) {
+  // During demo mode, demo_institucional, or recomeco, skip onboarding guard
+  if (isDemoActive || isDemoInstitucional || isRecomecoOperador || isRecomecoLeitura) {
     return <>{children}</>;
   }
 
