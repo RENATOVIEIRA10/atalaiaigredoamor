@@ -9,6 +9,7 @@ const scopeLabels: Record<string, string> = {
   coordenacao: 'Coordenador',
   supervisor: 'Supervisor',
   celula: 'Líder de Célula',
+  demo_institucional: 'Demonstração Institucional',
 };
 
 export function DemoModeBanner() {

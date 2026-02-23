@@ -18,7 +18,7 @@ export function MobileBottomNav() {
   const isMobile = useIsMobile();
   const location = useLocation();
   const navigate = useNavigate();
-  const { isSupervisor, isCoordenador, isRedeLeader, isCelulaLeader, isAdmin, isPastor } = useRole();
+  const { isSupervisor, isCoordenador, isRedeLeader, isCelulaLeader, isAdmin, isPastor, isDemoInstitucional } = useRole();
   const [menuOpen, setMenuOpen] = useState(false);
 
   // Only render in PWA + mobile
@@ -27,7 +27,12 @@ export function MobileBottomNav() {
   let navItems: NavItem[];
   const isCellLeaderOnly = isCelulaLeader && !isSupervisor && !isCoordenador && !isRedeLeader && !isAdmin && !isPastor;
 
-  if (isCellLeaderOnly) {
+  if (isDemoInstitucional) {
+    // Demo institucional: only Dashboard
+    navItems = [
+      { label: 'Início', icon: LayoutDashboard, path: '/dashboard' },
+    ];
+  } else if (isCellLeaderOnly) {
     // Líder de Célula: Início, Ações, Histórico
     navItems = [
       { label: 'Início', icon: LayoutDashboard, path: '/dashboard' },

@@ -91,7 +91,7 @@ export default function HomePage() {
         });
       } catch (_) { /* silent */ }
 
-      const scopeType = match.scope_type as 'pastor' | 'admin' | 'rede' | 'coordenacao' | 'supervisor' | 'celula';
+      const scopeType = match.scope_type as 'pastor' | 'admin' | 'rede' | 'coordenacao' | 'supervisor' | 'celula' | 'demo_institucional';
       setScopeAccess(scopeType, match.scope_id, match.id);
       navigate('/onboarding');
     } catch (err: any) {

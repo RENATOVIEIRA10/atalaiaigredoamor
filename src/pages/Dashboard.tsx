@@ -8,18 +8,22 @@ import { NetworkLeaderDashboard } from '@/components/dashboard/NetworkLeaderDash
 import { AdminDashboard } from '@/components/dashboard/AdminDashboard';
 import { SupervisorDashboard } from '@/components/dashboard/SupervisorDashboard';
 import { PastorDashboard } from '@/components/dashboard/PastorDashboard';
+import { InstitutionalDashboard } from '@/components/dashboard/InstitutionalDashboard';
 import { CoordinatorPWADashboard } from '@/components/dashboard/pwa/CoordinatorPWADashboard';
 import { NetworkLeaderPWADashboard } from '@/components/dashboard/pwa/NetworkLeaderPWADashboard';
 import { CellLeaderPWADashboard } from '@/components/dashboard/pwa/CellLeaderPWADashboard';
 import { SupervisorPWADashboard } from '@/components/dashboard/pwa/SupervisorPWADashboard';
 
 export default function Dashboard() {
-  const { isAdmin, isRedeLeader, isCoordenador, isSupervisor, isPastor } = useRole();
+  const { isAdmin, isRedeLeader, isCoordenador, isSupervisor, isPastor, isDemoInstitucional } = useRole();
   const isPWA = useIsPWA();
   const isMobile = useIsMobile();
   const isPWAMobile = isPWA && isMobile;
 
   const renderDashboard = () => {
+    if (isDemoInstitucional) {
+      return <InstitutionalDashboard />;
+    }
     if (isPastor) {
       return <PastorDashboard />;
     }

@@ -27,6 +27,11 @@ const cellLeaderNavItems = [
   { title: 'Organograma', href: '/organograma', icon: moduleIcons.organograma },
 ];
 
+const demoInstitucionalNavItems = [
+  { title: 'Dashboard', href: '/dashboard', icon: moduleIcons.dashboard },
+  { title: 'Organograma', href: '/organograma', icon: moduleIcons.organograma },
+];
+
 const fullNavItems = [
   { title: 'Dashboard', href: '/dashboard', icon: moduleIcons.dashboard },
   { title: 'Dados', href: '/dados', icon: moduleIcons.dados },
@@ -46,17 +51,19 @@ const adminNavItems = [
 export function AppSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { selectedRole, clearAccess, isAdmin, isRedeLeader, isCoordenador, isSupervisor, isCelulaLeader, isPastor } = useRole();
+  const { selectedRole, clearAccess, isAdmin, isRedeLeader, isCoordenador, isSupervisor, isCelulaLeader, isPastor, isDemoInstitucional } = useRole();
   const { isDemoActive, deactivateDemo } = useDemoMode();
   const { theme, toggleTheme } = useTheme();
   const [demoDialogOpen, setDemoDialogOpen] = useState(false);
 
   // When demo is active, the role context already reflects the impersonated role
   // but we still need to show admin nav items if the original user was admin
-  const isOriginalAdmin = isAdmin || isDemoActive;
-  const showAdminItems = isOriginalAdmin || isRedeLeader;
+  const isOriginalAdmin = (isAdmin || isDemoActive) && !isDemoInstitucional;
+  const showAdminItems = (isOriginalAdmin || isRedeLeader) && !isDemoInstitucional;
 
-  const mainNavItems = isPastor
+  const mainNavItems = isDemoInstitucional
+    ? demoInstitucionalNavItems
+    : isPastor
     ? pastorNavItems
     : (isCelulaLeader || isSupervisor) && !isCoordenador && !isRedeLeader && !isAdmin
     ? cellLeaderNavItems
