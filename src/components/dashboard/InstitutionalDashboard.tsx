@@ -25,7 +25,13 @@ function DemoBadge() {
 
 function DemoFooter() {
   return (
-    <div className="mt-8 pt-4 border-t border-border/30">
+    <div className="mt-8 pt-4 border-t border-border/30 space-y-2">
+      <div className="flex items-center justify-center gap-1.5">
+        <Shield className="h-3 w-3 text-primary/50" />
+        <p className="text-[11px] text-muted-foreground/70 text-center font-medium">
+          Privacidade e segurança são pilares deste sistema.
+        </p>
+      </div>
       <p className="text-[11px] text-muted-foreground/60 text-center italic leading-relaxed">
         O Atalaia é uma ferramenta interna, criada por amor à igreja,<br />
         sem qualquer finalidade comercial.
@@ -623,6 +629,28 @@ export function InstitutionalDashboard() {
 
   return (
     <div className="space-y-5 max-w-3xl mx-auto pb-4">
+      {/* Welcome Message */}
+      <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-transparent">
+        <CardContent className="p-4">
+          <div className="flex items-start gap-3">
+            <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0 text-base">
+              👋
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-sm font-semibold text-foreground">
+                Bem-vinda, Milka!
+              </h3>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Este é um ambiente de demonstração preparado especialmente para você.
+                Aqui você poderá conhecer como o Atalaia funciona, com total{' '}
+                <span className="font-semibold text-primary">privacidade</span> e segurança.
+                Nenhum dado real é exposto nesta visualização.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Progress Bar */}
       {step > 0 && (
         <div className="space-y-2">
