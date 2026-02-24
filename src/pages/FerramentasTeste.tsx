@@ -15,7 +15,7 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   FlaskConical, Play, Trash2, Download, FileText, Users, Calendar,
-  GitBranch, Shield, AlertTriangle, CheckCircle2, RefreshCw,
+  GitBranch, Shield, AlertTriangle, CheckCircle2, RefreshCw, Network,
   Database, Terminal, ChevronRight, Info, FileDown, Loader2, XCircle, Eye
 } from 'lucide-react';
 import {
@@ -393,26 +393,40 @@ function SeedActionPanel({ seedRun, onCleanup }: { seedRun: SeedRun; onCleanup: 
   const [preset, setPreset] = useState<SeedPeriodPreset>('3m');
   const [customFrom, setCustomFrom] = useState('');
   const [customTo, setCustomTo] = useState('');
+  const [cd1Mode, setCd1Mode] = useState(false);
   const isCleaned = !!seedRun.cleaned_at;
   const { data: celulas } = useCelulas();
   const celulaCount = (celulas || []).filter(c => !c.is_test_data).length;
 
   const period = getPeriodDates(preset, customFrom, customTo);
   const weekCount = getWeekCount(period.from, period.to);
-  const estimatedMembers = celulaCount * 7;
-  const estimatedReports = celulaCount * weekCount;
+  const totalCellEstimate = cd1Mode ? celulaCount + (3 * 4 * 12) : celulaCount; // 3 redes × 4 coords × 12 cells
+  const estimatedMembers = totalCellEstimate * 7;
+  const estimatedReports = totalCellEstimate * weekCount;
 
-  const SEED_ACTIONS = [
+  const CD1_ACTIONS = [
+    { action: 'seed_hierarchy', label: '🏗️ Criar Hierarquia Multi-Rede', desc: 'Cria 3 redes (Impulse, Acelere, UP) + coords + supervisores + células', needsPeriod: false },
+    { action: 'seed_members', label: '👥 Gerar Membros + Marcos', desc: `7 membros por célula (≈${estimatedMembers})`, needsPeriod: false },
+    { action: 'seed_reports', label: '📋 Gerar Relatórios Semanais', desc: `1 por semana por célula (≈${estimatedReports})`, needsPeriod: true },
+    { action: 'seed_supervisoes', label: '🔍 Gerar Supervisões', desc: '2-3 por supervisor no período', needsPeriod: true },
+    { action: 'seed_multiplicacoes', label: '🌱 Gerar Multiplicações', desc: '~15% das células multiplicam', needsPeriod: true },
+    { action: 'seed_novas_vidas', label: '🕊️ Gerar Novas Vidas (Recomeço)', desc: '60-120 visitantes cross-rede', needsPeriod: false },
+    { action: 'seed_encaminhamentos', label: '📍 Gerar Encaminhamentos', desc: 'Encaminha novas vidas para células cross-rede', needsPeriod: false },
+  ];
+
+  const SEED_ACTIONS = cd1Mode ? CD1_ACTIONS : [
     { action: 'seed_members', label: '👥 Gerar Membros + Marcos', desc: `7 membros por célula com endereço real (≈${estimatedMembers})`, needsPeriod: false },
     { action: 'seed_reports', label: '📋 Gerar Relatórios Semanais', desc: `1 por semana por célula (≈${estimatedReports})`, needsPeriod: true },
     { action: 'seed_supervisoes', label: '🔍 Gerar Supervisões', desc: 'Mínimo 2-3 por supervisor no período', needsPeriod: true },
-    { action: 'seed_multiplicacoes', label: '🌱 Gerar Multiplicações', desc: '~20% das células multiplicam', needsPeriod: true },
-    { action: 'seed_novas_vidas', label: '🕊️ Gerar Novas Vidas (Recomeço)', desc: '30 visitantes com endereço Olinda/Paulista', needsPeriod: false },
+    { action: 'seed_multiplicacoes', label: '🌱 Gerar Multiplicações', desc: '~15% das células multiplicam', needsPeriod: true },
+    { action: 'seed_novas_vidas', label: '🕊️ Gerar Novas Vidas (Recomeço)', desc: '60-120 visitantes com endereço Olinda/Paulista', needsPeriod: false },
     { action: 'seed_encaminhamentos', label: '📍 Gerar Encaminhamentos', desc: 'Encaminha novas vidas para células cross-rede', needsPeriod: false },
   ];
 
   const run = async (action: string, label: string, needsPeriod: boolean) => {
-    const extra = needsPeriod ? { period_from: period.from, period_to: period.to } : undefined;
+    const extra: Record<string, string> = {};
+    if (needsPeriod) { extra.period_from = period.from; extra.period_to = period.to; }
+    if (cd1Mode) extra.include_test_cells = 'true';
     await runAction(action, label, extra);
   };
 
@@ -422,7 +436,7 @@ function SeedActionPanel({ seedRun, onCleanup }: { seedRun: SeedRun; onCleanup: 
       try {
         await run(item.action, item.label, item.needsPeriod);
       } catch {
-        break; // Stop on first failure
+        break;
       }
     }
   };
@@ -441,6 +455,32 @@ function SeedActionPanel({ seedRun, onCleanup }: { seedRun: SeedRun; onCleanup: 
 
   return (
     <div className="space-y-6">
+      {/* CD1 Mode Toggle */}
+      <Card className={`border-dashed ${cd1Mode ? 'border-primary/50 bg-primary/5' : ''}`}>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Network className="h-4 w-4 text-primary" />
+              Modo CD1 Multi-Redes
+            </CardTitle>
+            <Button
+              size="sm"
+              variant={cd1Mode ? 'default' : 'outline'}
+              onClick={() => setCd1Mode(!cd1Mode)}
+              disabled={isRunning}
+            >
+              {cd1Mode ? '✓ CD1 Ativo' : 'Ativar CD1'}
+            </Button>
+          </div>
+          {cd1Mode && (
+            <CardDescription className="text-xs">
+              Criará 3 redes novas (Impulse, Acelere, UP) + hierarquia completa + dados para TODAS as células (reais + teste).
+              Estimativa: ~{3 * 4 * 12} células novas + {estimatedMembers} membros + {estimatedReports} relatórios.
+            </CardDescription>
+          )}
+        </CardHeader>
+      </Card>
+
       {/* Period selector */}
       <Card className="border-dashed">
         <CardHeader className="pb-3">
