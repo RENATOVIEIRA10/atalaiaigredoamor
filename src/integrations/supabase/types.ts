@@ -309,31 +309,37 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          is_test_data: boolean | null
           leader_id: string | null
           leadership_couple_id: string | null
           name: string
           ordem: number | null
           rede_id: string
+          seed_run_id: string | null
           updated_at: string
         }
         Insert: {
           created_at?: string
           id?: string
+          is_test_data?: boolean | null
           leader_id?: string | null
           leadership_couple_id?: string | null
           name: string
           ordem?: number | null
           rede_id: string
+          seed_run_id?: string | null
           updated_at?: string
         }
         Update: {
           created_at?: string
           id?: string
+          is_test_data?: boolean | null
           leader_id?: string | null
           leadership_couple_id?: string | null
           name?: string
           ordem?: number | null
           rede_id?: string
+          seed_run_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -356,6 +362,13 @@ export type Database = {
             columns: ["rede_id"]
             isOneToOne: false
             referencedRelation: "redes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coordenacoes_seed_run_id_fkey"
+            columns: ["seed_run_id"]
+            isOneToOne: false
+            referencedRelation: "seed_runs"
             referencedColumns: ["id"]
           },
         ]
@@ -788,9 +801,11 @@ export type Database = {
           branding: Json | null
           created_at: string
           id: string
+          is_test_data: boolean | null
           leader_id: string | null
           leadership_couple_id: string | null
           name: string
+          seed_run_id: string | null
           slug: string | null
           updated_at: string
         }
@@ -799,9 +814,11 @@ export type Database = {
           branding?: Json | null
           created_at?: string
           id?: string
+          is_test_data?: boolean | null
           leader_id?: string | null
           leadership_couple_id?: string | null
           name: string
+          seed_run_id?: string | null
           slug?: string | null
           updated_at?: string
         }
@@ -810,9 +827,11 @@ export type Database = {
           branding?: Json | null
           created_at?: string
           id?: string
+          is_test_data?: boolean | null
           leader_id?: string | null
           leadership_couple_id?: string | null
           name?: string
+          seed_run_id?: string | null
           slug?: string | null
           updated_at?: string
         }
@@ -829,6 +848,13 @@ export type Database = {
             columns: ["leadership_couple_id"]
             isOneToOne: false
             referencedRelation: "leadership_couples"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "redes_seed_run_id_fkey"
+            columns: ["seed_run_id"]
+            isOneToOne: false
+            referencedRelation: "seed_runs"
             referencedColumns: ["id"]
           },
         ]
@@ -1188,30 +1214,36 @@ export type Database = {
           coordenacao_id: string
           created_at: string
           id: string
+          is_test_data: boolean | null
           leadership_couple_id: string | null
           ordem: number | null
           profile_id: string
           rede_id: string | null
+          seed_run_id: string | null
           updated_at: string
         }
         Insert: {
           coordenacao_id: string
           created_at?: string
           id?: string
+          is_test_data?: boolean | null
           leadership_couple_id?: string | null
           ordem?: number | null
           profile_id: string
           rede_id?: string | null
+          seed_run_id?: string | null
           updated_at?: string
         }
         Update: {
           coordenacao_id?: string
           created_at?: string
           id?: string
+          is_test_data?: boolean | null
           leadership_couple_id?: string | null
           ordem?: number | null
           profile_id?: string
           rede_id?: string | null
+          seed_run_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -1241,6 +1273,13 @@ export type Database = {
             columns: ["rede_id"]
             isOneToOne: false
             referencedRelation: "redes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supervisores_seed_run_id_fkey"
+            columns: ["seed_run_id"]
+            isOneToOne: false
+            referencedRelation: "seed_runs"
             referencedColumns: ["id"]
           },
         ]
