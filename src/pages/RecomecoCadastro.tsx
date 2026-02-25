@@ -6,6 +6,8 @@ import { useNovasVidas, useCreateNovaVida, NovaVidaInsert, STATUS_LABELS } from 
 import { useRecomecoMessages } from '@/hooks/useRecomecoAgent';
 import { AgentProfileGate } from '@/components/recomeco/AgentProfileGate';
 import { BoasVindasWhatsApp } from '@/components/recomeco/BoasVindasWhatsApp';
+import { useIsPWA } from '@/hooks/useIsPWA';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,52 +16,70 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Heart, UserPlus, MapPin, Phone, ChevronLeft, Loader2, ListChecks, Eye, Filter, MessageCircle, CheckCircle } from 'lucide-react';
+import { Heart, UserPlus, MapPin, Phone, ChevronLeft, Loader2, ListChecks, Eye, MessageCircle, CheckCircle } from 'lucide-react';
 import { differenceInDays } from 'date-fns';
 
 export default function RecomecoCadastro() {
   const navigate = useNavigate();
   const { isRecomecoCadastro } = useRole();
   const { user } = useAuth();
+  const isPWA = useIsPWA();
+  const isMobile = useIsMobile();
+  const isPWAMobile = isPWA && isMobile;
 
   if (!isRecomecoCadastro) {
     return <Navigate to="/dashboard" replace />;
   }
 
+  // PWA: use full viewport, no extra background wrapper
+  const containerClass = isPWAMobile
+    ? 'flex flex-col h-full'
+    : 'min-h-screen';
+
+  const containerStyle = isPWAMobile
+    ? {}
+    : { background: 'linear-gradient(160deg, #0f1a2b 0%, #1A2F4B 40%, #0f1a2b 100%)' };
+
   return (
-    <div className="min-h-screen" style={{ background: 'linear-gradient(160deg, #0f1a2b 0%, #1A2F4B 40%, #0f1a2b 100%)' }}>
-      <div className="max-w-lg mx-auto px-4 py-6 sm:py-10">
-        <div className="flex items-center gap-3 mb-6">
-          <button onClick={() => navigate('/trocar-funcao')} className="p-2 rounded-lg hover:bg-white/5 transition-colors">
-            <ChevronLeft className="h-5 w-5" style={{ color: '#B8B6B3' }} />
-          </button>
-          <div>
-            <h1 className="text-xl font-semibold flex items-center gap-2" style={{ color: '#F4EDE4', fontFamily: "'Outfit', sans-serif" }}>
-              <Heart className="h-5 w-5" style={{ color: '#C5A059' }} />
-              Recomeço — Cadastro
-            </h1>
-            <p className="text-xs mt-1" style={{ color: '#B8B6B3' }}>Cadastrar novas vidas e acompanhar status</p>
+    <div className={containerClass} style={containerStyle}>
+      <div className={isPWAMobile ? 'flex-1 overflow-y-auto overscroll-y-contain px-4 py-4' : 'max-w-lg mx-auto px-4 py-6 sm:py-10'}>
+        {/* Header - only show on non-PWA (PWA has its own topbar) */}
+        {!isPWAMobile && (
+          <div className="flex items-center gap-3 mb-6">
+            <button onClick={() => navigate('/trocar-funcao')} className="p-2 rounded-lg hover:bg-white/5 transition-colors">
+              <ChevronLeft className="h-5 w-5" style={{ color: '#B8B6B3' }} />
+            </button>
+            <div>
+              <h1 className="text-xl font-semibold flex items-center gap-2" style={{ color: '#F4EDE4', fontFamily: "'Outfit', sans-serif" }}>
+                <Heart className="h-5 w-5" style={{ color: '#C5A059' }} />
+                Recomeço — Cadastro
+              </h1>
+              <p className="text-xs mt-1" style={{ color: '#B8B6B3' }}>Cadastrar novas vidas e acompanhar status</p>
+            </div>
           </div>
-        </div>
+        )}
 
         <AgentProfileGate>
           <AgentKPICards userId={user?.id} />
           <Tabs defaultValue="cadastrar" className="w-full">
-            <TabsList className="bg-white/5 border border-white/10 mb-6 w-full">
-              <TabsTrigger value="cadastrar" className="flex-1 data-[state=active]:bg-[#C5A059]/20 data-[state=active]:text-[#C5A059]">
+            <TabsList className={isPWAMobile
+              ? 'bg-card border border-border/40 mb-4 w-full'
+              : 'bg-white/5 border border-white/10 mb-6 w-full'
+            }>
+              <TabsTrigger value="cadastrar" className="flex-1 data-[state=active]:bg-primary/20 data-[state=active]:text-primary">
                 <UserPlus className="h-4 w-4 mr-1.5" />Cadastrar
               </TabsTrigger>
-              <TabsTrigger value="minhas" className="flex-1 data-[state=active]:bg-[#C5A059]/20 data-[state=active]:text-[#C5A059]">
-                <ListChecks className="h-4 w-4 mr-1.5" />Minhas Vidas
+              <TabsTrigger value="minhas" className="flex-1 data-[state=active]:bg-primary/20 data-[state=active]:text-primary">
+                <ListChecks className="h-4 w-4 mr-1.5" />Minhas
               </TabsTrigger>
-              <TabsTrigger value="acompanhamento" className="flex-1 data-[state=active]:bg-[#C5A059]/20 data-[state=active]:text-[#C5A059]">
+              <TabsTrigger value="acompanhamento" className="flex-1 data-[state=active]:bg-primary/20 data-[state=active]:text-primary">
                 <Eye className="h-4 w-4 mr-1.5" />Tracking
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="cadastrar"><CadastroForm /></TabsContent>
-            <TabsContent value="minhas"><MinhasVidas userId={user?.id} /></TabsContent>
-            <TabsContent value="acompanhamento"><AcompanhamentoVidas userId={user?.id} /></TabsContent>
+            <TabsContent value="cadastrar"><CadastroForm isPWAMobile={isPWAMobile} /></TabsContent>
+            <TabsContent value="minhas"><MinhasVidas userId={user?.id} isPWAMobile={isPWAMobile} /></TabsContent>
+            <TabsContent value="acompanhamento"><AcompanhamentoVidas userId={user?.id} isPWAMobile={isPWAMobile} /></TabsContent>
           </Tabs>
         </AgentProfileGate>
       </div>
@@ -86,19 +106,19 @@ function AgentKPICards({ userId }: { userId?: string }) {
   }, [novasVidas, messages, userId]);
 
   const cards = [
-    { label: 'Hoje', value: stats.cadastradasHoje, icon: UserPlus, color: '#10B981' },
-    { label: 'BV Pendentes', value: stats.pendentes, icon: MessageCircle, color: '#F59E0B' },
-    { label: 'BV Enviadas', value: stats.enviadas, icon: CheckCircle, color: '#22C55E' },
+    { label: 'Hoje', value: stats.cadastradasHoje, icon: UserPlus, color: 'text-green-500' },
+    { label: 'BV Pendentes', value: stats.pendentes, icon: MessageCircle, color: 'text-amber-500' },
+    { label: 'BV Enviadas', value: stats.enviadas, icon: CheckCircle, color: 'text-green-500' },
   ];
 
   return (
-    <div className="grid grid-cols-3 gap-2 mb-6">
+    <div className="grid grid-cols-3 gap-2 mb-4">
       {cards.map(c => (
-        <Card key={c.label} className="bg-white/5 border-white/10">
+        <Card key={c.label}>
           <CardContent className="p-3 text-center">
-            <c.icon className="h-4 w-4 mx-auto mb-1" style={{ color: c.color }} />
-            <p className="text-lg font-bold" style={{ color: '#F4EDE4' }}>{c.value}</p>
-            <p className="text-[10px] uppercase tracking-wider" style={{ color: '#B8B6B3' }}>{c.label}</p>
+            <c.icon className={`h-4 w-4 mx-auto mb-1 ${c.color}`} />
+            <p className="text-lg font-bold text-foreground">{c.value}</p>
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{c.label}</p>
           </CardContent>
         </Card>
       ))}
@@ -106,7 +126,7 @@ function AgentKPICards({ userId }: { userId?: string }) {
   );
 }
 
-function CadastroForm() {
+function CadastroForm({ isPWAMobile }: { isPWAMobile?: boolean }) {
   const createMutation = useCreateNovaVida();
   const [form, setForm] = useState<NovaVidaInsert>({ nome: '' });
   const [lastCreated, setLastCreated] = useState<any>(null);
@@ -126,14 +146,14 @@ function CadastroForm() {
     <div className="space-y-4">
       {lastCreated && (
         <div className="space-y-3">
-          <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20 text-green-300 text-sm text-center">
+          <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20 text-sm text-center text-foreground">
             ✅ {lastCreated.nome} cadastrada com sucesso!
           </div>
           <BoasVindasWhatsApp vida={lastCreated} />
           <Button
             size="sm"
             variant="outline"
-            className="w-full text-xs"
+            className="w-full h-12"
             onClick={() => setLastCreated(null)}
           >
             Cadastrar outra vida
@@ -142,32 +162,32 @@ function CadastroForm() {
       )}
 
       {!lastCreated && (
-        <Card className="bg-white/5 border-white/10">
+        <Card>
           <CardContent className="p-5">
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label style={{ color: '#C5A059' }}>Nome *</Label>
-                <Input value={form.nome} onChange={e => setForm(p => ({ ...p, nome: e.target.value }))} className="bg-white/5 border-white/10 text-[#F4EDE4]" placeholder="Nome completo" required />
+                <Label className="text-primary">Nome *</Label>
+                <Input value={form.nome} onChange={e => setForm(p => ({ ...p, nome: e.target.value }))} className="h-12 text-base" placeholder="Nome completo" required />
               </div>
               <div className="space-y-2">
-                <Label style={{ color: '#C5A059' }}>WhatsApp</Label>
-                <Input value={form.whatsapp || ''} onChange={e => setForm(p => ({ ...p, whatsapp: e.target.value }))} className="bg-white/5 border-white/10 text-[#F4EDE4]" placeholder="(81) 99999-9999" />
+                <Label className="text-primary">WhatsApp</Label>
+                <Input value={form.whatsapp || ''} onChange={e => setForm(p => ({ ...p, whatsapp: e.target.value }))} className="h-12 text-base" placeholder="(81) 99999-9999" inputMode="tel" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
-                  <Label style={{ color: '#C5A059' }}>Bairro</Label>
-                  <Input value={form.bairro || ''} onChange={e => setForm(p => ({ ...p, bairro: e.target.value }))} className="bg-white/5 border-white/10 text-[#F4EDE4]" />
+                  <Label className="text-primary">Bairro</Label>
+                  <Input value={form.bairro || ''} onChange={e => setForm(p => ({ ...p, bairro: e.target.value }))} className="h-12 text-base" />
                 </div>
                 <div className="space-y-2">
-                  <Label style={{ color: '#C5A059' }}>Cidade</Label>
-                  <Input value={form.cidade || ''} onChange={e => setForm(p => ({ ...p, cidade: e.target.value }))} className="bg-white/5 border-white/10 text-[#F4EDE4]" />
+                  <Label className="text-primary">Cidade</Label>
+                  <Input value={form.cidade || ''} onChange={e => setForm(p => ({ ...p, cidade: e.target.value }))} className="h-12 text-base" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
-                  <Label style={{ color: '#C5A059' }}>Estado Civil</Label>
+                  <Label className="text-primary">Estado Civil</Label>
                   <Select value={form.estado_civil || ''} onValueChange={v => setForm(p => ({ ...p, estado_civil: v }))}>
-                    <SelectTrigger className="bg-white/5 border-white/10 text-[#F4EDE4]"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectTrigger className="h-12"><SelectValue placeholder="Selecione" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="solteiro(a)">Solteiro(a)</SelectItem>
                       <SelectItem value="casado(a)">Casado(a)</SelectItem>
@@ -177,9 +197,9 @@ function CadastroForm() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label style={{ color: '#C5A059' }}>Faixa Etária</Label>
+                  <Label className="text-primary">Faixa Etária</Label>
                   <Select value={form.faixa_etaria || ''} onValueChange={v => setForm(p => ({ ...p, faixa_etaria: v }))}>
-                    <SelectTrigger className="bg-white/5 border-white/10 text-[#F4EDE4]"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectTrigger className="h-12"><SelectValue placeholder="Selecione" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="18-25">18-25</SelectItem>
                       <SelectItem value="26-35">26-35</SelectItem>
@@ -191,10 +211,10 @@ function CadastroForm() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label style={{ color: '#C5A059' }}>Observação</Label>
-                <Textarea value={form.observacao || ''} onChange={e => setForm(p => ({ ...p, observacao: e.target.value }))} className="bg-white/5 border-white/10 text-[#F4EDE4]" rows={2} />
+                <Label className="text-primary">Observação</Label>
+                <Textarea value={form.observacao || ''} onChange={e => setForm(p => ({ ...p, observacao: e.target.value }))} rows={2} className="min-h-[48px]" />
               </div>
-              <Button type="submit" className="w-full h-11" disabled={createMutation.isPending} style={{ background: 'linear-gradient(135deg, #C5A059, #D4B366)', color: '#1A2F4B' }}>
+              <Button type="submit" className="w-full h-14 text-base font-semibold" disabled={createMutation.isPending}>
                 {createMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <UserPlus className="h-4 w-4 mr-2" />}
                 Cadastrar Nova Vida
               </Button>
@@ -206,21 +226,21 @@ function CadastroForm() {
   );
 }
 
-function MinhasVidas({ userId }: { userId?: string }) {
+function MinhasVidas({ userId, isPWAMobile }: { userId?: string; isPWAMobile?: boolean }) {
   const { data: novasVidas, isLoading } = useNovasVidas();
   const minhas = (novasVidas || []).filter((nv: any) => nv.created_by_user_id === userId);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   if (isLoading) {
-    return <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin" style={{ color: '#C5A059' }} /></div>;
+    return <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
   }
 
   if (!minhas.length) {
     return (
-      <Card className="bg-white/5 border-white/10">
+      <Card>
         <CardContent className="py-12 text-center">
-          <Heart className="h-10 w-10 mx-auto mb-3 opacity-30" style={{ color: '#C5A059' }} />
-          <p style={{ color: '#B8B6B3' }}>Você ainda não cadastrou nenhuma nova vida.</p>
+          <Heart className="h-10 w-10 mx-auto mb-3 opacity-30 text-primary" />
+          <p className="text-muted-foreground">Você ainda não cadastrou nenhuma nova vida.</p>
         </CardContent>
       </Card>
     );
@@ -229,23 +249,23 @@ function MinhasVidas({ userId }: { userId?: string }) {
   return (
     <div className="grid gap-3">
       {minhas.map((nv: any) => {
-        const st = STATUS_LABELS[nv.status] || { label: nv.status, color: 'bg-white/10 text-white/60 border-white/20' };
+        const st = STATUS_LABELS[nv.status] || { label: nv.status, color: '' };
         const isExpanded = expandedId === nv.id;
         return (
           <div key={nv.id} className="space-y-2">
             <Card
-              className="bg-white/5 border-white/10 cursor-pointer hover:border-[#C5A059]/20 transition-colors"
+              className="cursor-pointer active:scale-[0.98] transition-all"
               onClick={() => setExpandedId(isExpanded ? null : nv.id)}
             >
               <CardContent className="p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-semibold text-sm truncate" style={{ color: '#F4EDE4' }}>{nv.nome}</h3>
+                      <h3 className="font-semibold text-sm truncate text-foreground">{nv.nome}</h3>
                       <Badge variant="outline" className={`text-[10px] ${st.color}`}>{st.label}</Badge>
                       <BoasVindasWhatsApp vida={nv} compact />
                     </div>
-                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs" style={{ color: '#B8B6B3' }}>
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
                       {nv.whatsapp && <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{nv.whatsapp}</span>}
                       {(nv.bairro || nv.cidade) && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{[nv.bairro, nv.cidade].filter(Boolean).join(', ')}</span>}
                     </div>
@@ -265,7 +285,7 @@ function MinhasVidas({ userId }: { userId?: string }) {
   );
 }
 
-function AcompanhamentoVidas({ userId }: { userId?: string }) {
+function AcompanhamentoVidas({ userId, isPWAMobile }: { userId?: string; isPWAMobile?: boolean }) {
   const { data: novasVidas, isLoading } = useNovasVidas();
   const [filterStatus, setFilterStatus] = useState<string>('all');
 
@@ -286,7 +306,7 @@ function AcompanhamentoVidas({ userId }: { userId?: string }) {
   ];
 
   if (isLoading) {
-    return <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin" style={{ color: '#C5A059' }} /></div>;
+    return <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
   }
 
   return (
@@ -297,24 +317,24 @@ function AcompanhamentoVidas({ userId }: { userId?: string }) {
           { label: 'Integradas', value: encaminhadas.filter(v => ['integrada', 'convertida_membro'].includes(v.status)).length },
           { label: 'Reatribuir', value: encaminhadas.filter(v => v.status === 'reatribuir').length },
         ].map(k => (
-          <Card key={k.label} className="bg-white/5 border-white/10">
+          <Card key={k.label}>
             <CardContent className="p-3 text-center">
-              <p className="text-lg font-bold" style={{ color: '#F4EDE4' }}>{k.value}</p>
-              <p className="text-[10px] uppercase tracking-wider" style={{ color: '#B8B6B3' }}>{k.label}</p>
+              <p className="text-lg font-bold text-foreground">{k.value}</p>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{k.label}</p>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      <div className="flex gap-2 flex-wrap">
+      {/* Scrollable chips */}
+      <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 no-scrollbar">
         {filters.map(f => (
           <Button
             key={f.value}
             size="sm"
             variant={filterStatus === f.value ? 'default' : 'outline'}
-            className="text-xs h-7"
+            className="text-xs h-9 shrink-0"
             onClick={() => setFilterStatus(f.value)}
-            style={filterStatus === f.value ? { background: '#C5A059', color: '#1A2F4B' } : {}}
           >
             {f.label}
           </Button>
@@ -322,9 +342,9 @@ function AcompanhamentoVidas({ userId }: { userId?: string }) {
       </div>
 
       {!minhas.length ? (
-        <Card className="bg-white/5 border-white/10">
+        <Card>
           <CardContent className="py-8 text-center">
-            <p style={{ color: '#B8B6B3' }}>Nenhuma vida neste filtro.</p>
+            <p className="text-muted-foreground">Nenhuma vida neste filtro.</p>
           </CardContent>
         </Card>
       ) : (
@@ -335,15 +355,15 @@ function AcompanhamentoVidas({ userId }: { userId?: string }) {
             const diasDesdeCadastro = differenceInDays(new Date(), new Date(nv.created_at));
 
             return (
-              <Card key={nv.id} className="bg-white/5 border-white/10">
+              <Card key={nv.id}>
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-semibold text-sm truncate" style={{ color: '#F4EDE4' }}>{nv.nome}</h3>
+                        <h3 className="font-semibold text-sm truncate text-foreground">{nv.nome}</h3>
                         <Badge variant="outline" className={`text-[10px] ${st.color}`}>{st.label}</Badge>
                       </div>
-                      <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px]" style={{ color: '#B8B6B3' }}>
+                      <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
                         {(nv.bairro || nv.cidade) && <span><MapPin className="h-2.5 w-2.5 inline mr-0.5" />{[nv.bairro, nv.cidade].filter(Boolean).join(', ')}</span>}
                         <span>Cadastro: {diasDesdeCadastro}d atrás</span>
                         <span>Último status: {diasDesdeEnc}d atrás</span>
