@@ -4,21 +4,24 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
 import { RoleProvider } from "@/contexts/RoleContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { DemoModeProvider } from "@/contexts/DemoModeContext";
 import { RedeProvider } from "@/contexts/RedeContext";
 import { RoleProtectedRoute } from "@/components/RoleProtectedRoute";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { DemoModeBanner } from "@/components/demo/DemoModeBanner";
 import { UpdateBanner } from "@/components/pwa/UpdateBanner";
 import { useVersionCheck } from "@/hooks/useVersionCheck";
 
-// Eager: landing + onboarding (first paint)
+// Eager: landing + onboarding + auth (first paint)
 import Home from "./pages/Home";
 import Onboarding from "./pages/Onboarding";
 import NotFound from "./pages/NotFound";
 
-// Lazy: all authenticated pages
+// Lazy: auth + all authenticated pages
+const Auth = lazy(() => import("./pages/Auth"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Celulas = lazy(() => import("./pages/Celulas"));
 const Membros = lazy(() => import("./pages/Membros"));
@@ -54,8 +57,14 @@ function AppInner() {
       <DemoModeBanner />
       <Suspense fallback={<LazyFallback />}>
         <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/onboarding" element={<Onboarding />} />
+          {/* Auth page (no protection) */}
+          <Route path="/auth" element={<Auth />} />
+
+          {/* Home = code entry (requires Supabase Auth, no role) */}
+          <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+          <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
+
+          {/* Internal routes (require Supabase Auth + access code role) */}
           <Route path="/dashboard" element={<RoleProtectedRoute><Dashboard /></RoleProtectedRoute>} />
           <Route path="/celulas" element={<RoleProtectedRoute><Celulas /></RoleProtectedRoute>} />
           <Route path="/membros" element={<RoleProtectedRoute><Membros /></RoleProtectedRoute>} />
@@ -69,11 +78,14 @@ function AppInner() {
           <Route path="/perfil/membro/:memberId" element={<RoleProtectedRoute><PerfilMembro /></RoleProtectedRoute>} />
           <Route path="/ferramentas-teste" element={<RoleProtectedRoute><FerramentasTeste /></RoleProtectedRoute>} />
           <Route path="/recomeco" element={<RoleProtectedRoute><Recomeco /></RoleProtectedRoute>} />
+
+          {/* Public institutional pages (no auth required) */}
           <Route path="/material" element={<MaterialInstitucional />} />
           <Route path="/faq" element={<FaqInstitucional />} />
           <Route path="/manual-lider" element={<ManualLiderCelula />} />
           <Route path="/manual-usuario" element={<ManualUsuario />} />
           <Route path="/testemunho" element={<TestemunhoAtalaia />} />
+
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
@@ -88,13 +100,15 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <RoleProvider>
-            <RedeProvider>
-              <DemoModeProvider>
-                <AppInner />
-              </DemoModeProvider>
-            </RedeProvider>
-          </RoleProvider>
+          <AuthProvider>
+            <RoleProvider>
+              <RedeProvider>
+                <DemoModeProvider>
+                  <AppInner />
+                </DemoModeProvider>
+              </RedeProvider>
+            </RoleProvider>
+          </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
     </ThemeProvider>
