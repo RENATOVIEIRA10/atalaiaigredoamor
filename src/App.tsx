@@ -40,6 +40,7 @@ const ManualLiderCelula = lazy(() => import("./pages/ManualLiderCelula"));
 const ManualUsuario = lazy(() => import("./pages/ManualUsuario"));
 const TestemunhoAtalaia = lazy(() => import("./pages/TestemunhoAtalaia"));
 const Recomeco = lazy(() => import("./pages/Recomeco"));
+const TrocarFuncao = lazy(() => import("./pages/TrocarFuncao"));
 
 const queryClient = new QueryClient();
 
@@ -62,6 +63,7 @@ function AppInner() {
 
           {/* Home = code entry (requires Supabase Auth, no role) */}
           <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+          <Route path="/trocar-funcao" element={<ProtectedRoute><TrocarFuncao /></ProtectedRoute>} />
           <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
 
           {/* Internal routes (require Supabase Auth + access code role) */}

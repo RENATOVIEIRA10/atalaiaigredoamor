@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { moduleIcons, roleIcons, actionIcons, themeIcons, roleLabels } from '@/lib/icons';
-import { Eye, LogOut, FlaskConical, PlayCircle } from 'lucide-react';
+import { Eye, LogOut, FlaskConical, PlayCircle, RefreshCw } from 'lucide-react';
 import logoIgreja from '@/assets/logo-igreja-do-amor-new.png';
 import logoRedeAmor from '@/assets/logo-amor-a-dois-new.png';
 import { AtalaiaIcon } from '@/components/institutional/AtalaiaLogoHeader';
@@ -73,6 +73,11 @@ export function AppSidebar() {
     if (isDemoActive) deactivateDemo();
     clearAccess();
     navigate('/');
+  };
+
+  const handleSwitchRole = () => {
+    clearAccess();
+    navigate('/trocar-funcao');
   };
 
   return (
@@ -177,6 +182,15 @@ export function AppSidebar() {
               {theme === 'padrao' ? 'Tema Amor' : 'Tema Padrão'}
             </Button>
           </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleSwitchRole}
+            className="w-full h-9 text-xs font-medium text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent gap-2 justify-start"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Trocar Função
+          </Button>
           <div className="flex items-center gap-3">
             <Avatar className="h-9 w-9 border-2 border-sidebar-foreground/20">
               <AvatarFallback className="bg-sidebar-primary/15 text-sidebar-foreground text-xs font-semibold">
