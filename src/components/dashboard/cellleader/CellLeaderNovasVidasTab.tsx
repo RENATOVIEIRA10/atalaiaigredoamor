@@ -1,18 +1,21 @@
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { EmptyState } from '@/components/ui/empty-state';
-import { useEncaminhamentos, useUpdateEncaminhamento } from '@/hooks/useEncaminhamentos';
-import { useUpdateNovaVida } from '@/hooks/useNovasVidas';
+import { useNovasVidasByCelula, useChangeNovaVidaStatus, STATUS_LABELS, type PipelineStatus } from '@/hooks/useNovasVidas';
 import { useCreateMember } from '@/hooks/useMembers';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, MessageCircle, CheckCircle, Home, Clock, RotateCcw, UserPlus, Heart, MapPin, CalendarDays, AlertTriangle } from 'lucide-react';
+import {
+  Loader2, MessageCircle, CheckCircle, Clock, RotateCcw, UserPlus, Heart,
+  MapPin, CalendarDays, AlertTriangle, Eye, Phone as PhoneIcon, Calendar, UserCheck,
+} from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useForm } from 'react-hook-form';
@@ -36,11 +39,17 @@ const promoteSchema = z.object({
 
 type PromoteFormData = z.infer<typeof promoteSchema>;
 
-const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ElementType }> = {
-  pendente: { label: 'Pendente', color: 'bg-amber-500/10 text-amber-600 border-amber-500/20', icon: Clock },
-  contatado: { label: 'Contatado', color: 'bg-blue-500/10 text-blue-600 border-blue-500/20', icon: MessageCircle },
-  integrado: { label: 'Integrado', color: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20', icon: CheckCircle },
-  sem_resposta: { label: 'Sem resposta', color: 'bg-muted text-muted-foreground border-border', icon: Clock },
+const STATUS_ICONS: Record<string, React.ElementType> = {
+  encaminhada: Clock,
+  recebida_pela_celula: Eye,
+  contatada: MessageCircle,
+  sem_resposta: Clock,
+  agendada: Calendar,
+  visitou: UserCheck,
+  integrada: CheckCircle,
+  convertida_membro: UserPlus,
+  nao_convertida: RotateCcw,
+  reatribuir: RotateCcw,
 };
 
 interface CellLeaderNovasVidasTabProps {
@@ -50,32 +59,29 @@ interface CellLeaderNovasVidasTabProps {
 }
 
 export function CellLeaderNovasVidasTab({ celulaId, celulaName, coupleNames }: CellLeaderNovasVidasTabProps) {
-  const { data: allEnc, isLoading } = useEncaminhamentos();
-  const updateEnc = useUpdateEncaminhamento();
-  const updateNV = useUpdateNovaVida();
+  const { data: vidas, isLoading } = useNovasVidasByCelula(celulaId);
+  const changeStatus = useChangeNovaVidaStatus();
   const createMember = useCreateMember();
   const { toast } = useToast();
   const qc = useQueryClient();
   const [promoteTarget, setPromoteTarget] = useState<any>(null);
   const [isPromoting, setIsPromoting] = useState(false);
+  const [notesDialog, setNotesDialog] = useState<{ vidaId: string; targetStatus: PipelineStatus } | null>(null);
+  const [notesText, setNotesText] = useState('');
 
   const form = useForm<PromoteFormData>({
     resolver: zodResolver(promoteSchema),
     defaultValues: { name: '', whatsapp: '', birth_date: '' },
   });
 
-  // Filter only encaminhamentos for this celula, exclude 'integrado' that was already promoted
-  const encaminhamentos = (allEnc || []).filter(e => e.celula_id === celulaId);
-  const activeEnc = encaminhamentos.filter(e => e.status !== 'devolvido');
-  const pendingCount = activeEnc.filter(e => e.status === 'pendente').length;
-
+  const activeVidas = (vidas || []).filter(v => !['nao_convertida'].includes(v.status));
   const pendingAlertDays = 3;
-  const hasOldPending = activeEnc.some(e =>
-    e.status === 'pendente' && differenceInDays(new Date(), new Date(e.data_encaminhamento)) >= pendingAlertDays
+  const hasOldPending = activeVidas.some(v =>
+    v.status === 'encaminhada' && differenceInDays(new Date(), new Date(v.updated_at)) >= pendingAlertDays
   );
 
-  function handleWhatsApp(enc: any) {
-    const phone = enc.nova_vida?.whatsapp?.replace(/\D/g, '');
+  function handleWhatsApp(nv: any) {
+    const phone = nv.whatsapp?.replace(/\D/g, '');
     if (!phone) {
       toast({ title: 'WhatsApp não disponível', variant: 'destructive' });
       return;
@@ -87,30 +93,33 @@ export function CellLeaderNovasVidasTab({ celulaId, celulaName, coupleNames }: C
     window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
   }
 
-  async function handleStatusChange(encId: string, newStatus: string) {
-    const extra: Record<string, any> = { status: newStatus };
-    if (newStatus === 'contatado') extra.contatado_at = new Date().toISOString();
-    if (newStatus === 'integrado') extra.integrado_at = new Date().toISOString();
-    updateEnc.mutate({ id: encId, ...extra } as any);
+  function handleStatusChange(vidaId: string, newStatus: PipelineStatus, notes?: string) {
+    changeStatus.mutate({
+      vidaId,
+      newStatus,
+      notes,
+      actorRole: 'celula_leader',
+    });
   }
 
-  async function handleReturn(enc: any) {
-    // Return to Recomeço flow
-    updateEnc.mutate({ id: enc.id, status: 'devolvido' } as any);
-    if (enc.nova_vida_id) {
-      updateNV.mutate({ id: enc.nova_vida_id, status: 'aguardando' });
-    }
-    toast({ title: 'Vida devolvida ao Recomeço' });
+  function handleStatusWithNotes(vidaId: string, targetStatus: PipelineStatus) {
+    setNotesDialog({ vidaId, targetStatus });
+    setNotesText('');
   }
 
-  function openPromote(enc: any) {
-    const nv = enc.nova_vida;
+  function confirmStatusWithNotes() {
+    if (!notesDialog) return;
+    handleStatusChange(notesDialog.vidaId, notesDialog.targetStatus, notesText || undefined);
+    setNotesDialog(null);
+  }
+
+  function openPromote(nv: any) {
     form.reset({
-      name: nv?.nome || '',
-      whatsapp: nv?.whatsapp || '',
+      name: nv.nome || '',
+      whatsapp: nv.whatsapp || '',
       birth_date: '',
     });
-    setPromoteTarget(enc);
+    setPromoteTarget(nv);
   }
 
   async function onPromote(data: PromoteFormData) {
@@ -128,7 +137,6 @@ export function CellLeaderNovasVidasTab({ celulaId, celulaName, coupleNames }: C
         }
       }
 
-      // Create profile
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .insert({
@@ -140,36 +148,22 @@ export function CellLeaderNovasVidasTab({ celulaId, celulaName, coupleNames }: C
         .single();
       if (profileError) throw profileError;
 
-      // Create member
       await createMember.mutateAsync({
         profile_id: profile.id,
         celula_id: celulaId,
         whatsapp: normalizedWa,
       } as any);
 
-      // Update encaminhamento status with audit fields
-      await supabase
-        .from('encaminhamentos_recomeco')
-        .update({
-          status: 'integrado',
-          integrado_at: new Date().toISOString(),
-          promovido_membro_at: new Date().toISOString(),
-          membro_id: profile.id,
-        })
-        .eq('id', promoteTarget.id);
+      // Update via pipeline
+      changeStatus.mutate({
+        vidaId: promoteTarget.id,
+        newStatus: 'convertida_membro',
+        actorRole: 'celula_leader',
+        extraData: { assigned_cell_id: celulaId },
+      });
 
-      // Update nova_vida status
-      if (promoteTarget.nova_vida_id) {
-        await supabase
-          .from('novas_vidas')
-          .update({ status: 'integrada' })
-          .eq('id', promoteTarget.nova_vida_id);
-      }
-
-      qc.invalidateQueries({ queryKey: ['encaminhamentos'] });
-      qc.invalidateQueries({ queryKey: ['novas_vidas'] });
       qc.invalidateQueries({ queryKey: ['members'] });
-      toast({ title: 'Vida integrada como membro da célula! 🎉' });
+      toast({ title: 'Vida convertida em membro da célula! 🎉' });
       setPromoteTarget(null);
     } catch (error: any) {
       toast({ title: 'Erro ao promover', description: error.message, variant: 'destructive' });
@@ -188,98 +182,112 @@ export function CellLeaderNovasVidasTab({ celulaId, celulaName, coupleNames }: C
 
   return (
     <div className="space-y-4">
-      {/* Alert for old pending */}
       {hasOldPending && (
         <Card className="border-amber-500/30 bg-amber-500/5">
           <CardContent className="p-4 flex items-center gap-3">
             <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0" />
             <p className="text-sm text-amber-700 dark:text-amber-400">
-              Há novas vidas aguardando contato há mais de {pendingAlertDays} dias.
+              Há novas vidas aguardando recebimento há mais de {pendingAlertDays} dias.
             </p>
           </CardContent>
         </Card>
       )}
 
-      {activeEnc.length === 0 ? (
+      {activeVidas.length === 0 ? (
         <EmptyState
           icon={Heart}
-          title="Nenhuma nova vida encaminhada"
-          description="Quando o Recomeço encaminhar vidas para sua célula, elas aparecerão aqui."
+          title="Nenhuma nova vida recebida"
+          description="Quando a Central encaminhar vidas para sua célula, elas aparecerão aqui."
         />
       ) : (
         <div className="grid gap-3">
-          {activeEnc.map(enc => {
-            const nv = enc.nova_vida;
-            const statusCfg = STATUS_CONFIG[enc.status] || STATUS_CONFIG.pendente;
-            const StatusIcon = statusCfg.icon;
-            const daysSince = differenceInDays(new Date(), new Date(enc.data_encaminhamento));
+          {activeVidas.map(nv => {
+            const st = STATUS_LABELS[nv.status] || { label: nv.status, color: '' };
+            const Icon = STATUS_ICONS[nv.status] || Clock;
+            const daysSince = differenceInDays(new Date(), new Date(nv.updated_at));
 
             return (
-              <Card key={enc.id} className="border-l-4 border-l-primary/30">
+              <Card key={nv.id} className="border-l-4 border-l-primary/30">
                 <CardContent className="p-4 space-y-3">
-                  {/* Header */}
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <p className="font-semibold text-foreground truncate">{nv?.nome || 'Sem nome'}</p>
-                      {(nv?.bairro || nv?.cidade) && (
+                      <p className="font-semibold text-foreground truncate">{nv.nome}</p>
+                      {(nv.bairro || nv.cidade) && (
                         <p className="text-sm text-muted-foreground flex items-center gap-1 mt-0.5">
                           <MapPin className="h-3.5 w-3.5 shrink-0" />
-                          {[nv?.bairro, nv?.cidade].filter(Boolean).join(', ')}
+                          {[nv.bairro, nv.cidade].filter(Boolean).join(', ')}
                         </p>
                       )}
                       <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
                         <CalendarDays className="h-3 w-3" />
-                        {format(new Date(enc.data_encaminhamento), "dd/MM/yyyy", { locale: ptBR })}
-                        {daysSince > 0 && <span className="ml-1">({daysSince}d atrás)</span>}
+                        {format(new Date(nv.updated_at), "dd/MM/yyyy", { locale: ptBR })}
+                        {daysSince > 0 && <span className="ml-1">({daysSince}d)</span>}
                       </p>
                     </div>
-                    <Badge variant="outline" className={cn('text-xs shrink-0 gap-1', statusCfg.color)}>
-                      <StatusIcon className="h-3 w-3" />
-                      {statusCfg.label}
+                    <Badge variant="outline" className={cn('text-xs shrink-0 gap-1', st.color)}>
+                      <Icon className="h-3 w-3" />
+                      {st.label}
                     </Badge>
                   </div>
 
-                  {/* Actions */}
                   <div className="flex flex-wrap gap-2">
-                    {nv?.whatsapp && (
-                      <Button size="sm" variant="outline" className="gap-1.5 text-xs h-8" onClick={() => handleWhatsApp(enc)}>
-                        <MessageCircle className="h-3.5 w-3.5 text-green-600" />
-                        WhatsApp
+                    {nv.whatsapp && (
+                      <Button size="sm" variant="outline" className="gap-1.5 text-xs h-8" onClick={() => handleWhatsApp(nv)}>
+                        <MessageCircle className="h-3.5 w-3.5 text-green-600" />WhatsApp
                       </Button>
                     )}
 
-                    {enc.status === 'pendente' && (
-                      <Button size="sm" variant="outline" className="gap-1.5 text-xs h-8" onClick={() => handleStatusChange(enc.id, 'contatado')}>
-                        <CheckCircle className="h-3.5 w-3.5 text-blue-500" />
-                        Contatado
+                    {nv.status === 'encaminhada' && (
+                      <Button size="sm" variant="outline" className="gap-1.5 text-xs h-8" onClick={() => handleStatusChange(nv.id, 'recebida_pela_celula')}>
+                        <Eye className="h-3.5 w-3.5 text-indigo-500" />Recebida
                       </Button>
                     )}
 
-                    {(enc.status === 'pendente' || enc.status === 'contatado') && (
+                    {['encaminhada', 'recebida_pela_celula'].includes(nv.status) && (
+                      <Button size="sm" variant="outline" className="gap-1.5 text-xs h-8" onClick={() => handleStatusChange(nv.id, 'contatada')}>
+                        <CheckCircle className="h-3.5 w-3.5 text-purple-500" />Contatada
+                      </Button>
+                    )}
+
+                    {['contatada', 'recebida_pela_celula'].includes(nv.status) && (
+                      <Button size="sm" variant="outline" className="gap-1.5 text-xs h-8" onClick={() => handleStatusWithNotes(nv.id, 'sem_resposta')}>
+                        <Clock className="h-3.5 w-3.5" />Sem resposta
+                      </Button>
+                    )}
+
+                    {['contatada', 'sem_resposta'].includes(nv.status) && (
+                      <Button size="sm" variant="outline" className="gap-1.5 text-xs h-8" onClick={() => handleStatusChange(nv.id, 'agendada')}>
+                        <Calendar className="h-3.5 w-3.5 text-cyan-500" />Agendada
+                      </Button>
+                    )}
+
+                    {nv.status === 'agendada' && (
+                      <Button size="sm" variant="outline" className="gap-1.5 text-xs h-8" onClick={() => handleStatusChange(nv.id, 'visitou')}>
+                        <UserCheck className="h-3.5 w-3.5 text-teal-500" />Visitou
+                      </Button>
+                    )}
+
+                    {['visitou', 'contatada', 'agendada'].includes(nv.status) && (
+                      <Button size="sm" variant="outline" className="gap-1.5 text-xs h-8" onClick={() => handleStatusChange(nv.id, 'integrada')}>
+                        <CheckCircle className="h-3.5 w-3.5 text-green-500" />Integrada
+                      </Button>
+                    )}
+
+                    {nv.status === 'integrada' && (
+                      <Button size="sm" className="gap-1.5 text-xs h-8 bg-emerald-600 hover:bg-emerald-700" onClick={() => openPromote(nv)}>
+                        <UserPlus className="h-3.5 w-3.5" />Converter em Membro
+                      </Button>
+                    )}
+
+                    {!['convertida_membro', 'nao_convertida', 'reatribuir'].includes(nv.status) && (
                       <>
-                        <Button size="sm" variant="outline" className="gap-1.5 text-xs h-8" onClick={() => handleStatusChange(enc.id, 'sem_resposta')}>
-                          <Clock className="h-3.5 w-3.5" />
-                          Sem resposta
+                        <Button size="sm" variant="outline" className="gap-1.5 text-xs h-8 text-orange-500 border-orange-500/30" onClick={() => handleStatusWithNotes(nv.id, 'reatribuir')}>
+                          <RotateCcw className="h-3.5 w-3.5" />Reatribuir
                         </Button>
-                        <Button size="sm" variant="outline" className="gap-1.5 text-xs h-8" onClick={() => handleReturn(enc)}>
-                          <RotateCcw className="h-3.5 w-3.5" />
-                          Devolver
+                        <Button size="sm" variant="outline" className="gap-1.5 text-xs h-8 text-red-500 border-red-500/30" onClick={() => handleStatusWithNotes(nv.id, 'nao_convertida')}>
+                          Não convertida
                         </Button>
                       </>
-                    )}
-
-                    {enc.status === 'contatado' && (
-                      <Button size="sm" className="gap-1.5 text-xs h-8 bg-emerald-600 hover:bg-emerald-700" onClick={() => openPromote(enc)}>
-                        <UserPlus className="h-3.5 w-3.5" />
-                        Integrar
-                      </Button>
-                    )}
-
-                    {enc.status === 'integrado' && (
-                      <Button size="sm" className="gap-1.5 text-xs h-8 bg-emerald-600 hover:bg-emerald-700" onClick={() => openPromote(enc)}>
-                        <Home className="h-3.5 w-3.5" />
-                        Adicionar como membro
-                      </Button>
                     )}
                   </div>
                 </CardContent>
@@ -289,60 +297,55 @@ export function CellLeaderNovasVidasTab({ celulaId, celulaName, coupleNames }: C
         </div>
       )}
 
+      {/* Notes dialog for statuses that need explanation */}
+      <Dialog open={!!notesDialog} onOpenChange={o => { if (!o) setNotesDialog(null); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {notesDialog?.targetStatus === 'reatribuir' ? 'Solicitar Reatribuição' :
+               notesDialog?.targetStatus === 'nao_convertida' ? 'Encerrar - Não Convertida' :
+               notesDialog?.targetStatus === 'sem_resposta' ? 'Marcar Sem Resposta' : 'Observação'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Textarea
+              placeholder="Motivo ou observação..."
+              value={notesText}
+              onChange={e => setNotesText(e.target.value)}
+              rows={3}
+            />
+            <div className="flex gap-3">
+              <Button variant="outline" onClick={() => setNotesDialog(null)} className="flex-1">Cancelar</Button>
+              <Button onClick={confirmStatusWithNotes} className="flex-1" disabled={changeStatus.isPending}>
+                {changeStatus.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                Confirmar
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Promote dialog */}
       <Dialog open={!!promoteTarget} onOpenChange={open => { if (!open) setPromoteTarget(null); }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Adicionar como Membro da Célula</DialogTitle>
+            <DialogTitle>Converter em Membro da Célula</DialogTitle>
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onPromote)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nome Completo *</FormLabel>
-                    <FormControl>
-                      <Input className="h-12 text-base" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="whatsapp"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>WhatsApp</FormLabel>
-                    <FormControl>
-                      <Input placeholder="(DDD) 9xxxx-xxxx" inputMode="tel" className="h-12 text-base" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="birth_date"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Data de Nascimento</FormLabel>
-                    <FormControl>
-                      <Input type="date" className="h-12" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <FormField control={form.control} name="name" render={({ field }) => (
+                <FormItem><FormLabel>Nome Completo *</FormLabel><FormControl><Input className="h-12 text-base" {...field} /></FormControl><FormMessage /></FormItem>
+              )} />
+              <FormField control={form.control} name="whatsapp" render={({ field }) => (
+                <FormItem><FormLabel>WhatsApp</FormLabel><FormControl><Input placeholder="(DDD) 9xxxx-xxxx" inputMode="tel" className="h-12 text-base" {...field} /></FormControl><FormMessage /></FormItem>
+              )} />
+              <FormField control={form.control} name="birth_date" render={({ field }) => (
+                <FormItem><FormLabel>Data de Nascimento</FormLabel><FormControl><Input type="date" className="h-12" {...field} /></FormControl><FormMessage /></FormItem>
+              )} />
               <div className="flex gap-3 pt-2">
-                <Button type="button" variant="outline" onClick={() => setPromoteTarget(null)} className="flex-1 h-12">
-                  Cancelar
-                </Button>
+                <Button type="button" variant="outline" onClick={() => setPromoteTarget(null)} className="flex-1 h-12">Cancelar</Button>
                 <Button type="submit" disabled={isPromoting} className="flex-1 h-12 font-semibold">
-                  {isPromoting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  Confirmar
+                  {isPromoting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}Confirmar
                 </Button>
               </div>
             </form>
