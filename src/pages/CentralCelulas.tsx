@@ -410,6 +410,7 @@ function TriagemDialog({ vidaId, novasVidas, onClose, isPWAMobile }: { vidaId: s
     bairro: filterBairro || undefined,
     cidade: filterCidade || undefined,
     rede_id: filterRedeId || undefined,
+    vidaPerfil: nv ? { estado_civil: nv.estado_civil, faixa_etaria: nv.faixa_etaria } : undefined,
   });
   const createEnc = useCreateEncaminhamento();
 

@@ -15,15 +15,7 @@ import {
   useConfirmRecomecoMessage,
 } from '@/hooks/useRecomecoAgent';
 import type { NovaVida } from '@/hooks/useNovasVidas';
-
-function normalizeWhatsAppForUrl(raw: string | null): string | null {
-  if (!raw) return null;
-  const digits = raw.replace(/\D/g, '');
-  if (!digits || digits.length < 10) return null;
-  if (digits.startsWith('55') && digits.length >= 12) return digits;
-  if (digits.length === 10 || digits.length === 11) return `55${digits}`;
-  return null;
-}
+import { normalizePhone, openWhatsApp } from '@/lib/whatsapp';
 
 interface BoasVindasWhatsAppProps {
   vida: NovaVida;
@@ -53,12 +45,11 @@ export function BoasVindasWhatsApp({ vida, compact = false }: BoasVindasWhatsApp
       .replace(/\{agente_assinatura\}/g, agent.mensagem_assinatura || agent.cargo || '');
   }, [defaultTemplate, agent, vida]);
 
-  const phone = normalizeWhatsAppForUrl(vida.whatsapp);
+  const phone = normalizePhone(vida.whatsapp);
 
   const handleOpenWhatsApp = () => {
     if (!phone) return;
     const msgText = editedMsg || builtMessage;
-    const encodedMsg = encodeURIComponent(msgText);
 
     // Track the message
     createMessage.mutate({
@@ -68,9 +59,8 @@ export function BoasVindasWhatsApp({ vida, compact = false }: BoasVindasWhatsApp
       status: 'opened_whatsapp',
     });
 
-    // Open WhatsApp - use location.href for PWA compatibility
-    const url = `https://wa.me/${phone}?text=${encodedMsg}`;
-    window.open(url, '_blank');
+    // Open WhatsApp with PWA-aware navigation
+    openWhatsApp(vida.whatsapp, msgText);
     setShowEditor(false);
   };
 
