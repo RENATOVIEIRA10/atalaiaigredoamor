@@ -170,7 +170,25 @@ export function CellLeaderNovasVidasTab({ celulaId, celulaName, coupleNames }: C
         extraData: { assigned_cell_id: celulaId },
       });
 
+      // Sync encaminhamentos_recomeco so upper dashboards reflect conversion
+      const { data: memberRecord } = await supabase
+        .from('members')
+        .select('id')
+        .eq('profile_id', profile.id)
+        .eq('celula_id', celulaId)
+        .single();
+
+      await supabase
+        .from('encaminhamentos_recomeco')
+        .update({
+          status: 'convertido',
+          promovido_membro_at: new Date().toISOString(),
+          membro_id: memberRecord?.id || null,
+        })
+        .eq('nova_vida_id', promoteTarget.id);
+
       qc.invalidateQueries({ queryKey: ['members'] });
+      qc.invalidateQueries({ queryKey: ['recomeco-funnel-all'] });
       toast({ title: 'Vida convertida em membro da célula! 🎉' });
       setPromoteTarget(null);
     } catch (error: any) {
