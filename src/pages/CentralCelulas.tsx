@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useRole } from '@/contexts/RoleContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -7,6 +7,7 @@ import { useCreateEncaminhamento } from '@/hooks/useEncaminhamentos';
 import { useCelulasPublicas } from '@/hooks/useCelulasPublicas';
 import { useRedes } from '@/hooks/useRedes';
 import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -18,6 +19,7 @@ import { Textarea } from '@/components/ui/textarea';
 import {
   ChevronLeft, Loader2, Users, MapPin, Clock, Network,
   ArrowRight, Phone, Heart, UserCheck, ClipboardList, Search,
+  Timer, TrendingUp, Send,
 } from 'lucide-react';
 
 export default function CentralCelulas() {
@@ -44,6 +46,8 @@ export default function CentralCelulas() {
           </div>
         </div>
 
+        <KPICards />
+
         <Tabs defaultValue="fila" className="w-full">
           <TabsList className="bg-white/5 border border-white/10 mb-6 w-full">
             <TabsTrigger value="fila" className="flex-1 data-[state=active]:bg-[#C5A059]/20 data-[state=active]:text-[#C5A059]">
@@ -62,6 +66,62 @@ export default function CentralCelulas() {
           </TabsContent>
         </Tabs>
       </div>
+    </div>
+  );
+}
+
+function KPICards() {
+  const { data: novasVidas } = useNovasVidas();
+  const { data: events } = useQuery({
+    queryKey: ['novas_vidas_events_kpi'],
+    queryFn: async () => {
+      const today = new Date().toISOString().split('T')[0];
+      const { data } = await supabase
+        .from('novas_vidas_events')
+        .select('*')
+        .eq('event_type', 'encaminhamento')
+        .gte('created_at', today + 'T00:00:00Z');
+      return data || [];
+    },
+    refetchInterval: 30000,
+  });
+
+  const stats = useMemo(() => {
+    const all = novasVidas || [];
+    const fila = all.filter((nv: any) => nv.status === 'nova').length;
+    const encaminhadasHoje = (events || []).length;
+
+    // Tempo médio de triagem: diff entre cadastro e encaminhamento
+    const encaminhadas = all.filter((nv: any) => nv.status === 'encaminhada' && nv.created_at && nv.updated_at);
+    let tempoMedio = 0;
+    if (encaminhadas.length > 0) {
+      const total = encaminhadas.reduce((acc: number, nv: any) => {
+        const diff = new Date(nv.updated_at).getTime() - new Date(nv.created_at).getTime();
+        return acc + diff;
+      }, 0);
+      tempoMedio = Math.round(total / encaminhadas.length / (1000 * 60 * 60)); // hours
+    }
+
+    return { fila, encaminhadasHoje, tempoMedio };
+  }, [novasVidas, events]);
+
+  const cards = [
+    { label: 'Na Fila', value: stats.fila, icon: ClipboardList, color: '#F59E0B' },
+    { label: 'Tempo Médio', value: stats.tempoMedio > 0 ? `${stats.tempoMedio}h` : '—', icon: Timer, color: '#8B5CF6' },
+    { label: 'Encaminhadas Hoje', value: stats.encaminhadasHoje, icon: Send, color: '#10B981' },
+  ];
+
+  return (
+    <div className="grid grid-cols-3 gap-3 mb-6">
+      {cards.map(c => (
+        <Card key={c.label} className="bg-white/5 border-white/10">
+          <CardContent className="p-3 text-center">
+            <c.icon className="h-4 w-4 mx-auto mb-1" style={{ color: c.color }} />
+            <p className="text-lg font-bold" style={{ color: '#F4EDE4' }}>{c.value}</p>
+            <p className="text-[10px] uppercase tracking-wider" style={{ color: '#B8B6B3' }}>{c.label}</p>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 }
