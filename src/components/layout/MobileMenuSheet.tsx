@@ -8,6 +8,7 @@ import { useServiceWorkerUpdate } from '@/hooks/useServiceWorkerUpdate';
 import { useRole } from '@/contexts/RoleContext';
 import { useDemoMode } from '@/contexts/DemoModeContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { AdminPWAPanel } from '@/components/dashboard/pwa/AdminPWAPanel';
 import { cn } from '@/lib/utils';
 
 interface MobileMenuSheetProps {
@@ -22,6 +23,7 @@ export function MobileMenuSheet({ open, onOpenChange }: MobileMenuSheetProps) {
   const { theme, toggleTheme } = useTheme();
   const { checkForUpdate, applyUpdate } = useServiceWorkerUpdate();
   const [checking, setChecking] = useState(false);
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
 
   const handleCheckUpdate = async () => {
     setChecking(true);
@@ -29,7 +31,6 @@ export function MobileMenuSheet({ open, onOpenChange }: MobileMenuSheetProps) {
     if (found) {
       applyUpdate();
     } else {
-      // No update found – let user know
       setTimeout(() => setChecking(false), 1500);
     }
   };
@@ -55,101 +56,124 @@ export function MobileMenuSheet({ open, onOpenChange }: MobileMenuSheetProps) {
     navigate('/trocar-funcao');
   };
 
+  const handleOpenAdminPanel = () => {
+    onOpenChange(false);
+    // Small delay to let sheet close before opening fullscreen panel
+    setTimeout(() => setShowAdminPanel(true), 150);
+  };
+
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="rounded-t-2xl max-h-[70vh] pb-safe">
-        <SheetHeader className="pb-2">
-          <SheetTitle className="text-base">Menu</SheetTitle>
-        </SheetHeader>
+    <>
+      <Sheet open={open} onOpenChange={onOpenChange}>
+        <SheetContent side="bottom" className="rounded-t-2xl max-h-[70vh] pb-safe">
+          <SheetHeader className="pb-2">
+            <SheetTitle className="text-base">Menu</SheetTitle>
+          </SheetHeader>
 
-        <div className="space-y-1 py-2">
-          {/* Supervisor PWA: minimal menu items */}
-          {isSupervisor ? (
-            <>
-              <MenuButton icon={GitBranch} label="Organograma" onClick={() => goTo('/organograma')} />
-            </>
-          ) : (isCoordenador || isRedeLeader) ? (
-            <>
-              {/* Coordenador / Líder de Rede PWA: essentials only */}
-              <MenuButton icon={GitBranch} label="Organograma" onClick={() => goTo('/organograma')} />
-              <MenuButton icon={Home} label="Células" onClick={() => goTo('/celulas')} />
-            </>
-          ) : isCellLeaderOnly ? (
-            <>
-              {/* Cell leader PWA: minimal */}
-              <MenuButton icon={GitBranch} label="Organograma" onClick={() => goTo('/organograma')} />
-            </>
-          ) : (
-            <>
-              <MenuButton icon={GitBranch} label="Organograma" onClick={() => goTo('/organograma')} />
-              <MenuButton icon={Home} label="Células" onClick={() => goTo('/celulas')} />
+          <div className="space-y-1 py-2">
+            {/* Admin PWA: prominent admin button */}
+            {isAdmin && (
+              <>
+                <MenuButton
+                  icon={Settings}
+                  label="Administração"
+                  onClick={handleOpenAdminPanel}
+                  className="text-amber-600 dark:text-amber-400"
+                />
+                <div className="border-t border-border/30 my-2" />
+              </>
+            )}
 
-              {/* Cell leaders: show Dados shortcut (they don't have it in bottom nav) */}
-              {isCellLeaderOnly && (
-                <MenuButton icon={Activity} label="Dados" onClick={() => goTo('/dados')} />
-              )}
+            {/* Supervisor PWA: minimal menu items */}
+            {isSupervisor ? (
+              <>
+                <MenuButton icon={GitBranch} label="Organograma" onClick={() => goTo('/organograma')} />
+              </>
+            ) : (isCoordenador || isRedeLeader) ? (
+              <>
+                <MenuButton icon={GitBranch} label="Organograma" onClick={() => goTo('/organograma')} />
+                <MenuButton icon={Home} label="Células" onClick={() => goTo('/celulas')} />
+              </>
+            ) : isCellLeaderOnly ? (
+              <>
+                <MenuButton icon={GitBranch} label="Organograma" onClick={() => goTo('/organograma')} />
+              </>
+            ) : (
+              <>
+                <MenuButton icon={GitBranch} label="Organograma" onClick={() => goTo('/organograma')} />
+                <MenuButton icon={Home} label="Células" onClick={() => goTo('/celulas')} />
 
-              {(showAdminItems || isCoordenador) && (
-                <>
-                  <div className="border-t border-border/30 my-2" />
-                  {showAdminItems && (
-                    <>
-                      <MenuButton icon={Network} label="Redes" onClick={() => goTo('/redes')} />
-                      <MenuButton icon={FolderTree} label="Coordenações" onClick={() => goTo('/coordenacoes')} />
-                      <MenuButton icon={Settings} label="Configurações" onClick={() => goTo('/configuracoes')} />
-                      <MenuButton icon={FlaskConical} label="Ferramentas" onClick={() => goTo('/ferramentas-teste')} />
-                    </>
-                  )}
-                </>
-              )}
-            </>
-          )}
+                {isCellLeaderOnly && (
+                  <MenuButton icon={Activity} label="Dados" onClick={() => goTo('/dados')} />
+                )}
 
-          <div className="border-t border-border/30 my-2" />
-          <MenuButton icon={PlayCircle} label="Manual do Usuário" onClick={() => goTo('/manual-usuario')} />
-          <div className="border-t border-border/30 my-2" />
+                {(showAdminItems || isCoordenador) && (
+                  <>
+                    <div className="border-t border-border/30 my-2" />
+                    {showAdminItems && (
+                      <>
+                        <MenuButton icon={Network} label="Redes" onClick={() => goTo('/redes')} />
+                        <MenuButton icon={FolderTree} label="Coordenações" onClick={() => goTo('/coordenacoes')} />
+                        <MenuButton icon={Settings} label="Configurações" onClick={() => goTo('/configuracoes')} />
+                        <MenuButton icon={FlaskConical} label="Ferramentas" onClick={() => goTo('/ferramentas-teste')} />
+                      </>
+                    )}
+                  </>
+                )}
+              </>
+            )}
 
-          {(isAdmin || isDemoActive) && (
+            <div className="border-t border-border/30 my-2" />
+            <MenuButton icon={PlayCircle} label="Manual do Usuário" onClick={() => goTo('/manual-usuario')} />
+            <div className="border-t border-border/30 my-2" />
+
+            {/* Demo mode shortcut for non-admin path (when already in demo) */}
+            {isDemoActive && !isAdmin && (
+              <MenuButton
+                icon={Eye}
+                label="Trocar Visão"
+                onClick={() => {
+                  onOpenChange(false);
+                }}
+                className="text-amber-600 dark:text-amber-400"
+              />
+            )}
+
             <MenuButton
-              icon={Eye}
-              label={isDemoActive ? 'Trocar Visão' : 'Modo Demonstração'}
-              onClick={() => {
-                onOpenChange(false);
-              }}
+              icon={theme === 'padrao' ? Heart : Moon}
+              label={theme === 'padrao' ? 'Tema Amor' : 'Tema Padrão'}
+              onClick={() => { toggleTheme(); onOpenChange(false); }}
+            />
+
+            <MenuButton
+              icon={RefreshCw}
+              label={checking ? 'Verificando…' : 'Atualizar app'}
+              onClick={handleCheckUpdate}
+            />
+
+            <div className="border-t border-border/30 my-2" />
+
+            <MenuButton
+              icon={Repeat}
+              label="Trocar Função"
+              onClick={handleSwitchRole}
               className="text-amber-600 dark:text-amber-400"
             />
-          )}
 
-          <MenuButton
-            icon={theme === 'padrao' ? Heart : Moon}
-            label={theme === 'padrao' ? 'Tema Amor' : 'Tema Padrão'}
-            onClick={() => { toggleTheme(); onOpenChange(false); }}
-          />
+            <MenuButton
+              icon={LogOut}
+              label="Sair"
+              onClick={handleLogout}
+              className="text-destructive"
+            />
+          </div>
+        </SheetContent>
+      </Sheet>
 
-          <MenuButton
-            icon={RefreshCw}
-            label={checking ? 'Verificando…' : 'Atualizar app'}
-            onClick={handleCheckUpdate}
-          />
-
-          <div className="border-t border-border/30 my-2" />
-
-          <MenuButton
-            icon={Repeat}
-            label="Trocar Função"
-            onClick={handleSwitchRole}
-            className="text-amber-600 dark:text-amber-400"
-          />
-
-          <MenuButton
-            icon={LogOut}
-            label="Sair"
-            onClick={handleLogout}
-            className="text-destructive"
-          />
-        </div>
-      </SheetContent>
-    </Sheet>
+      {showAdminPanel && (
+        <AdminPWAPanel onClose={() => setShowAdminPanel(false)} />
+      )}
+    </>
   );
 }
 
