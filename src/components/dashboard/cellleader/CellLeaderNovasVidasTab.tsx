@@ -238,61 +238,61 @@ export function CellLeaderNovasVidasTab({ celulaId, celulaName, coupleNames }: C
                     </Badge>
                   </div>
 
-                  <div className="flex flex-wrap gap-2">
-                    {nv.whatsapp && (
-                      <Button size="sm" variant="outline" className="gap-1.5 text-xs h-8" onClick={() => handleWhatsApp(nv)}>
+                    <div className="flex flex-wrap gap-2">
+                     {nv.whatsapp && (
+                      <Button size="sm" variant="outline" className="gap-1.5 text-xs h-10 min-w-[44px]" onClick={() => handleWhatsApp(nv)}>
                         <MessageCircle className="h-3.5 w-3.5 text-green-600" />WhatsApp
                       </Button>
                     )}
 
                     {nv.status === 'encaminhada' && (
-                      <Button size="sm" variant="outline" className="gap-1.5 text-xs h-8" onClick={() => handleStatusChange(nv.id, 'recebida_pela_celula')}>
+                      <Button size="sm" variant="outline" className="gap-1.5 text-xs h-10 min-w-[44px]" onClick={() => handleStatusChange(nv.id, 'recebida_pela_celula')}>
                         <Eye className="h-3.5 w-3.5 text-indigo-500" />Recebida
                       </Button>
                     )}
 
                     {['encaminhada', 'recebida_pela_celula'].includes(nv.status) && (
-                      <Button size="sm" variant="outline" className="gap-1.5 text-xs h-8" onClick={() => handleStatusChange(nv.id, 'contatada')}>
+                      <Button size="sm" variant="outline" className="gap-1.5 text-xs h-10 min-w-[44px]" onClick={() => handleStatusChange(nv.id, 'contatada')}>
                         <CheckCircle className="h-3.5 w-3.5 text-purple-500" />Contatada
                       </Button>
                     )}
 
                     {['contatada', 'recebida_pela_celula'].includes(nv.status) && (
-                      <Button size="sm" variant="outline" className="gap-1.5 text-xs h-8" onClick={() => handleStatusWithNotes(nv.id, 'sem_resposta')}>
+                      <Button size="sm" variant="outline" className="gap-1.5 text-xs h-10 min-w-[44px]" onClick={() => handleStatusWithNotes(nv.id, 'sem_resposta')}>
                         <Clock className="h-3.5 w-3.5" />Sem resposta
                       </Button>
                     )}
 
                     {['contatada', 'sem_resposta'].includes(nv.status) && (
-                      <Button size="sm" variant="outline" className="gap-1.5 text-xs h-8" onClick={() => handleStatusChange(nv.id, 'agendada')}>
+                      <Button size="sm" variant="outline" className="gap-1.5 text-xs h-10 min-w-[44px]" onClick={() => handleStatusChange(nv.id, 'agendada')}>
                         <Calendar className="h-3.5 w-3.5 text-cyan-500" />Agendada
                       </Button>
                     )}
 
                     {nv.status === 'agendada' && (
-                      <Button size="sm" variant="outline" className="gap-1.5 text-xs h-8" onClick={() => handleStatusChange(nv.id, 'visitou')}>
+                      <Button size="sm" variant="outline" className="gap-1.5 text-xs h-10 min-w-[44px]" onClick={() => handleStatusChange(nv.id, 'visitou')}>
                         <UserCheck className="h-3.5 w-3.5 text-teal-500" />Visitou
                       </Button>
                     )}
 
                     {['visitou', 'contatada', 'agendada'].includes(nv.status) && (
-                      <Button size="sm" variant="outline" className="gap-1.5 text-xs h-8" onClick={() => handleStatusChange(nv.id, 'integrada')}>
+                      <Button size="sm" variant="outline" className="gap-1.5 text-xs h-10 min-w-[44px]" onClick={() => handleStatusChange(nv.id, 'integrada')}>
                         <CheckCircle className="h-3.5 w-3.5 text-green-500" />Integrada
                       </Button>
                     )}
 
                     {nv.status === 'integrada' && (
-                      <Button size="sm" className="gap-1.5 text-xs h-8 bg-emerald-600 hover:bg-emerald-700" onClick={() => openPromote(nv)}>
+                      <Button size="sm" className="gap-1.5 text-xs h-10 bg-emerald-600 hover:bg-emerald-700 w-full" onClick={() => openPromote(nv)}>
                         <UserPlus className="h-3.5 w-3.5" />Converter em Membro
                       </Button>
                     )}
 
                     {!['convertida_membro', 'nao_convertida', 'reatribuir'].includes(nv.status) && (
                       <>
-                        <Button size="sm" variant="outline" className="gap-1.5 text-xs h-8 text-orange-500 border-orange-500/30" onClick={() => handleStatusWithNotes(nv.id, 'reatribuir')}>
+                        <Button size="sm" variant="outline" className="gap-1.5 text-xs h-10 min-w-[44px] text-orange-500 border-orange-500/30" onClick={() => handleStatusWithNotes(nv.id, 'reatribuir')}>
                           <RotateCcw className="h-3.5 w-3.5" />Reatribuir
                         </Button>
-                        <Button size="sm" variant="outline" className="gap-1.5 text-xs h-8 text-red-500 border-red-500/30" onClick={() => handleStatusWithNotes(nv.id, 'nao_convertida')}>
+                        <Button size="sm" variant="outline" className="gap-1.5 text-xs h-10 min-w-[44px] text-red-500 border-red-500/30" onClick={() => handleStatusWithNotes(nv.id, 'nao_convertida')}>
                           Não convertida
                         </Button>
                       </>

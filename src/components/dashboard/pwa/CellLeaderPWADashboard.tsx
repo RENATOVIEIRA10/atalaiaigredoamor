@@ -1,16 +1,18 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, FileText, Users, Cake, Zap, Clock, CheckCircle, AlertTriangle, MessageSquare, Plus, ChevronRight } from 'lucide-react';
+import { Loader2, FileText, Users, Cake, Zap, Clock, CheckCircle, AlertTriangle, ChevronRight, Heart, History } from 'lucide-react';
 import { useCelulas } from '@/hooks/useCelulas';
 import { useWeeklyReports, getCurrentWeekStart } from '@/hooks/useWeeklyReports';
 import { useMembers } from '@/hooks/useMembers';
+import { useNovasVidasByCelula } from '@/hooks/useNovasVidas';
 import { useRole } from '@/contexts/RoleContext';
 import { CelulaDetailsDialog } from '../CelulaDetailsDialog';
 import { CellLeaderMembrosTab } from '../cellleader/CellLeaderMembrosTab';
 import { CellLeaderPulsoTab } from '../cellleader/CellLeaderPulsoTab';
+import { CellLeaderNovasVidasTab } from '../cellleader/CellLeaderNovasVidasTab';
 import { MissionVerse } from '../MissionVerse';
 import { EmptyState } from '@/components/ui/empty-state';
 import { format, parseISO } from 'date-fns';
@@ -26,6 +28,7 @@ export function CellLeaderPWADashboard() {
 
   const { data: reports, isLoading: reportsLoading } = useWeeklyReports(celulaId);
   const { data: members } = useMembers(celulaId);
+  const { data: novasVidas } = useNovasVidasByCelula(celulaId);
 
   const [celulaDialogOpen, setCelulaDialogOpen] = useState(false);
   const [reportFilter, setReportFilter] = useState<number>(30);
@@ -42,12 +45,13 @@ export function CellLeaderPWADashboard() {
   const thisWeekReport = (reports || []).find(r => r.week_start === currentWeekStart);
   const lastReport = (reports || []).length > 0 ? (reports || [])[0] : null;
   const activeMembers = (members || []).filter(m => m.is_active);
+  const activeNovasVidas = (novasVidas || []).filter(v => !['nao_convertida'].includes(v.status));
 
   const coupleName = celula.leadership_couple
     ? `${celula.leadership_couple.spouse1?.name?.split(' ')[0] || ''} & ${celula.leadership_couple.spouse2?.name?.split(' ')[0] || ''}`
     : '';
 
-  if (activeTab === 'acoes') return <AcoesTab celulaId={celulaId} celulaName={celula.name} onOpenReport={() => setCelulaDialogOpen(true)} />;
+  if (activeTab === 'acoes') return <AcoesTab celulaId={celulaId} celulaName={celula.name} coupleNames={coupleName} onOpenReport={() => setCelulaDialogOpen(true)} novasVidasCount={activeNovasVidas.length} />;
   if (activeTab === 'historico') return <HistoricoTab celulaId={celulaId} reports={reports || []} isLoading={reportsLoading} filter={reportFilter} setFilter={setReportFilter} />;
 
   // Início tab
@@ -105,6 +109,31 @@ export function CellLeaderPWADashboard() {
         </Card>
       </div>
 
+      {/* Novas Vidas alert */}
+      {activeNovasVidas.length > 0 && (
+        <Card
+          className="border-primary/30 cursor-pointer card-hover active:scale-[0.98] transition-all"
+          onClick={() => {
+            const url = new URL(window.location.href);
+            url.searchParams.set('tab', 'acoes');
+            url.searchParams.set('view', 'novas-vidas');
+            window.history.pushState({}, '', url.toString());
+            window.dispatchEvent(new PopStateEvent('popstate'));
+          }}
+        >
+          <CardContent className="p-4 flex items-center gap-4">
+            <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <Heart className="h-6 w-6 text-primary" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold">Novas Vidas Recebidas</h3>
+              <p className="text-xs text-muted-foreground">{activeNovasVidas.length} vida{activeNovasVidas.length > 1 ? 's' : ''} aguardando acompanhamento</p>
+            </div>
+            <Badge className="shrink-0">{activeNovasVidas.length}</Badge>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Primary CTA */}
       <Button
         className="w-full h-14 text-base font-semibold"
@@ -142,9 +171,14 @@ export function CellLeaderPWADashboard() {
 }
 
 /* ── Aba Ações ── */
-function AcoesTab({ celulaId, celulaName, onOpenReport }: { celulaId: string; celulaName: string; onOpenReport: () => void }) {
+function AcoesTab({ celulaId, celulaName, coupleNames, onOpenReport, novasVidasCount }: {
+  celulaId: string; celulaName: string; coupleNames?: string; onOpenReport: () => void; novasVidasCount: number;
+}) {
+  const [searchParams] = useSearchParams();
+  const initialView = searchParams.get('view');
   const [showMembers, setShowMembers] = useState(false);
   const [showBirthdays, setShowBirthdays] = useState(false);
+  const [showNovasVidas, setShowNovasVidas] = useState(initialView === 'novas-vidas');
   const [celulaDialogOpen, setCelulaDialogOpen] = useState(false);
 
   if (showMembers) {
@@ -155,9 +189,41 @@ function AcoesTab({ celulaId, celulaName, onOpenReport }: { celulaId: string; ce
     return <CellLeaderPulsoTab celulaId={celulaId} />;
   }
 
+  if (showNovasVidas) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowNovasVidas(false)}
+            className="flex items-center justify-center h-11 w-11 rounded-xl active:bg-accent/60 touch-manipulation transition-colors"
+          >
+            <ChevronRight className="h-5 w-5 rotate-180 text-foreground" />
+          </button>
+          <h2 className="text-lg font-semibold">Novas Vidas Recebidas</h2>
+        </div>
+        <CellLeaderNovasVidasTab celulaId={celulaId} celulaName={celulaName} coupleNames={coupleNames} />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-3">
       <h2 className="text-lg font-semibold">Ações Rápidas</h2>
+
+      {novasVidasCount > 0 && (
+        <Card className="cursor-pointer card-hover active:scale-[0.98] transition-all border-primary/30" onClick={() => setShowNovasVidas(true)}>
+          <CardContent className="p-5 flex items-center gap-4">
+            <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <Heart className="h-6 w-6 text-primary" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold">Novas Vidas</h3>
+              <p className="text-xs text-muted-foreground">{novasVidasCount} aguardando acompanhamento</p>
+            </div>
+            <Badge className="shrink-0">{novasVidasCount}</Badge>
+          </CardContent>
+        </Card>
+      )}
 
       <Card className="cursor-pointer card-hover active:scale-[0.98] transition-all" onClick={() => setCelulaDialogOpen(true)}>
         <CardContent className="p-5 flex items-center gap-4">
