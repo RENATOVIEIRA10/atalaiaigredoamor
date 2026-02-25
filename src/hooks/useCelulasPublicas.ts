@@ -13,7 +13,33 @@ export interface CelulaPublica {
   lideres: string;
 }
 
-export function useCelulasPublicas(filters?: { bairro?: string; cidade?: string; rede_id?: string }) {
+/**
+ * Remove accents and lowercase for fuzzy matching.
+ */
+function normalize(s: string): string {
+  return s
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
+ * Tokenized search: all tokens must appear in the combined text.
+ * "casa caiada" matches "Casa Caiada" in bairro.
+ */
+function matchesTokens(tokens: string[], text: string): boolean {
+  const norm = normalize(text);
+  return tokens.every(t => norm.includes(t));
+}
+
+export function useCelulasPublicas(filters?: {
+  bairro?: string;
+  cidade?: string;
+  rede_id?: string;
+  vidaPerfil?: { estado_civil?: string | null; faixa_etaria?: string | null };
+}) {
   return useQuery({
     queryKey: ['celulas_publicas', filters],
     queryFn: async () => {
@@ -49,14 +75,58 @@ export function useCelulasPublicas(filters?: { bairro?: string; cidade?: string;
         } as CelulaPublica;
       });
 
+      // Tokenized, accent-insensitive filtering for bairro
       if (filters?.bairro) {
-        result = result.filter(c => c.bairro?.toLowerCase().includes(filters.bairro!.toLowerCase()));
+        const tokens = normalize(filters.bairro).split(' ').filter(Boolean);
+        if (tokens.length > 0) {
+          result = result.filter(c => {
+            const searchable = [c.bairro, c.cidade, c.name, c.lideres]
+              .filter(Boolean)
+              .join(' ');
+            return matchesTokens(tokens, searchable);
+          });
+        }
       }
+
+      // Tokenized, accent-insensitive filtering for cidade
       if (filters?.cidade) {
-        result = result.filter(c => c.cidade?.toLowerCase().includes(filters.cidade!.toLowerCase()));
+        const tokens = normalize(filters.cidade).split(' ').filter(Boolean);
+        if (tokens.length > 0) {
+          result = result.filter(c => {
+            const searchable = [c.cidade, c.bairro, c.name]
+              .filter(Boolean)
+              .join(' ');
+            return matchesTokens(tokens, searchable);
+          });
+        }
       }
+
       if (filters?.rede_id) {
         result = result.filter(c => c.rede_id === filters.rede_id);
+      }
+
+      // Sort by matching priority if vida profile is available
+      if (filters?.vidaPerfil) {
+        const perfil = filters.vidaPerfil;
+        result.sort((a, b) => {
+          let scoreA = 0;
+          let scoreB = 0;
+
+          // Priority: bairro match
+          if (filters.bairro) {
+            const bairroNorm = normalize(filters.bairro);
+            if (a.bairro && normalize(a.bairro).includes(bairroNorm)) scoreA += 10;
+            if (b.bairro && normalize(b.bairro).includes(bairroNorm)) scoreB += 10;
+          }
+
+          // Priority: married → Rede Amor a 2
+          if (perfil.estado_civil && normalize(perfil.estado_civil).includes('casado')) {
+            if (a.rede_name && normalize(a.rede_name).includes('amor')) scoreA += 5;
+            if (b.rede_name && normalize(b.rede_name).includes('amor')) scoreB += 5;
+          }
+
+          return scoreB - scoreA; // Higher score first
+        });
       }
 
       return result;

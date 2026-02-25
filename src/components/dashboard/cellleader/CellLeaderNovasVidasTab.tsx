@@ -22,14 +22,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { cn } from '@/lib/utils';
-
-function normalizeWhatsApp(raw: string): string | null {
-  const digits = raw.replace(/\D/g, '');
-  if (!digits) return null;
-  if (digits.startsWith('55') && digits.length >= 12) return `+${digits}`;
-  if (digits.length === 10 || digits.length === 11) return `+55${digits}`;
-  return null;
-}
+import { normalizePhone, openWhatsApp } from '@/lib/whatsapp';
 
 const promoteSchema = z.object({
   name: z.string().min(2, 'Nome obrigatório'),
@@ -81,16 +74,12 @@ export function CellLeaderNovasVidasTab({ celulaId, celulaName, coupleNames }: C
   );
 
   function handleWhatsApp(nv: any) {
-    const phone = nv.whatsapp?.replace(/\D/g, '');
-    if (!phone) {
-      toast({ title: 'WhatsApp não disponível', variant: 'destructive' });
-      return;
-    }
     const leaderName = coupleNames || 'a liderança';
-    const msg = encodeURIComponent(
-      `Oi, tudo bem? Aqui é ${leaderName} da célula ${celulaName}.\n\nRecebemos seu contato pelo Recomeço da Igreja do Amor e queremos te acolher. 🤗`
-    );
-    window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
+    const msg = `Oi, tudo bem? Aqui é ${leaderName} da célula ${celulaName}.\n\nRecebemos seu contato pelo Recomeço da Igreja do Amor e queremos te acolher. 🤗`;
+    const success = openWhatsApp(nv.whatsapp, msg);
+    if (!success) {
+      toast({ title: 'WhatsApp inválido ou ausente', description: 'Corrija o número antes de enviar.', variant: 'destructive' });
+    }
   }
 
   function handleStatusChange(vidaId: string, newStatus: PipelineStatus, notes?: string) {
@@ -129,7 +118,7 @@ export function CellLeaderNovasVidasTab({ celulaId, celulaName, coupleNames }: C
       const rawWa = data.whatsapp?.trim() || '';
       let normalizedWa: string | null = null;
       if (rawWa) {
-        normalizedWa = normalizeWhatsApp(rawWa);
+        normalizedWa = normalizePhone(rawWa);
         if (!normalizedWa) {
           form.setError('whatsapp', { message: 'Número inválido. Use DDD + número' });
           setIsPromoting(false);
