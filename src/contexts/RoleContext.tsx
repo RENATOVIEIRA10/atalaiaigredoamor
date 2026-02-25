@@ -1,8 +1,8 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-type UserRole = 'pastor' | 'admin' | 'rede_leader' | 'coordenador' | 'supervisor' | 'celula_leader' | 'demo_institucional' | 'recomeco_operador' | 'recomeco_leitura';
-type ScopeType = 'pastor' | 'admin' | 'rede' | 'coordenacao' | 'supervisor' | 'celula' | 'demo_institucional' | 'recomeco_operador' | 'recomeco_leitura';
+type UserRole = 'pastor' | 'admin' | 'rede_leader' | 'coordenador' | 'supervisor' | 'celula_leader' | 'demo_institucional' | 'recomeco_operador' | 'recomeco_leitura' | 'recomeco_cadastro' | 'central_celulas';
+type ScopeType = 'pastor' | 'admin' | 'rede' | 'coordenacao' | 'supervisor' | 'celula' | 'demo_institucional' | 'recomeco_operador' | 'recomeco_leitura' | 'recomeco_cadastro' | 'central_celulas';
 
 const SESSION_KEY = 'rede_amor_session';
 const SESSION_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
@@ -31,6 +31,8 @@ interface RoleContextType {
   isDemoInstitucional: boolean;
   isRecomecoOperador: boolean;
   isRecomecoLeitura: boolean;
+  isRecomecoCadastro: boolean;
+  isCentralCelulas: boolean;
 }
 
 const RoleContext = createContext<RoleContextType | undefined>(undefined);
@@ -46,6 +48,8 @@ function scopeTypeToRole(scopeType: ScopeType): UserRole {
     case 'demo_institucional': return 'demo_institucional';
     case 'recomeco_operador': return 'recomeco_operador';
     case 'recomeco_leitura': return 'recomeco_leitura';
+    case 'recomeco_cadastro': return 'recomeco_cadastro';
+    case 'central_celulas': return 'central_celulas';
   }
 }
 
@@ -138,6 +142,8 @@ export function RoleProvider({ children }: { children: ReactNode }) {
     isDemoInstitucional: selectedRole === 'demo_institucional',
     isRecomecoOperador: selectedRole === 'recomeco_operador',
     isRecomecoLeitura: selectedRole === 'recomeco_leitura',
+    isRecomecoCadastro: selectedRole === 'recomeco_cadastro',
+    isCentralCelulas: selectedRole === 'central_celulas',
   };
 
   return (

@@ -676,9 +676,12 @@ export type Database = {
       }
       novas_vidas: {
         Row: {
+          assigned_cell_id: string | null
+          assigned_to_user_id: string | null
           bairro: string | null
           cidade: string | null
           created_at: string
+          created_by_user_id: string | null
           estado_civil: string | null
           faixa_etaria: string | null
           id: string
@@ -689,9 +692,12 @@ export type Database = {
           whatsapp: string | null
         }
         Insert: {
+          assigned_cell_id?: string | null
+          assigned_to_user_id?: string | null
           bairro?: string | null
           cidade?: string | null
           created_at?: string
+          created_by_user_id?: string | null
           estado_civil?: string | null
           faixa_etaria?: string | null
           id?: string
@@ -702,9 +708,12 @@ export type Database = {
           whatsapp?: string | null
         }
         Update: {
+          assigned_cell_id?: string | null
+          assigned_to_user_id?: string | null
           bairro?: string | null
           cidade?: string | null
           created_at?: string
+          created_by_user_id?: string | null
           estado_civil?: string | null
           faixa_etaria?: string | null
           id?: string
@@ -714,7 +723,50 @@ export type Database = {
           updated_at?: string
           whatsapp?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "novas_vidas_assigned_cell_id_fkey"
+            columns: ["assigned_cell_id"]
+            isOneToOne: false
+            referencedRelation: "celulas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      novas_vidas_events: {
+        Row: {
+          actor_user_id: string
+          created_at: string
+          event_type: string
+          id: string
+          payload: Json | null
+          vida_id: string
+        }
+        Insert: {
+          actor_user_id: string
+          created_at?: string
+          event_type: string
+          id?: string
+          payload?: Json | null
+          vida_id: string
+        }
+        Update: {
+          actor_user_id?: string
+          created_at?: string
+          event_type?: string
+          id?: string
+          payload?: Json | null
+          vida_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "novas_vidas_events_vida_id_fkey"
+            columns: ["vida_id"]
+            isOneToOne: false
+            referencedRelation: "novas_vidas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       policy_acceptances: {
         Row: {
@@ -1517,6 +1569,10 @@ export type Database = {
         Returns: boolean
       }
       get_profile_id: { Args: { _user_id: string }; Returns: string }
+      has_access_scope: {
+        Args: { _scope_type: string; _user_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

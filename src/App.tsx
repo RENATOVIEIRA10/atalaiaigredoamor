@@ -41,6 +41,8 @@ const ManualUsuario = lazy(() => import("./pages/ManualUsuario"));
 const TestemunhoAtalaia = lazy(() => import("./pages/TestemunhoAtalaia"));
 const Recomeco = lazy(() => import("./pages/Recomeco"));
 const TrocarFuncao = lazy(() => import("./pages/TrocarFuncao"));
+const RecomecoCadastro = lazy(() => import("./pages/RecomecoCadastro"));
+const CentralCelulas = lazy(() => import("./pages/CentralCelulas"));
 
 const queryClient = new QueryClient();
 
@@ -80,6 +82,8 @@ function AppInner() {
           <Route path="/perfil/membro/:memberId" element={<RoleProtectedRoute><PerfilMembro /></RoleProtectedRoute>} />
           <Route path="/ferramentas-teste" element={<RoleProtectedRoute><FerramentasTeste /></RoleProtectedRoute>} />
           <Route path="/recomeco" element={<RoleProtectedRoute><Recomeco /></RoleProtectedRoute>} />
+          <Route path="/recomeco-cadastro" element={<ProtectedRoute><RecomecoCadastro /></ProtectedRoute>} />
+          <Route path="/central-celulas" element={<ProtectedRoute><CentralCelulas /></ProtectedRoute>} />
 
           {/* Public institutional pages (no auth required) */}
           <Route path="/material" element={<MaterialInstitucional />} />

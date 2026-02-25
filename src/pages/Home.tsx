@@ -18,7 +18,7 @@ import { RedeSelector } from '@/components/rede/RedeSelector';
 import { roleLabels } from '@/lib/icons';
 
 type LoginStep = 'code' | 'rede-select';
-type ScopeType = 'pastor' | 'admin' | 'rede' | 'coordenacao' | 'supervisor' | 'celula' | 'demo_institucional' | 'recomeco_operador' | 'recomeco_leitura';
+type ScopeType = 'pastor' | 'admin' | 'rede' | 'coordenacao' | 'supervisor' | 'celula' | 'demo_institucional' | 'recomeco_operador' | 'recomeco_leitura' | 'recomeco_cadastro' | 'central_celulas';
 
 function scopeTypeToRoleKey(st: string) {
   const map: Record<string, string> = {
@@ -26,6 +26,7 @@ function scopeTypeToRoleKey(st: string) {
     coordenacao: 'coordenador', supervisor: 'supervisor',
     celula: 'celula_leader', demo_institucional: 'demo_institucional',
     recomeco_operador: 'recomeco_operador', recomeco_leitura: 'recomeco_leitura',
+    recomeco_cadastro: 'recomeco_cadastro', central_celulas: 'central_celulas',
   };
   return map[st] || st;
 }
@@ -63,6 +64,16 @@ export default function HomePage() {
         if (st === 'recomeco_operador' || st === 'recomeco_leitura') {
           setScopeAccess(st, link.scope_id, link.access_key_id);
           navigate('/recomeco');
+          return;
+        }
+        if (st === 'recomeco_cadastro') {
+          setScopeAccess(st, link.scope_id, link.access_key_id);
+          navigate('/recomeco-cadastro');
+          return;
+        }
+        if (st === 'central_celulas') {
+          setScopeAccess(st, link.scope_id, link.access_key_id);
+          navigate('/central-celulas');
           return;
         }
         if (st === 'pastor' || st === 'admin') {
@@ -164,10 +175,22 @@ export default function HomePage() {
 
       const scopeType = match.scope_type as ScopeType;
 
-      // Recomeco scopes go directly to /recomeco
+      // Recomeco scopes go directly to their pages
       if (scopeType === 'recomeco_operador' || scopeType === 'recomeco_leitura') {
         setScopeAccess(scopeType, match.scope_id, match.id);
         navigate('/recomeco');
+        setIsLoading(false);
+        return;
+      }
+      if (scopeType === 'recomeco_cadastro') {
+        setScopeAccess(scopeType, match.scope_id, match.id);
+        navigate('/recomeco-cadastro');
+        setIsLoading(false);
+        return;
+      }
+      if (scopeType === 'central_celulas') {
+        setScopeAccess(scopeType, match.scope_id, match.id);
+        navigate('/central-celulas');
         setIsLoading(false);
         return;
       }
