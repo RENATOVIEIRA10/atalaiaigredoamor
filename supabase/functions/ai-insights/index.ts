@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -22,7 +23,7 @@ interface InsightRequest {
   type: 'growth_analysis' | 'executive_summary';
   data: ReportData[];
   period: string;
-  context?: string; // e.g., "coordenacao", "rede", "all"
+  context?: string;
 }
 
 serve(async (req) => {
@@ -31,6 +32,31 @@ serve(async (req) => {
   }
 
   try {
+    // --- Authentication check ---
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(
+        JSON.stringify({ error: 'Não autorizado' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
+      return new Response(
+        JSON.stringify({ error: 'Token inválido ou expirado' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    // --- End authentication check ---
+
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY is not configured');
@@ -38,24 +64,38 @@ serve(async (req) => {
 
     const { type, data, period, context }: InsightRequest = await req.json();
 
-    if (!data || data.length === 0) {
+    if (!type || !['growth_analysis', 'executive_summary'].includes(type)) {
+      return new Response(
+        JSON.stringify({ error: 'Tipo de análise inválido' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (!data || !Array.isArray(data) || data.length === 0) {
       return new Response(
         JSON.stringify({ error: 'Nenhum dado fornecido para análise' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
+    if (data.length > 100) {
+      return new Response(
+        JSON.stringify({ error: 'Limite de 100 células por análise excedido' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Prepare data summary for the AI
     const dataSummary = data.map(d => {
-      const totalReports = d.reports.length;
+      const totalReports = d.reports?.length || 0;
       const avgMembers = totalReports > 0 
-        ? Math.round(d.reports.reduce((sum, r) => sum + r.members_present, 0) / totalReports)
+        ? Math.round(d.reports.reduce((sum, r) => sum + (Number(r.members_present) || 0), 0) / totalReports)
         : 0;
       const avgVisitors = totalReports > 0
-        ? Math.round(d.reports.reduce((sum, r) => sum + r.visitors, 0) / totalReports)
+        ? Math.round(d.reports.reduce((sum, r) => sum + (Number(r.visitors) || 0), 0) / totalReports)
         : 0;
       const avgDiscipleships = totalReports > 0
-        ? Math.round(d.reports.reduce((sum, r) => sum + r.discipleships, 0) / totalReports)
+        ? Math.round(d.reports.reduce((sum, r) => sum + (Number(r.discipleships) || 0), 0) / totalReports)
         : 0;
       
       // Calculate growth trend
@@ -70,8 +110,8 @@ serve(async (req) => {
       }
 
       return {
-        celula: d.celula_name,
-        coordenacao: d.coordenacao_name,
+        celula: String(d.celula_name || '').slice(0, 100),
+        coordenacao: String(d.coordenacao_name || '').slice(0, 100),
         totalRelatorios: totalReports,
         mediaMembrosPorReuniao: avgMembers,
         mediaVisitantes: avgVisitors,
@@ -84,6 +124,8 @@ serve(async (req) => {
     let systemPrompt: string;
     let userPrompt: string;
 
+    const sanitizedPeriod = String(period || '').slice(0, 50);
+
     if (type === 'growth_analysis') {
       systemPrompt = `Você é um consultor especialista em crescimento de células e grupos pequenos de igrejas. 
 Analise os dados fornecidos e forneça insights acionáveis para melhorar o desempenho.
@@ -91,7 +133,7 @@ Responda sempre em português brasileiro.
 Seja direto, prático e específico nas recomendações.
 Use formatação markdown com títulos, listas e destaques.`;
 
-      userPrompt = `Analise os seguintes dados de células no período de ${period}:
+      userPrompt = `Analise os seguintes dados de células no período de ${sanitizedPeriod}:
 
 ${JSON.stringify(dataSummary, null, 2)}
 
@@ -107,7 +149,7 @@ Crie resumos executivos claros e objetivos baseados nos dados fornecidos.
 Responda sempre em português brasileiro.
 Use formatação markdown com seções bem definidas.`;
 
-      userPrompt = `Gere um resumo executivo dos seguintes dados de células no período de ${period}:
+      userPrompt = `Gere um resumo executivo dos seguintes dados de células no período de ${sanitizedPeriod}:
 
 ${JSON.stringify(dataSummary, null, 2)}
 
@@ -149,9 +191,8 @@ O resumo deve incluir:
           { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
-      const errorText = await response.text();
-      console.error('AI gateway error:', response.status, errorText);
-      throw new Error(`AI gateway error: ${response.status}`);
+      console.error('AI gateway error:', response.status);
+      throw new Error('Erro no serviço de IA');
     }
 
     const aiResponse = await response.json();
@@ -165,7 +206,7 @@ O resumo deve incluir:
       JSON.stringify({ 
         insight: content,
         type,
-        period,
+        period: sanitizedPeriod,
         generatedAt: new Date().toISOString(),
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -174,7 +215,7 @@ O resumo deve incluir:
   } catch (error) {
     console.error('Error in ai-insights:', error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Erro desconhecido' }),
+      JSON.stringify({ error: 'Erro ao processar análise. Tente novamente.' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
