@@ -182,6 +182,28 @@ export function useChangeNovaVidaStatus() {
       const { error } = await supabase.from('novas_vidas').update(updateData).eq('id', vidaId);
       if (error) throw error;
 
+      // Sync encaminhamentos_recomeco status for upper dashboard visibility
+      const encStatusMap: Record<string, string> = {
+        'recebida_pela_celula': 'recebido',
+        'contatada': 'contatado',
+        'sem_resposta': 'sem_resposta',
+        'agendada': 'contatado',
+        'visitou': 'contatado',
+        'integrada': 'integrado',
+        'nao_convertida': 'nao_convertida',
+        'reatribuir': 'devolvido',
+      };
+      const encStatus = encStatusMap[newStatus];
+      if (encStatus) {
+        const encUpdate: any = { status: encStatus };
+        if (newStatus === 'contatada') encUpdate.contatado_at = new Date().toISOString();
+        if (newStatus === 'integrada') encUpdate.integrado_at = new Date().toISOString();
+        await supabase
+          .from('encaminhamentos_recomeco')
+          .update(encUpdate)
+          .eq('nova_vida_id', vidaId);
+      }
+
       // Create audit event
       await supabase.from('novas_vidas_events' as any).insert({
         vida_id: vidaId,
@@ -202,6 +224,7 @@ export function useChangeNovaVidaStatus() {
       qc.invalidateQueries({ queryKey: ['novas_vidas'] });
       qc.invalidateQueries({ queryKey: ['novas_vidas_events'] });
       qc.invalidateQueries({ queryKey: ['encaminhamentos'] });
+      qc.invalidateQueries({ queryKey: ['recomeco-funnel-all'] });
       const label = STATUS_LABELS[vars.newStatus]?.label || vars.newStatus;
       toast({ title: `Status atualizado: ${label}` });
     },
