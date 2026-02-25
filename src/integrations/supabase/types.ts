@@ -1284,6 +1284,50 @@ export type Database = {
           },
         ]
       }
+      user_access_links: {
+        Row: {
+          access_key_id: string
+          active: boolean
+          created_at: string
+          id: string
+          label: string
+          rede_id: string | null
+          scope_id: string | null
+          scope_type: string
+          user_id: string
+        }
+        Insert: {
+          access_key_id: string
+          active?: boolean
+          created_at?: string
+          id?: string
+          label?: string
+          rede_id?: string | null
+          scope_id?: string | null
+          scope_type: string
+          user_id: string
+        }
+        Update: {
+          access_key_id?: string
+          active?: boolean
+          created_at?: string
+          id?: string
+          label?: string
+          rede_id?: string | null
+          scope_id?: string | null
+          scope_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_access_links_access_key_id_fkey"
+            columns: ["access_key_id"]
+            isOneToOne: false
+            referencedRelation: "access_keys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string

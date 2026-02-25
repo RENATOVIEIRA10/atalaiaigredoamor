@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRole } from '@/contexts/RoleContext';
 import { useRede } from '@/contexts/RedeContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { useUserAccessLinks } from '@/hooks/useUserAccessLinks';
 import { themeIcons } from '@/lib/icons';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,23 +15,78 @@ import logoIgrejaDoAmor from '@/assets/logo-igreja-do-amor-new.png';
 import logoAnoSantidade from '@/assets/logo-ano-santidade.png';
 import { supabase } from '@/integrations/supabase/client';
 import { RedeSelector } from '@/components/rede/RedeSelector';
+import { roleLabels } from '@/lib/icons';
 
 type LoginStep = 'code' | 'rede-select';
+type ScopeType = 'pastor' | 'admin' | 'rede' | 'coordenacao' | 'supervisor' | 'celula' | 'demo_institucional' | 'recomeco_operador' | 'recomeco_leitura';
+
+function scopeTypeToRoleKey(st: string) {
+  const map: Record<string, string> = {
+    pastor: 'pastor', admin: 'admin', rede: 'rede_leader',
+    coordenacao: 'coordenador', supervisor: 'supervisor',
+    celula: 'celula_leader', demo_institucional: 'demo_institucional',
+    recomeco_operador: 'recomeco_operador', recomeco_leitura: 'recomeco_leitura',
+  };
+  return map[st] || st;
+}
+
+function scopeLabel(scopeType: string) {
+  const role = scopeTypeToRoleKey(scopeType);
+  return roleLabels[role as keyof typeof roleLabels] || scopeType;
+}
 
 export default function HomePage() {
   const navigate = useNavigate();
-  const { setScopeAccess } = useRole();
+  const { setScopeAccess, selectedRole } = useRole();
   const { setActiveRede, clearRede } = useRede();
   const { theme, toggleTheme } = useTheme();
+  const { user } = useAuth();
+  const { links, isLoading: linksLoading, upsertLink } = useUserAccessLinks();
   const ThemeIcon = themeIcons[theme];
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
   const [attempts, setAttempts] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [step, setStep] = useState<LoginStep>('code');
-
-  // Saved match data for rede selection step
   const [pendingMatch, setPendingMatch] = useState<any>(null);
+  const [autoRedirectDone, setAutoRedirectDone] = useState(false);
+
+  // Auto-redirect: if user has exactly 1 linked function and no role selected yet, activate it
+  useEffect(() => {
+    if (linksLoading || autoRedirectDone || selectedRole) return;
+    if (links.length === 1) {
+      setAutoRedirectDone(true);
+      const link = links[0];
+      const st = link.scope_type as ScopeType;
+
+      const doAutoActivate = async () => {
+        if (st === 'recomeco_operador' || st === 'recomeco_leitura') {
+          setScopeAccess(st, link.scope_id, link.access_key_id);
+          navigate('/recomeco');
+          return;
+        }
+        if (st === 'pastor' || st === 'admin') {
+          // Can't auto-select rede, go to trocar-funcao
+          navigate('/trocar-funcao');
+          return;
+        }
+        if (link.rede_id) {
+          const { data: redeData } = await supabase
+            .from('redes')
+            .select('id, name, slug, ativa')
+            .eq('id', link.rede_id)
+            .single();
+          if (redeData) setActiveRede({ id: redeData.id, name: redeData.name, slug: redeData.slug, ativa: redeData.ativa });
+        }
+        setScopeAccess(st, link.scope_id, link.access_key_id);
+        navigate('/onboarding');
+      };
+      doAutoActivate();
+    } else if (links.length > 1) {
+      setAutoRedirectDone(true);
+      navigate('/trocar-funcao');
+    }
+  }, [links, linksLoading, autoRedirectDone, selectedRole, setScopeAccess, navigate, setActiveRede]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,7 +153,16 @@ export default function HomePage() {
         });
       } catch (_) { /* silent */ }
 
-      const scopeType = match.scope_type as 'pastor' | 'admin' | 'rede' | 'coordenacao' | 'supervisor' | 'celula' | 'demo_institucional' | 'recomeco_operador' | 'recomeco_leitura';
+      // Save link to user
+      const label = scopeLabel(match.scope_type);
+      await upsertLink({
+        id: match.id,
+        scope_type: match.scope_type,
+        scope_id: match.scope_id,
+        rede_id: match.rede_id,
+      }, label);
+
+      const scopeType = match.scope_type as ScopeType;
 
       // Recomeco scopes go directly to /recomeco
       if (scopeType === 'recomeco_operador' || scopeType === 'recomeco_leitura') {
@@ -106,7 +172,7 @@ export default function HomePage() {
         return;
       }
 
-      // Pastor/admin can pick any rede; others auto-set from access_key.rede_id
+      // Pastor/admin can pick any rede
       if (scopeType === 'pastor' || scopeType === 'admin') {
         setPendingMatch({ ...match, scopeType });
         setStep('rede-select');
@@ -147,6 +213,15 @@ export default function HomePage() {
     setPendingMatch(null);
     clearRede();
   };
+
+  // Show loading while checking links for auto-redirect
+  if (linksLoading && !selectedRole) {
+    return (
+      <div className="flex min-h-screen items-center justify-center" style={{ background: 'linear-gradient(160deg, #0f1a2b 0%, #1A2F4B 40%, #0f1a2b 100%)' }}>
+        <Loader2 className="h-6 w-6 animate-spin" style={{ color: '#C5A059' }} />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden" style={{ background: 'linear-gradient(160deg, #0f1a2b 0%, #1A2F4B 40%, #0f1a2b 100%)' }}>
@@ -322,7 +397,7 @@ export default function HomePage() {
         </div>
 
         <p className="mt-4 text-[9px] opacity-0 animate-fade-in stagger-6" style={{ color: 'rgba(184,182,179,0.3)', fontFamily: "'Inter', sans-serif" }}>
-          v2026.02.23-01
+          v2026.02.25-01
         </p>
       </div>
     </div>
