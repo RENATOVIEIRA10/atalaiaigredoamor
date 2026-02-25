@@ -3,6 +3,9 @@ import { Navigate, useNavigate } from 'react-router-dom';
 import { useRole } from '@/contexts/RoleContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNovasVidas, useCreateNovaVida, NovaVidaInsert, STATUS_LABELS } from '@/hooks/useNovasVidas';
+import { useRecomecoMessages } from '@/hooks/useRecomecoAgent';
+import { AgentProfileGate } from '@/components/recomeco/AgentProfileGate';
+import { BoasVindasWhatsApp } from '@/components/recomeco/BoasVindasWhatsApp';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Heart, UserPlus, MapPin, Phone, ChevronLeft, Loader2, ListChecks, Eye, Filter } from 'lucide-react';
+import { Heart, UserPlus, MapPin, Phone, ChevronLeft, Loader2, ListChecks, Eye, Filter, MessageCircle, CheckCircle } from 'lucide-react';
 import { differenceInDays } from 'date-fns';
 
 export default function RecomecoCadastro() {
@@ -39,24 +42,66 @@ export default function RecomecoCadastro() {
           </div>
         </div>
 
-        <Tabs defaultValue="cadastrar" className="w-full">
-          <TabsList className="bg-white/5 border border-white/10 mb-6 w-full">
-            <TabsTrigger value="cadastrar" className="flex-1 data-[state=active]:bg-[#C5A059]/20 data-[state=active]:text-[#C5A059]">
-              <UserPlus className="h-4 w-4 mr-1.5" />Cadastrar
-            </TabsTrigger>
-            <TabsTrigger value="minhas" className="flex-1 data-[state=active]:bg-[#C5A059]/20 data-[state=active]:text-[#C5A059]">
-              <ListChecks className="h-4 w-4 mr-1.5" />Minhas Vidas
-            </TabsTrigger>
-            <TabsTrigger value="acompanhamento" className="flex-1 data-[state=active]:bg-[#C5A059]/20 data-[state=active]:text-[#C5A059]">
-              <Eye className="h-4 w-4 mr-1.5" />Tracking
-            </TabsTrigger>
-          </TabsList>
+        <AgentProfileGate>
+          <AgentKPICards userId={user?.id} />
+          <Tabs defaultValue="cadastrar" className="w-full">
+            <TabsList className="bg-white/5 border border-white/10 mb-6 w-full">
+              <TabsTrigger value="cadastrar" className="flex-1 data-[state=active]:bg-[#C5A059]/20 data-[state=active]:text-[#C5A059]">
+                <UserPlus className="h-4 w-4 mr-1.5" />Cadastrar
+              </TabsTrigger>
+              <TabsTrigger value="minhas" className="flex-1 data-[state=active]:bg-[#C5A059]/20 data-[state=active]:text-[#C5A059]">
+                <ListChecks className="h-4 w-4 mr-1.5" />Minhas Vidas
+              </TabsTrigger>
+              <TabsTrigger value="acompanhamento" className="flex-1 data-[state=active]:bg-[#C5A059]/20 data-[state=active]:text-[#C5A059]">
+                <Eye className="h-4 w-4 mr-1.5" />Tracking
+              </TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="cadastrar"><CadastroForm /></TabsContent>
-          <TabsContent value="minhas"><MinhasVidas userId={user?.id} /></TabsContent>
-          <TabsContent value="acompanhamento"><AcompanhamentoVidas userId={user?.id} /></TabsContent>
-        </Tabs>
+            <TabsContent value="cadastrar"><CadastroForm /></TabsContent>
+            <TabsContent value="minhas"><MinhasVidas userId={user?.id} /></TabsContent>
+            <TabsContent value="acompanhamento"><AcompanhamentoVidas userId={user?.id} /></TabsContent>
+          </Tabs>
+        </AgentProfileGate>
       </div>
+    </div>
+  );
+}
+
+function AgentKPICards({ userId }: { userId?: string }) {
+  const { data: novasVidas } = useNovasVidas();
+  const { data: messages } = useRecomecoMessages();
+
+  const stats = useMemo(() => {
+    const minhas = (novasVidas || []).filter((nv: any) => nv.created_by_user_id === userId);
+    const today = new Date().toISOString().split('T')[0];
+    const cadastradasHoje = minhas.filter(nv => nv.created_at?.startsWith(today)).length;
+
+    const myMessages = (messages || []).filter((m: any) => m.agent_user_id === userId);
+    const confirmedVidaIds = new Set(myMessages.filter((m: any) => m.status === 'sent_confirmed').map((m: any) => m.vida_id));
+    const allVidaIds = new Set(minhas.map(v => v.id));
+    const pendentes = [...allVidaIds].filter(id => !confirmedVidaIds.has(id)).length;
+    const enviadas = confirmedVidaIds.size;
+
+    return { cadastradasHoje, pendentes, enviadas };
+  }, [novasVidas, messages, userId]);
+
+  const cards = [
+    { label: 'Hoje', value: stats.cadastradasHoje, icon: UserPlus, color: '#10B981' },
+    { label: 'BV Pendentes', value: stats.pendentes, icon: MessageCircle, color: '#F59E0B' },
+    { label: 'BV Enviadas', value: stats.enviadas, icon: CheckCircle, color: '#22C55E' },
+  ];
+
+  return (
+    <div className="grid grid-cols-3 gap-2 mb-6">
+      {cards.map(c => (
+        <Card key={c.label} className="bg-white/5 border-white/10">
+          <CardContent className="p-3 text-center">
+            <c.icon className="h-4 w-4 mx-auto mb-1" style={{ color: c.color }} />
+            <p className="text-lg font-bold" style={{ color: '#F4EDE4' }}>{c.value}</p>
+            <p className="text-[10px] uppercase tracking-wider" style={{ color: '#B8B6B3' }}>{c.label}</p>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 }
@@ -64,91 +109,107 @@ export default function RecomecoCadastro() {
 function CadastroForm() {
   const createMutation = useCreateNovaVida();
   const [form, setForm] = useState<NovaVidaInsert>({ nome: '' });
-  const [success, setSuccess] = useState(false);
+  const [lastCreated, setLastCreated] = useState<any>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.nome.trim()) return;
     createMutation.mutate(form, {
-      onSuccess: () => {
+      onSuccess: (data) => {
+        setLastCreated(data);
         setForm({ nome: '' });
-        setSuccess(true);
-        setTimeout(() => setSuccess(false), 3000);
       },
     });
   };
 
   return (
-    <Card className="bg-white/5 border-white/10">
-      <CardContent className="p-5">
-        {success && (
-          <div className="mb-4 p-3 rounded-lg bg-green-500/10 border border-green-500/20 text-green-300 text-sm text-center">
-            ✅ Vida cadastrada com sucesso! Já aparece na Central de Células.
+    <div className="space-y-4">
+      {lastCreated && (
+        <div className="space-y-3">
+          <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20 text-green-300 text-sm text-center">
+            ✅ {lastCreated.nome} cadastrada com sucesso!
           </div>
-        )}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label style={{ color: '#C5A059' }}>Nome *</Label>
-            <Input value={form.nome} onChange={e => setForm(p => ({ ...p, nome: e.target.value }))} className="bg-white/5 border-white/10 text-[#F4EDE4]" placeholder="Nome completo" required />
-          </div>
-          <div className="space-y-2">
-            <Label style={{ color: '#C5A059' }}>WhatsApp</Label>
-            <Input value={form.whatsapp || ''} onChange={e => setForm(p => ({ ...p, whatsapp: e.target.value }))} className="bg-white/5 border-white/10 text-[#F4EDE4]" placeholder="(81) 99999-9999" />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label style={{ color: '#C5A059' }}>Bairro</Label>
-              <Input value={form.bairro || ''} onChange={e => setForm(p => ({ ...p, bairro: e.target.value }))} className="bg-white/5 border-white/10 text-[#F4EDE4]" />
-            </div>
-            <div className="space-y-2">
-              <Label style={{ color: '#C5A059' }}>Cidade</Label>
-              <Input value={form.cidade || ''} onChange={e => setForm(p => ({ ...p, cidade: e.target.value }))} className="bg-white/5 border-white/10 text-[#F4EDE4]" />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label style={{ color: '#C5A059' }}>Estado Civil</Label>
-              <Select value={form.estado_civil || ''} onValueChange={v => setForm(p => ({ ...p, estado_civil: v }))}>
-                <SelectTrigger className="bg-white/5 border-white/10 text-[#F4EDE4]"><SelectValue placeholder="Selecione" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="solteiro(a)">Solteiro(a)</SelectItem>
-                  <SelectItem value="casado(a)">Casado(a)</SelectItem>
-                  <SelectItem value="divorciado(a)">Divorciado(a)</SelectItem>
-                  <SelectItem value="viuvo(a)">Viúvo(a)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label style={{ color: '#C5A059' }}>Faixa Etária</Label>
-              <Select value={form.faixa_etaria || ''} onValueChange={v => setForm(p => ({ ...p, faixa_etaria: v }))}>
-                <SelectTrigger className="bg-white/5 border-white/10 text-[#F4EDE4]"><SelectValue placeholder="Selecione" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="18-25">18-25</SelectItem>
-                  <SelectItem value="26-35">26-35</SelectItem>
-                  <SelectItem value="36-45">36-45</SelectItem>
-                  <SelectItem value="46-55">46-55</SelectItem>
-                  <SelectItem value="56+">56+</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label style={{ color: '#C5A059' }}>Observação</Label>
-            <Textarea value={form.observacao || ''} onChange={e => setForm(p => ({ ...p, observacao: e.target.value }))} className="bg-white/5 border-white/10 text-[#F4EDE4]" rows={2} />
-          </div>
-          <Button type="submit" className="w-full h-11" disabled={createMutation.isPending} style={{ background: 'linear-gradient(135deg, #C5A059, #D4B366)', color: '#1A2F4B' }}>
-            {createMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <UserPlus className="h-4 w-4 mr-2" />}
-            Cadastrar Nova Vida
+          <BoasVindasWhatsApp vida={lastCreated} />
+          <Button
+            size="sm"
+            variant="outline"
+            className="w-full text-xs"
+            onClick={() => setLastCreated(null)}
+          >
+            Cadastrar outra vida
           </Button>
-        </form>
-      </CardContent>
-    </Card>
+        </div>
+      )}
+
+      {!lastCreated && (
+        <Card className="bg-white/5 border-white/10">
+          <CardContent className="p-5">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label style={{ color: '#C5A059' }}>Nome *</Label>
+                <Input value={form.nome} onChange={e => setForm(p => ({ ...p, nome: e.target.value }))} className="bg-white/5 border-white/10 text-[#F4EDE4]" placeholder="Nome completo" required />
+              </div>
+              <div className="space-y-2">
+                <Label style={{ color: '#C5A059' }}>WhatsApp</Label>
+                <Input value={form.whatsapp || ''} onChange={e => setForm(p => ({ ...p, whatsapp: e.target.value }))} className="bg-white/5 border-white/10 text-[#F4EDE4]" placeholder="(81) 99999-9999" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label style={{ color: '#C5A059' }}>Bairro</Label>
+                  <Input value={form.bairro || ''} onChange={e => setForm(p => ({ ...p, bairro: e.target.value }))} className="bg-white/5 border-white/10 text-[#F4EDE4]" />
+                </div>
+                <div className="space-y-2">
+                  <Label style={{ color: '#C5A059' }}>Cidade</Label>
+                  <Input value={form.cidade || ''} onChange={e => setForm(p => ({ ...p, cidade: e.target.value }))} className="bg-white/5 border-white/10 text-[#F4EDE4]" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label style={{ color: '#C5A059' }}>Estado Civil</Label>
+                  <Select value={form.estado_civil || ''} onValueChange={v => setForm(p => ({ ...p, estado_civil: v }))}>
+                    <SelectTrigger className="bg-white/5 border-white/10 text-[#F4EDE4]"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="solteiro(a)">Solteiro(a)</SelectItem>
+                      <SelectItem value="casado(a)">Casado(a)</SelectItem>
+                      <SelectItem value="divorciado(a)">Divorciado(a)</SelectItem>
+                      <SelectItem value="viuvo(a)">Viúvo(a)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label style={{ color: '#C5A059' }}>Faixa Etária</Label>
+                  <Select value={form.faixa_etaria || ''} onValueChange={v => setForm(p => ({ ...p, faixa_etaria: v }))}>
+                    <SelectTrigger className="bg-white/5 border-white/10 text-[#F4EDE4]"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="18-25">18-25</SelectItem>
+                      <SelectItem value="26-35">26-35</SelectItem>
+                      <SelectItem value="36-45">36-45</SelectItem>
+                      <SelectItem value="46-55">46-55</SelectItem>
+                      <SelectItem value="56+">56+</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label style={{ color: '#C5A059' }}>Observação</Label>
+                <Textarea value={form.observacao || ''} onChange={e => setForm(p => ({ ...p, observacao: e.target.value }))} className="bg-white/5 border-white/10 text-[#F4EDE4]" rows={2} />
+              </div>
+              <Button type="submit" className="w-full h-11" disabled={createMutation.isPending} style={{ background: 'linear-gradient(135deg, #C5A059, #D4B366)', color: '#1A2F4B' }}>
+                {createMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <UserPlus className="h-4 w-4 mr-2" />}
+                Cadastrar Nova Vida
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 }
 
 function MinhasVidas({ userId }: { userId?: string }) {
   const { data: novasVidas, isLoading } = useNovasVidas();
   const minhas = (novasVidas || []).filter((nv: any) => nv.created_by_user_id === userId);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   if (isLoading) {
     return <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin" style={{ color: '#C5A059' }} /></div>;
@@ -169,23 +230,35 @@ function MinhasVidas({ userId }: { userId?: string }) {
     <div className="grid gap-3">
       {minhas.map((nv: any) => {
         const st = STATUS_LABELS[nv.status] || { label: nv.status, color: 'bg-white/10 text-white/60 border-white/20' };
+        const isExpanded = expandedId === nv.id;
         return (
-          <Card key={nv.id} className="bg-white/5 border-white/10">
-            <CardContent className="p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-semibold text-sm truncate" style={{ color: '#F4EDE4' }}>{nv.nome}</h3>
-                    <Badge variant="outline" className={`text-[10px] ${st.color}`}>{st.label}</Badge>
-                  </div>
-                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs" style={{ color: '#B8B6B3' }}>
-                    {nv.whatsapp && <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{nv.whatsapp}</span>}
-                    {(nv.bairro || nv.cidade) && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{[nv.bairro, nv.cidade].filter(Boolean).join(', ')}</span>}
+          <div key={nv.id} className="space-y-2">
+            <Card
+              className="bg-white/5 border-white/10 cursor-pointer hover:border-[#C5A059]/20 transition-colors"
+              onClick={() => setExpandedId(isExpanded ? null : nv.id)}
+            >
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-semibold text-sm truncate" style={{ color: '#F4EDE4' }}>{nv.nome}</h3>
+                      <Badge variant="outline" className={`text-[10px] ${st.color}`}>{st.label}</Badge>
+                      <BoasVindasWhatsApp vida={nv} compact />
+                    </div>
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs" style={{ color: '#B8B6B3' }}>
+                      {nv.whatsapp && <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{nv.whatsapp}</span>}
+                      {(nv.bairro || nv.cidade) && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{[nv.bairro, nv.cidade].filter(Boolean).join(', ')}</span>}
+                    </div>
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+            {isExpanded && (
+              <div className="pl-2">
+                <BoasVindasWhatsApp vida={nv} />
               </div>
-            </CardContent>
-          </Card>
+            )}
+          </div>
         );
       })}
     </div>
@@ -218,7 +291,6 @@ function AcompanhamentoVidas({ userId }: { userId?: string }) {
 
   return (
     <div className="space-y-4">
-      {/* KPI summary */}
       <div className="grid grid-cols-3 gap-2">
         {[
           { label: 'Encaminhadas', value: encaminhadas.length },
@@ -234,7 +306,6 @@ function AcompanhamentoVidas({ userId }: { userId?: string }) {
         ))}
       </div>
 
-      {/* Filters */}
       <div className="flex gap-2 flex-wrap">
         {filters.map(f => (
           <Button

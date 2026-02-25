@@ -850,6 +850,120 @@ export type Database = {
           },
         ]
       }
+      recomeco_agents: {
+        Row: {
+          ativo: boolean
+          cargo: string
+          created_at: string
+          id: string
+          mensagem_assinatura: string | null
+          nome: string
+          telefone_whatsapp: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ativo?: boolean
+          cargo?: string
+          created_at?: string
+          id?: string
+          mensagem_assinatura?: string | null
+          nome: string
+          telefone_whatsapp: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ativo?: boolean
+          cargo?: string
+          created_at?: string
+          id?: string
+          mensagem_assinatura?: string | null
+          nome?: string
+          telefone_whatsapp?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      recomeco_message_templates: {
+        Row: {
+          active: boolean
+          body: string
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          body: string
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          body?: string
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      recomeco_messages: {
+        Row: {
+          agent_user_id: string
+          channel: string
+          created_at: string
+          id: string
+          message_preview: string | null
+          status: string
+          template_id: string | null
+          updated_at: string
+          vida_id: string
+        }
+        Insert: {
+          agent_user_id: string
+          channel?: string
+          created_at?: string
+          id?: string
+          message_preview?: string | null
+          status?: string
+          template_id?: string | null
+          updated_at?: string
+          vida_id: string
+        }
+        Update: {
+          agent_user_id?: string
+          channel?: string
+          created_at?: string
+          id?: string
+          message_preview?: string | null
+          status?: string
+          template_id?: string | null
+          updated_at?: string
+          vida_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recomeco_messages_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "recomeco_message_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recomeco_messages_vida_id_fkey"
+            columns: ["vida_id"]
+            isOneToOne: false
+            referencedRelation: "novas_vidas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       redes: {
         Row: {
           ativa: boolean
