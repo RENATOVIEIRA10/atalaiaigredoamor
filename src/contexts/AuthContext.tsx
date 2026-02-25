@@ -2,26 +2,12 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
-type UserRole = 'admin' | 'rede_leader' | 'coordenador' | 'celula_leader' | null;
-
-interface Profile {
-  id: string;
-  name: string;
-  avatar_url: string | null;
-  email: string | null;
-}
-
 interface AuthContextType {
   user: User | null;
   session: Session | null;
-  profile: Profile | null;
-  roles: UserRole[];
   isLoading: boolean;
-  isAdmin: boolean;
-  isRedeLeader: boolean;
-  isCoordenador: boolean;
-  isCelulaLeader: boolean;
   signInWithGoogle: () => Promise<void>;
+  signInWithApple: () => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -30,28 +16,15 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [roles, setRoles] = useState<UserRole[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // Set up auth state listener BEFORE checking session
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.email);
+      async (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          // Fetch profile and roles
-          setTimeout(() => {
-            fetchUserData(session.user.id);
-          }, 0);
-        } else {
-          setProfile(null);
-          setRoles([]);
-          setIsLoading(false);
-        }
+        setIsLoading(false);
       }
     );
 
@@ -59,23 +32,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const initializeAuth = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
-        
         if (error) {
           console.error('Error getting session:', error);
           setIsLoading(false);
           return;
         }
-        
         setSession(session);
         setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          await fetchUserData(session.user.id);
-        } else {
-          setIsLoading(false);
-        }
       } catch (error) {
         console.error('Error initializing auth:', error);
+      } finally {
         setIsLoading(false);
       }
     };
@@ -85,34 +51,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  async function fetchUserData(userId: string) {
-    try {
-      // Fetch profile
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('id, name, avatar_url, email')
-        .eq('user_id', userId)
-        .single();
-      
-      setProfile(profileData);
-
-      // Fetch roles
-      const { data: rolesData } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', userId);
-      
-      setRoles(rolesData?.map(r => r.role as UserRole) || []);
-    } catch (error) {
-      console.error('Error fetching user data:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
   async function signInWithGoogle() {
     const { lovable } = await import('@/integrations/lovable/index');
     const { error } = await lovable.auth.signInWithOAuth('google', {
+      redirect_uri: window.location.origin,
+    });
+    if (error) throw error;
+  }
+
+  async function signInWithApple() {
+    const { lovable } = await import('@/integrations/lovable/index');
+    const { error } = await lovable.auth.signInWithOAuth('apple', {
       redirect_uri: window.location.origin,
     });
     if (error) throw error;
@@ -126,14 +75,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value: AuthContextType = {
     user,
     session,
-    profile,
-    roles,
     isLoading,
-    isAdmin: roles.includes('admin'),
-    isRedeLeader: roles.includes('rede_leader'),
-    isCoordenador: roles.includes('coordenador'),
-    isCelulaLeader: roles.includes('celula_leader'),
     signInWithGoogle,
+    signInWithApple,
     signOut,
   };
 

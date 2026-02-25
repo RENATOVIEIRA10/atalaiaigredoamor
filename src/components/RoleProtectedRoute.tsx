@@ -1,5 +1,6 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useRole } from '@/contexts/RoleContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useDemoMode } from '@/contexts/DemoModeContext';
 import { usePolicyAcceptance } from '@/hooks/usePolicyAcceptance';
 import { useIsPWA } from '@/hooks/useIsPWA';
@@ -28,6 +29,7 @@ interface RoleProtectedRouteProps {
 }
 
 export function RoleProtectedRoute({ children }: RoleProtectedRouteProps) {
+  const { user, isLoading: authLoading } = useAuth();
   const { selectedRole, accessKeyId, isSupervisor, isCoordenador, isRedeLeader, isCelulaLeader, isAdmin, isPastor, isDemoInstitucional, isRecomecoOperador, isRecomecoLeitura } = useRole();
   const { isDemoActive } = useDemoMode();
   const accepted = usePolicyAcceptance(accessKeyId);
@@ -63,6 +65,19 @@ export function RoleProtectedRoute({ children }: RoleProtectedRouteProps) {
     }
   }, [isBlocked]);
 
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // No Supabase Auth session → login page
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
+
   if (isBlocked) {
     if (isRecomecoOperador || isRecomecoLeitura) {
       return <Navigate to="/recomeco" replace />;
@@ -70,7 +85,7 @@ export function RoleProtectedRoute({ children }: RoleProtectedRouteProps) {
     return <Navigate to="/dashboard" replace />;
   }
 
-  // No session → login
+  // No access-code session → code entry
   if (!selectedRole) {
     return <Navigate to="/" replace />;
   }
