@@ -6,6 +6,7 @@ import { useNovasVidas, useUpdateNovaVida, STATUS_LABELS, useChangeNovaVidaStatu
 import { useCreateEncaminhamento } from '@/hooks/useEncaminhamentos';
 import { useCelulasPublicas } from '@/hooks/useCelulasPublicas';
 import { useRedes } from '@/hooks/useRedes';
+import { useRecomecoMessages } from '@/hooks/useRecomecoAgent';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -20,6 +21,7 @@ import {
   ChevronLeft, Loader2, Users, MapPin, Clock, Network,
   ArrowRight, Phone, Heart, UserCheck, ClipboardList, Search,
   Timer, TrendingUp, Send, AlertTriangle, BarChart3, RotateCcw,
+  MessageCircle, CheckCircle,
 } from 'lucide-react';
 import { differenceInDays } from 'date-fns';
 
@@ -333,12 +335,26 @@ function FilaNovasVidas() {
 function VidaCard({ nv, onAssumir, showEncaminhar, onEncaminhar }: {
   nv: any; onAssumir?: () => void; showEncaminhar?: boolean; onEncaminhar?: () => void;
 }) {
+  const { data: messages } = useRecomecoMessages(nv.id);
+  const hasBV = messages?.some((m: any) => m.status === 'sent_confirmed');
+
   return (
     <Card className="bg-white/5 border-white/10 hover:border-[#C5A059]/30 transition-colors">
       <CardContent className="p-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-sm truncate" style={{ color: '#F4EDE4' }}>{nv.nome}</h3>
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="font-semibold text-sm truncate" style={{ color: '#F4EDE4' }}>{nv.nome}</h3>
+              {hasBV ? (
+                <Badge variant="outline" className="text-[10px] bg-green-500/20 text-green-300 border-green-500/30 gap-1">
+                  <CheckCircle className="h-2.5 w-2.5" />BV
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="text-[10px] bg-white/10 text-white/50 border-white/20 gap-1">
+                  <MessageCircle className="h-2.5 w-2.5" />S/ BV
+                </Badge>
+              )}
+            </div>
             <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs mt-1" style={{ color: '#B8B6B3' }}>
               {nv.whatsapp && <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{nv.whatsapp}</span>}
               {(nv.bairro || nv.cidade) && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{[nv.bairro, nv.cidade].filter(Boolean).join(', ')}</span>}
@@ -362,11 +378,12 @@ function VidaCard({ nv, onAssumir, showEncaminhar, onEncaminhar }: {
     </Card>
   );
 }
-
 function TriagemDialog({ vidaId, novasVidas, onClose }: { vidaId: string; novasVidas: any[]; onClose: () => void; }) {
   const { user } = useAuth();
   const nv = novasVidas.find((v: any) => v.id === vidaId);
   const { data: redes } = useRedes();
+  const { data: bvMessages } = useRecomecoMessages(vidaId);
+  const hasBV = bvMessages?.some((m: any) => m.status === 'sent_confirmed');
   const [filterBairro, setFilterBairro] = useState(nv?.bairro || '');
   const [filterCidade, setFilterCidade] = useState(nv?.cidade || '');
   const [filterRedeId, setFilterRedeId] = useState('');
@@ -423,6 +440,13 @@ function TriagemDialog({ vidaId, novasVidas, onClose }: { vidaId: string; novasV
             </div>
             {nv.observacao && <p className="text-xs opacity-60" style={{ color: '#B8B6B3' }}>{nv.observacao}</p>}
           </div>
+
+          {!hasBV && (
+            <div className="flex items-center gap-2 p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20">
+              <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0" />
+              <p className="text-xs text-amber-300">Boas-vindas ainda não enviada pelo agente. Recomendado enviar antes de encaminhar.</p>
+            </div>
+          )}
 
           <div className="space-y-1">
             <label className="text-xs font-medium" style={{ color: '#C5A059' }}>Observação da triagem</label>
