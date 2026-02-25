@@ -108,6 +108,10 @@ export const roleLabels: Record<string, string> = {
   celula_leader: 'Líder de Célula',
   membro: 'Membro',
   demo_institucional: 'Demonstração Institucional',
+  recomeco_operador: 'Recomeço (Operador)',
+  recomeco_leitura: 'Recomeço (Leitura)',
+  recomeco_cadastro: 'Recomeço (Cadastro)',
+  central_celulas: 'Central de Células',
 };
 
 // ========================================

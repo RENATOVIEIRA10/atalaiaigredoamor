@@ -46,12 +46,24 @@ export function useCreateNovaVida() {
 
   return useMutation({
     mutationFn: async (nv: NovaVidaInsert) => {
+      const { data: { user } } = await supabase.auth.getUser();
       const { data, error } = await supabase
         .from('novas_vidas')
-        .insert(nv)
+        .insert({ ...nv, created_by_user_id: user?.id ?? null } as any)
         .select()
         .single();
       if (error) throw error;
+
+      // Create audit event
+      if (user && data) {
+        await supabase.from('novas_vidas_events' as any).insert({
+          vida_id: data.id,
+          event_type: 'cadastro',
+          actor_user_id: user.id,
+          payload: { nome: nv.nome },
+        });
+      }
+
       return data;
     },
     onSuccess: () => {

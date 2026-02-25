@@ -14,7 +14,7 @@ import { RedeSelector } from '@/components/rede/RedeSelector';
 import logoIgrejaDoAmor from '@/assets/logo-igreja-do-amor-new.png';
 import logoRedeAmor from '@/assets/logo-amor-a-dois-new.png';
 
-type ScopeType = 'pastor' | 'admin' | 'rede' | 'coordenacao' | 'supervisor' | 'celula' | 'demo_institucional' | 'recomeco_operador' | 'recomeco_leitura';
+type ScopeType = 'pastor' | 'admin' | 'rede' | 'coordenacao' | 'supervisor' | 'celula' | 'demo_institucional' | 'recomeco_operador' | 'recomeco_leitura' | 'recomeco_cadastro' | 'central_celulas';
 
 function scopeTypeToRole(st: string) {
   const map: Record<string, string> = {
@@ -22,6 +22,7 @@ function scopeTypeToRole(st: string) {
     coordenacao: 'coordenador', supervisor: 'supervisor',
     celula: 'celula_leader', demo_institucional: 'demo_institucional',
     recomeco_operador: 'recomeco_operador', recomeco_leitura: 'recomeco_leitura',
+    recomeco_cadastro: 'recomeco_cadastro', central_celulas: 'central_celulas',
   };
   return map[st] || st;
 }
@@ -50,6 +51,18 @@ export default function TrocarFuncao() {
     if (scopeType === 'recomeco_operador' || scopeType === 'recomeco_leitura') {
       setScopeAccess(scopeType, link.scope_id, link.access_key_id);
       navigate('/recomeco');
+      return;
+    }
+
+    if (scopeType === 'recomeco_cadastro') {
+      setScopeAccess(scopeType, link.scope_id, link.access_key_id);
+      navigate('/recomeco-cadastro');
+      return;
+    }
+
+    if (scopeType === 'central_celulas') {
+      setScopeAccess(scopeType, link.scope_id, link.access_key_id);
+      navigate('/central-celulas');
       return;
     }
 
