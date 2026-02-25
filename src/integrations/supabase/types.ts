@@ -378,6 +378,7 @@ export type Database = {
           celula_id: string
           contatado_at: string | null
           created_at: string
+          created_by_user_id: string | null
           data_encaminhamento: string
           encaminhado_por: string | null
           id: string
@@ -394,6 +395,7 @@ export type Database = {
           celula_id: string
           contatado_at?: string | null
           created_at?: string
+          created_by_user_id?: string | null
           data_encaminhamento?: string
           encaminhado_por?: string | null
           id?: string
@@ -410,6 +412,7 @@ export type Database = {
           celula_id?: string
           contatado_at?: string | null
           created_at?: string
+          created_by_user_id?: string | null
           data_encaminhamento?: string
           encaminhado_por?: string | null
           id?: string
@@ -1090,6 +1093,7 @@ export type Database = {
           celula_realizada: boolean
           comunhao: boolean | null
           created_at: string
+          created_by: string | null
           data_supervisao: string
           dinamica: boolean | null
           horario_inicio: string
@@ -1122,6 +1126,7 @@ export type Database = {
           celula_realizada?: boolean
           comunhao?: boolean | null
           created_at?: string
+          created_by?: string | null
           data_supervisao: string
           dinamica?: boolean | null
           horario_inicio: string
@@ -1154,6 +1159,7 @@ export type Database = {
           celula_realizada?: boolean
           comunhao?: boolean | null
           created_at?: string
+          created_by?: string | null
           data_supervisao?: string
           dinamica?: boolean | null
           horario_inicio?: string

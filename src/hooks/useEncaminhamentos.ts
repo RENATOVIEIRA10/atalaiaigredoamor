@@ -58,9 +58,10 @@ export function useCreateEncaminhamento() {
 
   return useMutation({
     mutationFn: async (enc: EncaminhamentoInsert) => {
+      const { data: { user } } = await supabase.auth.getUser();
       const { data, error } = await supabase
         .from('encaminhamentos_recomeco')
-        .insert(enc)
+        .insert({ ...enc, created_by_user_id: user?.id ?? null } as any)
         .select()
         .single();
       if (error) throw error;

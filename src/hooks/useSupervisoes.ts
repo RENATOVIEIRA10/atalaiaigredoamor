@@ -264,9 +264,10 @@ export function useCreateSupervisao() {
 
   return useMutation({
     mutationFn: async (input: SupervisaoInput) => {
+      const { data: { user } } = await supabase.auth.getUser();
       const { data, error } = await supabase
         .from('supervisoes')
-        .insert(input)
+        .insert({ ...input, created_by: user?.id ?? null } as any)
         .select()
         .single();
       if (error) throw error;
