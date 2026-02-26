@@ -1,6 +1,6 @@
 import { AtalaiaLogoHeader, AtalaiaFooterSignature } from '@/components/institutional/AtalaiaLogoHeader';
 import logoAnoSantidade from '@/assets/logo-ano-santidade.png';
-import { BookOpen, Heart, Eye, Shield, Sparkles, ArrowLeft, Printer, Church, Waypoints } from 'lucide-react';
+import { BookOpen, Heart, Eye, Shield, Sparkles, ArrowLeft, Printer, Church, Waypoints, MessageCircle, RefreshCw, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 
@@ -89,7 +89,21 @@ export default function TestemunhoAtalaia() {
           </div>
         </Section>
 
-        {/* ── 1. O PROBLEMA REAL ── */}
+        {/* ── 1. A PALAVRA QUE VEIO PRIMEIRO ── */}
+        <Section id="palavra">
+          <SectionTitle icon={Sparkles}>A palavra que veio primeiro</SectionTitle>
+          <Paragraph>
+            Antes do Atalaia existir como sistema, houve uma palavra. Não sobre tecnologia, não sobre plataformas — mas sobre <strong style={{ color: textMain }}>criatividade</strong>. Um chamado pessoal para olhar a vida com olhos criativos, para enxergar soluções onde outros viam apenas rotina.
+          </Paragraph>
+          <Paragraph>
+            Essa palavra não apontava para um software. Apontava para algo maior: a disposição de colocar os dons a serviço do que é eterno. Uma semente plantada no coração, sem forma definida, mas com direção clara.
+          </Paragraph>
+          <Paragraph highlight>
+            Deus não revelou o projeto. Revelou o propósito. O projeto veio depois — como fruto de obediência.
+          </Paragraph>
+        </Section>
+
+        {/* ── 2. O PROBLEMA REAL ── */}
         <Section id="problema">
           <SectionTitle icon={Heart}>Antes do Atalaia</SectionTitle>
           <Paragraph>
@@ -106,11 +120,11 @@ export default function TestemunhoAtalaia() {
           </Paragraph>
         </Section>
 
-        {/* ── 2. O NASCIMENTO ── */}
+        {/* ── 3. O NASCIMENTO ── */}
         <Section id="nascimento">
-          <SectionTitle icon={Church}>Um sistema que nasceu da vida da igreja</SectionTitle>
+          <SectionTitle icon={Church}>De uma palavra pessoal a um serviço coletivo</SectionTitle>
           <Paragraph>
-            O Atalaia não surgiu de um laboratório de tecnologia. Ele não foi comprado, importado ou adaptado de outro lugar. Ele nasceu dentro da Igreja do Amor, a partir daquilo que já existia na vida real da rede.
+            O Atalaia não surgiu de um laboratório de tecnologia. Ele não foi comprado, importado ou adaptado de outro lugar. Ele nasceu dentro da Igreja do Amor, como resposta prática ao chamado de criatividade que Deus plantou no coração.
           </Paragraph>
           <Paragraph>
             A estrutura já estava lá: líderes de célula que se reúnem toda semana com suas famílias, supervisores que acompanham as células, coordenadores que organizam supervisões e alinhamentos, líderes de rede que enxergam o todo, e pastores que direcionam a visão.
@@ -118,12 +132,37 @@ export default function TestemunhoAtalaia() {
           <Paragraph>
             O que o Atalaia fez foi <strong style={{ color: textMain }}>organizar o que já existia</strong>. Dar forma digital ao fluxo natural de cuidado que a igreja já praticava. Transformar o que era verbal em registro, o que era disperso em visão clara, o que era esforço individual em inteligência coletiva.
           </Paragraph>
+
+          <Anchor>
+            "O que começou como uma palavra pessoal se tornou um serviço coletivo."
+          </Anchor>
+
           <Paragraph highlight>
             Ele não criou algo artificial. Ele revelou o que já estava ali — e deu a cada pessoa o acesso certo à informação certa, na hora certa.
           </Paragraph>
         </Section>
 
-        {/* ── 3. POR QUE FUNCIONA ── */}
+        {/* ── 4. O ECOSSISTEMA COMPLETO ── */}
+        <Section id="ecossistema">
+          <SectionTitle icon={RefreshCw}>Mais do que um sistema — um ecossistema</SectionTitle>
+          <Paragraph>
+            Com o tempo, Deus conduziu esse chamado para algo ainda maior. O Atalaia deixou de ser apenas uma ferramenta de relatórios e se tornou um <strong style={{ color: textMain }}>ecossistema completo de cuidado pastoral</strong>.
+          </Paragraph>
+          <Paragraph>
+            Hoje, ele cobre todo o fluxo: da decisão no altar, ao acolhimento pelo Recomeço, ao encaminhamento pela Central de Células, ao cuidado contínuo dentro das células e da rede.
+          </Paragraph>
+          <ul className="space-y-3 mb-6">
+            <BulletItem>O <strong style={{ color: textMain }}>Recomeço</strong> garante que nenhuma vida que tomou uma decisão fique sem acompanhamento — é o primeiro abraço depois do altar.</BulletItem>
+            <BulletItem>A <strong style={{ color: textMain }}>Central de Células</strong> conecta cada vida à célula certa, com critério, proximidade e cuidado.</BulletItem>
+            <BulletItem>As <strong style={{ color: textMain }}>lideranças</strong> acompanham cada etapa com clareza e visão, sem que nada se perca no caminho.</BulletItem>
+            <BulletItem>O <strong style={{ color: textMain }}>Pastorado</strong> tem a memória viva de tudo o que Deus está fazendo na rede.</BulletItem>
+          </ul>
+          <Paragraph highlight>
+            O Atalaia se tornou um instrumento de cuidado, zelo e responsabilidade pastoral — conectando o altar à célula, a decisão à caminhada.
+          </Paragraph>
+        </Section>
+
+        {/* ── 5. POR QUE FUNCIONA ── */}
         <Section id="funciona">
           <SectionTitle icon={Waypoints}>Por que ele funciona</SectionTitle>
           <Paragraph>
@@ -133,7 +172,7 @@ export default function TestemunhoAtalaia() {
             <BulletItem>Os dados certos estão nos lugares certos, porque <strong style={{ color: textMain }}>cada nível de liderança vê exatamente o que precisa ver</strong> — nem mais, nem menos.</BulletItem>
             <BulletItem>Os relatórios funcionam porque são preenchidos por <strong style={{ color: textMain }}>pessoas reais que vivem aquela célula</strong> — não por terceiros.</BulletItem>
             <BulletItem>A hierarquia do sistema é a <strong style={{ color: textMain }}>mesma hierarquia do pastoreio</strong>: líder → supervisor → coordenador → rede → pastor.</BulletItem>
-            <BulletItem>A tecnologia funcionou bem porque a <strong style={{ color: textMain }}>lógica dos dados estava correta desde o início</strong> — ela veio da vida, não de uma teoria.</BulletItem>
+            <BulletItem>O fluxo do Recomeço à célula funciona porque <strong style={{ color: textMain }}>replica o cuidado que já existia</strong> — agora com rastreabilidade e visão.</BulletItem>
           </ul>
           <Paragraph>
             O resultado é um sistema que a liderança reconhece como seu, porque ele fala a linguagem da igreja, respeita seu ritmo e serve sua missão.
@@ -146,7 +185,7 @@ export default function TestemunhoAtalaia() {
           Ele existe para servir o pastoreio."
         </Anchor>
 
-        {/* ── 4. O SIGNIFICADO DE ATALAIA ── */}
+        {/* ── 6. O SIGNIFICADO DE ATALAIA ── */}
         <Section id="atalaia">
           <SectionTitle icon={Eye}>O que significa ser Atalaia</SectionTitle>
           <Paragraph>
@@ -164,15 +203,16 @@ export default function TestemunhoAtalaia() {
             <BulletItem><strong style={{ color: textMain }}>Observar a saúde da rede</strong> — enxergar padrões, tendências e pontos de atenção.</BulletItem>
             <BulletItem><strong style={{ color: textMain }}>Alertar sem acusar</strong> — mostrar onde o cuidado precisa chegar, sem julgamento.</BulletItem>
             <BulletItem><strong style={{ color: textMain }}>Servir a liderança</strong> — dar clareza para quem decide, apoio para quem executa.</BulletItem>
+            <BulletItem><strong style={{ color: textMain }}>Conectar o altar à célula</strong> — garantir que nenhuma vida se perca no caminho.</BulletItem>
           </ul>
           <Paragraph highlight>O Atalaia não mede pessoas. Ele serve o pastoreio.</Paragraph>
         </Section>
 
-        {/* ── 5. CONCLUSÃO ── */}
+        {/* ── 7. CONCLUSÃO ── */}
         <Section id="conclusao">
           <SectionTitle icon={Sparkles}>Tecnologia a serviço do Reino</SectionTitle>
           <Paragraph>
-            Vivemos um tempo onde a tecnologia pode servir tanto para afastar quanto para aproximar. O Atalaia é uma escolha deliberada de usar a tecnologia para aproximar — líderes de suas células, supervisores de seus líderes, pastores de sua rede.
+            Vivemos um tempo onde a tecnologia pode servir tanto para afastar quanto para aproximar. O Atalaia é uma escolha deliberada de usar a tecnologia para aproximar — líderes de suas células, supervisores de seus líderes, pastores de sua rede, e novas vidas do cuidado que merecem.
           </Paragraph>
           <Paragraph>
             Ele não substitui o toque, a oração, a visita, o abraço. Mas ele garante que nenhuma vida passe despercebida, que nenhum alerta se perca, que nenhum cuidado fique esquecido.
@@ -185,7 +225,7 @@ export default function TestemunhoAtalaia() {
             <BookOpen className="h-8 w-8 mx-auto mb-4" style={{ color: gold }} />
             <p className="text-base sm:text-lg leading-relaxed mb-6 max-w-xl mx-auto"
               style={{ color: textMain, fontFamily: headingFont }}>
-              O Atalaia é uma expressão de amor pela igreja. Ele existe para que cada líder tenha suporte, cada célula seja acompanhada, e cada vida seja cuidada com a excelência que o Reino de Deus merece.
+              O Atalaia é uma expressão de amor pela igreja. Do altar à célula, ele existe para que cada vida seja cuidada com a excelência que o Reino de Deus merece.
             </p>
             <div className="h-px w-16 mx-auto mb-6" style={{ background: `linear-gradient(90deg, transparent, ${gold}, transparent)` }} />
             <p className="text-sm italic mb-1" style={{ color: gold, fontFamily: headingFont }}>
