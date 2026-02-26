@@ -1,6 +1,6 @@
 import { AtalaiaLogoHeader, AtalaiaFooterSignature } from '@/components/institutional/AtalaiaLogoHeader';
 import logoAnoSantidade from '@/assets/logo-ano-santidade.png';
-import { BookOpen, Heart, Users, Shield, Eye, MessageCircle, BarChart3, Church, Crown, Waypoints, UserCheck, Sparkles, ArrowLeft, Printer, HelpCircle } from 'lucide-react';
+import { BookOpen, Heart, Users, Shield, Eye, MessageCircle, BarChart3, Church, Crown, Waypoints, UserCheck, Sparkles, ArrowLeft, Printer, HelpCircle, ArrowRight, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 
@@ -59,6 +59,20 @@ const ValueCard = ({ icon: Icon, title, description }: { icon: any; title: strin
   </div>
 );
 
+const FlowStep = ({ n, title, description }: { n: number; title: string; description: string }) => (
+  <div className="flex gap-4 items-start">
+    <div className="flex flex-col items-center">
+      <span className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
+        style={{ background: gold, color: '#1A2F4B' }}>{n}</span>
+      <div className="w-px flex-1 mt-1" style={{ background: `${gold}33` }} />
+    </div>
+    <div className="pb-6">
+      <h4 className="font-semibold text-sm mb-1" style={{ color: textMain, fontFamily: headingFont }}>{title}</h4>
+      <p className="text-xs leading-relaxed" style={{ color: textMuted }}>{description}</p>
+    </div>
+  </div>
+);
+
 export default function MaterialInstitucional() {
   const navigate = useNavigate();
 
@@ -91,6 +105,9 @@ export default function MaterialInstitucional() {
               style={{ color: gold, fontFamily: headingFont }}>
               Saúde e Cuidado da Rede Amor a Dois
             </p>
+            <p className="text-sm mt-3 max-w-md mx-auto leading-relaxed" style={{ color: textMuted }}>
+              Do altar à célula — um ecossistema completo de cuidado pastoral
+            </p>
             <div className="mt-10 h-px w-24 mx-auto" style={{ background: `linear-gradient(90deg, transparent, ${gold}, transparent)` }} />
             <div className="mt-6 flex justify-center">
               <img src={logoAnoSantidade} alt="Ano da Santidade 2026" className="h-12 w-auto object-contain opacity-50" />
@@ -109,10 +126,52 @@ export default function MaterialInstitucional() {
               O <strong style={{ color: textMain }}>Atalaia</strong> nasceu para apoiar o trabalho das lideranças — não para substituí-lo. Ele existe para que cada líder tenha clareza, cada coordenador tenha visão, e cada pastor tenha a memória viva do que Deus está fazendo em cada célula.
             </p>
             <p>
-              <strong style={{ color: gold }}>O Atalaia não substitui pessoas. Ele apoia pessoas.</strong>
+              Hoje, o Atalaia é mais do que uma ferramenta de acompanhamento: é um <strong style={{ color: textMain }}>ecossistema completo</strong> que conecta o altar à célula, organizando o cuidado desde a decisão de uma vida até sua caminhada dentro da igreja.
             </p>
             <p>
-              Ele organiza informações para que o cuidado pastoral aconteça com excelência, para que a visão da igreja avance com ordem, e para que cada vida seja acompanhada com amor.
+              <strong style={{ color: gold }}>O Atalaia organiza o cuidado desde a decisão até a caminhada.</strong>
+            </p>
+          </div>
+        </Section>
+
+        {/* ── DO ALTAR À CÉLULA ── */}
+        <Section id="altar-celula">
+          <SectionTitle icon={RefreshCw}>Do Altar à Célula</SectionTitle>
+          <p className="text-sm mb-6 leading-relaxed" style={{ color: textBody }}>
+            O Atalaia conecta cada etapa do cuidado pastoral em um fluxo contínuo — da decisão no altar até a integração completa na célula:
+          </p>
+          <div className="rounded-xl p-6" style={{ background: `${gold}0A`, border: `1px solid ${gold}1F` }}>
+            <FlowStep n={1} title="A vida se converte" description="No culto, no altar, no momento mais sagrado — uma decisão é tomada." />
+            <FlowStep n={2} title="É acolhida pelo Recomeço" description="A equipe do Recomeço recebe essa vida com carinho, registra seus dados e inicia o acompanhamento." />
+            <FlowStep n={3} title="Dados registrados com cuidado" description="Nome, contato, bairro, perfil — tudo é guardado com responsabilidade para que nenhuma informação se perca." />
+            <FlowStep n={4} title="Encaminhada pela Central de Células" description="A Central avalia o perfil, a localização e sugere a célula mais adequada para acolher essa vida." />
+            <FlowStep n={5} title="Chega ao líder já acompanhada" description="O líder de célula recebe a nova vida com contexto — sabe de onde veio, como chegou, e o que precisa." />
+            <FlowStep n={6} title="Cuidada, integrada e discipulada" description="Dentro da célula, a vida é acolhida, cresce na fé e passa a fazer parte da família." />
+          </div>
+          <div className="mt-6 rounded-xl p-5 text-center" style={{ background: `${gold}14`, border: `1px solid ${gold}2E` }}>
+            <p className="text-sm italic leading-relaxed" style={{ color: textMain, fontFamily: headingFont }}>
+              "Tudo com rastreabilidade, amor e responsabilidade pastoral."
+            </p>
+          </div>
+        </Section>
+
+        {/* ── RECOMEÇO & CENTRAL ── */}
+        <Section id="recomeco-central">
+          <SectionTitle icon={MessageCircle}>Recomeço & Central de Células</SectionTitle>
+          <div className="space-y-4 text-sm leading-relaxed" style={{ color: textBody }}>
+            <p>
+              O <strong style={{ color: textMain }}>Recomeço</strong> é o braço de acolhimento do Atalaia. Quando uma vida toma uma decisão no altar, o Recomeço garante que essa pessoa não fique sozinha. Os agentes do Recomeço entram em contato, registram informações e acompanham cada passo até o encaminhamento.
+            </p>
+            <p>
+              A <strong style={{ color: textMain }}>Central de Células</strong> é o ponto de conexão entre a nova vida e a célula ideal. Ela analisa perfil, localização e disponibilidade para sugerir a melhor célula — garantindo que o encaminhamento seja feito com critério e cuidado, não por acaso.
+            </p>
+            <p>
+              Juntos, Recomeço e Central formam o elo que <strong style={{ color: textMain }}>evita que vidas se percam no processo</strong>. Todo o acompanhamento é visível, rastreável e responsável.
+            </p>
+          </div>
+          <div className="mt-6 rounded-xl p-5 text-center" style={{ background: `${gold}14`, border: `1px solid ${gold}2E` }}>
+            <p className="text-base italic leading-relaxed" style={{ color: textMain, fontFamily: headingFont }}>
+              "No Atalaia, nenhuma vida é apenas um cadastro. Cada vida é uma responsabilidade."
             </p>
           </div>
         </Section>
@@ -125,7 +184,7 @@ export default function MaterialInstitucional() {
           </p>
           <div className="grid gap-4">
             <RoleCard icon={Crown} title="Pastores Sêniores"
-              description="Visão geral de toda a rede: saúde das células, crescimento, tendências e pontos de atenção pastoral. Tudo em um painel claro e direto." />
+              description="Visão geral de toda a rede: saúde das células, crescimento, tendências, encaminhamentos do Recomeço e pontos de atenção pastoral. Tudo em um painel claro e direto." />
             <RoleCard icon={Waypoints} title="Líder de Rede"
               description="Acompanhamento de todas as coordenações, supervisores e células. Identifica padrões, celebra avanços e direciona esforços onde mais precisa." />
             <RoleCard icon={Shield} title="Coordenadores"
@@ -133,7 +192,7 @@ export default function MaterialInstitucional() {
             <RoleCard icon={Eye} title="Supervisores"
               description="Registra supervisões das células do seu escopo. Acompanha de perto a qualidade dos encontros e apoia os líderes de célula." />
             <RoleCard icon={UserCheck} title="Líderes de Célula"
-              description="Preenche o relatório semanal da célula de forma simples e rápida. Gerencia membros, aniversários e envia informações pelo WhatsApp." />
+              description="Preenche o relatório semanal, gerencia membros, recebe novas vidas encaminhadas pela Central e envia informações pelo WhatsApp." />
           </div>
         </Section>
 
@@ -144,6 +203,8 @@ export default function MaterialInstitucional() {
             De forma prática e objetiva, o Atalaia oferece:
           </p>
           <ul className="space-y-3">
+            <BulletItem><strong style={{ color: textMain }}>Acolhimento de novas vidas (Recomeço)</strong> — registro, acompanhamento e primeiro contato com quem tomou uma decisão.</BulletItem>
+            <BulletItem><strong style={{ color: textMain }}>Central de Células</strong> — encaminhamento inteligente de vidas para a célula mais adequada.</BulletItem>
             <BulletItem><strong style={{ color: textMain }}>Relatórios de célula</strong> — padronizados, simples de preencher, com histórico completo.</BulletItem>
             <BulletItem><strong style={{ color: textMain }}>Acompanhamento pastoral</strong> — visão clara de quem precisa de atenção, quem está crescendo, quem está ausente.</BulletItem>
             <BulletItem><strong style={{ color: textMain }}>Histórico e memória</strong> — tudo fica registrado. Nenhuma informação se perde.</BulletItem>
@@ -187,6 +248,7 @@ export default function MaterialInstitucional() {
               <ul className="space-y-2">
                 <BulletItem>Relatório semanal rápido e padronizado (sem esquecer o que reportar)</BulletItem>
                 <BulletItem>Controle dos membros e aniversários da célula na palma da mão</BulletItem>
+                <BulletItem>Recebimento de novas vidas já acompanhadas pela Central</BulletItem>
                 <BulletItem>Envio do relatório por WhatsApp em um toque</BulletItem>
                 <BulletItem>Histórico completo de todas as semanas</BulletItem>
               </ul>
@@ -211,6 +273,7 @@ export default function MaterialInstitucional() {
               <h3 className="text-sm font-semibold mb-2 uppercase tracking-wider" style={{ color: gold }}>Para o Líder de Rede e Pastores</h3>
               <ul className="space-y-2">
                 <BulletItem>Visão macro de toda a rede: onde está crescendo, onde precisa de cuidado</BulletItem>
+                <BulletItem>Acompanhamento do fluxo do Recomeço e da Central de Células</BulletItem>
                 <BulletItem>Memória institucional — nada se perde entre uma reunião e outra</BulletItem>
                 <BulletItem>Decisões baseadas em dados reais, com sensibilidade pastoral</BulletItem>
                 <BulletItem>Organograma visual de toda a estrutura</BulletItem>
@@ -244,7 +307,7 @@ export default function MaterialInstitucional() {
               O Atalaia é uma expressão de amor pela igreja. Ele existe para que cada líder tenha suporte, cada célula seja acompanhada, e cada vida seja cuidada com a excelência que o Reino de Deus merece.
             </p>
             <p className="text-base sm:text-lg leading-relaxed mb-6 max-w-xl mx-auto" style={{ color: textBody }}>
-              Que possamos ser fiéis no pouco, para que o Senhor nos confie o muito. Que a tecnologia esteja a serviço do amor, e que a ordem reflita o caráter de Deus em tudo o que fazemos.
+              Do altar à célula, do cuidado ao acompanhamento — que a tecnologia esteja a serviço do amor, e que a ordem reflita o caráter de Deus em tudo o que fazemos.
             </p>
             <div className="h-px w-16 mx-auto mb-6" style={{ background: `linear-gradient(90deg, transparent, ${gold}, transparent)` }} />
             <p className="text-sm italic mb-1" style={{ color: gold, fontFamily: headingFont }}>
