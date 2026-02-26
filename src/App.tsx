@@ -43,6 +43,7 @@ const Recomeco = lazy(() => import("./pages/Recomeco"));
 const TrocarFuncao = lazy(() => import("./pages/TrocarFuncao"));
 const RecomecoCadastro = lazy(() => import("./pages/RecomecoCadastro"));
 const CentralCelulas = lazy(() => import("./pages/CentralCelulas"));
+const DemoPastoral = lazy(() => import("./pages/DemoPastoral"));
 
 const queryClient = new QueryClient();
 
@@ -91,6 +92,7 @@ function AppInner() {
           <Route path="/manual-lider" element={<ManualLiderCelula />} />
           <Route path="/manual-usuario" element={<ManualUsuario />} />
           <Route path="/testemunho" element={<TestemunhoAtalaia />} />
+          <Route path="/demo-pastoral" element={<DemoPastoral />} />
 
           <Route path="*" element={<NotFound />} />
         </Routes>
