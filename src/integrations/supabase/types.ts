@@ -1968,6 +1968,7 @@ export type Database = {
         Row: {
           access_key_id: string
           active: boolean
+          campo_id: string | null
           created_at: string
           id: string
           label: string
@@ -1979,6 +1980,7 @@ export type Database = {
         Insert: {
           access_key_id: string
           active?: boolean
+          campo_id?: string | null
           created_at?: string
           id?: string
           label?: string
@@ -1990,6 +1992,7 @@ export type Database = {
         Update: {
           access_key_id?: string
           active?: boolean
+          campo_id?: string | null
           created_at?: string
           id?: string
           label?: string
@@ -2004,6 +2007,13 @@ export type Database = {
             columns: ["access_key_id"]
             isOneToOne: false
             referencedRelation: "access_keys"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_access_links_campo_id_fkey"
+            columns: ["campo_id"]
+            isOneToOne: false
+            referencedRelation: "campos"
             referencedColumns: ["id"]
           },
         ]
@@ -2201,6 +2211,7 @@ export type Database = {
         Returns: boolean
       }
       get_profile_id: { Args: { _user_id: string }; Returns: string }
+      get_user_campo_id: { Args: { _user_id: string }; Returns: string }
       has_access_scope: {
         Args: { _scope_type: string; _user_id: string }
         Returns: boolean
