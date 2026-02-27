@@ -75,6 +75,8 @@ export interface UsePulsoEngineOptions {
   scopeType: PulsoScopeType;
   /** Para 'rede': rede_id. Para 'coordenacao': coordenacao_id. Para 'all': ignorado. */
   scopeId?: string;
+  /** Filtro de campo (campus). null = sem filtro (visão global). */
+  campoId?: string | null;
   enabled?: boolean;
 }
 
@@ -98,9 +100,9 @@ function getMondayNWeeksAgo(currentMonday: Date, weeksAgo: number): Date {
 
 // ─── Hook principal ───────────────────────────────────────────────────────────
 
-export function usePulsoEngine({ scopeType, scopeId, enabled = true }: UsePulsoEngineOptions) {
+export function usePulsoEngine({ scopeType, scopeId, campoId, enabled = true }: UsePulsoEngineOptions) {
   return useQuery({
-    queryKey: ['pulso-engine', scopeType, scopeId ?? 'all'],
+    queryKey: ['pulso-engine', scopeType, scopeId ?? 'all', campoId ?? 'global'],
     enabled: enabled && (scopeType === 'all' || !!scopeId),
     staleTime: 60_000, // 1 min
     queryFn: async (): Promise<PulsoData> => {
@@ -125,10 +127,12 @@ export function usePulsoEngine({ scopeType, scopeId, enabled = true }: UsePulsoE
 
       // ── PASSO 1: Buscar células do escopo ────────────────────────────────
       // Sempre buscamos com join para ter rede_id disponível para filtro client-side
-      const celulasQuery = supabase
+      let celulasQuery = supabase
         .from('celulas')
         .select('id, name, coordenacao_id, coordenacao:coordenacoes!celulas_coordenacao_id_fkey(name, rede_id)')
         .eq('is_test_data', false);
+
+      if (campoId) celulasQuery = celulasQuery.eq('campo_id', campoId);
 
       // Filtro server-side quando possível (coordenacao → filtra no banco)
       const filteredQuery = scopeType === 'coordenacao' && scopeId

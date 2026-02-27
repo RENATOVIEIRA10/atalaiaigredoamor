@@ -4,11 +4,13 @@
  */
 
 import { usePulsoEngine, PulsoData, CelulaAlertaStatus } from './usePulsoEngine';
+import { useCampoFilter } from './useCampoFilter';
 
 // Re-exporta o tipo para não quebrar imports existentes
 export type { CelulaAlertaStatus as CelulaReportStatus };
 export type { PulsoData as PulsoPastoralData };
 
 export function usePulsoPastoral() {
-  return usePulsoEngine({ scopeType: 'all' });
+  const campoId = useCampoFilter();
+  return usePulsoEngine({ scopeType: 'all', campoId });
 }

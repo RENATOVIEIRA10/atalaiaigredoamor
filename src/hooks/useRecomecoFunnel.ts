@@ -64,15 +64,17 @@ function calcKPIs(rows: RecomecoEncRow[]): RecomecoKPIs {
   return { encaminhadas, pendentes, contatadas, integradas, promovidas, sem_resposta, taxaContato, taxaIntegracao, taxaConversao, tempoMedioContato, tempoMedioIntegracao };
 }
 
-function useAllEncaminhamentos() {
+function useAllEncaminhamentos(campoId?: string | null) {
   return useQuery({
-    queryKey: ['recomeco-funnel-all'],
+    queryKey: ['recomeco-funnel-all', campoId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let q = supabase
         .from('encaminhamentos_recomeco')
         .select(`*, nova_vida:novas_vidas(id, nome, bairro, cidade, whatsapp)`)
         .neq('status', 'devolvido')
         .order('data_encaminhamento', { ascending: false });
+      if (campoId) q = q.eq('campo_id', campoId);
+      const { data, error } = await q;
       if (error) throw error;
       return (data || []) as RecomecoEncRow[];
     },
@@ -81,8 +83,8 @@ function useAllEncaminhamentos() {
 }
 
 // scope: 'coordenacao' | 'rede' | 'all'
-export function useRecomecoFunnel(scopeType: 'coordenacao' | 'rede' | 'all', scopeId?: string) {
-  const { data: allEnc, isLoading: encLoading } = useAllEncaminhamentos();
+export function useRecomecoFunnel(scopeType: 'coordenacao' | 'rede' | 'all', scopeId?: string, campoId?: string | null) {
+  const { data: allEnc, isLoading: encLoading } = useAllEncaminhamentos(campoId);
   const { data: celulas } = useCelulas();
   const { data: coordenacoes } = useCoordenacoes();
 

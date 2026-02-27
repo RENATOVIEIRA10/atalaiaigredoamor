@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { subDays, format, parseISO, addDays, startOfWeek, endOfWeek } from 'date-fns';
+import { useCampoFilter } from './useCampoFilter';
 
 export interface PastoralStats {
   totalCelulas: number;
@@ -53,24 +54,28 @@ export interface RedeGrowth {
 
 // Stats gerais
 export function usePastoralStats() {
+  const campoId = useCampoFilter();
   return useQuery({
-    queryKey: ['pastoral-stats'],
+    queryKey: ['pastoral-stats', campoId],
     queryFn: async () => {
       const now = new Date();
       const ninetyDaysAgo = subDays(now, 90);
-      const currentMonday = startOfWeek(now, { weekStartsOn: 1 });
-      const currentSaturday = addDays(currentMonday, 5);
 
-      const [celulasRes, membersRes, multRes] = await Promise.all([
-        supabase.from('celulas').select('id', { count: 'exact', head: true }).eq('is_test_data', false),
-        supabase.from('members').select('id', { count: 'exact', head: true }).eq('is_active', true),
-        supabase.from('multiplicacoes').select('id', { count: 'exact', head: true }).gte('data_multiplicacao', format(ninetyDaysAgo, 'yyyy-MM-dd')),
-      ]);
+      let celQ = supabase.from('celulas').select('id', { count: 'exact', head: true }).eq('is_test_data', false);
+      let memQ = supabase.from('members').select('id', { count: 'exact', head: true }).eq('is_active', true);
+      let mulQ = supabase.from('multiplicacoes').select('id', { count: 'exact', head: true }).gte('data_multiplicacao', format(ninetyDaysAgo, 'yyyy-MM-dd'));
+
+      if (campoId) {
+        celQ = celQ.eq('campo_id', campoId);
+        memQ = memQ.eq('campo_id', campoId);
+        mulQ = mulQ.eq('campo_id', campoId);
+      }
+
+      const [celulasRes, membersRes, multRes] = await Promise.all([celQ, memQ, mulQ]);
 
       return {
         totalCelulas: celulasRes.count || 0,
         totalMembers: membersRes.count || 0,
-        // These are now derived from usePulsoEngine in the dashboard
         celulasEmRisco: 0,
         celulasEmAcompanhamento: 0,
         multiplicacoes90dias: multRes.count || 0,

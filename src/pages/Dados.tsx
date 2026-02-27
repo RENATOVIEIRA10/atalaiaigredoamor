@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useRole } from '@/contexts/RoleContext';
+import { useCampoFilter } from '@/hooks/useCampoFilter';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -48,6 +49,7 @@ export default function Dados() {
   const [filterCoord, setFilterCoord] = useState<string>(isCoordScope ? scopeId : 'all');
 
   const dateRangeFilter: DateRangeFilter = { from: getDateString(dateRange.from), to: getDateString(dateRange.to) };
+  const campoId = useCampoFilter();
 
   // Ensure coord filter stays locked for coordenador scope
   const effectiveFilterCoord = isCoordScope ? scopeId : filterCoord;
@@ -56,8 +58,8 @@ export default function Dados() {
   const { data: coordenacoes, isLoading: l2 } = useCoordenacoes();
   const { data: celulas, isLoading: l3 } = useCelulas();
   const { data: members, isLoading: l4 } = useMembers();
-  const { data: reports, isLoading: l5 } = useWeeklyReports(undefined, dateRangeFilter);
-  const { data: multiplicacoes } = useMultiplicacoes();
+  const { data: reports, isLoading: l5 } = useWeeklyReports(undefined, dateRangeFilter, campoId);
+  const { data: multiplicacoes } = useMultiplicacoes(campoId);
 
   const isLoading = l1 || l2 || l3 || l4 || l5;
 

@@ -69,9 +69,9 @@ export function getCurrentWeekStart(): string {
   return getWeekStartFromDate(now.toISOString().split('T')[0]);
 }
 
-export function useWeeklyReports(celulaId?: string, dateRange?: DateRangeFilter) {
+export function useWeeklyReports(celulaId?: string, dateRange?: DateRangeFilter, campoId?: string | null) {
   return useQuery({
-    queryKey: ['weekly-reports', celulaId, dateRange?.from, dateRange?.to],
+    queryKey: ['weekly-reports', celulaId, dateRange?.from, dateRange?.to, campoId],
     queryFn: async () => {
       let query = supabase
         .from('weekly_reports')
@@ -94,6 +94,10 @@ export function useWeeklyReports(celulaId?: string, dateRange?: DateRangeFilter)
       
       if (celulaId) {
         query = query.eq('celula_id', celulaId);
+      }
+
+      if (campoId) {
+        query = query.eq('campo_id', campoId);
       }
       
       if (dateRange) {
