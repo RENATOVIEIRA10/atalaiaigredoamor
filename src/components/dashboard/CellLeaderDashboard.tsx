@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, Users, Search, MapPin, Calendar, FileText, Heart, DoorOpen, ClipboardList } from 'lucide-react';
+import { Loader2, Users, Search, MapPin, Calendar, FileText, Heart, DoorOpen, ClipboardList, BookOpen } from 'lucide-react';
 import { useCelulas } from '@/hooks/useCelulas';
 import { useEncaminhamentos } from '@/hooks/useEncaminhamentos';
 import { CelulaDetailsDialog } from './CelulaDetailsDialog';
@@ -16,6 +16,7 @@ import { CellLeaderPulsoTab } from './cellleader/CellLeaderPulsoTab';
 import { CellLeaderNovasVidasTab } from './cellleader/CellLeaderNovasVidasTab';
 import { CellLeaderRoteiroTab } from './cellleader/CellLeaderRoteiroTab';
 import { CellProfileSection } from './cellleader/CellProfileSection';
+import { DiscipuladoCellLeaderTab } from './discipulado/DiscipuladoCellLeaderTab';
 import { StatCard } from '@/components/ui/stat-card';
 import { Badge } from '@/components/ui/badge';
 
@@ -76,7 +77,7 @@ export function CellLeaderDashboard() {
           )}
 
           <Tabs defaultValue={urlTab === 'novas-vidas' ? 'novas-vidas' : urlTab === 'roteiro' ? 'roteiro' : urlTab === 'pulso' ? 'pulso' : 'celula'} className="space-y-4">
-            <TabsList className="grid w-full grid-cols-5 h-auto p-1">
+            <TabsList className="grid w-full grid-cols-6 h-auto p-1">
               <TabsTrigger value="pulso" className="gap-1.5 py-2.5 text-xs sm:text-sm">
                 <Heart className="h-4 w-4" />
                 <span className="hidden sm:inline">Pulso</span>
@@ -88,6 +89,10 @@ export function CellLeaderDashboard() {
               <TabsTrigger value="membros" className="gap-1.5 py-2.5 text-xs sm:text-sm">
                 <Users className="h-4 w-4" />
                 <span className="hidden sm:inline">Membros</span>
+              </TabsTrigger>
+              <TabsTrigger value="discipulado" className="gap-1.5 py-2.5 text-xs sm:text-sm">
+                <BookOpen className="h-4 w-4" />
+                <span className="hidden sm:inline">Discipulado</span>
               </TabsTrigger>
               <TabsTrigger value="roteiro" className="gap-1.5 py-2.5 text-xs sm:text-sm">
                 <ClipboardList className="h-4 w-4" />
@@ -153,6 +158,10 @@ export function CellLeaderDashboard() {
 
           <TabsContent value="membros">
             <CellLeaderMembrosTab celulaId={singleCell.id} celulaName={singleCell.name} />
+          </TabsContent>
+
+          <TabsContent value="discipulado">
+            <DiscipuladoCellLeaderTab celulaId={singleCell.id} celulaName={singleCell.name} redeId={singleCell.rede_id} />
           </TabsContent>
 
           <TabsContent value="roteiro">

@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, UserCheck, Heart, UserPlus, Baby, Loader2, Network, FileSpreadsheet, ChevronDown, ChevronUp, Eye, ClipboardCheck, Image, Sparkles, History, GitBranch, User, Activity, Mail, Calendar, DoorOpen } from 'lucide-react';
+import { Users, UserCheck, Heart, UserPlus, Baby, Loader2, Network, FileSpreadsheet, ChevronDown, ChevronUp, Eye, ClipboardCheck, Image, Sparkles, History, GitBranch, User, Activity, Mail, Calendar, DoorOpen, BookOpen } from 'lucide-react';
 import { useRedes } from '@/hooks/useRedes';
 import { useCoordenacoes } from '@/hooks/useCoordenacoes';
 import { useCelulas } from '@/hooks/useCelulas';
@@ -38,6 +38,7 @@ import { RadarSaudePanel } from './RadarSaudePanel';
 import { PlanejamentoRedePanel } from './rede/PlanejamentoRedePanel';
 import { SupervisoesRedeHistoryPanel } from './rede/SupervisoesRedeHistoryPanel';
 import { RecomecoRedeTab } from './recomeco/RecomecoRedeTab';
+import { DiscipuladoRedeView } from './discipulado/DiscipuladoRedeView';
 
 export function NetworkLeaderDashboard() {
   const [searchParams] = useSearchParams();
@@ -218,6 +219,7 @@ export function NetworkLeaderDashboard() {
               <TabsTrigger value="insights" className="gap-1.5"><Sparkles className="h-4 w-4" />IA</TabsTrigger>
               <TabsTrigger value="fotos" className="gap-1.5"><Image className="h-4 w-4" />Fotos</TabsTrigger>
               <TabsTrigger value="recomeco" className="gap-1.5"><DoorOpen className="h-4 w-4" />Recomeço</TabsTrigger>
+              <TabsTrigger value="discipulado" className="gap-1.5"><BookOpen className="h-4 w-4" />Discipulado</TabsTrigger>
             </TabsList>
 
             <TabsContent value="pulso">
@@ -344,6 +346,10 @@ export function NetworkLeaderDashboard() {
 
             <TabsContent value="recomeco">
               <RecomecoRedeTab redeId={selectedRede} />
+            </TabsContent>
+
+            <TabsContent value="discipulado">
+              <DiscipuladoRedeView redeId={selectedRede} />
             </TabsContent>
           </Tabs>
         </>

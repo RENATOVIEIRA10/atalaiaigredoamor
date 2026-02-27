@@ -388,6 +388,96 @@ export type Database = {
           },
         ]
       }
+      discipulado_encontros: {
+        Row: {
+          celula_id: string
+          created_at: string
+          created_by: string | null
+          data_encontro: string
+          id: string
+          observacao: string | null
+          realizado: boolean
+          rede_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          celula_id: string
+          created_at?: string
+          created_by?: string | null
+          data_encontro: string
+          id?: string
+          observacao?: string | null
+          realizado?: boolean
+          rede_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          celula_id?: string
+          created_at?: string
+          created_by?: string | null
+          data_encontro?: string
+          id?: string
+          observacao?: string | null
+          realizado?: boolean
+          rede_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discipulado_encontros_celula_id_fkey"
+            columns: ["celula_id"]
+            isOneToOne: false
+            referencedRelation: "celulas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "discipulado_encontros_rede_id_fkey"
+            columns: ["rede_id"]
+            isOneToOne: false
+            referencedRelation: "redes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      discipulado_presencas: {
+        Row: {
+          created_at: string
+          encontro_id: string
+          id: string
+          member_id: string
+          presente: boolean
+        }
+        Insert: {
+          created_at?: string
+          encontro_id: string
+          id?: string
+          member_id: string
+          presente?: boolean
+        }
+        Update: {
+          created_at?: string
+          encontro_id?: string
+          id?: string
+          member_id?: string
+          presente?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discipulado_presencas_encontro_id_fkey"
+            columns: ["encontro_id"]
+            isOneToOne: false
+            referencedRelation: "discipulado_encontros"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "discipulado_presencas_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       encaminhamentos_recomeco: {
         Row: {
           celula_id: string

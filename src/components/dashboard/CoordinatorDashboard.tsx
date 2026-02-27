@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, UserCheck, Heart, UserPlus, Baby, Loader2, LayoutGrid, Eye, ClipboardCheck, Image, FileSpreadsheet, Sparkles, History, Plus, Activity, Heart as HeartIcon, Calendar, DoorOpen } from 'lucide-react';
+import { Users, UserCheck, Heart, UserPlus, Baby, Loader2, LayoutGrid, Eye, ClipboardCheck, Image, FileSpreadsheet, Sparkles, History, Plus, Activity, Heart as HeartIcon, Calendar, DoorOpen, BookOpen } from 'lucide-react';
 import { useCoordenacoes } from '@/hooks/useCoordenacoes';
 import { useCelulas } from '@/hooks/useCelulas';
 import { useWeeklyReportsByCoordenacao, useUpdateWeeklyReport, useDeleteWeeklyReport } from '@/hooks/useWeeklyReports';
@@ -33,6 +33,7 @@ import { PulsoRedeSection } from './PulsoRedeSection';
 import { RadarSaudePanel } from './RadarSaudePanel';
 import { PlanejamentoCoordenadorPanel } from './coordenador/PlanejamentoCoordenadorPanel';
 import { RecomecoCoordTab } from './recomeco/RecomecoCoordTab';
+import { DiscipuladoCoordView } from './discipulado/DiscipuladoCoordView';
 
 export function CoordinatorDashboard() {
   const [searchParams] = useSearchParams();
@@ -192,6 +193,7 @@ export function CoordinatorDashboard() {
               <TabsTrigger value="fotos" className="gap-1.5"><Image className="h-4 w-4" />Fotos</TabsTrigger>
               <TabsTrigger value="supervisoes" className="gap-1.5"><ClipboardCheck className="h-4 w-4" />Supervisões</TabsTrigger>
               <TabsTrigger value="recomeco" className="gap-1.5"><DoorOpen className="h-4 w-4" />Recomeço</TabsTrigger>
+              <TabsTrigger value="discipulado" className="gap-1.5"><BookOpen className="h-4 w-4" />Discipulado</TabsTrigger>
             </TabsList>
 
             <TabsContent value="planejamento">
@@ -289,6 +291,10 @@ export function CoordinatorDashboard() {
 
             <TabsContent value="recomeco">
               <RecomecoCoordTab coordenacaoId={selectedCoordenacao} />
+            </TabsContent>
+
+            <TabsContent value="discipulado">
+              <DiscipuladoCoordView coordId={selectedCoordenacao} />
             </TabsContent>
           </Tabs>
         </>

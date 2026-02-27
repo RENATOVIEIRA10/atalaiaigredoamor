@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, FileText, Users, Cake, Zap, Clock, CheckCircle, AlertTriangle, ChevronRight, Heart, History, Settings2 } from 'lucide-react';
+import { Loader2, FileText, Users, Cake, Zap, Clock, CheckCircle, AlertTriangle, ChevronRight, Heart, History, Settings2, BookOpen } from 'lucide-react';
 import { useCelulas } from '@/hooks/useCelulas';
 import { useWeeklyReports, getCurrentWeekStart } from '@/hooks/useWeeklyReports';
 import { useMembers } from '@/hooks/useMembers';
@@ -14,6 +14,7 @@ import { CellLeaderMembrosTab } from '../cellleader/CellLeaderMembrosTab';
 import { CellLeaderPulsoTab } from '../cellleader/CellLeaderPulsoTab';
 import { CellLeaderNovasVidasTab } from '../cellleader/CellLeaderNovasVidasTab';
 import { CellProfilePWA } from '../cellleader/CellProfilePWA';
+import { DiscipuladoCellLeaderTab } from '../discipulado/DiscipuladoCellLeaderTab';
 import { MissionVerse } from '../MissionVerse';
 import { EmptyState } from '@/components/ui/empty-state';
 import { format, parseISO } from 'date-fns';
@@ -181,10 +182,25 @@ function AcoesTab({ celulaId, celulaName, coupleNames, onOpenReport, novasVidasC
   const [showBirthdays, setShowBirthdays] = useState(false);
   const [showNovasVidas, setShowNovasVidas] = useState(initialView === 'novas-vidas');
   const [showCellProfile, setShowCellProfile] = useState(false);
+  const [showDiscipulado, setShowDiscipulado] = useState(false);
   const [celulaDialogOpen, setCelulaDialogOpen] = useState(false);
 
   if (showCellProfile) {
     return <CellProfilePWA celulaId={celulaId} onBack={() => setShowCellProfile(false)} />;
+  }
+
+  if (showDiscipulado) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center gap-3">
+          <button onClick={() => setShowDiscipulado(false)} className="flex items-center justify-center h-11 w-11 rounded-xl active:bg-accent/60 touch-manipulation transition-colors">
+            <ChevronRight className="h-5 w-5 rotate-180 text-foreground" />
+          </button>
+          <h2 className="text-lg font-semibold">Discipulado</h2>
+        </div>
+        <DiscipuladoCellLeaderTab celulaId={celulaId} celulaName={celulaName} redeId={undefined} />
+      </div>
+    );
   }
 
   if (showMembers) {
@@ -265,6 +281,19 @@ function AcoesTab({ celulaId, celulaName, coupleNames, onOpenReport, novasVidasC
           <div className="flex-1">
             <h3 className="font-semibold">Aniversariantes</h3>
             <p className="text-xs text-muted-foreground">Da semana + enviar parabéns</p>
+          </div>
+          <ChevronRight className="h-5 w-5 text-muted-foreground" />
+        </CardContent>
+      </Card>
+
+      <Card className="cursor-pointer card-hover active:scale-[0.98] transition-all" onClick={() => setShowDiscipulado(true)}>
+        <CardContent className="p-5 flex items-center gap-4">
+          <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+            <BookOpen className="h-6 w-6 text-primary" />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-semibold">Discipulado</h3>
+            <p className="text-xs text-muted-foreground">Registrar encontros mensais</p>
           </div>
           <ChevronRight className="h-5 w-5 text-muted-foreground" />
         </CardContent>
