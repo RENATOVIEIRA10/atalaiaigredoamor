@@ -18,9 +18,10 @@ import { Loader2 } from 'lucide-react';
 
 const LiderRecomecoCentralDashboard = lazy(() => import('@/components/dashboard/LiderRecomecoCentralDashboard'));
 const EventLeaderDashboard = lazy(() => import('@/components/dashboard/EventLeaderDashboard'));
+const CentralBatismoDashboard = lazy(() => import('@/components/dashboard/CentralBatismoDashboard'));
 
 export default function Dashboard() {
-  const { isAdmin, isRedeLeader, isCoordenador, isSupervisor, isPastor, isDemoInstitucional, isLiderRecomecoCentral, isLiderBatismoAclamacao } = useRole();
+  const { isAdmin, isRedeLeader, isCoordenador, isSupervisor, isPastor, isDemoInstitucional, isLiderRecomecoCentral, isLiderBatismoAclamacao, isCentralBatismoAclamacao } = useRole();
   const isPWA = useIsPWA();
   const isMobile = useIsMobile();
   const isPWAMobile = isPWA && isMobile;
@@ -30,6 +31,9 @@ export default function Dashboard() {
   const renderDashboard = () => {
     if (isLiderBatismoAclamacao) {
       return <Suspense fallback={suspenseFallback}><EventLeaderDashboard /></Suspense>;
+    }
+    if (isCentralBatismoAclamacao) {
+      return <Suspense fallback={suspenseFallback}><CentralBatismoDashboard /></Suspense>;
     }
     if (isLiderRecomecoCentral) {
       return <Suspense fallback={suspenseFallback}><LiderRecomecoCentralDashboard /></Suspense>;
