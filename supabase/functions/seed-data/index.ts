@@ -157,7 +157,18 @@ Deno.serve(async (req) => {
   try {
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     const body = await req.json();
-    const { action, seed_run_id, period_from, period_to, include_test_cells } = body;
+    const { action, seed_run_id, period_from, period_to, include_test_cells, campo_ids: rawCampoIds, rede_ids: rawRedeIds, advanced: rawAdvanced } = body;
+
+    // Parse configurable params
+    let campoIds: string[] | null = null;
+    let redeIds: string[] | null = null;
+    let advancedConfig: Record<string, any> | null = null;
+    try { if (rawCampoIds) campoIds = typeof rawCampoIds === 'string' ? JSON.parse(rawCampoIds) : rawCampoIds; } catch {}
+    try { if (rawRedeIds) redeIds = typeof rawRedeIds === 'string' ? JSON.parse(rawRedeIds) : rawRedeIds; } catch {}
+    try { if (rawAdvanced) advancedConfig = typeof rawAdvanced === 'string' ? JSON.parse(rawAdvanced) : rawAdvanced; } catch {}
+
+    const membersPerCelula = advancedConfig?.membrosPerCelula ?? 7;
+    const volumeNovasVidas = advancedConfig?.volumeNovasVidas ?? randInt(60, 120);
 
     if (!action || !seed_run_id) {
       return new Response(JSON.stringify({ error: 'Missing action or seed_run_id' }), {
@@ -384,7 +395,7 @@ Deno.serve(async (req) => {
         });
       }
 
-      const MEMBERS_PER_CELULA = 7;
+      const MEMBERS_PER_CELULA = membersPerCelula;
 
       // Assign bairro/cidade to cells that don't have them
       const celulasToUpdate = celulas.filter(c => !c.bairro || !c.cidade);
@@ -692,7 +703,7 @@ Deno.serve(async (req) => {
 
     // ─── ACTION: seed_novas_vidas ───
     if (action === 'seed_novas_vidas') {
-      const NUM_NOVAS_VIDAS = randInt(60, 120);
+      const NUM_NOVAS_VIDAS = volumeNovasVidas;
       const novasVidas = [];
 
       for (let i = 0; i < NUM_NOVAS_VIDAS; i++) {
@@ -800,6 +811,180 @@ Deno.serve(async (req) => {
       await updateTotals(supabase, seed_run_id, { encaminhamentos: totalCreated });
 
       return new Response(JSON.stringify({ success: true, created: totalCreated }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // ─── ACTION: seed_discipulado ───
+    if (action === 'seed_discipulado') {
+      if (!period_from || !period_to) {
+        return new Response(JSON.stringify({ error: 'Missing period_from or period_to' }), {
+          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      let celQuery = supabase.from('celulas').select('id, coordenacao_id, rede_id, campo_id');
+      if (include_test_cells) {
+        celQuery = celQuery.or(`is_test_data.is.null,is_test_data.eq.false,seed_run_id.eq.${seed_run_id}`);
+      } else {
+        celQuery = celQuery.or('is_test_data.is.null,is_test_data.eq.false');
+      }
+      if (campoIds?.length) celQuery = celQuery.in('campo_id', campoIds);
+      const { data: celulas } = await celQuery;
+
+      const fromDate = new Date(period_from + 'T12:00:00Z');
+      const toDate = new Date(period_to + 'T12:00:00Z');
+      const monthsDiff = Math.max(1, Math.round((toDate.getTime() - fromDate.getTime()) / (30 * 24 * 60 * 60 * 1000)));
+
+      const encontrosToInsert: any[] = [];
+      for (const cel of (celulas || [])) {
+        for (let m = 0; m < monthsDiff; m++) {
+          const encontroDate = new Date(fromDate.getTime() + (m * 30 + randInt(5, 25)) * 24 * 60 * 60 * 1000);
+          if (encontroDate > toDate) break;
+          encontrosToInsert.push({
+            celula_id: cel.id,
+            coordenacao_id: cel.coordenacao_id,
+            rede_id: cel.rede_id,
+            campo_id: cel.campo_id,
+            nivel: 'celula',
+            data_encontro: dateToString(encontroDate),
+            realizado: Math.random() > 0.15,
+            observacao: randItem(['Encontro produtivo', 'Boa participação', 'Tema sobre santidade', 'Oração intensa', null]),
+          });
+        }
+      }
+
+      let totalCreated = 0;
+      for (const batch of chunk(encontrosToInsert, 50)) {
+        const { error } = await supabase.from('discipulado_encontros').insert(batch);
+        if (!error) totalCreated += batch.length;
+      }
+
+      await updateTotals(supabase, seed_run_id, { discipulado: totalCreated });
+      return new Response(JSON.stringify({ success: true, created: totalCreated }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // ─── ACTION: seed_roteiro ───
+    if (action === 'seed_roteiro') {
+      if (!period_from || !period_to) {
+        return new Response(JSON.stringify({ error: 'Missing period' }), {
+          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      let celQuery = supabase.from('celulas').select('id, rede_id, campo_id');
+      if (include_test_cells) {
+        celQuery = celQuery.or(`is_test_data.is.null,is_test_data.eq.false,seed_run_id.eq.${seed_run_id}`);
+      }
+      if (campoIds?.length) celQuery = celQuery.in('campo_id', campoIds);
+      const { data: celulas } = await celQuery;
+
+      const weeks = getWeeksInPeriod(period_from, period_to);
+      const roteirosToInsert: any[] = [];
+
+      for (const cel of (celulas || [])) {
+        for (const weekStart of weeks.slice(0, 4)) { // max 4 weeks of roteiros
+          const meetingDate = new Date(new Date(weekStart + 'T12:00:00Z').getTime() + randInt(1, 5) * 24 * 60 * 60 * 1000);
+          roteirosToInsert.push({
+            celula_id: cel.id,
+            rede_id: cel.rede_id,
+            campo_id: cel.campo_id,
+            semana_inicio: weekStart,
+            data_reuniao: dateToString(meetingDate),
+            status: randItem(['rascunho', 'finalizado', 'finalizado']),
+          });
+        }
+      }
+
+      let totalCreated = 0;
+      for (const batch of chunk(roteirosToInsert, 50)) {
+        const { error } = await supabase.from('roteiros_celula').insert(batch);
+        if (!error) totalCreated += batch.length;
+      }
+
+      await updateTotals(supabase, seed_run_id, { roteiros: totalCreated });
+      return new Response(JSON.stringify({ success: true, created: totalCreated }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // ─── ACTION: seed_batismo ───
+    if (action === 'seed_batismo') {
+      // Create a baptism event and register some members
+      const eventDate = new Date();
+      eventDate.setDate(eventDate.getDate() + randInt(7, 60));
+
+      const campoFilter = campoIds?.length ? campoIds[0] : null;
+
+      const eventData: any = {
+        title: `Batismo ${dateToString(eventDate)}`,
+        type: 'batismo',
+        event_date: dateToString(eventDate),
+        is_active: true,
+      };
+      if (campoFilter) eventData.campo_id = campoFilter;
+
+      const { data: event, error: evErr } = await supabase.from('events_spiritual').insert(eventData).select('id').single();
+      if (evErr || !event) {
+        return new Response(JSON.stringify({ success: true, created: 0 }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      // Register some members
+      let memQuery = supabase.from('members').select('id, profile_id, celula_id, rede_id, campo_id').eq('is_active', true).limit(20);
+      if (campoFilter) memQuery = memQuery.eq('campo_id', campoFilter);
+      const { data: members } = await memQuery;
+
+      const { data: profiles } = await supabase.from('profiles').select('id, name').in('id', (members || []).map(m => m.profile_id));
+      const profileMap = new Map((profiles || []).map(p => [p.id, p.name]));
+
+      const registrations = (members || []).slice(0, randInt(5, 15)).map(m => ({
+        event_id: event.id,
+        full_name: profileMap.get(m.profile_id) || 'Membro',
+        person_type: 'membro',
+        membro_id: m.id,
+        celula_id: m.celula_id,
+        rede_id: m.rede_id,
+        campo_id: m.campo_id,
+        status: 'inscrito',
+      }));
+
+      let totalCreated = 0;
+      if (registrations.length > 0) {
+        const { error } = await supabase.from('event_registrations').insert(registrations);
+        if (!error) totalCreated = registrations.length;
+      }
+
+      await updateTotals(supabase, seed_run_id, { batismo_registrations: totalCreated });
+      return new Response(JSON.stringify({ success: true, created: totalCreated }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // ─── ACTION: seed_aniversarios ───
+    if (action === 'seed_aniversarios') {
+      // This action updates existing profiles to have birth_date distributed across the year
+      let memQuery = supabase.from('members').select('profile_id');
+      if (include_test_cells) {
+        memQuery = memQuery.or(`is_test_data.is.null,is_test_data.eq.false,seed_run_id.eq.${seed_run_id}`);
+      }
+      if (campoIds?.length) memQuery = memQuery.in('campo_id', campoIds);
+      const { data: members } = await memQuery;
+
+      let totalUpdated = 0;
+      for (const batch of chunk((members || []), 50)) {
+        for (const m of batch) {
+          const birthDate = generateBirthDate(18, 65);
+          await supabase.from('profiles').update({ birth_date: birthDate }).eq('id', m.profile_id);
+          totalUpdated++;
+        }
+      }
+
+      await updateTotals(supabase, seed_run_id, { aniversarios_updated: totalUpdated });
+      return new Response(JSON.stringify({ success: true, created: totalUpdated }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }

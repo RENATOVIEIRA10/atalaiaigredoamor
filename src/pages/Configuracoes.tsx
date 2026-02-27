@@ -6,7 +6,8 @@ import { UnifiedLeadershipManager } from '@/components/settings/UnifiedLeadershi
 import { WeeklyReportsHistory } from '@/components/reports/WeeklyReportsHistory';
 import { PolicyAcceptancesManager } from '@/components/settings/PolicyAcceptancesManager';
 import { CamposManager } from '@/components/settings/CamposManager';
-import { User, Shield, History, Lock, Church } from 'lucide-react';
+import { SeedRunSimulationPanel } from '@/components/settings/SeedRunSimulationPanel';
+import { User, Shield, History, Lock, Church, FlaskConical } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 const roleLabels: Record<string, { label: string; variant: 'default' | 'secondary' | 'outline' }> = {
@@ -23,7 +24,7 @@ export default function Configuracoes() {
   return (
     <AppLayout title="Configurações">
       <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList>
+        <TabsList className="flex-wrap h-auto">
           <TabsTrigger value="profile" className="flex items-center gap-2">
             <User className="h-4 w-4" />
             Meu Perfil
@@ -44,6 +45,12 @@ export default function Configuracoes() {
             <TabsTrigger value="campos" className="flex items-center gap-2">
               <Church className="h-4 w-4" />
               Campos
+            </TabsTrigger>
+          )}
+          {isAdmin && (
+            <TabsTrigger value="seedrun" className="flex items-center gap-2">
+              <FlaskConical className="h-4 w-4" />
+              Seed Run / Simulações
             </TabsTrigger>
           )}
           <TabsTrigger value="history" className="flex items-center gap-2">
@@ -94,6 +101,12 @@ export default function Configuracoes() {
         {isAdmin && (
           <TabsContent value="campos">
             <CamposManager />
+          </TabsContent>
+        )}
+
+        {isAdmin && (
+          <TabsContent value="seedrun">
+            <SeedRunSimulationPanel />
           </TabsContent>
         )}
       </Tabs>
