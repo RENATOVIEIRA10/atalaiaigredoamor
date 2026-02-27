@@ -9,6 +9,7 @@ import { useRole } from '@/contexts/RoleContext';
 import { useDemoMode } from '@/contexts/DemoModeContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { AdminPWAPanel } from '@/components/dashboard/pwa/AdminPWAPanel';
+import { CampoSelector } from '@/components/campo/CampoSelector';
 import { cn } from '@/lib/utils';
 
 interface MobileMenuSheetProps {
@@ -18,7 +19,7 @@ interface MobileMenuSheetProps {
 
 export function MobileMenuSheet({ open, onOpenChange }: MobileMenuSheetProps) {
   const navigate = useNavigate();
-  const { clearAccess, isAdmin, isRedeLeader, isCoordenador, isCelulaLeader, isSupervisor, isPastor } = useRole();
+  const { clearAccess, isAdmin, isRedeLeader, isCoordenador, isCelulaLeader, isSupervisor, isPastor, isPastorSeniorGlobal, isPastorDeCampo } = useRole();
   const { isDemoActive, deactivateDemo } = useDemoMode();
   const { theme, toggleTheme } = useTheme();
   const { checkForUpdate, applyUpdate } = useServiceWorkerUpdate();
@@ -71,6 +72,13 @@ export function MobileMenuSheet({ open, onOpenChange }: MobileMenuSheetProps) {
           </SheetHeader>
 
           <div className="space-y-1 py-2">
+            {/* Campo Selector for global/admin/pastor_de_campo */}
+            {(isPastorSeniorGlobal || isAdmin || isPastorDeCampo) && (
+              <div className="px-3 py-2">
+                <CampoSelector />
+              </div>
+            )}
+
             {/* Admin PWA: prominent admin button */}
             {isAdmin && (
               <>
