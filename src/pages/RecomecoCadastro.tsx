@@ -13,11 +13,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Heart, UserPlus, MapPin, Phone, ChevronLeft, Loader2, ListChecks, Eye, MessageCircle, CheckCircle } from 'lucide-react';
 import { differenceInDays } from 'date-fns';
+
+const DIAS_SEMANA = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
 
 export default function RecomecoCadastro() {
   const navigate = useNavigate();
@@ -31,19 +35,12 @@ export default function RecomecoCadastro() {
     return <Navigate to="/dashboard" replace />;
   }
 
-  // PWA: use full viewport, no extra background wrapper
-  const containerClass = isPWAMobile
-    ? 'flex flex-col h-full'
-    : 'min-h-screen';
-
-  const containerStyle = isPWAMobile
-    ? {}
-    : { background: 'linear-gradient(160deg, #0f1a2b 0%, #1A2F4B 40%, #0f1a2b 100%)' };
+  const containerClass = isPWAMobile ? 'flex flex-col h-full' : 'min-h-screen';
+  const containerStyle = isPWAMobile ? {} : { background: 'linear-gradient(160deg, #0f1a2b 0%, #1A2F4B 40%, #0f1a2b 100%)' };
 
   return (
     <div className={containerClass} style={containerStyle}>
       <div className={isPWAMobile ? 'flex-1 overflow-y-auto overscroll-y-contain px-4 py-4' : 'max-w-lg mx-auto px-4 py-6 sm:py-10'}>
-        {/* Header - only show on non-PWA (PWA has its own topbar) */}
         {!isPWAMobile && (
           <div className="flex items-center gap-3 mb-6">
             <button onClick={() => navigate('/trocar-funcao')} className="p-2 rounded-lg hover:bg-white/5 transition-colors">
@@ -95,13 +92,11 @@ function AgentKPICards({ userId }: { userId?: string }) {
     const minhas = (novasVidas || []).filter((nv: any) => nv.created_by_user_id === userId);
     const today = new Date().toISOString().split('T')[0];
     const cadastradasHoje = minhas.filter(nv => nv.created_at?.startsWith(today)).length;
-
     const myMessages = (messages || []).filter((m: any) => m.agent_user_id === userId);
     const confirmedVidaIds = new Set(myMessages.filter((m: any) => m.status === 'sent_confirmed').map((m: any) => m.vida_id));
     const allVidaIds = new Set(minhas.map(v => v.id));
     const pendentes = [...allVidaIds].filter(id => !confirmedVidaIds.has(id)).length;
     const enviadas = confirmedVidaIds.size;
-
     return { cadastradasHoje, pendentes, enviadas };
   }, [novasVidas, messages, userId]);
 
@@ -126,18 +121,36 @@ function AgentKPICards({ userId }: { userId?: string }) {
   );
 }
 
+interface ExtendedFormData extends NovaVidaInsert {
+  idade?: number | null;
+  tem_filhos?: boolean;
+  rua?: string;
+  dias_disponiveis?: string[];
+  horario_preferido?: string;
+  primeira_vez_igreja?: boolean;
+  ja_participou_celula?: boolean;
+}
+
 function CadastroForm({ isPWAMobile }: { isPWAMobile?: boolean }) {
   const createMutation = useCreateNovaVida();
-  const [form, setForm] = useState<NovaVidaInsert>({ nome: '' });
+  const [form, setForm] = useState<ExtendedFormData>({ nome: '', dias_disponiveis: [] });
   const [lastCreated, setLastCreated] = useState<any>(null);
+
+  const toggleDia = (dia: string) => {
+    const current = form.dias_disponiveis || [];
+    setForm(p => ({
+      ...p,
+      dias_disponiveis: current.includes(dia) ? current.filter(d => d !== dia) : [...current, dia],
+    }));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.nome.trim()) return;
-    createMutation.mutate(form, {
+    createMutation.mutate(form as any, {
       onSuccess: (data) => {
         setLastCreated(data);
-        setForm({ nome: '' });
+        setForm({ nome: '', dias_disponiveis: [] });
       },
     });
   };
@@ -150,12 +163,7 @@ function CadastroForm({ isPWAMobile }: { isPWAMobile?: boolean }) {
             ✅ {lastCreated.nome} cadastrada com sucesso!
           </div>
           <BoasVindasWhatsApp vida={lastCreated} />
-          <Button
-            size="sm"
-            variant="outline"
-            className="w-full h-12"
-            onClick={() => setLastCreated(null)}
-          >
+          <Button size="sm" variant="outline" className="w-full h-12" onClick={() => setLastCreated(null)}>
             Cadastrar outra vida
           </Button>
         </div>
@@ -165,6 +173,7 @@ function CadastroForm({ isPWAMobile }: { isPWAMobile?: boolean }) {
         <Card>
           <CardContent className="p-5">
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Nome + WhatsApp */}
               <div className="space-y-2">
                 <Label className="text-primary">Nome *</Label>
                 <Input value={form.nome} onChange={e => setForm(p => ({ ...p, nome: e.target.value }))} className="h-12 text-base" placeholder="Nome completo" required />
@@ -173,6 +182,8 @@ function CadastroForm({ isPWAMobile }: { isPWAMobile?: boolean }) {
                 <Label className="text-primary">WhatsApp</Label>
                 <Input value={form.whatsapp || ''} onChange={e => setForm(p => ({ ...p, whatsapp: e.target.value }))} className="h-12 text-base" placeholder="(81) 99999-9999" inputMode="tel" />
               </div>
+
+              {/* Location */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label className="text-primary">Bairro</Label>
@@ -183,6 +194,12 @@ function CadastroForm({ isPWAMobile }: { isPWAMobile?: boolean }) {
                   <Input value={form.cidade || ''} onChange={e => setForm(p => ({ ...p, cidade: e.target.value }))} className="h-12 text-base" />
                 </div>
               </div>
+              <div className="space-y-2">
+                <Label className="text-primary">Rua (opcional)</Label>
+                <Input value={form.rua || ''} onChange={e => setForm(p => ({ ...p, rua: e.target.value }))} className="h-12 text-base" placeholder="Rua / referência" />
+              </div>
+
+              {/* Profile */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label className="text-primary">Estado Civil</Label>
@@ -210,10 +227,77 @@ function CadastroForm({ isPWAMobile }: { isPWAMobile?: boolean }) {
                   </Select>
                 </div>
               </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label className="text-primary">Idade</Label>
+                  <Input
+                    type="number"
+                    value={form.idade ?? ''}
+                    onChange={e => setForm(p => ({ ...p, idade: e.target.value ? parseInt(e.target.value) : null }))}
+                    className="h-12 text-base"
+                    placeholder="Ex: 32"
+                    inputMode="numeric"
+                    min={0}
+                    max={120}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-primary">Horário Preferido</Label>
+                  <Select value={form.horario_preferido || ''} onValueChange={v => setForm(p => ({ ...p, horario_preferido: v }))}>
+                    <SelectTrigger className="h-12"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="manhã">Manhã</SelectItem>
+                      <SelectItem value="tarde">Tarde</SelectItem>
+                      <SelectItem value="noite">Noite</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Dias disponíveis */}
+              <div className="space-y-2">
+                <Label className="text-primary">Dias Disponíveis</Label>
+                <div className="flex flex-wrap gap-2">
+                  {DIAS_SEMANA.map(dia => (
+                    <button
+                      key={dia}
+                      type="button"
+                      onClick={() => toggleDia(dia)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                        (form.dias_disponiveis || []).includes(dia)
+                          ? 'bg-primary/20 text-primary border-primary/40'
+                          : 'bg-muted/30 text-muted-foreground border-border/40'
+                      }`}
+                    >
+                      {dia.slice(0, 3)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Boolean toggles */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm text-foreground">Tem filhos</Label>
+                  <Switch checked={form.tem_filhos || false} onCheckedChange={v => setForm(p => ({ ...p, tem_filhos: v }))} />
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm text-foreground">Primeira vez na igreja</Label>
+                  <Switch checked={form.primeira_vez_igreja || false} onCheckedChange={v => setForm(p => ({ ...p, primeira_vez_igreja: v }))} />
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm text-foreground">Já participou de célula</Label>
+                  <Switch checked={form.ja_participou_celula || false} onCheckedChange={v => setForm(p => ({ ...p, ja_participou_celula: v }))} />
+                </div>
+              </div>
+
+              {/* Observation */}
               <div className="space-y-2">
                 <Label className="text-primary">Observação</Label>
                 <Textarea value={form.observacao || ''} onChange={e => setForm(p => ({ ...p, observacao: e.target.value }))} rows={2} className="min-h-[48px]" />
               </div>
+
               <Button type="submit" className="w-full h-14 text-base font-semibold" disabled={createMutation.isPending}>
                 {createMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <UserPlus className="h-4 w-4 mr-2" />}
                 Cadastrar Nova Vida
@@ -253,10 +337,7 @@ function MinhasVidas({ userId, isPWAMobile }: { userId?: string; isPWAMobile?: b
         const isExpanded = expandedId === nv.id;
         return (
           <div key={nv.id} className="space-y-2">
-            <Card
-              className="cursor-pointer active:scale-[0.98] transition-all"
-              onClick={() => setExpandedId(isExpanded ? null : nv.id)}
-            >
+            <Card className="cursor-pointer active:scale-[0.98] transition-all" onClick={() => setExpandedId(isExpanded ? null : nv.id)}>
               <CardContent className="p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
@@ -326,16 +407,9 @@ function AcompanhamentoVidas({ userId, isPWAMobile }: { userId?: string; isPWAMo
         ))}
       </div>
 
-      {/* Scrollable chips */}
       <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 no-scrollbar">
         {filters.map(f => (
-          <Button
-            key={f.value}
-            size="sm"
-            variant={filterStatus === f.value ? 'default' : 'outline'}
-            className="text-xs h-9 shrink-0"
-            onClick={() => setFilterStatus(f.value)}
-          >
+          <Button key={f.value} size="sm" variant={filterStatus === f.value ? 'default' : 'outline'} className="text-xs h-9 shrink-0" onClick={() => setFilterStatus(f.value)}>
             {f.label}
           </Button>
         ))}

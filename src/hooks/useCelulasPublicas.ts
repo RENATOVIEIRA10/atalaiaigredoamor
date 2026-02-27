@@ -1,21 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import type { CelulaMatch } from '@/lib/matchEngine';
 
-export interface CelulaPublica {
-  id: string;
-  name: string;
-  bairro: string | null;
-  cidade: string | null;
-  meeting_day: string | null;
-  meeting_time: string | null;
-  rede_id: string | null;
-  rede_name: string | null;
-  lideres: string;
-}
+export type CelulaPublica = CelulaMatch;
 
-/**
- * Remove accents and lowercase for fuzzy matching.
- */
 function normalize(s: string): string {
   return s
     .normalize('NFD')
@@ -25,10 +13,6 @@ function normalize(s: string): string {
     .trim();
 }
 
-/**
- * Tokenized search: all tokens must appear in the combined text.
- * "casa caiada" matches "Casa Caiada" in bairro.
- */
 function matchesTokens(tokens: string[], text: string): boolean {
   const norm = normalize(text);
   return tokens.every(t => norm.includes(t));
@@ -38,7 +22,6 @@ export function useCelulasPublicas(filters?: {
   bairro?: string;
   cidade?: string;
   rede_id?: string;
-  vidaPerfil?: { estado_civil?: string | null; faixa_etaria?: string | null };
 }) {
   return useQuery({
     queryKey: ['celulas_publicas', filters],
@@ -47,6 +30,7 @@ export function useCelulasPublicas(filters?: {
         .from('celulas')
         .select(`
           id, name, bairro, cidade, meeting_day, meeting_time, rede_id,
+          tipo_celula, faixa_etaria_predominante, bairros_atendidos, perfil_ambiente,
           rede:redes(name),
           leadership_couple:leadership_couples(
             spouse1:profiles!leadership_couples_spouse1_id_fkey(name),
@@ -72,10 +56,13 @@ export function useCelulasPublicas(filters?: {
           rede_id: c.rede_id,
           rede_name: c.rede?.name || null,
           lideres,
+          tipo_celula: c.tipo_celula,
+          faixa_etaria_predominante: c.faixa_etaria_predominante,
+          bairros_atendidos: c.bairros_atendidos,
+          perfil_ambiente: c.perfil_ambiente,
         } as CelulaPublica;
       });
 
-      // Tokenized, accent-insensitive filtering for bairro
       if (filters?.bairro) {
         const tokens = normalize(filters.bairro).split(' ').filter(Boolean);
         if (tokens.length > 0) {
@@ -88,7 +75,6 @@ export function useCelulasPublicas(filters?: {
         }
       }
 
-      // Tokenized, accent-insensitive filtering for cidade
       if (filters?.cidade) {
         const tokens = normalize(filters.cidade).split(' ').filter(Boolean);
         if (tokens.length > 0) {
@@ -103,30 +89,6 @@ export function useCelulasPublicas(filters?: {
 
       if (filters?.rede_id) {
         result = result.filter(c => c.rede_id === filters.rede_id);
-      }
-
-      // Sort by matching priority if vida profile is available
-      if (filters?.vidaPerfil) {
-        const perfil = filters.vidaPerfil;
-        result.sort((a, b) => {
-          let scoreA = 0;
-          let scoreB = 0;
-
-          // Priority: bairro match
-          if (filters.bairro) {
-            const bairroNorm = normalize(filters.bairro);
-            if (a.bairro && normalize(a.bairro).includes(bairroNorm)) scoreA += 10;
-            if (b.bairro && normalize(b.bairro).includes(bairroNorm)) scoreB += 10;
-          }
-
-          // Priority: married → Rede Amor a 2
-          if (perfil.estado_civil && normalize(perfil.estado_civil).includes('casado')) {
-            if (a.rede_name && normalize(a.rede_name).includes('amor')) scoreA += 5;
-            if (b.rede_name && normalize(b.rede_name).includes('amor')) scoreB += 5;
-          }
-
-          return scoreB - scoreA; // Higher score first
-        });
       }
 
       return result;

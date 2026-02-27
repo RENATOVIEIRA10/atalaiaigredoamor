@@ -9,6 +9,7 @@ import { useRedes } from '@/hooks/useRedes';
 import { useRecomecoMessages } from '@/hooks/useRecomecoAgent';
 import { useIsPWA } from '@/hooks/useIsPWA';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { rankCelulas, type VidaPerfil, type MatchResult } from '@/lib/matchEngine';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -19,77 +20,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
+import { Progress } from '@/components/ui/progress';
 import {
   ChevronLeft, Loader2, Users, MapPin, Clock, Network,
   ArrowRight, Phone, Heart, UserCheck, ClipboardList, Search,
   Send, AlertTriangle, BarChart3, RotateCcw,
-  MessageCircle, CheckCircle, ArrowLeft,
+  MessageCircle, CheckCircle, ArrowLeft, Sparkles, Info,
 } from 'lucide-react';
 import { differenceInDays } from 'date-fns';
-
-export default function CentralCelulas() {
-  const navigate = useNavigate();
-  const { isCentralCelulas } = useRole();
-  const isPWA = useIsPWA();
-  const isMobile = useIsMobile();
-  const isPWAMobile = isPWA && isMobile;
-
-  if (!isCentralCelulas) {
-    return <Navigate to="/dashboard" replace />;
-  }
-
-  const containerClass = isPWAMobile
-    ? 'flex flex-col h-full'
-    : 'min-h-screen';
-
-  const containerStyle = isPWAMobile
-    ? {}
-    : { background: 'linear-gradient(160deg, #0f1a2b 0%, #1A2F4B 40%, #0f1a2b 100%)' };
-
-  return (
-    <div className={containerClass} style={containerStyle}>
-      <div className={isPWAMobile ? 'flex-1 overflow-y-auto overscroll-y-contain px-4 py-4' : 'max-w-2xl mx-auto px-4 py-6 sm:py-10'}>
-        {!isPWAMobile && (
-          <div className="flex items-center gap-3 mb-6">
-            <button onClick={() => navigate('/trocar-funcao')} className="p-2 rounded-lg hover:bg-white/5 transition-colors">
-              <ChevronLeft className="h-5 w-5" style={{ color: '#B8B6B3' }} />
-            </button>
-            <div>
-              <h1 className="text-xl font-semibold flex items-center gap-2" style={{ color: '#F4EDE4', fontFamily: "'Outfit', sans-serif" }}>
-                <Users className="h-5 w-5" style={{ color: '#C5A059' }} />
-                Central de Células
-              </h1>
-              <p className="text-xs mt-1" style={{ color: '#B8B6B3' }}>Triagem, encaminhamento e acompanhamento do funil</p>
-            </div>
-          </div>
-        )}
-
-        <KPICards />
-
-        <Tabs defaultValue="fila" className="w-full">
-          <TabsList className={isPWAMobile
-            ? 'bg-card border border-border/40 mb-4 w-full'
-            : 'bg-white/5 border border-white/10 mb-6 w-full'
-          }>
-            <TabsTrigger value="fila" className="flex-1 data-[state=active]:bg-primary/20 data-[state=active]:text-primary">
-              <ClipboardList className="h-4 w-4 mr-1.5" />Fila
-            </TabsTrigger>
-            <TabsTrigger value="pipeline" className="flex-1 data-[state=active]:bg-primary/20 data-[state=active]:text-primary">
-              <BarChart3 className="h-4 w-4 mr-1.5" />Pipeline
-            </TabsTrigger>
-            <TabsTrigger value="gargalos" className="flex-1 data-[state=active]:bg-primary/20 data-[state=active]:text-primary">
-              <AlertTriangle className="h-4 w-4 mr-1.5" />Gargalos
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="fila"><FilaNovasVidas isPWAMobile={isPWAMobile} /></TabsContent>
-          <TabsContent value="pipeline"><PipelineView /></TabsContent>
-          <TabsContent value="gargalos"><GargalosView /></TabsContent>
-        </Tabs>
-      </div>
-    </div>
-  );
-}
 
 function KPICards() {
   const { data: novasVidas } = useNovasVidas();
@@ -396,6 +334,43 @@ function VidaCard({ nv, onAssumir, showEncaminhar, onEncaminhar }: {
   );
 }
 
+function MatchScoreBar({ result }: { result: MatchResult }) {
+  const color = result.score >= 70 ? 'text-green-500' : result.score >= 40 ? 'text-amber-500' : 'text-red-400';
+  const barColor = result.score >= 70 ? 'bg-green-500' : result.score >= 40 ? 'bg-amber-500' : 'bg-red-400';
+  const [showFactors, setShowFactors] = useState(false);
+
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center gap-2">
+        <Sparkles className={`h-3.5 w-3.5 ${color}`} />
+        <span className={`text-sm font-bold ${color}`}>{result.score}%</span>
+        <div className="flex-1 h-2 rounded-full bg-muted/30 overflow-hidden">
+          <div className={`h-full rounded-full transition-all ${barColor}`} style={{ width: `${result.score}%` }} />
+        </div>
+        <button onClick={() => setShowFactors(!showFactors)} className="p-0.5 rounded hover:bg-muted/30">
+          <Info className="h-3.5 w-3.5 text-muted-foreground" />
+        </button>
+      </div>
+      {showFactors && (
+        <div className="pl-6 space-y-1">
+          {result.factors.map(f => (
+            <div key={f.label} className="flex items-center gap-2 text-[10px]">
+              <span className="text-muted-foreground w-24 shrink-0">{f.label} ({f.weight}%)</span>
+              <div className="flex-1 h-1 rounded-full bg-muted/20 overflow-hidden">
+                <div
+                  className={`h-full rounded-full ${f.score >= 70 ? 'bg-green-500' : f.score >= 40 ? 'bg-amber-500' : 'bg-red-400'}`}
+                  style={{ width: `${f.score}%` }}
+                />
+              </div>
+              <span className="text-muted-foreground shrink-0">{f.reason}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function TriagemDialog({ vidaId, novasVidas, onClose, isPWAMobile }: { vidaId: string; novasVidas: any[]; onClose: () => void; isPWAMobile?: boolean }) {
   const { user } = useAuth();
   const nv = novasVidas.find((v: any) => v.id === vidaId);
@@ -410,9 +385,27 @@ function TriagemDialog({ vidaId, novasVidas, onClose, isPWAMobile }: { vidaId: s
     bairro: filterBairro || undefined,
     cidade: filterCidade || undefined,
     rede_id: filterRedeId || undefined,
-    vidaPerfil: nv ? { estado_civil: nv.estado_civil, faixa_etaria: nv.faixa_etaria } : undefined,
   });
   const createEnc = useCreateEncaminhamento();
+
+  const vidaPerfil: VidaPerfil = nv ? {
+    bairro: nv.bairro,
+    cidade: nv.cidade,
+    rua: (nv as any).rua,
+    estado_civil: nv.estado_civil,
+    faixa_etaria: nv.faixa_etaria,
+    idade: (nv as any).idade,
+    tem_filhos: (nv as any).tem_filhos,
+    dias_disponiveis: (nv as any).dias_disponiveis,
+    horario_preferido: (nv as any).horario_preferido,
+    primeira_vez_igreja: (nv as any).primeira_vez_igreja,
+    ja_participou_celula: (nv as any).ja_participou_celula,
+  } : {};
+
+  const ranked = useMemo(() => {
+    if (!celulas?.length) return [];
+    return rankCelulas(vidaPerfil, celulas);
+  }, [celulas, nv]);
 
   const handleEncaminhar = async (celulaId: string, redeId: string | null) => {
     createEnc.mutate({
@@ -443,7 +436,93 @@ function TriagemDialog({ vidaId, novasVidas, onClose, isPWAMobile }: { vidaId: s
 
   if (!nv) return null;
 
-  // PWA: fullscreen inline instead of floating dialog
+  const CelulaList = ({ ranked: items }: { ranked: MatchResult[] }) => (
+    <div className="grid gap-2">
+      {items.map(r => (
+        <Card key={r.celula.id} className="active:scale-[0.98] transition-all">
+          <CardContent className="p-3 space-y-2">
+            <div className="flex items-center gap-3">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="font-medium text-sm truncate text-foreground">{r.celula.name}</span>
+                  {r.celula.rede_name && (
+                    <Badge variant="outline" className="text-[10px] shrink-0">
+                      <Network className="h-2.5 w-2.5 mr-1" />{r.celula.rede_name}
+                    </Badge>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] mt-0.5 text-muted-foreground">
+                  {(r.celula.bairro || r.celula.cidade) && <span className="flex items-center gap-1"><MapPin className="h-2.5 w-2.5" />{[r.celula.bairro, r.celula.cidade].filter(Boolean).join(', ')}</span>}
+                  {r.celula.meeting_day && <span className="flex items-center gap-1"><Clock className="h-2.5 w-2.5" />{r.celula.meeting_day}{r.celula.meeting_time ? ` às ${r.celula.meeting_time}` : ''}</span>}
+                  <span className="flex items-center gap-1"><Users className="h-2.5 w-2.5" />{r.celula.lideres}</span>
+                  {r.celula.tipo_celula && <Badge variant="secondary" className="text-[9px] h-4">{r.celula.tipo_celula}</Badge>}
+                </div>
+              </div>
+              <Button
+                size="sm"
+                onClick={() => handleEncaminhar(r.celula.id, r.celula.rede_id)}
+                disabled={createEnc.isPending}
+                className="shrink-0 gap-1 h-10"
+              >
+                <ArrowRight className="h-3.5 w-3.5" />Encaminhar
+              </Button>
+            </div>
+            <MatchScoreBar result={r} />
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+
+  const VidaInfo = () => (
+    <>
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+            {nv.whatsapp && <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{nv.whatsapp}</span>}
+            {(nv.bairro || nv.cidade) && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{[nv.bairro, nv.cidade].filter(Boolean).join(', ')}</span>}
+            {nv.estado_civil && <span>{nv.estado_civil}</span>}
+            {nv.faixa_etaria && <span>{nv.faixa_etaria}</span>}
+            {(nv as any).tem_filhos && <span>Tem filhos</span>}
+            {(nv as any).primeira_vez_igreja && <span>1ª vez na igreja</span>}
+            {(nv as any).ja_participou_celula && <span>Já participou de célula</span>}
+            {((nv as any).dias_disponiveis || []).length > 0 && <span>Dias: {(nv as any).dias_disponiveis.join(', ')}</span>}
+            {(nv as any).horario_preferido && <span>Horário: {(nv as any).horario_preferido}</span>}
+          </div>
+          {nv.observacao && <p className="text-xs mt-2 text-muted-foreground">{nv.observacao}</p>}
+        </CardContent>
+      </Card>
+
+      {!hasBV && (
+        <div className="flex items-center gap-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
+          <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0" />
+          <p className="text-xs text-amber-600 dark:text-amber-400">Boas-vindas ainda não enviada.</p>
+        </div>
+      )}
+    </>
+  );
+
+  const Filters = ({ className }: { className?: string }) => (
+    <div className="space-y-2">
+      <label className="text-xs font-medium text-primary flex items-center gap-1.5">
+        <Sparkles className="h-3.5 w-3.5" />
+        Match inteligente ativo — filtrar células
+      </label>
+      <div className={`grid grid-cols-3 gap-2 ${className || ''}`}>
+        <Input placeholder="Bairro" value={filterBairro} onChange={e => setFilterBairro(e.target.value)} className="h-10 text-xs" />
+        <Input placeholder="Cidade" value={filterCidade} onChange={e => setFilterCidade(e.target.value)} className="h-10 text-xs" />
+        <Select value={filterRedeId} onValueChange={v => setFilterRedeId(v === 'all' ? '' : v)}>
+          <SelectTrigger className="h-10 text-xs"><SelectValue placeholder="Rede" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas</SelectItem>
+            {redes?.map(r => <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </div>
+    </div>
+  );
+
+  // PWA: fullscreen
   if (isPWAMobile) {
     return (
       <div className="fixed inset-0 z-50 bg-background flex flex-col" style={{ height: '100dvh' }}>
@@ -455,88 +534,28 @@ function TriagemDialog({ vidaId, novasVidas, onClose, isPWAMobile }: { vidaId: s
         </header>
 
         <main className="flex-1 overflow-y-auto overscroll-y-contain p-4 space-y-4">
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                {nv.whatsapp && <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{nv.whatsapp}</span>}
-                {(nv.bairro || nv.cidade) && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{[nv.bairro, nv.cidade].filter(Boolean).join(', ')}</span>}
-                {nv.estado_civil && <span>{nv.estado_civil}</span>}
-                {nv.faixa_etaria && <span>{nv.faixa_etaria}</span>}
-              </div>
-              {nv.observacao && <p className="text-xs mt-2 text-muted-foreground">{nv.observacao}</p>}
-            </CardContent>
-          </Card>
-
-          {!hasBV && (
-            <div className="flex items-center gap-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
-              <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0" />
-              <p className="text-xs text-amber-600 dark:text-amber-400">Boas-vindas ainda não enviada. Recomendado enviar antes.</p>
-            </div>
-          )}
+          <VidaInfo />
 
           <div className="space-y-2">
             <label className="text-xs font-medium text-primary">Observação da triagem</label>
             <Textarea value={obs} onChange={e => setObs(e.target.value)} rows={2} placeholder="Opcional" className="min-h-[48px]" />
           </div>
 
-          <div className="space-y-2">
-            <label className="text-xs font-medium text-primary">Filtrar células</label>
-            <div className="grid grid-cols-3 gap-2">
-              <Input placeholder="Bairro" value={filterBairro} onChange={e => setFilterBairro(e.target.value)} className="h-10 text-xs" />
-              <Input placeholder="Cidade" value={filterCidade} onChange={e => setFilterCidade(e.target.value)} className="h-10 text-xs" />
-              <Select value={filterRedeId} onValueChange={v => setFilterRedeId(v === 'all' ? '' : v)}>
-                <SelectTrigger className="h-10 text-xs"><SelectValue placeholder="Rede" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas</SelectItem>
-                  {redes?.map(r => <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+          <Filters />
 
           {isLoading ? (
             <div className="flex justify-center py-8"><Loader2 className="h-5 w-5 animate-spin text-primary" /></div>
-          ) : !celulas?.length ? (
+          ) : !ranked.length ? (
             <p className="text-center text-sm py-8 text-muted-foreground">Nenhuma célula encontrada.</p>
           ) : (
-            <div className="grid gap-2">
-              {celulas.map(c => (
-                <Card key={c.id} className="active:scale-[0.98] transition-all">
-                  <CardContent className="p-3 flex items-center gap-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-sm truncate text-foreground">{c.name}</span>
-                        {c.rede_name && (
-                          <Badge variant="outline" className="text-[10px] shrink-0">
-                            <Network className="h-2.5 w-2.5 mr-1" />{c.rede_name}
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] mt-0.5 text-muted-foreground">
-                        {(c.bairro || c.cidade) && <span className="flex items-center gap-1"><MapPin className="h-2.5 w-2.5" />{[c.bairro, c.cidade].filter(Boolean).join(', ')}</span>}
-                        {c.meeting_day && <span className="flex items-center gap-1"><Clock className="h-2.5 w-2.5" />{c.meeting_day}{c.meeting_time ? ` às ${c.meeting_time}` : ''}</span>}
-                        <span className="flex items-center gap-1"><Users className="h-2.5 w-2.5" />{c.lideres}</span>
-                      </div>
-                    </div>
-                    <Button
-                      size="sm"
-                      onClick={() => handleEncaminhar(c.id, c.rede_id)}
-                      disabled={createEnc.isPending}
-                      className="shrink-0 gap-1 h-10"
-                    >
-                      <ArrowRight className="h-3.5 w-3.5" />Encaminhar
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+            <CelulaList ranked={ranked} />
           )}
         </main>
       </div>
     );
   }
 
-  // Desktop: original dialog
+  // Desktop: dialog
   return (
     <Dialog open onOpenChange={(o) => { if (!o) onClose(); }}>
       <DialogContent className="bg-[#1e1e22] border-[#C5A059]/20 text-[#F4EDE4] max-w-lg max-h-[85vh] overflow-y-auto">
@@ -550,6 +569,10 @@ function TriagemDialog({ vidaId, novasVidas, onClose, isPWAMobile }: { vidaId: s
               {(nv.bairro || nv.cidade) && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{[nv.bairro, nv.cidade].filter(Boolean).join(', ')}</span>}
               {nv.estado_civil && <span>{nv.estado_civil}</span>}
               {nv.faixa_etaria && <span>{nv.faixa_etaria}</span>}
+              {(nv as any).tem_filhos && <span>Tem filhos</span>}
+              {(nv as any).primeira_vez_igreja && <span>1ª vez na igreja</span>}
+              {(nv as any).ja_participou_celula && <span>Já participou de célula</span>}
+              {((nv as any).dias_disponiveis || []).length > 0 && <span>Dias: {(nv as any).dias_disponiveis.join(', ')}</span>}
             </div>
             {nv.observacao && <p className="text-xs opacity-60" style={{ color: '#B8B6B3' }}>{nv.observacao}</p>}
           </div>
@@ -557,59 +580,69 @@ function TriagemDialog({ vidaId, novasVidas, onClose, isPWAMobile }: { vidaId: s
           {!hasBV && (
             <div className="flex items-center gap-2 p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20">
               <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0" />
-              <p className="text-xs text-amber-300">Boas-vindas ainda não enviada pelo agente. Recomendado enviar antes de encaminhar.</p>
+              <p className="text-xs text-amber-300">Boas-vindas ainda não enviada pelo agente.</p>
             </div>
           )}
 
           <div className="space-y-1">
             <label className="text-xs font-medium" style={{ color: '#C5A059' }}>Observação da triagem</label>
-            <Textarea value={obs} onChange={e => setObs(e.target.value)} className="bg-white/5 border-white/10 text-[#F4EDE4]" rows={2} placeholder="Opcional: notas sobre a triagem" />
+            <Textarea value={obs} onChange={e => setObs(e.target.value)} className="bg-white/5 border-white/10 text-[#F4EDE4]" rows={2} placeholder="Opcional" />
           </div>
 
-          <div className="grid grid-cols-3 gap-2">
-            <Input placeholder="Bairro" value={filterBairro} onChange={e => setFilterBairro(e.target.value)} className="bg-white/5 border-white/10 text-[#F4EDE4] text-xs h-9" />
-            <Input placeholder="Cidade" value={filterCidade} onChange={e => setFilterCidade(e.target.value)} className="bg-white/5 border-white/10 text-[#F4EDE4] text-xs h-9" />
-            <Select value={filterRedeId} onValueChange={v => setFilterRedeId(v === 'all' ? '' : v)}>
-              <SelectTrigger className="bg-white/5 border-white/10 text-[#F4EDE4] text-xs h-9"><SelectValue placeholder="Todas redes" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas as redes</SelectItem>
-                {redes?.map(r => <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>)}
-              </SelectContent>
-            </Select>
+          <div className="space-y-2">
+            <label className="text-xs font-medium flex items-center gap-1.5" style={{ color: '#C5A059' }}>
+              <Sparkles className="h-3.5 w-3.5" />
+              Match inteligente — células ordenadas por compatibilidade
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              <Input placeholder="Bairro" value={filterBairro} onChange={e => setFilterBairro(e.target.value)} className="bg-white/5 border-white/10 text-[#F4EDE4] text-xs h-9" />
+              <Input placeholder="Cidade" value={filterCidade} onChange={e => setFilterCidade(e.target.value)} className="bg-white/5 border-white/10 text-[#F4EDE4] text-xs h-9" />
+              <Select value={filterRedeId} onValueChange={v => setFilterRedeId(v === 'all' ? '' : v)}>
+                <SelectTrigger className="bg-white/5 border-white/10 text-[#F4EDE4] text-xs h-9"><SelectValue placeholder="Todas redes" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas as redes</SelectItem>
+                  {redes?.map(r => <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {isLoading ? (
             <div className="flex justify-center py-8"><Loader2 className="h-5 w-5 animate-spin" style={{ color: '#C5A059' }} /></div>
-          ) : !celulas?.length ? (
+          ) : !ranked.length ? (
             <p className="text-center text-sm py-8" style={{ color: '#B8B6B3' }}>Nenhuma célula encontrada.</p>
           ) : (
             <div className="grid gap-2 max-h-[40vh] overflow-y-auto pr-1">
-              {celulas.map(c => (
-                <div key={c.id} className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10 hover:border-[#C5A059]/30 transition-colors">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-sm truncate" style={{ color: '#F4EDE4' }}>{c.name}</span>
-                      {c.rede_name && (
-                        <Badge variant="outline" className="text-[10px] shrink-0 border-[#C5A059]/30 text-[#C5A059]">
-                          <Network className="h-2.5 w-2.5 mr-1" />{c.rede_name}
-                        </Badge>
-                      )}
+              {ranked.map(r => (
+                <div key={r.celula.id} className="p-3 rounded-xl bg-white/5 border border-white/10 hover:border-[#C5A059]/30 transition-colors space-y-2">
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-sm truncate" style={{ color: '#F4EDE4' }}>{r.celula.name}</span>
+                        {r.celula.rede_name && (
+                          <Badge variant="outline" className="text-[10px] shrink-0 border-[#C5A059]/30 text-[#C5A059]">
+                            <Network className="h-2.5 w-2.5 mr-1" />{r.celula.rede_name}
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] mt-0.5" style={{ color: '#B8B6B3' }}>
+                        {(r.celula.bairro || r.celula.cidade) && <span className="flex items-center gap-1"><MapPin className="h-2.5 w-2.5" />{[r.celula.bairro, r.celula.cidade].filter(Boolean).join(', ')}</span>}
+                        {r.celula.meeting_day && <span className="flex items-center gap-1"><Clock className="h-2.5 w-2.5" />{r.celula.meeting_day}{r.celula.meeting_time ? ` às ${r.celula.meeting_time}` : ''}</span>}
+                        <span className="flex items-center gap-1"><Users className="h-2.5 w-2.5" />{r.celula.lideres}</span>
+                        {r.celula.tipo_celula && <Badge variant="secondary" className="text-[9px] h-4">{r.celula.tipo_celula}</Badge>}
+                      </div>
                     </div>
-                    <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] mt-0.5" style={{ color: '#B8B6B3' }}>
-                      {(c.bairro || c.cidade) && <span className="flex items-center gap-1"><MapPin className="h-2.5 w-2.5" />{[c.bairro, c.cidade].filter(Boolean).join(', ')}</span>}
-                      {c.meeting_day && <span className="flex items-center gap-1"><Clock className="h-2.5 w-2.5" />{c.meeting_day}{c.meeting_time ? ` às ${c.meeting_time}` : ''}</span>}
-                      <span className="flex items-center gap-1"><Users className="h-2.5 w-2.5" />{c.lideres}</span>
-                    </div>
+                    <Button
+                      size="sm"
+                      onClick={() => handleEncaminhar(r.celula.id, r.celula.rede_id)}
+                      disabled={createEnc.isPending}
+                      className="shrink-0 gap-1"
+                      style={{ background: 'linear-gradient(135deg, #C5A059, #D4B366)', color: '#1A2F4B' }}
+                    >
+                      <ArrowRight className="h-3.5 w-3.5" />Encaminhar
+                    </Button>
                   </div>
-                  <Button
-                    size="sm"
-                    onClick={() => handleEncaminhar(c.id, c.rede_id)}
-                    disabled={createEnc.isPending}
-                    className="shrink-0 gap-1"
-                    style={{ background: 'linear-gradient(135deg, #C5A059, #D4B366)', color: '#1A2F4B' }}
-                  >
-                    <ArrowRight className="h-3.5 w-3.5" />Encaminhar
-                  </Button>
+                  <MatchScoreBar result={r} />
                 </div>
               ))}
             </div>
@@ -617,5 +650,69 @@ function TriagemDialog({ vidaId, novasVidas, onClose, isPWAMobile }: { vidaId: s
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+export default function CentralCelulas() {
+  const navigate = useNavigate();
+  const { isCentralCelulas } = useRole();
+  const isPWA = useIsPWA();
+  const isMobile = useIsMobile();
+  const isPWAMobile = isPWA && isMobile;
+
+  if (!isCentralCelulas) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  const containerClass = isPWAMobile
+    ? 'flex flex-col h-full'
+    : 'min-h-screen';
+
+  const containerStyle = isPWAMobile
+    ? {}
+    : { background: 'linear-gradient(160deg, #0f1a2b 0%, #1A2F4B 40%, #0f1a2b 100%)' };
+
+  return (
+    <div className={containerClass} style={containerStyle}>
+      <div className={isPWAMobile ? 'flex-1 overflow-y-auto overscroll-y-contain px-4 py-4' : 'max-w-2xl mx-auto px-4 py-6 sm:py-10'}>
+        {!isPWAMobile && (
+          <div className="flex items-center gap-3 mb-6">
+            <button onClick={() => navigate('/trocar-funcao')} className="p-2 rounded-lg hover:bg-white/5 transition-colors">
+              <ChevronLeft className="h-5 w-5" style={{ color: '#B8B6B3' }} />
+            </button>
+            <div>
+              <h1 className="text-xl font-semibold flex items-center gap-2" style={{ color: '#F4EDE4', fontFamily: "'Outfit', sans-serif" }}>
+                <Users className="h-5 w-5" style={{ color: '#C5A059' }} />
+                Central de Células
+              </h1>
+              <p className="text-xs mt-1" style={{ color: '#B8B6B3' }}>Triagem, encaminhamento e acompanhamento do funil</p>
+            </div>
+          </div>
+        )}
+
+        <KPICards />
+
+        <Tabs defaultValue="fila" className="w-full">
+          <TabsList className={isPWAMobile
+            ? 'bg-card border border-border/40 mb-4 w-full'
+            : 'bg-white/5 border border-white/10 mb-6 w-full'
+          }>
+            <TabsTrigger value="fila" className="flex-1 data-[state=active]:bg-primary/20 data-[state=active]:text-primary">
+              <ClipboardList className="h-4 w-4 mr-1.5" />Fila
+            </TabsTrigger>
+            <TabsTrigger value="pipeline" className="flex-1 data-[state=active]:bg-primary/20 data-[state=active]:text-primary">
+              <BarChart3 className="h-4 w-4 mr-1.5" />Pipeline
+            </TabsTrigger>
+            <TabsTrigger value="gargalos" className="flex-1 data-[state=active]:bg-primary/20 data-[state=active]:text-primary">
+              <AlertTriangle className="h-4 w-4 mr-1.5" />Gargalos
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="fila"><FilaNovasVidas isPWAMobile={isPWAMobile} /></TabsContent>
+          <TabsContent value="pipeline"><PipelineView /></TabsContent>
+          <TabsContent value="gargalos"><GargalosView /></TabsContent>
+        </Tabs>
+      </div>
+    </div>
   );
 }
