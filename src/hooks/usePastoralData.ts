@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { subDays, format, parseISO, addDays, startOfWeek, endOfWeek } from 'date-fns';
+import { subDays, format, parseISO, addDays, startOfWeek } from 'date-fns';
 import { useCampoFilter } from './useCampoFilter';
 
 export interface PastoralStats {
@@ -86,16 +86,16 @@ export function usePastoralStats() {
 
 // Membros ausentes
 export function useAbsentMembers() {
+  const campoId = useCampoFilter();
   return useQuery({
-    queryKey: ['pastoral-absent-members'],
+    queryKey: ['pastoral-absent-members', campoId],
     queryFn: async () => {
       const now = new Date();
       const thirtyDaysAgo = subDays(now, 30);
       const sixtyDaysAgo = subDays(now, 60);
       const ninetyDaysAgo = subDays(now, 90);
 
-      // Get all active members with their last attendance
-      const { data: members } = await supabase
+      let membersQuery = supabase
         .from('members')
         .select(`
           id,
@@ -104,10 +104,11 @@ export function useAbsentMembers() {
           celula:celulas!members_celula_id_fkey(name)
         `)
         .eq('is_active', true);
+      if (campoId) membersQuery = membersQuery.eq('campo_id', campoId);
 
+      const { data: members } = await membersQuery;
       if (!members || members.length === 0) return { thirty: 0, sixty: 0, ninety: 0 };
 
-      // Get recent attendances
       const { data: meetings } = await supabase
         .from('meetings')
         .select('id, date')
@@ -160,12 +161,13 @@ export interface StagnantMember {
 }
 
 export function useSpiritualStagnation() {
+  const campoId = useCampoFilter();
   return useQuery({
-    queryKey: ['pastoral-spiritual-stagnation'],
+    queryKey: ['pastoral-spiritual-stagnation', campoId],
     queryFn: async () => {
       const twoYearsAgo = subDays(new Date(), 730);
       
-      const { data: members } = await supabase
+      let query = supabase
         .from('members')
         .select(`
           id,
@@ -179,10 +181,12 @@ export function useSpiritualStagnation() {
         `)
         .eq('is_active', true)
         .lt('joined_at', twoYearsAgo.toISOString());
+      
+      if (campoId) query = query.eq('campo_id', campoId);
 
+      const { data: members } = await query;
       if (!members) return { count: 0, yearsThreshold: 2, members: [] as StagnantMember[] };
 
-      // Members with 2+ years who haven't completed basic milestones
       const stagnant = members.filter(m => 
         !m.encontro_com_deus && !m.batismo && !m.curso_lidere
       );
@@ -202,62 +206,56 @@ export function useSpiritualStagnation() {
 
 // Aniversários da semana
 export function useWeeklyBirthdays() {
+  const campoId = useCampoFilter();
   return useQuery({
-    queryKey: ['pastoral-weekly-birthdays'],
+    queryKey: ['pastoral-weekly-birthdays', campoId],
     queryFn: async () => {
       const today = new Date();
-      const weekEnd = addDays(today, 6);
 
-      // Get all profiles with birth dates
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('id, name, avatar_url, birth_date')
-        .not('birth_date', 'is', null);
-
-      if (!profiles) return [];
-
-      // Get members to find their cells
-      const { data: members } = await supabase
+      // Get members scoped by campo, with profile birth_date
+      let membersQuery = supabase
         .from('members')
-        .select('profile_id, celula:celulas!members_celula_id_fkey(name)')
+        .select(`
+          profile_id,
+          celula:celulas!members_celula_id_fkey(name),
+          profile:profiles!members_profile_id_fkey(id, name, avatar_url, birth_date)
+        `)
         .eq('is_active', true);
+      if (campoId) membersQuery = membersQuery.eq('campo_id', campoId);
 
-      const memberMap = new Map((members || []).map(m => [m.profile_id, (m.celula as any)?.name || '']));
+      const { data: members } = await membersQuery;
+      if (!members) return [];
 
-      // Get leaders
-      const { data: celulas } = await supabase
-        .from('celulas')
-        .select('leader_id, name');
-      const leaderMap = new Map((celulas || []).map(c => [c.leader_id, c.name]));
+      // Get leaders scoped by campo
+      let celulasQuery = supabase.from('celulas').select('leader_id, name').eq('is_test_data', false);
+      if (campoId) celulasQuery = celulasQuery.eq('campo_id', campoId);
+      const { data: celulas } = await celulasQuery;
+      const leaderSet = new Set((celulas || []).map(c => c.leader_id).filter(Boolean));
 
       const todayMonthDay = format(today, 'MM-dd');
       const birthdays: PastoralBirthday[] = [];
 
-      for (const profile of profiles) {
-        if (!profile.birth_date) continue;
-        const birthDate = parseISO(profile.birth_date);
-        const birthMonthDay = format(birthDate, 'MM-dd');
+      for (const m of members) {
+        const p = m.profile as any;
+        if (!p?.birth_date) continue;
+        const birthMonthDay = format(parseISO(p.birth_date), 'MM-dd');
 
-        // Check if birthday is within this week
         let isInWeek = false;
         for (let d = 0; d <= 6; d++) {
-          const checkDay = addDays(today, d);
-          if (format(checkDay, 'MM-dd') === birthMonthDay) {
+          if (format(addDays(today, d), 'MM-dd') === birthMonthDay) {
             isInWeek = true;
             break;
           }
         }
 
         if (isInWeek) {
-          const isLeader = leaderMap.has(profile.id);
-          const celulaName = isLeader ? leaderMap.get(profile.id) || '' : memberMap.get(profile.id) || '';
-          
+          const isLeader = leaderSet.has(p.id);
           birthdays.push({
-            id: profile.id,
-            name: profile.name,
-            avatar_url: profile.avatar_url,
-            birth_date: profile.birth_date,
-            celula_name: celulaName,
+            id: p.id,
+            name: p.name,
+            avatar_url: p.avatar_url,
+            birth_date: p.birth_date,
+            celula_name: (m.celula as any)?.name || '',
             role: isLeader ? 'Líder' : 'Membro',
             is_today: birthMonthDay === todayMonthDay,
           });
@@ -275,20 +273,25 @@ export function useWeeklyBirthdays() {
 
 // Radar Pastoral - Alertas
 export function usePastoralAlerts() {
+  const campoId = useCampoFilter();
   return useQuery({
-    queryKey: ['pastoral-alerts'],
+    queryKey: ['pastoral-alerts', campoId],
     queryFn: async () => {
       const alerts: PastoralAlert[] = [];
       const now = new Date();
       const currentMonday = startOfWeek(now, { weekStartsOn: 1 });
       const lastMonday = subDays(currentMonday, 7);
-      const twoWeeksAgoMonday = subDays(currentMonday, 14);
       const currentSaturday = addDays(currentMonday, 5);
       const lastSaturday = addDays(lastMonday, 5);
 
       // 1. Células sem relatório na semana operacional (Seg→Sáb)
-      const { data: allCelulas } = await supabase.from('celulas').select('id, name, coordenacao_id').eq('is_test_data', false);
-      const celulaIds = (allCelulas || []).map(c => c.id);
+      let celulasQ = supabase.from('celulas').select('id, name, coordenacao_id').eq('is_test_data', false);
+      if (campoId) celulasQ = celulasQ.eq('campo_id', campoId);
+      const { data: allCelulas } = await celulasQ;
+
+      if (!allCelulas || allCelulas.length === 0) return alerts;
+
+      const celulaIds = allCelulas.map(c => c.id);
       
       const { data: weekReports } = await supabase
         .from('weekly_reports')
@@ -301,7 +304,7 @@ export function usePastoralAlerts() {
         );
 
       const reportedIds = new Set((weekReports || []).map(r => r.celula_id));
-      const missingCelulas = (allCelulas || []).filter(c => !reportedIds.has(c.id));
+      const missingCelulas = allCelulas.filter(c => !reportedIds.has(c.id));
       
       if (missingCelulas.length > 0) {
         alerts.push({
@@ -313,36 +316,39 @@ export function usePastoralAlerts() {
         });
       }
 
-      // 2. Coordenações com queda - compare last 2 weeks
-      const { data: coordenacoes } = await supabase.from('coordenacoes').select('id, name');
+      // 2. Coordenações com queda - compare last 2 weeks (scoped)
+      let coordQ = supabase.from('coordenacoes').select('id, name');
+      if (campoId) coordQ = coordQ.eq('campo_id', campoId);
+      const { data: coordenacoes } = await coordQ;
       
       for (const coord of coordenacoes || []) {
-        const coordCelulas = (allCelulas || []).filter(c => c.coordenacao_id === coord.id);
+        const coordCelulas = allCelulas.filter(c => c.coordenacao_id === coord.id);
         if (coordCelulas.length === 0) continue;
         const coordCelulaIds = coordCelulas.map(c => c.id);
 
-        const { data: thisWeek } = await supabase
-          .from('weekly_reports')
-          .select('members_present')
-          .in('celula_id', coordCelulaIds)
-          .eq('is_test_data', false)
-          .or(
-            `and(meeting_date.gte.${format(currentMonday, 'yyyy-MM-dd')},meeting_date.lte.${format(currentSaturday, 'yyyy-MM-dd')}),` +
-            `and(meeting_date.is.null,week_start.gte.${format(currentMonday, 'yyyy-MM-dd')},week_start.lte.${format(currentSaturday, 'yyyy-MM-dd')})`
-          );
+        const [thisWeekRes, lastWeekRes] = await Promise.all([
+          supabase
+            .from('weekly_reports')
+            .select('members_present')
+            .in('celula_id', coordCelulaIds)
+            .eq('is_test_data', false)
+            .or(
+              `and(meeting_date.gte.${format(currentMonday, 'yyyy-MM-dd')},meeting_date.lte.${format(currentSaturday, 'yyyy-MM-dd')}),` +
+              `and(meeting_date.is.null,week_start.gte.${format(currentMonday, 'yyyy-MM-dd')},week_start.lte.${format(currentSaturday, 'yyyy-MM-dd')})`
+            ),
+          supabase
+            .from('weekly_reports')
+            .select('members_present')
+            .in('celula_id', coordCelulaIds)
+            .eq('is_test_data', false)
+            .or(
+              `and(meeting_date.gte.${format(lastMonday, 'yyyy-MM-dd')},meeting_date.lte.${format(lastSaturday, 'yyyy-MM-dd')}),` +
+              `and(meeting_date.is.null,week_start.gte.${format(lastMonday, 'yyyy-MM-dd')},week_start.lte.${format(lastSaturday, 'yyyy-MM-dd')})`
+            ),
+        ]);
 
-        const { data: lastWeekData } = await supabase
-          .from('weekly_reports')
-          .select('members_present')
-          .in('celula_id', coordCelulaIds)
-          .eq('is_test_data', false)
-          .or(
-            `and(meeting_date.gte.${format(lastMonday, 'yyyy-MM-dd')},meeting_date.lte.${format(lastSaturday, 'yyyy-MM-dd')}),` +
-            `and(meeting_date.is.null,week_start.gte.${format(lastMonday, 'yyyy-MM-dd')},week_start.lte.${format(lastSaturday, 'yyyy-MM-dd')})`
-          );
-
-        const thisTotal = (thisWeek || []).reduce((s, r) => s + r.members_present, 0);
-        const lastTotal = (lastWeekData || []).reduce((s, r) => s + r.members_present, 0);
+        const thisTotal = (thisWeekRes.data || []).reduce((s, r) => s + r.members_present, 0);
+        const lastTotal = (lastWeekRes.data || []).reduce((s, r) => s + r.members_present, 0);
 
         if (lastTotal > 0 && thisTotal < lastTotal * 0.7) {
           alerts.push({
@@ -362,15 +368,16 @@ export function usePastoralAlerts() {
 
 // Celebrações
 export function usePastoralCelebrations() {
+  const campoId = useCampoFilter();
   return useQuery({
-    queryKey: ['pastoral-celebrations'],
+    queryKey: ['pastoral-celebrations', campoId],
     queryFn: async () => {
       const celebrations: CelebrationItem[] = [];
       const now = new Date();
       const thirtyDaysAgo = subDays(now, 30);
 
-      // Multiplicações recentes
-      const { data: multiplicacoes } = await supabase
+      // Multiplicações recentes (scoped)
+      let multQ = supabase
         .from('multiplicacoes')
         .select(`
           *,
@@ -379,6 +386,9 @@ export function usePastoralCelebrations() {
         `)
         .gte('data_multiplicacao', format(thirtyDaysAgo, 'yyyy-MM-dd'))
         .order('data_multiplicacao', { ascending: false });
+      if (campoId) multQ = multQ.eq('campo_id', campoId);
+
+      const { data: multiplicacoes } = await multQ;
 
       for (const mult of multiplicacoes || []) {
         celebrations.push({
@@ -389,8 +399,8 @@ export function usePastoralCelebrations() {
         });
       }
 
-      // Novos líderes em treinamento (últimos 30 dias)
-      const { data: newLeaders } = await supabase
+      // Novos líderes em treinamento (scoped)
+      let leadersQ = supabase
         .from('members')
         .select(`
           id,
@@ -399,6 +409,9 @@ export function usePastoralCelebrations() {
         `)
         .eq('is_active', true)
         .eq('is_lider_em_treinamento', true);
+      if (campoId) leadersQ = leadersQ.eq('campo_id', campoId);
+
+      const { data: newLeaders } = await leadersQ;
 
       if (newLeaders && newLeaders.length > 0) {
         celebrations.push({
@@ -409,31 +422,38 @@ export function usePastoralCelebrations() {
         });
       }
 
-      // Células constantes (todas as semanas com relatório no último mês)
-      const { data: allCelulas } = await supabase.from('celulas').select('id, name').eq('is_test_data', false);
-      const { data: monthReports } = await supabase
-        .from('weekly_reports')
-        .select('celula_id, week_start')
-        .gte('week_start', format(thirtyDaysAgo, 'yyyy-MM-dd'));
+      // Células constantes (scoped)
+      let celQ = supabase.from('celulas').select('id, name').eq('is_test_data', false);
+      if (campoId) celQ = celQ.eq('campo_id', campoId);
+      const { data: allCelulas } = await celQ;
 
-      const reportsByCell = new Map<string, Set<string>>();
-      for (const r of monthReports || []) {
-        if (!reportsByCell.has(r.celula_id)) reportsByCell.set(r.celula_id, new Set());
-        reportsByCell.get(r.celula_id)!.add(r.week_start);
-      }
+      if (allCelulas && allCelulas.length > 0) {
+        const celulaIds = allCelulas.map(c => c.id);
+        const { data: monthReports } = await supabase
+          .from('weekly_reports')
+          .select('celula_id, week_start')
+          .in('celula_id', celulaIds)
+          .gte('week_start', format(thirtyDaysAgo, 'yyyy-MM-dd'));
 
-      const consistentCells = (allCelulas || []).filter(c => {
-        const weeks = reportsByCell.get(c.id);
-        return weeks && weeks.size >= 4;
-      });
+        const reportsByCell = new Map<string, Set<string>>();
+        for (const r of monthReports || []) {
+          if (!reportsByCell.has(r.celula_id)) reportsByCell.set(r.celula_id, new Set());
+          reportsByCell.get(r.celula_id)!.add(r.week_start);
+        }
 
-      if (consistentCells.length > 0) {
-        celebrations.push({
-          type: 'consistent_cell',
-          title: `${consistentCells.length} célula(s) exemplares`,
-          description: `As células ${consistentCells.slice(0, 3).map(c => c.name).join(', ')}${consistentCells.length > 3 ? ` e mais ${consistentCells.length - 3}` : ''} mantêm constância exemplar nos relatórios.`,
-          date: format(now, 'yyyy-MM-dd'),
+        const consistentCells = allCelulas.filter(c => {
+          const weeks = reportsByCell.get(c.id);
+          return weeks && weeks.size >= 4;
         });
+
+        if (consistentCells.length > 0) {
+          celebrations.push({
+            type: 'consistent_cell',
+            title: `${consistentCells.length} célula(s) exemplares`,
+            description: `As células ${consistentCells.slice(0, 3).map(c => c.name).join(', ')}${consistentCells.length > 3 ? ` e mais ${consistentCells.length - 3}` : ''} mantêm constância exemplar nos relatórios.`,
+            date: format(now, 'yyyy-MM-dd'),
+          });
+        }
       }
 
       return celebrations;
@@ -441,33 +461,57 @@ export function usePastoralCelebrations() {
   });
 }
 
-// Crescimento por rede
+// Crescimento por rede (scoped by campo)
 export function useRedeGrowthData() {
+  const campoId = useCampoFilter();
   return useQuery({
-    queryKey: ['pastoral-rede-growth'],
+    queryKey: ['pastoral-rede-growth', campoId],
     queryFn: async () => {
-      const { data: redes } = await supabase.from('redes').select('id, name');
-      if (!redes) return [];
+      let redesQ = supabase.from('redes').select('id, name');
+      if (campoId) redesQ = redesQ.eq('campo_id', campoId);
+      const { data: redes } = await redesQ;
+      if (!redes || redes.length === 0) return [];
 
-      const { data: coordenacoes } = await supabase.from('coordenacoes').select('id, rede_id');
-      const { data: celulas } = await supabase.from('celulas').select('id, coordenacao_id').eq('is_test_data', false);
-      const { data: members } = await supabase.from('members').select('id, celula_id').eq('is_active', true);
+      const redeIds = redes.map(r => r.id);
+
+      let coordQ = supabase.from('coordenacoes').select('id, rede_id').in('rede_id', redeIds);
+      let celQ = supabase.from('celulas').select('id, coordenacao_id').eq('is_test_data', false);
+      let memQ = supabase.from('members').select('id, celula_id').eq('is_active', true);
+
+      if (campoId) {
+        coordQ = coordQ.eq('campo_id', campoId);
+        celQ = celQ.eq('campo_id', campoId);
+        memQ = memQ.eq('campo_id', campoId);
+      }
 
       const sixMonthsAgo = subDays(new Date(), 180);
-      const { data: reports } = await supabase
-        .from('weekly_reports')
-        .select('celula_id, members_present')
-        .gte('week_start', format(sixMonthsAgo, 'yyyy-MM-dd'));
+
+      const [coordRes, celRes, memRes] = await Promise.all([coordQ, celQ, memQ]);
+      const coordenacoes = coordRes.data || [];
+      const celulas = celRes.data || [];
+      const members = memRes.data || [];
+
+      // Only fetch reports for cells in scope
+      const allCelulaIds = celulas.map(c => c.id);
+      let reportsData: any[] = [];
+      if (allCelulaIds.length > 0) {
+        const { data } = await supabase
+          .from('weekly_reports')
+          .select('celula_id, members_present')
+          .in('celula_id', allCelulaIds)
+          .gte('week_start', format(sixMonthsAgo, 'yyyy-MM-dd'));
+        reportsData = data || [];
+      }
 
       const result: RedeGrowth[] = [];
 
       for (const rede of redes) {
-        const redeCoords = (coordenacoes || []).filter(c => c.rede_id === rede.id);
+        const redeCoords = coordenacoes.filter(c => c.rede_id === rede.id);
         const coordIds = redeCoords.map(c => c.id);
-        const redeCelulas = (celulas || []).filter(c => coordIds.includes(c.coordenacao_id));
+        const redeCelulas = celulas.filter(c => coordIds.includes(c.coordenacao_id));
         const celulaIds = redeCelulas.map(c => c.id);
-        const redeMembers = (members || []).filter(m => celulaIds.includes(m.celula_id));
-        const redeReports = (reports || []).filter(r => celulaIds.includes(r.celula_id));
+        const redeMembers = members.filter(m => celulaIds.includes(m.celula_id));
+        const redeReports = reportsData.filter(r => celulaIds.includes(r.celula_id));
         const avgAttendance = redeReports.length > 0
           ? Math.round(redeReports.reduce((s, r) => s + r.members_present, 0) / redeReports.length)
           : 0;
