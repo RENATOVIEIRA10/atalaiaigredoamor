@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 import { useToast } from '@/hooks/use-toast';
 import { LeadershipCouple } from './useLeadershipCouples';
+import { useCampoFilter } from '@/hooks/useCampoFilter';
 
 export type Rede = Tables<'redes'> & {
   leader?: { id: string; name: string; avatar_url: string | null } | null;
@@ -11,10 +12,12 @@ export type Rede = Tables<'redes'> & {
 };
 
 export function useRedes() {
+  const campoId = useCampoFilter();
+
   return useQuery({
-    queryKey: ['redes'],
+    queryKey: ['redes', campoId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('redes')
         .select(`
           *,
@@ -26,13 +29,18 @@ export function useRedes() {
           )
         `)
         .order('name');
+
+      if (campoId) {
+        query = query.eq('campo_id', campoId);
+      }
       
+      const { data, error } = await query;
       if (error) throw error;
       
       // Get coordenacao counts
-      const { data: coordCounts } = await supabase
-        .from('coordenacoes')
-        .select('rede_id');
+      let coordQuery = supabase.from('coordenacoes').select('rede_id');
+      if (campoId) coordQuery = coordQuery.eq('campo_id', campoId);
+      const { data: coordCounts } = await coordQuery;
       
       const countMap = coordCounts?.reduce((acc, c) => {
         acc[c.rede_id] = (acc[c.rede_id] || 0) + 1;

@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useCampoFilter } from '@/hooks/useCampoFilter';
 
 export interface DashboardStats {
   totalMembers: number;
@@ -9,20 +10,20 @@ export interface DashboardStats {
 }
 
 export function useDashboardStats() {
+  const campoId = useCampoFilter();
+
   return useQuery({
-    queryKey: ['dashboard-stats'],
+    queryKey: ['dashboard-stats', campoId],
     queryFn: async () => {
       // Get total active members
-      const { count: totalMembers } = await supabase
-        .from('members')
-        .select('*', { count: 'exact', head: true })
-        .eq('is_active', true);
+      let membersQuery = supabase.from('members').select('*', { count: 'exact', head: true }).eq('is_active', true);
+      if (campoId) membersQuery = membersQuery.eq('campo_id', campoId);
+      const { count: totalMembers } = await membersQuery;
       
-      // Get total celulas (somente ativas, sem dados de teste)
-      const { count: totalCelulas } = await supabase
-        .from('celulas')
-        .select('*', { count: 'exact', head: true })
-        .eq('is_test_data', false);
+      // Get total celulas
+      let celulasQuery = supabase.from('celulas').select('*', { count: 'exact', head: true }).eq('is_test_data', false);
+      if (campoId) celulasQuery = celulasQuery.eq('campo_id', campoId);
+      const { count: totalCelulas } = await celulasQuery;
       
       // Calculate attendance rate from last 30 days
       const thirtyDaysAgo = new Date();
@@ -53,20 +54,17 @@ export function useDashboardStats() {
         }
       }
       
-      // Calculate growth (members added in last 30 days vs previous 30 days)
+      // Calculate growth
       const sixtyDaysAgo = new Date();
       sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
       
-      const { count: recentMembers } = await supabase
-        .from('members')
-        .select('*', { count: 'exact', head: true })
-        .gte('joined_at', thirtyDaysAgo.toISOString());
+      let recentQuery = supabase.from('members').select('*', { count: 'exact', head: true }).gte('joined_at', thirtyDaysAgo.toISOString());
+      if (campoId) recentQuery = recentQuery.eq('campo_id', campoId);
+      const { count: recentMembers } = await recentQuery;
       
-      const { count: previousMembers } = await supabase
-        .from('members')
-        .select('*', { count: 'exact', head: true })
-        .gte('joined_at', sixtyDaysAgo.toISOString())
-        .lt('joined_at', thirtyDaysAgo.toISOString());
+      let prevQuery = supabase.from('members').select('*', { count: 'exact', head: true }).gte('joined_at', sixtyDaysAgo.toISOString()).lt('joined_at', thirtyDaysAgo.toISOString());
+      if (campoId) prevQuery = prevQuery.eq('campo_id', campoId);
+      const { count: previousMembers } = await prevQuery;
       
       let growth = 0;
       if (previousMembers && previousMembers > 0) {

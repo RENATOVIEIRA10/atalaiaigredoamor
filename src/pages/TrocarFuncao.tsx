@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useUserAccessLinks } from '@/hooks/useUserAccessLinks';
 import { useRole } from '@/contexts/RoleContext';
 import { useRede } from '@/contexts/RedeContext';
+import { useCampo } from '@/contexts/CampoContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -14,7 +15,7 @@ import { RedeSelector } from '@/components/rede/RedeSelector';
 import logoIgrejaDoAmor from '@/assets/logo-igreja-do-amor-new.png';
 import logoRedeAmor from '@/assets/logo-amor-a-dois-new.png';
 
-type ScopeType = 'pastor' | 'admin' | 'rede' | 'coordenacao' | 'supervisor' | 'celula' | 'demo_institucional' | 'recomeco_operador' | 'recomeco_leitura' | 'recomeco_cadastro' | 'central_celulas' | 'lider_recomeco_central' | 'lider_batismo_aclamacao' | 'central_batismo_aclamacao';
+type ScopeType = 'pastor' | 'admin' | 'rede' | 'coordenacao' | 'supervisor' | 'celula' | 'demo_institucional' | 'recomeco_operador' | 'recomeco_leitura' | 'recomeco_cadastro' | 'central_celulas' | 'lider_recomeco_central' | 'lider_batismo_aclamacao' | 'central_batismo_aclamacao' | 'pastor_senior_global' | 'pastor_de_campo';
 
 function scopeTypeToRole(st: string) {
   const map: Record<string, string> = {
@@ -26,6 +27,8 @@ function scopeTypeToRole(st: string) {
     lider_recomeco_central: 'lider_recomeco_central',
     lider_batismo_aclamacao: 'lider_batismo_aclamacao',
     central_batismo_aclamacao: 'central_batismo_aclamacao',
+    pastor_senior_global: 'pastor_senior_global',
+    pastor_de_campo: 'pastor_de_campo',
   };
   return map[st] || st;
 }
@@ -40,6 +43,7 @@ export default function TrocarFuncao() {
   const { links, isLoading, upsertLink, removeLink } = useUserAccessLinks();
   const { setScopeAccess, clearAccess } = useRole();
   const { setActiveRede, clearRede } = useRede();
+  const { setActiveCampo } = useCampo();
   const { signOut } = useAuth();
   const [showAddCode, setShowAddCode] = useState(false);
   const [code, setCode] = useState('');
@@ -47,6 +51,20 @@ export default function TrocarFuncao() {
   const [codeLoading, setCodeLoading] = useState(false);
   const [pendingMatch, setPendingMatch] = useState<any>(null);
   const [showRedeSelect, setShowRedeSelect] = useState(false);
+
+  const resolveCampoFromAccessKey = async (accessKeyId: string) => {
+    try {
+      const { data } = await supabase
+        .from('access_keys')
+        .select('campo_id, campos:campos!access_keys_campo_id_fkey(id, nome)')
+        .eq('id', accessKeyId)
+        .single();
+      if (data?.campo_id && data.campos) {
+        const campo = data.campos as any;
+        setActiveCampo({ id: campo.id, nome: campo.nome });
+      }
+    } catch (_) { /* silent */ }
+  };
 
   const activateLink = async (link: typeof links[0]) => {
     const scopeType = link.scope_type as ScopeType;
@@ -87,7 +105,22 @@ export default function TrocarFuncao() {
       return;
     }
 
+    if (scopeType === 'pastor_senior_global') {
+      await resolveCampoFromAccessKey(link.access_key_id);
+      setScopeAccess(scopeType, link.scope_id, link.access_key_id);
+      navigate('/dashboard');
+      return;
+    }
+
+    if (scopeType === 'pastor_de_campo') {
+      await resolveCampoFromAccessKey(link.access_key_id);
+      setScopeAccess(scopeType, link.scope_id, link.access_key_id);
+      navigate('/dashboard');
+      return;
+    }
+
     if (scopeType === 'pastor' || scopeType === 'admin') {
+      await resolveCampoFromAccessKey(link.access_key_id);
       setPendingMatch(link);
       setShowRedeSelect(true);
       return;
@@ -102,6 +135,9 @@ export default function TrocarFuncao() {
         .single();
       if (redeData) setActiveRede({ id: redeData.id, name: redeData.name, slug: redeData.slug, ativa: redeData.ativa });
     }
+
+    // Auto-set campo
+    await resolveCampoFromAccessKey(link.access_key_id);
 
     setScopeAccess(scopeType, link.scope_id, link.access_key_id);
     navigate('/onboarding');
