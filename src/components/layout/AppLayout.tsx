@@ -7,6 +7,7 @@ import { useIsPWA } from '@/hooks/useIsPWA';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
+import { CampoSelector } from '@/components/campo/CampoSelector';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -94,6 +95,9 @@ export function AppLayout({ children, title }: AppLayoutProps) {
               </h1>
             </>
           )}
+          <div className="ml-auto">
+            <CampoSelector />
+          </div>
         </header>
         <main className="flex-1 overflow-auto p-4 md:p-6 lg:p-8 internal-page-bg">
           <div className="animate-fade-in">

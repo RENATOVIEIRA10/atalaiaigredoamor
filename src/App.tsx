@@ -9,6 +9,7 @@ import { RoleProvider } from "@/contexts/RoleContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { DemoModeProvider } from "@/contexts/DemoModeContext";
 import { RedeProvider } from "@/contexts/RedeContext";
+import { CampoProvider } from "@/contexts/CampoContext";
 import { RoleProtectedRoute } from "@/components/RoleProtectedRoute";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { DemoModeBanner } from "@/components/demo/DemoModeBanner";
@@ -110,11 +111,13 @@ const App = () => (
         <BrowserRouter>
           <AuthProvider>
             <RoleProvider>
-              <RedeProvider>
-                <DemoModeProvider>
-                  <AppInner />
-                </DemoModeProvider>
-              </RedeProvider>
+              <CampoProvider>
+                <RedeProvider>
+                  <DemoModeProvider>
+                    <AppInner />
+                  </DemoModeProvider>
+                </RedeProvider>
+              </CampoProvider>
             </RoleProvider>
           </AuthProvider>
         </BrowserRouter>

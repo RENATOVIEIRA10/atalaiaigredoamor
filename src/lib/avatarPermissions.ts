@@ -11,7 +11,7 @@
  *   pastor > rede > coordenacao > supervisor > celula > membro
  */
 
-type ScopeType = 'pastor' | 'admin' | 'rede' | 'coordenacao' | 'supervisor' | 'celula' | 'demo_institucional' | 'recomeco_operador' | 'recomeco_leitura' | 'recomeco_cadastro' | 'central_celulas' | 'lider_recomeco_central' | 'lider_batismo_aclamacao' | 'central_batismo_aclamacao';
+type ScopeType = 'pastor' | 'admin' | 'rede' | 'coordenacao' | 'supervisor' | 'celula' | 'demo_institucional' | 'recomeco_operador' | 'recomeco_leitura' | 'recomeco_cadastro' | 'central_celulas' | 'lider_recomeco_central' | 'lider_batismo_aclamacao' | 'central_batismo_aclamacao' | 'pastor_senior_global' | 'pastor_de_campo';
 type EntityType = 'celula' | 'supervisor' | 'coordenacao' | 'rede' | 'pastor' | 'membro';
 
 // Numeric rank: higher = more authority
@@ -30,6 +30,8 @@ const SCOPE_RANK: Record<ScopeType, number> = {
   lider_recomeco_central: 20,
   lider_batismo_aclamacao: 15,
   central_batismo_aclamacao: 10,
+  pastor_senior_global: 95,
+  pastor_de_campo: 90,
 };
 
 // The minimum viewer rank required to edit a given entity type
