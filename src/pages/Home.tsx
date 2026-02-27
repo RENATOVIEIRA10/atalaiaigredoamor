@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRole } from '@/contexts/RoleContext';
 import { useRede } from '@/contexts/RedeContext';
+import { useCampo } from '@/contexts/CampoContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserAccessLinks } from '@/hooks/useUserAccessLinks';
@@ -18,7 +19,7 @@ import { RedeSelector } from '@/components/rede/RedeSelector';
 import { roleLabels } from '@/lib/icons';
 
 type LoginStep = 'code' | 'rede-select';
-type ScopeType = 'pastor' | 'admin' | 'rede' | 'coordenacao' | 'supervisor' | 'celula' | 'demo_institucional' | 'recomeco_operador' | 'recomeco_leitura' | 'recomeco_cadastro' | 'central_celulas' | 'lider_recomeco_central' | 'lider_batismo_aclamacao' | 'central_batismo_aclamacao';
+type ScopeType = 'pastor' | 'admin' | 'rede' | 'coordenacao' | 'supervisor' | 'celula' | 'demo_institucional' | 'recomeco_operador' | 'recomeco_leitura' | 'recomeco_cadastro' | 'central_celulas' | 'lider_recomeco_central' | 'lider_batismo_aclamacao' | 'central_batismo_aclamacao' | 'pastor_senior_global' | 'pastor_de_campo';
 
 function scopeTypeToRoleKey(st: string) {
   const map: Record<string, string> = {
@@ -30,6 +31,8 @@ function scopeTypeToRoleKey(st: string) {
     lider_recomeco_central: 'lider_recomeco_central',
     lider_batismo_aclamacao: 'lider_batismo_aclamacao',
     central_batismo_aclamacao: 'central_batismo_aclamacao',
+    pastor_senior_global: 'pastor_senior_global',
+    pastor_de_campo: 'pastor_de_campo',
   };
   return map[st] || st;
 }
@@ -43,6 +46,7 @@ export default function HomePage() {
   const navigate = useNavigate();
   const { setScopeAccess, selectedRole } = useRole();
   const { setActiveRede, clearRede } = useRede();
+  const { setActiveCampo } = useCampo();
   const { theme, toggleTheme } = useTheme();
   const { user } = useAuth();
   const { links, isLoading: linksLoading, upsertLink } = useUserAccessLinks();
@@ -54,6 +58,21 @@ export default function HomePage() {
   const [step, setStep] = useState<LoginStep>('code');
   const [pendingMatch, setPendingMatch] = useState<any>(null);
   const [autoRedirectDone, setAutoRedirectDone] = useState(false);
+
+  // Helper: resolve campo from access_key and set context
+  const resolveCampoFromAccessKey = async (accessKeyId: string) => {
+    try {
+      const { data } = await supabase
+        .from('access_keys')
+        .select('campo_id, campos:campos!access_keys_campo_id_fkey(id, nome)')
+        .eq('id', accessKeyId)
+        .single();
+      if (data?.campo_id && data.campos) {
+        const campo = data.campos as any;
+        setActiveCampo({ id: campo.id, nome: campo.nome });
+      }
+    } catch (_) { /* silent */ }
+  };
 
   // Auto-redirect: if user has exactly 1 linked function and no role selected yet, activate it
   useEffect(() => {
@@ -94,6 +113,18 @@ export default function HomePage() {
           navigate('/dashboard');
           return;
         }
+        if (st === 'pastor_senior_global') {
+          setScopeAccess(st, link.scope_id, link.access_key_id);
+          navigate('/dashboard');
+          return;
+        }
+        if (st === 'pastor_de_campo') {
+          setScopeAccess(st, link.scope_id, link.access_key_id);
+          // Auto-set campo from access_key
+          await resolveCampoFromAccessKey(link.access_key_id);
+          navigate('/dashboard');
+          return;
+        }
         if (st === 'pastor' || st === 'admin') {
           // Can't auto-select rede, go to trocar-funcao
           navigate('/trocar-funcao');
@@ -107,6 +138,8 @@ export default function HomePage() {
             .single();
           if (redeData) setActiveRede({ id: redeData.id, name: redeData.name, slug: redeData.slug, ativa: redeData.ativa });
         }
+        // Auto-set campo from access_key
+        await resolveCampoFromAccessKey(link.access_key_id);
         setScopeAccess(st, link.scope_id, link.access_key_id);
         navigate('/onboarding');
       };
@@ -231,8 +264,27 @@ export default function HomePage() {
         return;
       }
 
+      // Pastor senior global
+      if (scopeType === 'pastor_senior_global') {
+        setScopeAccess(scopeType, match.scope_id, match.id);
+        await resolveCampoFromAccessKey(match.id);
+        navigate('/dashboard');
+        setIsLoading(false);
+        return;
+      }
+
+      // Pastor de campo
+      if (scopeType === 'pastor_de_campo') {
+        setScopeAccess(scopeType, match.scope_id, match.id);
+        await resolveCampoFromAccessKey(match.id);
+        navigate('/dashboard');
+        setIsLoading(false);
+        return;
+      }
+
       // Pastor/admin can pick any rede
       if (scopeType === 'pastor' || scopeType === 'admin') {
+        await resolveCampoFromAccessKey(match.id);
         setPendingMatch({ ...match, scopeType });
         setStep('rede-select');
         setIsLoading(false);
@@ -250,6 +302,9 @@ export default function HomePage() {
           setActiveRede({ id: redeData.id, name: redeData.name, slug: redeData.slug, ativa: redeData.ativa });
         }
       }
+
+      // Auto-set campo
+      await resolveCampoFromAccessKey(match.id);
 
       setScopeAccess(scopeType, match.scope_id, match.id);
       navigate('/onboarding');

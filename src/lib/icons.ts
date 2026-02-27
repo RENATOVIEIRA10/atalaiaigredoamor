@@ -16,6 +16,8 @@ import {
 export const roleIcons: Record<string, LucideIcon> = {
   pastor: Crown,
   pastor_senior: Crown,
+  pastor_senior_global: Crown,
+  pastor_de_campo: Crown,
   admin: Settings,
   rede_leader: Map,
   coordenador: Layers,
@@ -115,6 +117,8 @@ export const roleLabels: Record<string, string> = {
   lider_recomeco_central: 'Líder Recomeço + Central',
   lider_batismo_aclamacao: 'Líder de Batismo / Aclamação',
   central_batismo_aclamacao: 'Central do Batismo / Aclamação',
+  pastor_senior_global: 'Pastor Sênior Global',
+  pastor_de_campo: 'Pastor de Campo',
 };
 
 // ========================================
