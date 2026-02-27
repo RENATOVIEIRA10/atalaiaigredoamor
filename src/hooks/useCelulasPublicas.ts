@@ -30,7 +30,7 @@ export function useCelulasPublicas(filters?: {
         .from('celulas')
         .select(`
           id, name, bairro, cidade, meeting_day, meeting_time, rede_id,
-          tipo_celula, faixa_etaria_predominante, bairros_atendidos, perfil_ambiente,
+          tipo_celula, faixa_etaria_predominante, bairros_atendidos, aceita_novas_vidas,
           rede:redes(name),
           leadership_couple:leadership_couples(
             spouse1:profiles!leadership_couples_spouse1_id_fkey(name),
@@ -59,7 +59,7 @@ export function useCelulasPublicas(filters?: {
           tipo_celula: c.tipo_celula,
           faixa_etaria_predominante: c.faixa_etaria_predominante,
           bairros_atendidos: c.bairros_atendidos,
-          perfil_ambiente: c.perfil_ambiente,
+          aceita_novas_vidas: c.aceita_novas_vidas,
         } as CelulaPublica;
       });
 

@@ -195,6 +195,7 @@ export type Database = {
       }
       celulas: {
         Row: {
+          aceita_novas_vidas: boolean | null
           address: string | null
           bairro: string | null
           bairros_atendidos: string[] | null
@@ -221,6 +222,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          aceita_novas_vidas?: boolean | null
           address?: string | null
           bairro?: string | null
           bairros_atendidos?: string[] | null
@@ -247,6 +249,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          aceita_novas_vidas?: boolean | null
           address?: string | null
           bairro?: string | null
           bairros_atendidos?: string[] | null

@@ -400,7 +400,7 @@ function TriagemDialog({ vidaId, novasVidas, onClose, isPWAMobile }: { vidaId: s
     horario_preferido: (nv as any).horario_preferido,
     primeira_vez_igreja: (nv as any).primeira_vez_igreja,
     ja_participou_celula: (nv as any).ja_participou_celula,
-  } : {};
+  } : {} as VidaPerfil;
 
   const ranked = useMemo(() => {
     if (!celulas?.length) return [];

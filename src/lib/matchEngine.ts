@@ -3,10 +3,9 @@
  *
  * Weights:
  *   Location   35%
- *   Cell Type  25%
- *   Age Range  20%
+ *   Cell Type  30%
+ *   Age Range  25%
  *   Day/Time   10%
- *   Profile    10%
  */
 
 export interface VidaPerfil {
@@ -36,7 +35,7 @@ export interface CelulaMatch {
   tipo_celula: string | null;
   faixa_etaria_predominante: string | null;
   bairros_atendidos: string[] | null;
-  perfil_ambiente: string | null;
+  aceita_novas_vidas: boolean | null;
 }
 
 export interface MatchResult {
@@ -93,38 +92,39 @@ function scoreLocation(vida: VidaPerfil, celula: CelulaMatch): MatchFactor {
 }
 
 function scoreCellType(vida: VidaPerfil, celula: CelulaMatch): MatchFactor {
-  let score = 50; // neutral default
+  let score = 50;
   let reason = 'Tipo não definido';
   const tipo = norm(celula.tipo_celula);
   const ec = norm(vida.estado_civil);
 
   if (!tipo) {
-    return { label: 'Tipo de Célula', weight: 25, score: 40, reason: 'Tipo não definido' };
+    return { label: 'Tipo de Célula', weight: 30, score: 40, reason: 'Tipo não definido' };
   }
 
   if (ec.includes('casado')) {
     if (tipo === 'casais') { score = 100; reason = 'Célula de casais para pessoa casada'; }
-    else if (tipo === 'familia') { score = 70; reason = 'Célula familiar'; }
-    else if (tipo === 'mista') { score = 50; reason = 'Célula mista'; }
+    else if (tipo === 'mista') { score = 60; reason = 'Célula mista'; }
+    else if (tipo === 'mulheres' && ec.includes('casada')) { score = 70; reason = 'Célula de mulheres'; }
     else { score = 20; reason = 'Tipo não ideal para casados'; }
-  } else if (ec.includes('solteiro')) {
-    if (tipo === 'jovens') { score = 90; reason = 'Célula de jovens para solteiro(a)'; }
+  } else if (ec.includes('solteiro') || ec.includes('solteira')) {
+    if (tipo === 'solteiros') { score = 100; reason = 'Célula de solteiros'; }
     else if (tipo === 'mista') { score = 70; reason = 'Célula mista'; }
+    else if (tipo === 'mulheres' && ec.includes('solteira')) { score = 80; reason = 'Célula de mulheres para solteira'; }
     else if (tipo === 'casais') { score = 10; reason = 'Célula de casais – pessoa solteira'; }
     else { score = 50; reason = 'Tipo parcialmente compatível'; }
   } else {
     if (tipo === 'mista') { score = 70; reason = 'Célula mista – universal'; }
-    else if (tipo === 'familia') { score = 60; reason = 'Célula familiar'; }
+    else if (tipo === 'mulheres') { score = 50; reason = 'Célula de mulheres'; }
     else { score = 40; reason = 'Compatibilidade parcial'; }
   }
 
-  // Bonus for kids
-  if (vida.tem_filhos && tipo === 'familia') {
-    score = Math.min(100, score + 15);
+  // Bonus for kids in family-friendly types
+  if (vida.tem_filhos && (tipo === 'casais' || tipo === 'mista')) {
+    score = Math.min(100, score + 10);
     reason += ' (+ tem filhos)';
   }
 
-  return { label: 'Tipo de Célula', weight: 25, score, reason };
+  return { label: 'Tipo de Célula', weight: 30, score, reason };
 }
 
 function scoreAgeRange(vida: VidaPerfil, celula: CelulaMatch): MatchFactor {
@@ -132,14 +132,13 @@ function scoreAgeRange(vida: VidaPerfil, celula: CelulaMatch): MatchFactor {
   const faixaCel = norm(celula.faixa_etaria_predominante);
 
   if (!faixaVida || !faixaCel) {
-    return { label: 'Faixa Etária', weight: 20, score: 40, reason: 'Sem dados de faixa etária' };
+    return { label: 'Faixa Etária', weight: 25, score: 40, reason: 'Sem dados de faixa etária' };
   }
 
   if (faixaVida === faixaCel) {
-    return { label: 'Faixa Etária', weight: 20, score: 100, reason: 'Faixa etária compatível' };
+    return { label: 'Faixa Etária', weight: 25, score: 100, reason: 'Faixa etária compatível' };
   }
 
-  // Parse ranges to check proximity
   const parseRange = (r: string): number => {
     const match = r.match(/(\d+)/);
     return match ? parseInt(match[1]) : 30;
@@ -148,9 +147,9 @@ function scoreAgeRange(vida: VidaPerfil, celula: CelulaMatch): MatchFactor {
   const cAge = parseRange(faixaCel);
   const diff = Math.abs(vAge - cAge);
 
-  if (diff <= 5) return { label: 'Faixa Etária', weight: 20, score: 80, reason: 'Faixa etária próxima' };
-  if (diff <= 15) return { label: 'Faixa Etária', weight: 20, score: 50, reason: 'Faixa etária moderada' };
-  return { label: 'Faixa Etária', weight: 20, score: 20, reason: 'Faixa etária distante' };
+  if (diff <= 5) return { label: 'Faixa Etária', weight: 25, score: 80, reason: 'Faixa etária próxima' };
+  if (diff <= 15) return { label: 'Faixa Etária', weight: 25, score: 50, reason: 'Faixa etária moderada' };
+  return { label: 'Faixa Etária', weight: 25, score: 20, reason: 'Faixa etária distante' };
 }
 
 function scoreDayTime(vida: VidaPerfil, celula: CelulaMatch): MatchFactor {
@@ -169,29 +168,17 @@ function scoreDayTime(vida: VidaPerfil, celula: CelulaMatch): MatchFactor {
   return { label: 'Dia/Horário', weight: 10, score: 10, reason: 'Dia não disponível' };
 }
 
-function scoreProfile(vida: VidaPerfil, celula: CelulaMatch): MatchFactor {
-  let score = 50;
-  let reason = 'Perfil neutro';
-
-  const perfil = norm(celula.perfil_ambiente);
-  if (!perfil) {
-    return { label: 'Perfil Espiritual', weight: 10, score: 40, reason: 'Sem perfil definido' };
+/** Rede-aware bonus: UP network + 26-35 age range gets a boost */
+function redeBonus(vida: VidaPerfil, celula: CelulaMatch): number {
+  const redeName = norm(celula.rede_name);
+  if (redeName === 'up') {
+    const faixaCel = norm(celula.faixa_etaria_predominante);
+    const faixaVida = norm(vida.faixa_etaria);
+    if (faixaCel.includes('26') && faixaVida.includes('26')) {
+      return 5; // extra points
+    }
   }
-
-  if (vida.primeira_vez_igreja) {
-    if (perfil === 'acolhedor') { score = 100; reason = 'Ambiente acolhedor para primeira vez'; }
-    else if (perfil === 'comunhao') { score = 70; reason = 'Comunhão acessível'; }
-    else { score = 40; reason = 'Perfil pode não ser ideal para primeira vez'; }
-  } else if (vida.ja_participou_celula) {
-    if (perfil === 'ensino') { score = 90; reason = 'Ambiente de ensino para quem já participou'; }
-    else if (perfil === 'comunhao') { score = 80; reason = 'Comunhão para quem já tem experiência'; }
-    else { score = 60; reason = 'Compatibilidade parcial'; }
-  } else {
-    if (perfil === 'acolhedor') { score = 70; reason = 'Ambiente acolhedor'; }
-    else { score = 50; reason = 'Perfil genérico'; }
-  }
-
-  return { label: 'Perfil Espiritual', weight: 10, score, reason };
+  return 0;
 }
 
 export function calculateMatch(vida: VidaPerfil, celula: CelulaMatch): MatchResult {
@@ -200,20 +187,22 @@ export function calculateMatch(vida: VidaPerfil, celula: CelulaMatch): MatchResu
     scoreCellType(vida, celula),
     scoreAgeRange(vida, celula),
     scoreDayTime(vida, celula),
-    scoreProfile(vida, celula),
   ];
 
-  const totalScore = factors.reduce((sum, f) => sum + (f.score * f.weight / 100), 0);
+  let totalScore = factors.reduce((sum, f) => sum + (f.score * f.weight / 100), 0);
+  totalScore = Math.min(100, Math.round(totalScore + redeBonus(vida, celula)));
 
   return {
     celula,
-    score: Math.round(totalScore),
+    score: totalScore,
     factors,
   };
 }
 
 export function rankCelulas(vida: VidaPerfil, celulas: CelulaMatch[]): MatchResult[] {
-  return celulas
+  // Filter only cells that accept new lives
+  const eligible = celulas.filter(c => c.aceita_novas_vidas !== false);
+  return eligible
     .map(c => calculateMatch(vida, c))
     .sort((a, b) => b.score - a.score);
 }
