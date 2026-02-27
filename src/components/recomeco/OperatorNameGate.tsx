@@ -44,12 +44,20 @@ export function OperatorNameGate({ children, title, description }: OperatorNameG
 
   const updateName = useMutation({
     mutationFn: async (name: string) => {
-      if (!profile) throw new Error('Perfil não encontrado');
-      const { error } = await supabase
-        .from('profiles')
-        .update({ name })
-        .eq('id', profile.id);
-      if (error) throw error;
+      if (!user) throw new Error('Usuário não autenticado');
+      if (profile) {
+        const { error } = await supabase
+          .from('profiles')
+          .update({ name })
+          .eq('id', profile.id);
+        if (error) throw error;
+      } else {
+        // Profile doesn't exist yet — create it
+        const { error } = await supabase
+          .from('profiles')
+          .insert({ user_id: user.id, name, email: user.email ?? null });
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['my_profile'] });
