@@ -55,7 +55,25 @@ serve(async (req) => {
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-    // --- End authentication check ---
+
+    const userId = claimsData.claims.sub;
+
+    // Verify user has an active access scope (authorization check)
+    const { data: accessLink } = await supabase
+      .from('user_access_links')
+      .select('id, scope_type')
+      .eq('user_id', userId)
+      .eq('active', true)
+      .limit(1)
+      .maybeSingle();
+
+    if (!accessLink) {
+      return new Response(
+        JSON.stringify({ error: 'Acesso não autorizado. Nenhum vínculo ativo encontrado.' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    // --- End authentication + authorization check ---
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
