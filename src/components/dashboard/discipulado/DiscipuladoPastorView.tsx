@@ -8,18 +8,22 @@ import { useCelulas } from '@/hooks/useCelulas';
 import { calcDiscipuladoStats, DiscipuladoEncontro } from '@/hooks/useDiscipulado';
 import { StatCard } from '@/components/ui/stat-card';
 import { EmptyState } from '@/components/ui/empty-state';
+import { useCampoFilter } from '@/hooks/useCampoFilter';
 
 export function DiscipuladoPastorView() {
+  const campoId = useCampoFilter();
   const { data: redes } = useRedes();
   const { data: celulas } = useCelulas();
 
   const { data: allEncontros, isLoading } = useQuery({
-    queryKey: ['discipulado-all'],
+    queryKey: ['discipulado-all', campoId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('discipulado_encontros')
-        .select('id, celula_id, rede_id, data_encontro, realizado, observacao, created_by, created_at, updated_at')
+        .select('id, celula_id, coordenacao_id, rede_id, nivel, campo_id, data_encontro, realizado, observacao, created_by, created_at, updated_at')
         .order('data_encontro', { ascending: false });
+      if (campoId) query = query.eq('campo_id', campoId);
+      const { data, error } = await query;
       if (error) throw error;
       return data as DiscipuladoEncontro[];
     },
