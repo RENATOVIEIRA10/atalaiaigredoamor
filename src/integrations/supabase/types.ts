@@ -464,6 +464,136 @@ export type Database = {
           },
         ]
       }
+      event_registrations: {
+        Row: {
+          celula_id: string | null
+          coordenacao_id: string | null
+          created_at: string
+          created_by_name: string | null
+          created_by_user_id: string | null
+          event_id: string
+          full_name: string
+          id: string
+          membro_id: string | null
+          notes: string | null
+          person_type: string
+          rede_id: string | null
+          status: string
+          vida_id: string | null
+          whatsapp: string | null
+        }
+        Insert: {
+          celula_id?: string | null
+          coordenacao_id?: string | null
+          created_at?: string
+          created_by_name?: string | null
+          created_by_user_id?: string | null
+          event_id: string
+          full_name: string
+          id?: string
+          membro_id?: string | null
+          notes?: string | null
+          person_type: string
+          rede_id?: string | null
+          status?: string
+          vida_id?: string | null
+          whatsapp?: string | null
+        }
+        Update: {
+          celula_id?: string | null
+          coordenacao_id?: string | null
+          created_at?: string
+          created_by_name?: string | null
+          created_by_user_id?: string | null
+          event_id?: string
+          full_name?: string
+          id?: string
+          membro_id?: string | null
+          notes?: string | null
+          person_type?: string
+          rede_id?: string | null
+          status?: string
+          vida_id?: string | null
+          whatsapp?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_registrations_celula_id_fkey"
+            columns: ["celula_id"]
+            isOneToOne: false
+            referencedRelation: "celulas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_registrations_coordenacao_id_fkey"
+            columns: ["coordenacao_id"]
+            isOneToOne: false
+            referencedRelation: "coordenacoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_registrations_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events_spiritual"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_registrations_membro_id_fkey"
+            columns: ["membro_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_registrations_rede_id_fkey"
+            columns: ["rede_id"]
+            isOneToOne: false
+            referencedRelation: "redes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_registrations_vida_id_fkey"
+            columns: ["vida_id"]
+            isOneToOne: false
+            referencedRelation: "novas_vidas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events_spiritual: {
+        Row: {
+          created_at: string
+          event_date: string
+          id: string
+          is_active: boolean
+          location: string | null
+          start_time: string | null
+          title: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          event_date: string
+          id?: string
+          is_active?: boolean
+          location?: string | null
+          start_time?: string | null
+          title: string
+          type: string
+        }
+        Update: {
+          created_at?: string
+          event_date?: string
+          id?: string
+          is_active?: boolean
+          location?: string | null
+          start_time?: string | null
+          title?: string
+          type?: string
+        }
+        Relationships: []
+      }
       leadership_couples: {
         Row: {
           created_at: string

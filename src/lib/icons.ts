@@ -113,6 +113,8 @@ export const roleLabels: Record<string, string> = {
   recomeco_cadastro: 'Recomeço (Cadastro)',
   central_celulas: 'Central de Células',
   lider_recomeco_central: 'Líder Recomeço + Central',
+  lider_batismo: 'Líder do Batismo',
+  lider_aclamacao: 'Líder da Aclamação',
 };
 
 // ========================================

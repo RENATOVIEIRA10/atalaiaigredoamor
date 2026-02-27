@@ -10,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Users, Plus, Search, Loader2, MoreVertical, Eye, Pencil, Camera, Trash2, Cake, Church } from 'lucide-react';
+import { Users, Plus, Search, Loader2, MoreVertical, Eye, Pencil, Camera, Trash2, Cake, Church, CalendarPlus } from 'lucide-react';
 import { useMembers, useRemoveMember, Member } from '@/hooks/useMembers';
 import { MemberFormDialogSimple } from './MemberFormDialogSimple';
 import { ProfileViewerDialog } from '@/components/profile/ProfileViewerDialog';
@@ -19,6 +19,7 @@ import { format, parseISO, differenceInYears, differenceInMonths } from 'date-fn
 import { ptBR } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { EventRegistrationDialog } from '@/components/events/EventRegistrationDialog';
 
 interface CellLeaderMembrosTabProps {
   celulaId: string;
@@ -50,6 +51,7 @@ export function CellLeaderMembrosTab({ celulaId, celulaName }: CellLeaderMembros
   const [search, setSearch] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [viewingProfile, setViewingProfile] = useState<Member | null>(null);
+  const [eventRegTarget, setEventRegTarget] = useState<Member | null>(null);
 
   const filtered = (members || []).filter(m => {
     const name = (m.profile as any)?.name || '';
@@ -178,6 +180,10 @@ export function CellLeaderMembrosTab({ celulaId, celulaName }: CellLeaderMembros
                           <Camera className="h-4 w-4 mr-2" />
                           Alterar foto
                         </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setEventRegTarget(member)}>
+                          <CalendarPlus className="h-4 w-4 mr-2" />
+                          Inscrever em Evento
+                        </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleRemove(member)}
                           className="text-destructive focus:text-destructive"
@@ -209,6 +215,18 @@ export function CellLeaderMembrosTab({ celulaId, celulaName }: CellLeaderMembros
           entityType="membro"
           entityName={celulaName}
           memberId={viewingProfile.id}
+        />
+      )}
+
+      {eventRegTarget && (
+        <EventRegistrationDialog
+          open={!!eventRegTarget}
+          onOpenChange={(open) => !open && setEventRegTarget(null)}
+          personType="membro"
+          membroId={eventRegTarget.id}
+          fullName={(eventRegTarget.profile as any)?.name || 'Sem nome'}
+          whatsapp={eventRegTarget.whatsapp}
+          celulaId={celulaId}
         />
       )}
     </>

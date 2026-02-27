@@ -18,7 +18,7 @@ import { RedeSelector } from '@/components/rede/RedeSelector';
 import { roleLabels } from '@/lib/icons';
 
 type LoginStep = 'code' | 'rede-select';
-type ScopeType = 'pastor' | 'admin' | 'rede' | 'coordenacao' | 'supervisor' | 'celula' | 'demo_institucional' | 'recomeco_operador' | 'recomeco_leitura' | 'recomeco_cadastro' | 'central_celulas' | 'lider_recomeco_central';
+type ScopeType = 'pastor' | 'admin' | 'rede' | 'coordenacao' | 'supervisor' | 'celula' | 'demo_institucional' | 'recomeco_operador' | 'recomeco_leitura' | 'recomeco_cadastro' | 'central_celulas' | 'lider_recomeco_central' | 'lider_batismo' | 'lider_aclamacao';
 
 function scopeTypeToRoleKey(st: string) {
   const map: Record<string, string> = {
@@ -28,6 +28,7 @@ function scopeTypeToRoleKey(st: string) {
     recomeco_operador: 'recomeco_operador', recomeco_leitura: 'recomeco_leitura',
     recomeco_cadastro: 'recomeco_cadastro', central_celulas: 'central_celulas',
     lider_recomeco_central: 'lider_recomeco_central',
+    lider_batismo: 'lider_batismo', lider_aclamacao: 'lider_aclamacao',
   };
   return map[st] || st;
 }
@@ -78,6 +79,11 @@ export default function HomePage() {
           return;
         }
         if (st === 'lider_recomeco_central') {
+          setScopeAccess(st, link.scope_id, link.access_key_id);
+          navigate('/dashboard');
+          return;
+        }
+        if (st === 'lider_batismo' || st === 'lider_aclamacao') {
           setScopeAccess(st, link.scope_id, link.access_key_id);
           navigate('/dashboard');
           return;
@@ -201,6 +207,12 @@ export default function HomePage() {
         return;
       }
       if (scopeType === 'lider_recomeco_central') {
+        setScopeAccess(scopeType, match.scope_id, match.id);
+        navigate('/dashboard');
+        setIsLoading(false);
+        return;
+      }
+      if (scopeType === 'lider_batismo' || scopeType === 'lider_aclamacao') {
         setScopeAccess(scopeType, match.scope_id, match.id);
         navigate('/dashboard');
         setIsLoading(false);
