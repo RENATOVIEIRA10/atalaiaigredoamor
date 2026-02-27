@@ -905,6 +905,77 @@ export type Database = {
           },
         ]
       }
+      leadership_functions: {
+        Row: {
+          active: boolean
+          campo_id: string | null
+          created_at: string
+          function_type: string
+          id: string
+          leadership_couple_id: string | null
+          profile_id: string | null
+          rede_id: string | null
+          scope_entity_id: string | null
+          scope_entity_type: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          campo_id?: string | null
+          created_at?: string
+          function_type: string
+          id?: string
+          leadership_couple_id?: string | null
+          profile_id?: string | null
+          rede_id?: string | null
+          scope_entity_id?: string | null
+          scope_entity_type?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          campo_id?: string | null
+          created_at?: string
+          function_type?: string
+          id?: string
+          leadership_couple_id?: string | null
+          profile_id?: string | null
+          rede_id?: string | null
+          scope_entity_id?: string | null
+          scope_entity_type?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leadership_functions_campo_id_fkey"
+            columns: ["campo_id"]
+            isOneToOne: false
+            referencedRelation: "campos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leadership_functions_leadership_couple_id_fkey"
+            columns: ["leadership_couple_id"]
+            isOneToOne: false
+            referencedRelation: "leadership_couples"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leadership_functions_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leadership_functions_rede_id_fkey"
+            columns: ["rede_id"]
+            isOneToOne: false
+            referencedRelation: "redes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meetings: {
         Row: {
           celula_id: string

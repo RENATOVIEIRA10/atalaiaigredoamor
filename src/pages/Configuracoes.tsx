@@ -2,12 +2,11 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { useRole } from '@/contexts/RoleContext';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { UserRolesManager } from '@/components/settings/UserRolesManager';
-import { AccessKeysManager } from '@/components/settings/AccessKeysManager';
+import { UnifiedLeadershipManager } from '@/components/settings/UnifiedLeadershipManager';
 import { WeeklyReportsHistory } from '@/components/reports/WeeklyReportsHistory';
 import { PolicyAcceptancesManager } from '@/components/settings/PolicyAcceptancesManager';
 import { CamposManager } from '@/components/settings/CamposManager';
-import { User, Shield, History, KeyRound, Lock, Church } from 'lucide-react';
+import { User, Shield, History, Lock, Church } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 const roleLabels: Record<string, { label: string; variant: 'default' | 'secondary' | 'outline' }> = {
@@ -30,15 +29,9 @@ export default function Configuracoes() {
             Meu Perfil
           </TabsTrigger>
           {isAdmin && (
-            <TabsTrigger value="roles" className="flex items-center gap-2">
+            <TabsTrigger value="leadership" className="flex items-center gap-2">
               <Shield className="h-4 w-4" />
-              Funções por Casal
-            </TabsTrigger>
-          )}
-          {isAdmin && (
-            <TabsTrigger value="access-keys" className="flex items-center gap-2">
-              <KeyRound className="h-4 w-4" />
-              Códigos de Acesso
+              Lideranças
             </TabsTrigger>
           )}
           {isAdmin && (
@@ -55,7 +48,7 @@ export default function Configuracoes() {
           )}
           <TabsTrigger value="history" className="flex items-center gap-2">
             <History className="h-4 w-4" />
-            Histórico de Relatórios
+            Histórico
           </TabsTrigger>
         </TabsList>
 
@@ -64,9 +57,7 @@ export default function Configuracoes() {
             <Card>
               <CardHeader>
                 <CardTitle>Perfil do Usuário</CardTitle>
-                <CardDescription>
-                  Informações do papel selecionado
-                </CardDescription>
+                <CardDescription>Informações do papel selecionado</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid gap-2">
@@ -79,24 +70,14 @@ export default function Configuracoes() {
                     )}
                   </div>
                 </div>
-                <div className="grid gap-2">
-                  <label className="text-sm font-medium text-muted-foreground">Ambiente</label>
-                  <p className="text-sm">Ambiente controlado - sem autenticação</p>
-                </div>
               </CardContent>
             </Card>
           </div>
         </TabsContent>
 
         {isAdmin && (
-          <TabsContent value="roles">
-            <UserRolesManager />
-          </TabsContent>
-        )}
-
-        {isAdmin && (
-          <TabsContent value="access-keys">
-            <AccessKeysManager />
+          <TabsContent value="leadership">
+            <UnifiedLeadershipManager />
           </TabsContent>
         )}
 
