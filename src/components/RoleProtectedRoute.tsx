@@ -24,13 +24,16 @@ const DEMO_INSTITUCIONAL_ALLOWED = ['/dashboard', '/organograma', '/material', '
 // Routes allowed for Recomeço scopes
 const RECOMECO_ALLOWED = ['/recomeco'];
 
+// Routes allowed for Líder Recomeço+Central
+const LIDER_RC_ALLOWED = ['/dashboard'];
+
 interface RoleProtectedRouteProps {
   children: React.ReactNode;
 }
 
 export function RoleProtectedRoute({ children }: RoleProtectedRouteProps) {
   const { user, isLoading: authLoading } = useAuth();
-  const { selectedRole, accessKeyId, isSupervisor, isCoordenador, isRedeLeader, isCelulaLeader, isAdmin, isPastor, isDemoInstitucional, isRecomecoOperador, isRecomecoLeitura } = useRole();
+  const { selectedRole, accessKeyId, isSupervisor, isCoordenador, isRedeLeader, isCelulaLeader, isAdmin, isPastor, isDemoInstitucional, isRecomecoOperador, isRecomecoLeitura, isLiderRecomecoCentral } = useRole();
   const { isDemoActive } = useDemoMode();
   const accepted = usePolicyAcceptance(accessKeyId);
   const isPWA = useIsPWA();
@@ -57,7 +60,10 @@ export function RoleProtectedRoute({ children }: RoleProtectedRouteProps) {
   // Recomeço route guard - only allow /recomeco
   const isRecomecoBlocked = (isRecomecoOperador || isRecomecoLeitura) && !RECOMECO_ALLOWED.includes(location.pathname);
 
-  const isBlocked = isSupervisorBlocked || isPulsoBlocked || isCoordRedeBlocked || isCelulaBlocked || isDemoBlocked || isRecomecoBlocked;
+  // Líder Recomeço+Central route guard - only allow /dashboard
+  const isLiderRCBlocked = isLiderRecomecoCentral && !LIDER_RC_ALLOWED.includes(location.pathname);
+
+  const isBlocked = isSupervisorBlocked || isPulsoBlocked || isCoordRedeBlocked || isCelulaBlocked || isDemoBlocked || isRecomecoBlocked || isLiderRCBlocked;
 
   useEffect(() => {
     if (isBlocked) {
@@ -82,6 +88,9 @@ export function RoleProtectedRoute({ children }: RoleProtectedRouteProps) {
     if (isRecomecoOperador || isRecomecoLeitura) {
       return <Navigate to="/recomeco" replace />;
     }
+    if (isLiderRecomecoCentral) {
+      return <Navigate to="/dashboard" replace />;
+    }
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -90,8 +99,8 @@ export function RoleProtectedRoute({ children }: RoleProtectedRouteProps) {
     return <Navigate to="/" replace />;
   }
 
-  // During demo mode, demo_institucional, or recomeco, skip onboarding guard
-  if (isDemoActive || isDemoInstitucional || isRecomecoOperador || isRecomecoLeitura) {
+  // During demo mode, demo_institucional, recomeco, or lider_recomeco_central, skip onboarding guard
+  if (isDemoActive || isDemoInstitucional || isRecomecoOperador || isRecomecoLeitura || isLiderRecomecoCentral) {
     return <>{children}</>;
   }
 
