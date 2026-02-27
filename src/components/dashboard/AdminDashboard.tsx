@@ -80,12 +80,12 @@ export function AdminDashboard() {
     return `${format(dateRange.from, "dd/MM/yyyy", { locale: ptBR })} - ${format(dateRange.to, "dd/MM/yyyy", { locale: ptBR })}`;
   };
 
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
     if (!currentReports.length || !celulas || !coordenacoes) {
       toast({ title: 'Aviso', description: 'Nenhum dado para exportar', variant: 'destructive' });
       return;
     }
-    exportToExcel({ reports: currentReports, celulas, coordenacoes, periodLabel: formatDateRangeDisplay() });
+    await exportToExcel({ reports: currentReports, celulas, coordenacoes, periodLabel: formatDateRangeDisplay() });
     toast({ title: 'Sucesso!', description: 'Arquivo Excel exportado com sucesso' });
   };
 

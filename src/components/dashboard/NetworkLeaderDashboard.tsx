@@ -81,10 +81,10 @@ export function NetworkLeaderDashboard() {
 
   const formatDateRangeDisplay = () => `${format(dateRange.from, "dd/MM/yyyy", { locale: ptBR })} - ${format(dateRange.to, "dd/MM/yyyy", { locale: ptBR })}`;
 
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
     if (!redeData?.reports?.length || !celulas || !coordenacoes) { toast({ title: 'Aviso', description: 'Não há dados suficientes.', variant: 'destructive' }); return; }
     const redeName = redes?.find(r => r.id === selectedRede)?.name || 'Rede';
-    exportToExcel({ reports: redeData.reports, celulas, coordenacoes, periodLabel: `Relatorio_${redeName}_${getDateString(dateRange.from)}_${getDateString(dateRange.to)}` });
+    await exportToExcel({ reports: redeData.reports, celulas, coordenacoes, periodLabel: `Relatorio_${redeName}_${getDateString(dateRange.from)}_${getDateString(dateRange.to)}` });
     toast({ title: 'Sucesso', description: 'Relatório exportado!' });
   };
 

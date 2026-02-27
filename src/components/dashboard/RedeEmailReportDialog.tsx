@@ -129,9 +129,9 @@ export function RedeEmailReportDialog({ open, onOpenChange, redeId, redeName, re
     window.open(mailtoUrl, '_blank');
   };
 
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
     if (!data) return;
-    exportRedeReportExcel(data);
+    await exportRedeReportExcel(data);
     toast({ title: 'Planilha exportada!', description: 'Arquivo gerado com 8 abas completas.' });
   };
 

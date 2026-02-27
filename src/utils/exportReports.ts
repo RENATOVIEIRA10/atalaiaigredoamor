@@ -1,4 +1,4 @@
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import { WeeklyReport } from '@/hooks/useWeeklyReports';
 import { Celula } from '@/hooks/useCelulas';
 import { Coordenacao } from '@/hooks/useCoordenacoes';
@@ -25,17 +25,35 @@ interface ExportData {
   kpis?: { totalCelulas: number; totalMembers: number; totalVisitors: number; totalReports: number } | null;
 }
 
-function addAutoFilter(ws: XLSX.WorkSheet, headerRow: number, cols: number, dataRows: number) {
+function setColWidths(ws: ExcelJS.Worksheet, widths: number[]) {
+  widths.forEach((w, i) => {
+    const col = ws.getColumn(i + 1);
+    col.width = w;
+  });
+}
+
+function addAutoFilter(ws: ExcelJS.Worksheet, headerRow: number, cols: number, dataRows: number) {
   const endCol = String.fromCharCode(64 + cols);
-  ws['!autofilter'] = { ref: `A${headerRow}:${endCol}${headerRow + dataRows}` };
+  ws.autoFilter = `A${headerRow}:${endCol}${headerRow + dataRows}`;
 }
 
-function setColWidths(ws: XLSX.WorkSheet, widths: number[]) {
-  ws['!cols'] = widths.map(wch => ({ wch }));
+function addRows(ws: ExcelJS.Worksheet, rows: (string | number)[][]) {
+  rows.forEach(r => ws.addRow(r));
 }
 
-export function exportToExcel(data: ExportData) {
-  const wb = XLSX.utils.book_new();
+async function saveWorkbook(wb: ExcelJS.Workbook, fileName: string) {
+  const buffer = await wb.xlsx.writeBuffer();
+  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+export async function exportToExcel(data: ExportData) {
+  const wb = new ExcelJS.Workbook();
 
   // If aggregations exist, use professional multi-tab export
   if (data.byRede && data.byCoordenacao && data.byCelula) {
@@ -54,11 +72,12 @@ export function exportToExcel(data: ExportData) {
   }
 
   const fileName = `Relatorio_${format(new Date(), 'yyyy-MM-dd_HHmm')}.xlsx`;
-  XLSX.writeFile(wb, fileName);
+  await saveWorkbook(wb, fileName);
 }
 
 // ─── RESUMO ───
-function createResumoSheet(wb: XLSX.WorkBook, data: ExportData) {
+function createResumoSheet(wb: ExcelJS.Workbook, data: ExportData) {
+  const ws = wb.addWorksheet('RESUMO');
   const rows: (string | number)[][] = [];
 
   rows.push(['RELATÓRIO CONSOLIDADO']);
@@ -96,13 +115,13 @@ function createResumoSheet(wb: XLSX.WorkBook, data: ExportData) {
     rows.push([i + 1, c.name, c.membersCount, c.reportsCount, c.submissionRate]);
   });
 
-  const ws = XLSX.utils.aoa_to_sheet(rows);
+  addRows(ws, rows);
   setColWidths(ws, [30, 25, 15, 12, 12, 12, 12, 10]);
-  XLSX.utils.book_append_sheet(wb, ws, 'RESUMO');
 }
 
 // ─── POR REDE ───
-function createByRedeSheet(wb: XLSX.WorkBook, byRede: RedeAggregation[]) {
+function createByRedeSheet(wb: ExcelJS.Workbook, byRede: RedeAggregation[]) {
+  const ws = wb.addWorksheet('POR REDE');
   const headers = ['Rede', 'Líder de Rede', 'Coordenações', 'Células', 'Membros', 'Visitantes', 'Relatórios', '% Envio'];
   const rows: (string | number)[][] = [headers];
 
@@ -110,14 +129,14 @@ function createByRedeSheet(wb: XLSX.WorkBook, byRede: RedeAggregation[]) {
     rows.push([r.name, r.leaderCouple || '—', r.coordenacoesCount, r.celulasCount, r.membersCount, r.visitors, r.reportsCount, r.submissionRate]);
   });
 
-  const ws = XLSX.utils.aoa_to_sheet(rows);
+  addRows(ws, rows);
   setColWidths(ws, [25, 30, 14, 12, 12, 12, 12, 10]);
   addAutoFilter(ws, 1, headers.length, byRede.length);
-  XLSX.utils.book_append_sheet(wb, ws, 'POR REDE');
 }
 
 // ─── POR COORDENAÇÃO ───
-function createByCoordenacaoSheet(wb: XLSX.WorkBook, byCoordenacao: CoordenacaoAggregation[]) {
+function createByCoordenacaoSheet(wb: ExcelJS.Workbook, byCoordenacao: CoordenacaoAggregation[]) {
+  const ws = wb.addWorksheet('POR COORDENACAO');
   const headers = ['Coordenação', 'Rede', 'Coordenador(es)', 'Células', 'Membros', 'Visitantes', 'Relatórios', '% Envio'];
   const rows: (string | number)[][] = [headers];
 
@@ -125,14 +144,14 @@ function createByCoordenacaoSheet(wb: XLSX.WorkBook, byCoordenacao: CoordenacaoA
     rows.push([c.name, c.redeName, c.leaderCouple || '—', c.celulasCount, c.membersCount, c.visitors, c.reportsCount, c.submissionRate]);
   });
 
-  const ws = XLSX.utils.aoa_to_sheet(rows);
+  addRows(ws, rows);
   setColWidths(ws, [25, 20, 30, 12, 12, 12, 12, 10]);
   addAutoFilter(ws, 1, headers.length, byCoordenacao.length);
-  XLSX.utils.book_append_sheet(wb, ws, 'POR COORDENACAO');
 }
 
 // ─── POR CÉLULA ───
-function createByCelulaSheet(wb: XLSX.WorkBook, byCelula: CelulaAggregation[], byCoordenacao: CoordenacaoAggregation[]) {
+function createByCelulaSheet(wb: ExcelJS.Workbook, byCelula: CelulaAggregation[], byCoordenacao: CoordenacaoAggregation[]) {
+  const ws = wb.addWorksheet('POR CELULA');
   const headers = ['Célula', 'Coordenação', 'Rede', 'Líderes', 'Membros', 'Visitantes', 'Relatórios'];
   const rows: (string | number)[][] = [headers];
 
@@ -141,14 +160,14 @@ function createByCelulaSheet(wb: XLSX.WorkBook, byCelula: CelulaAggregation[], b
     rows.push([c.name, c.coordenacaoName, coord?.redeName || '—', c.leaderCouple || '—', c.membersCount, c.visitors, c.reportsCount]);
   });
 
-  const ws = XLSX.utils.aoa_to_sheet(rows);
+  addRows(ws, rows);
   setColWidths(ws, [25, 20, 20, 30, 12, 12, 12]);
   addAutoFilter(ws, 1, headers.length, byCelula.length);
-  XLSX.utils.book_append_sheet(wb, ws, 'POR CELULA');
 }
 
 // ─── POR LÍDER ───
-function createByLiderSheet(wb: XLSX.WorkBook, byLider: LiderAggregation[], byCoordenacao: CoordenacaoAggregation[]) {
+function createByLiderSheet(wb: ExcelJS.Workbook, byLider: LiderAggregation[], byCoordenacao: CoordenacaoAggregation[]) {
+  const ws = wb.addWorksheet('POR LIDER');
   const headers = ['Casal Líder', 'Célula', 'Relatórios', 'Méd. Visitantes', 'Membros'];
   const rows: (string | number)[][] = [headers];
 
@@ -156,14 +175,14 @@ function createByLiderSheet(wb: XLSX.WorkBook, byLider: LiderAggregation[], byCo
     rows.push([l.coupleName, l.celulaName, l.reportsCount, l.avgVisitors, l.totalMembers]);
   });
 
-  const ws = XLSX.utils.aoa_to_sheet(rows);
+  addRows(ws, rows);
   setColWidths(ws, [30, 25, 12, 16, 12]);
   addAutoFilter(ws, 1, headers.length, byLider.length);
-  XLSX.utils.book_append_sheet(wb, ws, 'POR LIDER');
 }
 
 // ─── RELATÓRIOS DETALHADOS ───
-function createRelatoriosSheet(wb: XLSX.WorkBook, data: ExportData) {
+function createRelatoriosSheet(wb: ExcelJS.Workbook, data: ExportData) {
+  const ws = wb.addWorksheet('RELATORIOS');
   const headers = ['Data Realização', 'Semana (Seg→Sáb)', 'Célula', 'Coordenação', 'Rede', 'Líderes', 'Membros Presentes', 'Líderes Treino', 'Discipulados', 'Visitantes', 'Crianças', 'Total', 'Observações'];
   const rows: (string | number)[][] = [headers];
 
@@ -210,14 +229,14 @@ function createRelatoriosSheet(wb: XLSX.WorkBook, data: ExportData) {
     ]);
   });
 
-  const ws = XLSX.utils.aoa_to_sheet(rows);
+  addRows(ws, rows);
   setColWidths(ws, [14, 18, 22, 22, 20, 28, 16, 14, 14, 12, 12, 10, 30]);
   addAutoFilter(ws, 1, headers.length, sorted.length);
-  XLSX.utils.book_append_sheet(wb, ws, 'RELATORIOS');
 }
 
 // ─── DADOS BRUTOS ───
-function createDadosBrutosSheet(wb: XLSX.WorkBook, data: ExportData) {
+function createDadosBrutosSheet(wb: ExcelJS.Workbook, data: ExportData) {
+  const ws = wb.addWorksheet('DADOS BRUTOS');
   const headers = ['Coordenação', 'Célula', 'Data Realização', 'Semana (Seg→Sáb)', 'week_start', 'week_end_operacional', 'Membros Presentes', 'Líderes Treino', 'Discipulados', 'Visitantes', 'Crianças', 'Total'];
   const rows: (string | number)[][] = [headers];
 
@@ -266,8 +285,7 @@ function createDadosBrutosSheet(wb: XLSX.WorkBook, data: ExportData) {
     ]);
   });
 
-  const ws = XLSX.utils.aoa_to_sheet(rows);
+  addRows(ws, rows);
   setColWidths(ws, [25, 25, 14, 18, 12, 12, 18, 14, 14, 12, 12, 10]);
   addAutoFilter(ws, 1, headers.length, sorted.length);
-  XLSX.utils.book_append_sheet(wb, ws, 'DADOS BRUTOS');
 }

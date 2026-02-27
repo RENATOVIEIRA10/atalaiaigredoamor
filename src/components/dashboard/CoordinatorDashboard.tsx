@@ -70,11 +70,11 @@ export function CoordinatorDashboard() {
 
   const formatDateRangeDisplay = () => `${format(dateRange.from, "dd/MM/yyyy", { locale: ptBR })} - ${format(dateRange.to, "dd/MM/yyyy", { locale: ptBR })}`;
 
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
     if (!reports?.length || !celulas || !coordenacoes) { toast({ title: 'Aviso', description: 'Nenhum dado para exportar', variant: 'destructive' }); return; }
     const coord = coordenacoes.filter(c => c.id === selectedCoordenacao);
     const coordCelulas = celulas.filter(c => c.coordenacao_id === selectedCoordenacao);
-    exportToExcel({ reports, celulas: coordCelulas, coordenacoes: coord, periodLabel: formatDateRangeDisplay() });
+    await exportToExcel({ reports, celulas: coordCelulas, coordenacoes: coord, periodLabel: formatDateRangeDisplay() });
     toast({ title: 'Sucesso!', description: 'Excel exportado' });
   };
 
