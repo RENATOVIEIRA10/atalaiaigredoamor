@@ -17,40 +17,32 @@ import { SupervisorPWADashboard } from '@/components/dashboard/pwa/SupervisorPWA
 import { Loader2 } from 'lucide-react';
 
 const LiderRecomecoCentralDashboard = lazy(() => import('@/components/dashboard/LiderRecomecoCentralDashboard'));
+const EventLeaderDashboard = lazy(() => import('@/components/dashboard/EventLeaderDashboard'));
 
 export default function Dashboard() {
-  const { isAdmin, isRedeLeader, isCoordenador, isSupervisor, isPastor, isDemoInstitucional, isLiderRecomecoCentral } = useRole();
+  const { isAdmin, isRedeLeader, isCoordenador, isSupervisor, isPastor, isDemoInstitucional, isLiderRecomecoCentral, isLiderBatismo, isLiderAclamacao } = useRole();
   const isPWA = useIsPWA();
   const isMobile = useIsMobile();
   const isPWAMobile = isPWA && isMobile;
 
+  const suspenseFallback = <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
+
   const renderDashboard = () => {
+    if (isLiderBatismo) {
+      return <Suspense fallback={suspenseFallback}><EventLeaderDashboard type="batismo" /></Suspense>;
+    }
+    if (isLiderAclamacao) {
+      return <Suspense fallback={suspenseFallback}><EventLeaderDashboard type="aclamacao" /></Suspense>;
+    }
     if (isLiderRecomecoCentral) {
-      return (
-        <Suspense fallback={<div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>}>
-          <LiderRecomecoCentralDashboard />
-        </Suspense>
-      );
+      return <Suspense fallback={suspenseFallback}><LiderRecomecoCentralDashboard /></Suspense>;
     }
-    if (isDemoInstitucional) {
-      return <InstitutionalDashboard />;
-    }
-    if (isPastor) {
-      return <PastorDashboard />;
-    }
-    if (isAdmin) {
-      return <AdminDashboard />;
-    }
-    if (isRedeLeader) {
-      return isPWAMobile ? <NetworkLeaderPWADashboard /> : <NetworkLeaderDashboard />;
-    }
-    if (isCoordenador) {
-      return isPWAMobile ? <CoordinatorPWADashboard /> : <CoordinatorDashboard />;
-    }
-    if (isSupervisor) {
-      return isPWAMobile ? <SupervisorPWADashboard /> : <SupervisorDashboard />;
-    }
-    // Cell leader
+    if (isDemoInstitucional) return <InstitutionalDashboard />;
+    if (isPastor) return <PastorDashboard />;
+    if (isAdmin) return <AdminDashboard />;
+    if (isRedeLeader) return isPWAMobile ? <NetworkLeaderPWADashboard /> : <NetworkLeaderDashboard />;
+    if (isCoordenador) return isPWAMobile ? <CoordinatorPWADashboard /> : <CoordinatorDashboard />;
+    if (isSupervisor) return isPWAMobile ? <SupervisorPWADashboard /> : <SupervisorDashboard />;
     return isPWAMobile ? <CellLeaderPWADashboard /> : <CellLeaderDashboard />;
   };
 
