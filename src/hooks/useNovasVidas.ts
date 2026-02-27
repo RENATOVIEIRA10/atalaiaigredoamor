@@ -190,6 +190,7 @@ export function useChangeNovaVidaStatus() {
         'agendada': 'contatado',
         'visitou': 'contatado',
         'integrada': 'integrado',
+        'convertida_membro': 'convertido',
         'nao_convertida': 'nao_convertida',
         'reatribuir': 'devolvido',
       };
@@ -198,6 +199,7 @@ export function useChangeNovaVidaStatus() {
         const encUpdate: any = { status: encStatus };
         if (newStatus === 'contatada') encUpdate.contatado_at = new Date().toISOString();
         if (newStatus === 'integrada') encUpdate.integrado_at = new Date().toISOString();
+        if (newStatus === 'convertida_membro') encUpdate.promovido_membro_at = new Date().toISOString();
         await supabase
           .from('encaminhamentos_recomeco')
           .update(encUpdate)
