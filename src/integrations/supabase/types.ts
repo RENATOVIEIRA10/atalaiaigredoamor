@@ -197,9 +197,11 @@ export type Database = {
         Row: {
           address: string | null
           bairro: string | null
+          bairros_atendidos: string[] | null
           cidade: string | null
           coordenacao_id: string
           created_at: string
+          faixa_etaria_predominante: string | null
           id: string
           instagram_celula: string | null
           instagram_lider1: string | null
@@ -211,17 +213,21 @@ export type Database = {
           meeting_time: string | null
           name: string
           ordem: number | null
+          perfil_ambiente: string | null
           rede_id: string | null
           seed_run_id: string | null
           supervisor_id: string | null
+          tipo_celula: string | null
           updated_at: string
         }
         Insert: {
           address?: string | null
           bairro?: string | null
+          bairros_atendidos?: string[] | null
           cidade?: string | null
           coordenacao_id: string
           created_at?: string
+          faixa_etaria_predominante?: string | null
           id?: string
           instagram_celula?: string | null
           instagram_lider1?: string | null
@@ -233,17 +239,21 @@ export type Database = {
           meeting_time?: string | null
           name: string
           ordem?: number | null
+          perfil_ambiente?: string | null
           rede_id?: string | null
           seed_run_id?: string | null
           supervisor_id?: string | null
+          tipo_celula?: string | null
           updated_at?: string
         }
         Update: {
           address?: string | null
           bairro?: string | null
+          bairros_atendidos?: string[] | null
           cidade?: string | null
           coordenacao_id?: string
           created_at?: string
+          faixa_etaria_predominante?: string | null
           id?: string
           instagram_celula?: string | null
           instagram_lider1?: string | null
@@ -255,9 +265,11 @@ export type Database = {
           meeting_time?: string | null
           name?: string
           ordem?: number | null
+          perfil_ambiente?: string | null
           rede_id?: string | null
           seed_run_id?: string | null
           supervisor_id?: string | null
+          tipo_celula?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -682,12 +694,19 @@ export type Database = {
           cidade: string | null
           created_at: string
           created_by_user_id: string | null
+          dias_disponiveis: string[] | null
           estado_civil: string | null
           faixa_etaria: string | null
+          horario_preferido: string | null
           id: string
+          idade: number | null
+          ja_participou_celula: boolean | null
           nome: string
           observacao: string | null
+          primeira_vez_igreja: boolean | null
+          rua: string | null
           status: string
+          tem_filhos: boolean | null
           updated_at: string
           whatsapp: string | null
         }
@@ -698,12 +717,19 @@ export type Database = {
           cidade?: string | null
           created_at?: string
           created_by_user_id?: string | null
+          dias_disponiveis?: string[] | null
           estado_civil?: string | null
           faixa_etaria?: string | null
+          horario_preferido?: string | null
           id?: string
+          idade?: number | null
+          ja_participou_celula?: boolean | null
           nome: string
           observacao?: string | null
+          primeira_vez_igreja?: boolean | null
+          rua?: string | null
           status?: string
+          tem_filhos?: boolean | null
           updated_at?: string
           whatsapp?: string | null
         }
@@ -714,12 +740,19 @@ export type Database = {
           cidade?: string | null
           created_at?: string
           created_by_user_id?: string | null
+          dias_disponiveis?: string[] | null
           estado_civil?: string | null
           faixa_etaria?: string | null
+          horario_preferido?: string | null
           id?: string
+          idade?: number | null
+          ja_participou_celula?: boolean | null
           nome?: string
           observacao?: string | null
+          primeira_vez_igreja?: boolean | null
+          rua?: string | null
           status?: string
+          tem_filhos?: boolean | null
           updated_at?: string
           whatsapp?: string | null
         }
