@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useRole } from '@/contexts/RoleContext';
 import { useNovasVidas, useCreateNovaVida, useUpdateNovaVida, NovaVidaInsert } from '@/hooks/useNovasVidas';
 import { useEncaminhamentos, useCreateEncaminhamento, useUpdateEncaminhamento } from '@/hooks/useEncaminhamentos';
 import { useCelulasPublicas } from '@/hooks/useCelulasPublicas';
 import { useRedes } from '@/hooks/useRedes';
+import { useAuditProfiles, useMyProfileName } from '@/hooks/useAuditProfiles';
+import { useRecomecoMessages } from '@/hooks/useRecomecoAgent';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,7 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Heart, UserPlus, Search, MapPin, Clock, Users, Network, ArrowRight, Loader2, Phone, ChevronLeft } from 'lucide-react';
+import { Heart, UserPlus, Search, MapPin, Clock, Users, Network, ArrowRight, Loader2, Phone, ChevronLeft, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
@@ -82,6 +84,10 @@ function NovasVidasTab({ canManage }: { canManage: boolean }) {
   const [showForm, setShowForm] = useState(false);
   const [showEncaminhar, setShowEncaminhar] = useState<string | null>(null);
 
+  // Resolve audit names
+  const creatorIds = useMemo(() => (novasVidas || []).map(nv => nv.created_by_user_id), [novasVidas]);
+  const { data: auditProfiles } = useAuditProfiles(creatorIds);
+
   return (
     <div className="space-y-4">
       {canManage && (
@@ -135,7 +141,12 @@ function NovasVidasTab({ canManage }: { canManage: boolean }) {
                       {nv.estado_civil && <span>{nv.estado_civil}</span>}
                       {nv.faixa_etaria && <span>{nv.faixa_etaria}</span>}
                     </div>
-                    {nv.observacao && <p className="text-xs mt-1 opacity-70" style={{ color: '#B8B6B3' }}>{nv.observacao}</p>}
+                    {nv.created_by_user_id && auditProfiles?.get(nv.created_by_user_id) && (
+                      <p className="text-[10px] mt-1 flex items-center gap-1" style={{ color: '#B8B6B3' }}>
+                        <User className="h-2.5 w-2.5" />
+                        Cadastrado por: {auditProfiles.get(nv.created_by_user_id)!.name}
+                      </p>
+                    )}
                   </div>
                   {canManage && nv.status === 'nova' && (
                     <Dialog open={showEncaminhar === nv.id} onOpenChange={(o) => setShowEncaminhar(o ? nv.id : null)}>
@@ -234,6 +245,7 @@ function NovaVidaForm({ onSuccess }: { onSuccess: () => void }) {
 
 function EncaminharForm({ novaVidaId, novaVidaNome, bairro, cidade, onSuccess }: { novaVidaId: string; novaVidaNome: string; bairro: string | null; cidade: string | null; onSuccess: () => void }) {
   const { data: redes } = useRedes();
+  const myName = useMyProfileName();
   const [filterBairro, setFilterBairro] = useState(bairro || '');
   const [filterCidade, setFilterCidade] = useState(cidade || '');
   const [filterRedeId, setFilterRedeId] = useState('');
@@ -249,7 +261,7 @@ function EncaminharForm({ novaVidaId, novaVidaNome, bairro, cidade, onSuccess }:
       nova_vida_id: novaVidaId,
       celula_id: celulaId,
       rede_id: redeId,
-      encaminhado_por: 'Operador Recomeço',
+      encaminhado_por: myName || 'Operador Recomeço',
     }, { onSuccess });
   };
 

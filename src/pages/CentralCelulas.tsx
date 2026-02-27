@@ -27,6 +27,8 @@ import {
   Send, AlertTriangle, BarChart3, RotateCcw,
   MessageCircle, CheckCircle, ArrowLeft, Sparkles, Info,
 } from 'lucide-react';
+import { OperatorNameGate } from '@/components/recomeco/OperatorNameGate';
+import { useAuditProfiles, useMyProfileName } from '@/hooks/useAuditProfiles';
 import { differenceInDays } from 'date-fns';
 
 function KPICards() {
@@ -78,6 +80,10 @@ function PipelineView() {
   const { data: novasVidas, isLoading } = useNovasVidas();
   const [expandedStatus, setExpandedStatus] = useState<string | null>(null);
 
+  // Resolve audit names
+  const creatorIds = useMemo(() => (novasVidas || []).map(nv => nv.created_by_user_id), [novasVidas]);
+  const { data: auditProfiles } = useAuditProfiles(creatorIds);
+
   const pipeline = useMemo(() => {
     const all = novasVidas || [];
     const statuses = ['nova', 'em_triagem', 'encaminhada', 'recebida_pela_celula', 'contatada', 'sem_resposta', 'agendada', 'visitou', 'integrada', 'convertida_membro', 'nao_convertida', 'reatribuir'];
@@ -107,9 +113,16 @@ function PipelineView() {
           </button>
           {expandedStatus === p.status && (
             <div className="ml-4 mt-1 space-y-1">
-              {p.vidas.map(nv => (
+               {p.vidas.map(nv => (
                 <div key={nv.id} className="flex items-center justify-between p-2 rounded-lg bg-card/50 text-xs">
-                  <span className="text-foreground">{nv.nome}</span>
+                  <div className="min-w-0">
+                    <span className="text-foreground">{nv.nome}</span>
+                    {nv.created_by_user_id && auditProfiles?.get(nv.created_by_user_id) && (
+                      <span className="text-[10px] text-muted-foreground ml-2">
+                        (por {auditProfiles.get(nv.created_by_user_id)!.name})
+                      </span>
+                    )}
+                  </div>
                   <span className="text-muted-foreground">{differenceInDays(new Date(), new Date(nv.updated_at))}d</span>
                 </div>
               ))}
@@ -407,12 +420,14 @@ function TriagemDialog({ vidaId, novasVidas, onClose, isPWAMobile }: { vidaId: s
     return rankCelulas(vidaPerfil, celulas);
   }, [celulas, nv]);
 
+  const myName = useMyProfileName();
+
   const handleEncaminhar = async (celulaId: string, redeId: string | null) => {
     createEnc.mutate({
       nova_vida_id: vidaId,
       celula_id: celulaId,
       rede_id: redeId,
-      encaminhado_por: 'Central de Células',
+      encaminhado_por: myName || user?.email || 'Central de Células',
       notas: obs || null,
     }, {
       onSuccess: async () => {
@@ -690,6 +705,7 @@ export default function CentralCelulas() {
           </div>
         )}
 
+        <OperatorNameGate title="Identificação — Central de Células" description="Para rastreabilidade de todas as ações de triagem e encaminhamento, informe seu nome completo.">
         <KPICards />
 
         <Tabs defaultValue="fila" className="w-full">
@@ -712,6 +728,7 @@ export default function CentralCelulas() {
           <TabsContent value="pipeline"><PipelineView /></TabsContent>
           <TabsContent value="gargalos"><GargalosView /></TabsContent>
         </Tabs>
+        </OperatorNameGate>
       </div>
     </div>
   );
