@@ -61,17 +61,20 @@ function getTendencia(scores: number[]): CelulaSaude['tendencia'] {
 interface UseRadarSaudeOptions {
   scopeType: 'rede' | 'coordenacao' | 'all';
   scopeId?: string;
+  campoId?: string | null;
 }
 
-export function useRadarSaude({ scopeType, scopeId }: UseRadarSaudeOptions) {
+export function useRadarSaude({ scopeType, scopeId, campoId }: UseRadarSaudeOptions) {
   return useQuery({
-    queryKey: ['radar-saude', scopeType, scopeId],
+    queryKey: ['radar-saude', scopeType, scopeId, campoId],
     queryFn: async (): Promise<RadarSaudeData> => {
       // 1) Fetch all cells in scope
       let celulasQuery = supabase
         .from('celulas')
         .select('id, name, coordenacao_id, coordenacao:coordenacoes(id, name, rede_id)')
         .eq('is_test_data', false);
+
+      if (campoId) celulasQuery = celulasQuery.eq('campo_id', campoId);
 
       if (scopeType === 'coordenacao' && scopeId) {
         celulasQuery = celulasQuery.eq('coordenacao_id', scopeId);

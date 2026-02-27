@@ -5,6 +5,7 @@ import {
   useUpdateRegistrationStatus, type SpiritualEvent,
 } from '@/hooks/useEventsSpiritual';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCampoFilter } from '@/hooks/useCampoFilter';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
@@ -35,7 +36,8 @@ const STATUS_MAP: Record<string, { label: string; color: string }> = {
 export default function CentralBatismoDashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { data: events, isLoading: eventsLoading } = useActiveEvents();
+  const campoId = useCampoFilter();
+  const { data: events, isLoading: eventsLoading } = useActiveEvents(campoId);
   const [selectedEventId, setSelectedEventId] = useState('');
   const [search, setSearch] = useState('');
   const [showRegister, setShowRegister] = useState(false);

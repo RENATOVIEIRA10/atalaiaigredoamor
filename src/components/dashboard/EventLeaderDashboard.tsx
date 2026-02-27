@@ -4,6 +4,7 @@ import {
   useSpiritualEvents, useEventRegistrations, useCreateSpiritualEvent,
   useUpdateRegistrationStatus, type SpiritualEvent,
 } from '@/hooks/useEventsSpiritual';
+import { useCampoFilter } from '@/hooks/useCampoFilter';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -33,7 +34,8 @@ const STATUS_MAP: Record<string, { label: string; color: string }> = {
 
 export default function EventLeaderDashboard() {
   const navigate = useNavigate();
-  const { data: events, isLoading: eventsLoading } = useSpiritualEvents();
+  const campoId = useCampoFilter();
+  const { data: events, isLoading: eventsLoading } = useSpiritualEvents(undefined, campoId);
   const createEvent = useCreateSpiritualEvent();
   const [newType, setNewType] = useState<'batismo' | 'aclamacao'>('batismo');
   const [selectedEventId, setSelectedEventId] = useState<string>('');

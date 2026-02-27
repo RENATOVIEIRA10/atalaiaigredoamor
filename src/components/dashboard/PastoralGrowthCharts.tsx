@@ -28,8 +28,8 @@ function buildChartConfig(names: string[]): ChartConfig {
   return config;
 }
 
-export function PastoralGrowthCharts() {
-  const { data, isLoading } = usePastoralGrowthCharts();
+export function PastoralGrowthCharts({ campoId }: { campoId?: string | null } = {}) {
+  const { data, isLoading } = usePastoralGrowthCharts(campoId);
 
   if (isLoading) {
     return (
