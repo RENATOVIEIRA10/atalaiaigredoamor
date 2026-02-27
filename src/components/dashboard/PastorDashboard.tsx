@@ -29,6 +29,7 @@ import { MissionVerse } from './MissionVerse';
 import { RadarSaudePanel } from './RadarSaudePanel';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { RecomecoPastorTab } from './recomeco/RecomecoPastorTab';
+import { DiscipuladoPastorView } from './discipulado/DiscipuladoPastorView';
 
 export function PastorDashboard() {
   const { data: stats, isLoading: statsLoading } = usePastoralStats();
@@ -352,6 +353,12 @@ export function PastorDashboard() {
             )}
           </CardContent>
         </Card>
+      </section>
+
+      {/* Discipulado Anual */}
+      <section>
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">📖 Discipulado Anual</h2>
+        <DiscipuladoPastorView />
       </section>
 
       {/* Radar Pastoral */}
