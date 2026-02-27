@@ -76,6 +76,27 @@ export default function HomePage() {
     return null;
   };
 
+  // Helper: resolve campo from campo_pastores table for pastor_de_campo
+  const resolveCampoFromPastores = async () => {
+    if (!user) return null;
+    try {
+      const { data: profile } = await supabase.from('profiles').select('id').eq('user_id', user.id).single();
+      if (!profile) return null;
+      const { data: cp } = await supabase
+        .from('campo_pastores')
+        .select('campo_id, campos:campos!campo_pastores_campo_id_fkey(id, nome)')
+        .eq('profile_id', profile.id)
+        .limit(1)
+        .single();
+      if (cp?.campo_id && cp.campos) {
+        const campo = cp.campos as any;
+        setActiveCampo({ id: campo.id, nome: campo.nome });
+        return campo;
+      }
+    } catch (_) { /* silent */ }
+    return null;
+  };
+
   // Auto-redirect: if user has exactly 1 linked function and no role selected yet, activate it
   useEffect(() => {
     if (linksLoading || autoRedirectDone || selectedRole) return;
@@ -128,8 +149,9 @@ export default function HomePage() {
         }
         if (st === 'pastor_de_campo') {
           setScopeAccess(st, link.scope_id, link.access_key_id);
-          // Auto-set campo from access_key
-          await resolveCampoFromAccessKey(link.access_key_id);
+          // Try campo_pastores first, then fallback to access_key
+          const campoPastor = await resolveCampoFromPastores();
+          if (!campoPastor) await resolveCampoFromAccessKey(link.access_key_id);
           navigate('/dashboard');
           return;
         }
@@ -286,7 +308,8 @@ export default function HomePage() {
       // Pastor de campo
       if (scopeType === 'pastor_de_campo') {
         setScopeAccess(scopeType, match.scope_id, match.id);
-        await resolveCampoFromAccessKey(match.id);
+        const campoPastor = await resolveCampoFromPastores();
+        if (!campoPastor) await resolveCampoFromAccessKey(match.id);
         navigate('/dashboard');
         setIsLoading(false);
         return;

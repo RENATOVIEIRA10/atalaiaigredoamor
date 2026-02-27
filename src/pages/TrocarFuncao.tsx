@@ -66,6 +66,29 @@ export default function TrocarFuncao() {
     } catch (_) { /* silent */ }
   };
 
+  // Resolve campo from campo_pastores for pastor_de_campo
+  const resolveCampoFromPastores = async () => {
+    const { data: authData } = await supabase.auth.getUser();
+    const authUser = authData?.user;
+    if (!authUser) return null;
+    try {
+      const { data: profile } = await supabase.from('profiles').select('id').eq('user_id', authUser.id).single();
+      if (!profile) return null;
+      const { data: cp } = await supabase
+        .from('campo_pastores')
+        .select('campo_id, campos:campos!campo_pastores_campo_id_fkey(id, nome)')
+        .eq('profile_id', profile.id)
+        .limit(1)
+        .single();
+      if (cp?.campo_id && cp.campos) {
+        const campo = cp.campos as any;
+        setActiveCampo({ id: campo.id, nome: campo.nome });
+        return campo;
+      }
+    } catch (_) { /* silent */ }
+    return null;
+  };
+
   const activateLink = async (link: typeof links[0]) => {
     const scopeType = link.scope_type as ScopeType;
 
@@ -121,6 +144,8 @@ export default function TrocarFuncao() {
 
     if (scopeType === 'pastor_de_campo') {
       setScopeAccess(scopeType, link.scope_id, link.access_key_id);
+      const campoPastor = await resolveCampoFromPastores();
+      if (!campoPastor) await resolveCampoFromAccessKey(link.access_key_id);
       navigate('/dashboard');
       return;
     }
