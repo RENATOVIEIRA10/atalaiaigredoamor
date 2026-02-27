@@ -33,7 +33,7 @@ interface RoleProtectedRouteProps {
 
 export function RoleProtectedRoute({ children }: RoleProtectedRouteProps) {
   const { user, isLoading: authLoading } = useAuth();
-  const { selectedRole, accessKeyId, isSupervisor, isCoordenador, isRedeLeader, isCelulaLeader, isAdmin, isPastor, isDemoInstitucional, isRecomecoOperador, isRecomecoLeitura, isLiderRecomecoCentral, isLiderBatismoAclamacao, isCentralBatismoAclamacao } = useRole();
+  const { selectedRole, accessKeyId, isSupervisor, isCoordenador, isRedeLeader, isCelulaLeader, isAdmin, isPastor, isDemoInstitucional, isRecomecoOperador, isRecomecoLeitura, isLiderRecomecoCentral, isLiderBatismoAclamacao, isCentralBatismoAclamacao, isPastorSeniorGlobal, isPastorDeCampo } = useRole();
   const { isDemoActive } = useDemoMode();
   const accepted = usePolicyAcceptance(accessKeyId);
   const isPWA = useIsPWA();
@@ -106,7 +106,7 @@ export function RoleProtectedRoute({ children }: RoleProtectedRouteProps) {
   }
 
   // During demo mode, demo_institucional, recomeco, or lider_recomeco_central, skip onboarding guard
-  if (isDemoActive || isDemoInstitucional || isRecomecoOperador || isRecomecoLeitura || isLiderRecomecoCentral || isLiderBatismoAclamacao || isCentralBatismoAclamacao) {
+  if (isDemoActive || isDemoInstitucional || isRecomecoOperador || isRecomecoLeitura || isLiderRecomecoCentral || isLiderBatismoAclamacao || isCentralBatismoAclamacao || isPastorSeniorGlobal || isPastorDeCampo) {
     return <>{children}</>;
   }
 

@@ -21,7 +21,7 @@ const EventLeaderDashboard = lazy(() => import('@/components/dashboard/EventLead
 const CentralBatismoDashboard = lazy(() => import('@/components/dashboard/CentralBatismoDashboard'));
 
 export default function Dashboard() {
-  const { isAdmin, isRedeLeader, isCoordenador, isSupervisor, isPastor, isDemoInstitucional, isLiderRecomecoCentral, isLiderBatismoAclamacao, isCentralBatismoAclamacao } = useRole();
+  const { isAdmin, isRedeLeader, isCoordenador, isSupervisor, isPastor, isDemoInstitucional, isLiderRecomecoCentral, isLiderBatismoAclamacao, isCentralBatismoAclamacao, isPastorSeniorGlobal, isPastorDeCampo } = useRole();
   const isPWA = useIsPWA();
   const isMobile = useIsMobile();
   const isPWAMobile = isPWA && isMobile;
@@ -39,6 +39,8 @@ export default function Dashboard() {
       return <Suspense fallback={suspenseFallback}><LiderRecomecoCentralDashboard /></Suspense>;
     }
     if (isDemoInstitucional) return <InstitutionalDashboard />;
+    if (isPastorSeniorGlobal) return <PastorDashboard />;
+    if (isPastorDeCampo) return <PastorDashboard />;
     if (isPastor) return <PastorDashboard />;
     if (isAdmin) return <AdminDashboard />;
     if (isRedeLeader) return isPWAMobile ? <NetworkLeaderPWADashboard /> : <NetworkLeaderDashboard />;
