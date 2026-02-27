@@ -18,9 +18,11 @@ import { ptBR } from 'date-fns/locale';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatCard } from '@/components/ui/stat-card';
 import { MissionVerse } from './MissionVerse';
+import { useCampoFilter } from '@/hooks/useCampoFilter';
 
 export function AdminDashboard() {
   const { toast } = useToast();
+  const campoId = useCampoFilter();
   const { data: redes, isLoading: redesLoading } = useRedes();
   const { data: coordenacoes, isLoading: coordenacoesLoading } = useCoordenacoes();
   const { data: celulas, isLoading: celulasLoading } = useCelulas();
@@ -35,7 +37,7 @@ export function AdminDashboard() {
     to: getDateString(dateRange.to)
   };
   
-  const { data: allReports, isLoading: reportsLoading } = useWeeklyReports(undefined, dateRangeFilter);
+  const { data: allReports, isLoading: reportsLoading } = useWeeklyReports(undefined, dateRangeFilter, campoId);
   
   const isLoading = redesLoading || coordenacoesLoading || celulasLoading || reportsLoading;
   const currentReports = allReports || [];

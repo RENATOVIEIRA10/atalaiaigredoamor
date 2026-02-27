@@ -20,11 +20,11 @@ export interface Multiplicacao {
   };
 }
 
-export function useMultiplicacoes() {
+export function useMultiplicacoes(campoId?: string | null) {
   return useQuery({
-    queryKey: ['multiplicacoes'],
+    queryKey: ['multiplicacoes', campoId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('multiplicacoes')
         .select(`
           *,
@@ -33,6 +33,9 @@ export function useMultiplicacoes() {
         `)
         .order('data_multiplicacao', { ascending: false });
       
+      if (campoId) query = query.eq('campo_id', campoId);
+      
+      const { data, error } = await query;
       if (error) throw error;
       return data as Multiplicacao[];
     },

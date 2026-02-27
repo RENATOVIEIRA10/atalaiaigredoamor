@@ -4,9 +4,11 @@ import { useRecomecoFunnel } from '@/hooks/useRecomecoFunnel';
 import { RecomecoKPICards } from './RecomecoKPICards';
 import { RecomecoGroupTable } from './RecomecoGroupTable';
 import { useRedes } from '@/hooks/useRedes';
+import { useCampoFilter } from '@/hooks/useCampoFilter';
 
 export function RecomecoPastorTab() {
-  const { isLoading, totalKPIs, byCoordenacao, byRede } = useRecomecoFunnel('all');
+  const campoId = useCampoFilter();
+  const { isLoading, totalKPIs, byCoordenacao, byRede } = useRecomecoFunnel('all', undefined, campoId);
   const { data: redes } = useRedes();
   const [showDrillDown, setShowDrillDown] = useState(false);
 

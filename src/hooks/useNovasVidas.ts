@@ -52,14 +52,16 @@ export interface NovaVidaInsert {
   observacao?: string | null;
 }
 
-export function useNovasVidas() {
+export function useNovasVidas(campoId?: string | null) {
   return useQuery({
-    queryKey: ['novas_vidas'],
+    queryKey: ['novas_vidas', campoId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let q = supabase
         .from('novas_vidas')
         .select('*')
         .order('created_at', { ascending: false });
+      if (campoId) q = q.eq('campo_id', campoId);
+      const { data, error } = await q;
       if (error) throw error;
       return data as NovaVida[];
     },
