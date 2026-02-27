@@ -26,7 +26,32 @@ const scopeLabels: Record<string, string> = {
   coordenacao: 'Coordenação',
   supervisor: 'Supervisor',
   celula: 'Célula',
+  recomeco_cadastro: 'Recomeço (Cadastro)',
+  central_celulas: 'Central de Células',
+  lider_recomeco_central: 'Líder Recomeço + Central',
+  lider_batismo: 'Líder do Batismo',
+  lider_aclamacao: 'Líder da Aclamação',
+  operador_recomeco: 'Operador Recomeço',
+  operador_central: 'Operador Central',
+  demo_guiada: 'Demo Guiada',
+  leitura_pastoral: 'Leitura Pastoral',
 };
+
+// Scopes that require linking to an entity (scope_id)
+const scopesWithEntity = ['celula', 'supervisor', 'coordenacao', 'rede'];
+
+// Scopes that are ministry-level (no scope_id needed)
+const scopesWithoutEntity = [
+  'recomeco_cadastro',
+  'central_celulas',
+  'lider_recomeco_central',
+  'lider_batismo',
+  'lider_aclamacao',
+  'operador_recomeco',
+  'operador_central',
+  'demo_guiada',
+  'leitura_pastoral',
+];
 
 function generateCode(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -51,6 +76,7 @@ export function AccessKeysManager() {
   const [createOpen, setCreateOpen] = useState(false);
   const [createScopeType, setCreateScopeType] = useState('');
   const [createScopeId, setCreateScopeId] = useState('');
+  const [createDescription, setCreateDescription] = useState('');
   const [createManualCode, setCreateManualCode] = useState('');
   const [createAutoCode, setCreateAutoCode] = useState(true);
   const [creating, setCreating] = useState(false);
@@ -76,7 +102,8 @@ export function AccessKeysManager() {
       const s = search.toLowerCase();
       return k.code.toLowerCase().includes(s) || 
              (k.entity_name || '').toLowerCase().includes(s) ||
-             k.scope_type.toLowerCase().includes(s);
+             k.scope_type.toLowerCase().includes(s) ||
+             (scopeLabels[k.scope_type] || '').toLowerCase().includes(s);
     }
     return true;
   });
@@ -97,6 +124,8 @@ export function AccessKeysManager() {
     toast({ title: 'Código copiado!' });
   };
 
+  const needsEntity = scopesWithEntity.includes(createScopeType);
+
   const getEntityOptions = () => {
     if (createScopeType === 'celula') return (celulas || []).map(c => ({ id: c.id, name: c.name }));
     if (createScopeType === 'supervisor') return (supervisores || []).map(s => {
@@ -110,8 +139,12 @@ export function AccessKeysManager() {
   };
 
   const handleCreate = async () => {
-    if (!createScopeType || !createScopeId) {
-      toast({ title: 'Preencha todos os campos', variant: 'destructive' });
+    if (!createScopeType) {
+      toast({ title: 'Selecione o tipo de escopo', variant: 'destructive' });
+      return;
+    }
+    if (needsEntity && !createScopeId) {
+      toast({ title: 'Selecione a entidade', variant: 'destructive' });
       return;
     }
     const code = createAutoCode ? generateCode() : createManualCode.trim();
@@ -125,14 +158,24 @@ export function AccessKeysManager() {
       toast({ title: 'Código já existe', description: 'Escolha outro código.', variant: 'destructive' });
       return;
     }
-    // Check existing active key for same scope
-    const existingScope = activeKeys.find(k => k.scope_type === createScopeType && k.scope_id === createScopeId && k.active);
-    if (existingScope) {
-      // Deactivate old
-      await supabase.from('access_keys').update({ active: false }).eq('id', existingScope.id);
+
+    const scopeId = needsEntity ? createScopeId : null;
+
+    // For entity-based scopes, deactivate old if exists
+    if (needsEntity && scopeId) {
+      const existingScope = activeKeys.find(k => k.scope_type === createScopeType && k.scope_id === scopeId && k.active);
+      if (existingScope) {
+        await supabase.from('access_keys').update({ active: false }).eq('id', existingScope.id);
+      }
     }
+
     setCreating(true);
-    const { error } = await supabase.from('access_keys').insert({ scope_type: createScopeType, scope_id: createScopeId, code, active: true });
+    const { error } = await supabase.from('access_keys').insert({
+      scope_type: createScopeType,
+      scope_id: scopeId,
+      code,
+      active: true,
+    });
     setCreating(false);
     if (error) {
       toast({ title: 'Erro', description: error.message, variant: 'destructive' });
@@ -143,6 +186,7 @@ export function AccessKeysManager() {
     setCreateOpen(false);
     setCreateScopeType('');
     setCreateScopeId('');
+    setCreateDescription('');
     setCreateManualCode('');
     setCreateAutoCode(true);
   };
@@ -175,6 +219,9 @@ export function AccessKeysManager() {
     queryClient.invalidateQueries({ queryKey: ['access_keys'] });
     toast({ title: `${items.length} código(s) gerado(s)!` });
   };
+
+  // Get unique scope types from keys for filter
+  const allScopeTypes = Array.from(new Set((keys || []).map(k => k.scope_type))).sort();
 
   if (isLoading) {
     return <div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
@@ -309,19 +356,18 @@ export function AccessKeysManager() {
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex gap-3">
-            <div className="relative flex-1">
+          <div className="flex gap-3 flex-wrap">
+            <div className="relative flex-1 min-w-[200px]">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input placeholder="Buscar por nome ou código..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10" />
             </div>
             <Select value={filterType} onValueChange={setFilterType}>
-              <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-[200px]"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos os tipos</SelectItem>
-                <SelectItem value="rede">Rede</SelectItem>
-                <SelectItem value="coordenacao">Coordenação</SelectItem>
-                <SelectItem value="supervisor">Supervisor</SelectItem>
-                <SelectItem value="celula">Célula</SelectItem>
+                {allScopeTypes.map(st => (
+                  <SelectItem key={st} value={st}>{scopeLabels[st] || st}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <Select value={filterStatus} onValueChange={setFilterStatus}>
@@ -339,7 +385,7 @@ export function AccessKeysManager() {
               <TableHeader>
                 <TableRow className="bg-muted/50">
                   <TableHead>Tipo</TableHead>
-                  <TableHead>Nome</TableHead>
+                  <TableHead>Nome / Descrição</TableHead>
                   <TableHead>Código</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Último Uso</TableHead>
@@ -352,7 +398,7 @@ export function AccessKeysManager() {
                 ) : otherKeys.map(key => (
                   <TableRow key={key.id}>
                     <TableCell><Badge variant="outline" className="text-xs">{scopeLabels[key.scope_type] || key.scope_type}</Badge></TableCell>
-                    <TableCell className="font-medium text-sm">{key.entity_name || '—'}</TableCell>
+                    <TableCell className="font-medium text-sm">{key.entity_name || scopeLabels[key.scope_type] || key.scope_type}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <code className="text-xs font-mono bg-muted px-2 py-1 rounded">{key.code}</code>
@@ -373,9 +419,11 @@ export function AccessKeysManager() {
                         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => toggleKey.mutate({ id: key.id, active: !key.active })} disabled={toggleKey.isPending} title={key.active ? 'Desativar' : 'Ativar'}>
                           <Power className={`h-4 w-4 ${key.active ? 'text-destructive' : 'text-green-600'}`} />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => setDeleteKey(key)} title="Apagar">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        {!key.last_used_at && (
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => setDeleteKey(key)} title="Apagar">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -391,11 +439,11 @@ export function AccessKeysManager() {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Criar Código de Acesso</DialogTitle>
-            <DialogDescription>Gere um código para uma entidade do sistema.</DialogDescription>
+            <DialogDescription>Gere um código para qualquer função do sistema.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>Tipo</Label>
+              <Label>Tipo de Escopo</Label>
               <Select value={createScopeType} onValueChange={(v) => { setCreateScopeType(v); setCreateScopeId(''); }}>
                 <SelectTrigger><SelectValue placeholder="Selecione o tipo" /></SelectTrigger>
                 <SelectContent>
@@ -403,10 +451,21 @@ export function AccessKeysManager() {
                   <SelectItem value="supervisor">Supervisor</SelectItem>
                   <SelectItem value="coordenacao">Coordenação</SelectItem>
                   <SelectItem value="rede">Rede</SelectItem>
+                  <SelectItem disabled value="---divider---" className="text-xs text-muted-foreground font-bold">— Ministérios —</SelectItem>
+                  <SelectItem value="recomeco_cadastro">Recomeço (Cadastro)</SelectItem>
+                  <SelectItem value="central_celulas">Central de Células</SelectItem>
+                  <SelectItem value="lider_recomeco_central">Líder Recomeço + Central</SelectItem>
+                  <SelectItem value="lider_batismo">Líder do Batismo</SelectItem>
+                  <SelectItem value="lider_aclamacao">Líder da Aclamação</SelectItem>
+                  <SelectItem value="operador_recomeco">Operador Recomeço</SelectItem>
+                  <SelectItem value="operador_central">Operador Central</SelectItem>
+                  <SelectItem value="demo_guiada">Demo Guiada</SelectItem>
+                  <SelectItem value="leitura_pastoral">Leitura Pastoral</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            {createScopeType && (
+
+            {needsEntity && createScopeType && (
               <div className="space-y-2">
                 <Label>Entidade</Label>
                 <Select value={createScopeId} onValueChange={setCreateScopeId}>
@@ -419,6 +478,15 @@ export function AccessKeysManager() {
                 </Select>
               </div>
             )}
+
+            {!needsEntity && createScopeType && (
+              <div className="rounded-lg bg-muted/50 border p-3">
+                <p className="text-xs text-muted-foreground">
+                  Este código é de nível ministerial — não precisa ser vinculado a uma entidade específica. Pode ser compartilhado por múltiplas pessoas.
+                </p>
+              </div>
+            )}
+
             <div className="flex items-center gap-3">
               <Switch checked={createAutoCode} onCheckedChange={setCreateAutoCode} />
               <Label>{createAutoCode ? 'Gerar automaticamente' : 'Definir manualmente'}</Label>
@@ -447,7 +515,7 @@ export function AccessKeysManager() {
             <AlertDialogDescription>
               {deleteKey?.scope_type === 'admin'
                 ? '⚠️ ATENÇÃO: Você está prestes a apagar o código ADMIN. Isso pode impedir o acesso administrativo. Tem certeza absoluta?'
-                : `O código "${deleteKey?.code}" para ${deleteKey?.entity_name || 'esta entidade'} será removido permanentemente.`}
+                : `O código "${deleteKey?.code}" para ${deleteKey?.entity_name || scopeLabels[deleteKey?.scope_type || ''] || 'esta entidade'} será removido permanentemente.`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

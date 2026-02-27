@@ -105,12 +105,27 @@ export function useAccessKeys() {
 
       if (error) throw error;
 
+      // Ministry-level scope labels (no scope_id needed)
+      const ministryLabels: Record<string, string> = {
+        recomeco_cadastro: 'Recomeço (Cadastro)',
+        central_celulas: 'Central de Células',
+        lider_recomeco_central: 'Líder Recomeço + Central',
+        lider_batismo: 'Líder do Batismo',
+        lider_aclamacao: 'Líder da Aclamação',
+        operador_recomeco: 'Operador Recomeço',
+        operador_central: 'Operador Central',
+        demo_guiada: 'Demo Guiada',
+        leitura_pastoral: 'Leitura Pastoral',
+      };
+
       // Enrich with entity names
       const enriched: AccessKey[] = [];
       for (const key of data) {
         let entityName = '';
         if (key.scope_type === 'admin') {
           entityName = 'Administrador';
+        } else if (ministryLabels[key.scope_type]) {
+          entityName = ministryLabels[key.scope_type];
         } else if (key.scope_id) {
           if (key.scope_type === 'celula') {
             const { data: cel } = await supabase.from('celulas').select('name').eq('id', key.scope_id).single();
