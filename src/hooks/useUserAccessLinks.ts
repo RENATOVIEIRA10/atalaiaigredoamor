@@ -40,6 +40,7 @@ export function useUserAccessLinks() {
     scope_type: string;
     scope_id: string | null;
     rede_id: string | null;
+    campo_id?: string | null;
   }, label: string) => {
     if (!user) return;
     // Upsert based on unique (user_id, access_key_id)

@@ -68,6 +68,14 @@ export default function TrocarFuncao() {
 
   const activateLink = async (link: typeof links[0]) => {
     const scopeType = link.scope_type as ScopeType;
+
+    // Resolve campo from link directly
+    if (link.campo_id) {
+      const { data: campoData } = await supabase.from('campos').select('id, nome').eq('id', link.campo_id).single();
+      if (campoData) setActiveCampo({ id: campoData.id, nome: campoData.nome });
+    } else {
+      await resolveCampoFromAccessKey(link.access_key_id);
+    }
     
     if (scopeType === 'recomeco_operador' || scopeType === 'recomeco_leitura') {
       setScopeAccess(scopeType, link.scope_id, link.access_key_id);
@@ -106,21 +114,18 @@ export default function TrocarFuncao() {
     }
 
     if (scopeType === 'pastor_senior_global') {
-      await resolveCampoFromAccessKey(link.access_key_id);
       setScopeAccess(scopeType, link.scope_id, link.access_key_id);
       navigate('/dashboard');
       return;
     }
 
     if (scopeType === 'pastor_de_campo') {
-      await resolveCampoFromAccessKey(link.access_key_id);
       setScopeAccess(scopeType, link.scope_id, link.access_key_id);
       navigate('/dashboard');
       return;
     }
 
     if (scopeType === 'pastor' || scopeType === 'admin') {
-      await resolveCampoFromAccessKey(link.access_key_id);
       setPendingMatch(link);
       setShowRedeSelect(true);
       return;
@@ -135,9 +140,6 @@ export default function TrocarFuncao() {
         .single();
       if (redeData) setActiveRede({ id: redeData.id, name: redeData.name, slug: redeData.slug, ativa: redeData.ativa });
     }
-
-    // Auto-set campo
-    await resolveCampoFromAccessKey(link.access_key_id);
 
     setScopeAccess(scopeType, link.scope_id, link.access_key_id);
     navigate('/onboarding');
@@ -195,6 +197,7 @@ export default function TrocarFuncao() {
         scope_type: match.scope_type,
         scope_id: match.scope_id,
         rede_id: match.rede_id,
+        campo_id: match.campo_id,
       }, label);
 
       setCode('');
