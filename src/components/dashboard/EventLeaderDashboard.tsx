@@ -31,14 +31,11 @@ const STATUS_MAP: Record<string, { label: string; color: string }> = {
   recusado: { label: 'Recusado', color: 'bg-red-500/20 text-red-600 border-red-500/30' },
 };
 
-interface Props {
-  type: 'batismo' | 'aclamacao';
-}
-
-export default function EventLeaderDashboard({ type }: Props) {
+export default function EventLeaderDashboard() {
   const navigate = useNavigate();
-  const { data: events, isLoading: eventsLoading } = useSpiritualEvents(type);
+  const { data: events, isLoading: eventsLoading } = useSpiritualEvents();
   const createEvent = useCreateSpiritualEvent();
+  const [newType, setNewType] = useState<'batismo' | 'aclamacao'>('batismo');
   const [selectedEventId, setSelectedEventId] = useState<string>('');
   const [showCreateEvent, setShowCreateEvent] = useState(false);
   const [newTitle, setNewTitle] = useState('');
@@ -54,9 +51,8 @@ export default function EventLeaderDashboard({ type }: Props) {
   const [notesText, setNotesText] = useState('');
   const [search, setSearch] = useState('');
 
-  const icon = type === 'batismo' ? Droplets : Star;
-  const Icon = icon;
-  const title = type === 'batismo' ? 'Batismo' : 'Aclamação';
+  const title = 'Batismo / Aclamação';
+  const Icon = Droplets;
 
   const filtered = useMemo(() => {
     if (!registrations) return [];
@@ -76,9 +72,9 @@ export default function EventLeaderDashboard({ type }: Props) {
   }, [registrations]);
 
   const handleCreateEvent = () => {
-    if (!newTitle || !newDate) return;
+    if (!newTitle || !newDate || !newType) return;
     createEvent.mutate({
-      type,
+      type: newType as 'batismo' | 'aclamacao',
       title: newTitle,
       event_date: newDate,
       start_time: null,
@@ -165,7 +161,10 @@ export default function EventLeaderDashboard({ type }: Props) {
           <SelectContent>
             {events.map(ev => (
               <SelectItem key={ev.id} value={ev.id}>
-                {ev.title} — {new Date(ev.event_date + 'T12:00:00').toLocaleDateString('pt-BR')}
+                <span className="flex items-center gap-2">
+                  {ev.type === 'batismo' ? <Droplets className="h-3 w-3 inline" /> : <Star className="h-3 w-3 inline" />}
+                  {ev.title} — {new Date(ev.event_date + 'T12:00:00').toLocaleDateString('pt-BR')}
+                </span>
               </SelectItem>
             ))}
           </SelectContent>
@@ -173,9 +172,9 @@ export default function EventLeaderDashboard({ type }: Props) {
       )}
 
       {!events?.length ? (
-        <EmptyState icon={icon} title="Nenhum evento cadastrado" description={`Crie o primeiro evento de ${title}.`} />
+        <EmptyState icon={Droplets} title="Nenhum evento cadastrado" description="Crie o primeiro evento." />
       ) : !activeEventId ? (
-        <EmptyState icon={icon} title="Selecione um evento" description="Escolha um evento para ver os inscritos." />
+        <EmptyState icon={Droplets} title="Selecione um evento" description="Escolha um evento para ver os inscritos." />
       ) : (
         <>
           {/* Stats */}
@@ -265,9 +264,16 @@ export default function EventLeaderDashboard({ type }: Props) {
       {/* Create Event Dialog */}
       <Dialog open={showCreateEvent} onOpenChange={setShowCreateEvent}>
         <DialogContent className="sm:max-w-md">
-          <DialogHeader><DialogTitle>Criar Evento de {title}</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>Criar Evento</DialogTitle></DialogHeader>
           <div className="space-y-3">
-            <Input placeholder={`Ex: ${title} – 30/04/2026`} value={newTitle} onChange={e => setNewTitle(e.target.value)} />
+            <Select value={newType} onValueChange={(v) => setNewType(v as 'batismo' | 'aclamacao')}>
+              <SelectTrigger><SelectValue placeholder="Tipo do evento" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="batismo">Batismo</SelectItem>
+                <SelectItem value="aclamacao">Aclamação</SelectItem>
+              </SelectContent>
+            </Select>
+            <Input placeholder="Ex: Batismo – 30/04/2026" value={newTitle} onChange={e => setNewTitle(e.target.value)} />
             <Input type="date" value={newDate} onChange={e => setNewDate(e.target.value)} />
             <Input placeholder="Local (opcional)" value={newLocation} onChange={e => setNewLocation(e.target.value)} />
             <div className="flex gap-3">

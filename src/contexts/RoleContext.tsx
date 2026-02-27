@@ -1,8 +1,8 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-type UserRole = 'pastor' | 'admin' | 'rede_leader' | 'coordenador' | 'supervisor' | 'celula_leader' | 'demo_institucional' | 'recomeco_operador' | 'recomeco_leitura' | 'recomeco_cadastro' | 'central_celulas' | 'lider_recomeco_central' | 'lider_batismo' | 'lider_aclamacao';
-type ScopeType = 'pastor' | 'admin' | 'rede' | 'coordenacao' | 'supervisor' | 'celula' | 'demo_institucional' | 'recomeco_operador' | 'recomeco_leitura' | 'recomeco_cadastro' | 'central_celulas' | 'lider_recomeco_central' | 'lider_batismo' | 'lider_aclamacao';
+type UserRole = 'pastor' | 'admin' | 'rede_leader' | 'coordenador' | 'supervisor' | 'celula_leader' | 'demo_institucional' | 'recomeco_operador' | 'recomeco_leitura' | 'recomeco_cadastro' | 'central_celulas' | 'lider_recomeco_central' | 'lider_batismo_aclamacao';
+type ScopeType = 'pastor' | 'admin' | 'rede' | 'coordenacao' | 'supervisor' | 'celula' | 'demo_institucional' | 'recomeco_operador' | 'recomeco_leitura' | 'recomeco_cadastro' | 'central_celulas' | 'lider_recomeco_central' | 'lider_batismo_aclamacao';
 
 const SESSION_KEY = 'rede_amor_session';
 const SESSION_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
@@ -34,8 +34,7 @@ interface RoleContextType {
   isRecomecoCadastro: boolean;
     isCentralCelulas: boolean;
     isLiderRecomecoCentral: boolean;
-    isLiderBatismo: boolean;
-    isLiderAclamacao: boolean;
+    isLiderBatismoAclamacao: boolean;
 }
 
 const RoleContext = createContext<RoleContextType | undefined>(undefined);
@@ -54,8 +53,7 @@ function scopeTypeToRole(scopeType: ScopeType): UserRole {
     case 'recomeco_cadastro': return 'recomeco_cadastro';
     case 'central_celulas': return 'central_celulas';
     case 'lider_recomeco_central': return 'lider_recomeco_central';
-    case 'lider_batismo': return 'lider_batismo';
-    case 'lider_aclamacao': return 'lider_aclamacao';
+    case 'lider_batismo_aclamacao': return 'lider_batismo_aclamacao';
   }
 }
 
@@ -151,8 +149,7 @@ export function RoleProvider({ children }: { children: ReactNode }) {
     isRecomecoCadastro: selectedRole === 'recomeco_cadastro',
     isCentralCelulas: selectedRole === 'central_celulas',
     isLiderRecomecoCentral: selectedRole === 'lider_recomeco_central',
-    isLiderBatismo: selectedRole === 'lider_batismo',
-    isLiderAclamacao: selectedRole === 'lider_aclamacao',
+    isLiderBatismoAclamacao: selectedRole === 'lider_batismo_aclamacao',
   };
 
   return (
