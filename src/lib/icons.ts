@@ -114,6 +114,7 @@ export const roleLabels: Record<string, string> = {
   central_celulas: 'Central de Células',
   lider_recomeco_central: 'Líder Recomeço + Central',
   lider_batismo_aclamacao: 'Líder de Batismo / Aclamação',
+  central_batismo_aclamacao: 'Central do Batismo / Aclamação',
 };
 
 // ========================================

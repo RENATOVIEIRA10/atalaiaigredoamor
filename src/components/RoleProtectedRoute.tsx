@@ -33,7 +33,7 @@ interface RoleProtectedRouteProps {
 
 export function RoleProtectedRoute({ children }: RoleProtectedRouteProps) {
   const { user, isLoading: authLoading } = useAuth();
-  const { selectedRole, accessKeyId, isSupervisor, isCoordenador, isRedeLeader, isCelulaLeader, isAdmin, isPastor, isDemoInstitucional, isRecomecoOperador, isRecomecoLeitura, isLiderRecomecoCentral, isLiderBatismoAclamacao } = useRole();
+  const { selectedRole, accessKeyId, isSupervisor, isCoordenador, isRedeLeader, isCelulaLeader, isAdmin, isPastor, isDemoInstitucional, isRecomecoOperador, isRecomecoLeitura, isLiderRecomecoCentral, isLiderBatismoAclamacao, isCentralBatismoAclamacao } = useRole();
   const { isDemoActive } = useDemoMode();
   const accepted = usePolicyAcceptance(accessKeyId);
   const isPWA = useIsPWA();
@@ -66,7 +66,10 @@ export function RoleProtectedRoute({ children }: RoleProtectedRouteProps) {
   // Líder Batismo/Aclamação route guard
   const isEventLeaderBlocked = isLiderBatismoAclamacao && !LIDER_RC_ALLOWED.includes(location.pathname);
 
-  const isBlocked = isSupervisorBlocked || isPulsoBlocked || isCoordRedeBlocked || isCelulaBlocked || isDemoBlocked || isRecomecoBlocked || isLiderRCBlocked || isEventLeaderBlocked;
+  // Central Batismo/Aclamação route guard
+  const isCentralBatismoBlocked = isCentralBatismoAclamacao && !LIDER_RC_ALLOWED.includes(location.pathname);
+
+  const isBlocked = isSupervisorBlocked || isPulsoBlocked || isCoordRedeBlocked || isCelulaBlocked || isDemoBlocked || isRecomecoBlocked || isLiderRCBlocked || isEventLeaderBlocked || isCentralBatismoBlocked;
 
   useEffect(() => {
     if (isBlocked) {
@@ -103,7 +106,7 @@ export function RoleProtectedRoute({ children }: RoleProtectedRouteProps) {
   }
 
   // During demo mode, demo_institucional, recomeco, or lider_recomeco_central, skip onboarding guard
-  if (isDemoActive || isDemoInstitucional || isRecomecoOperador || isRecomecoLeitura || isLiderRecomecoCentral || isLiderBatismoAclamacao) {
+  if (isDemoActive || isDemoInstitucional || isRecomecoOperador || isRecomecoLeitura || isLiderRecomecoCentral || isLiderBatismoAclamacao || isCentralBatismoAclamacao) {
     return <>{children}</>;
   }
 
