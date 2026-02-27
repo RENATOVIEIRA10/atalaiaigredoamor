@@ -8,9 +8,11 @@ import { AtalaiaIcon } from '@/components/institutional/AtalaiaLogoHeader';
 import { useRole } from '@/contexts/RoleContext';
 import { useDemoMode } from '@/contexts/DemoModeContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useCampo } from '@/contexts/CampoContext';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { DemoModeDialog } from '@/components/demo/DemoModeDialog';
+import { CampoSelector } from '@/components/campo/CampoSelector';
 import {
   Sidebar, SidebarContent, SidebarFooter, SidebarGroup,
   SidebarGroupContent, SidebarGroupLabel, SidebarHeader,
@@ -51,7 +53,7 @@ const adminNavItems = [
 export function AppSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { selectedRole, clearAccess, isAdmin, isRedeLeader, isCoordenador, isSupervisor, isCelulaLeader, isPastor, isDemoInstitucional } = useRole();
+  const { selectedRole, clearAccess, isAdmin, isRedeLeader, isCoordenador, isSupervisor, isCelulaLeader, isPastor, isDemoInstitucional, isPastorSeniorGlobal, isPastorDeCampo } = useRole();
   const { isDemoActive, deactivateDemo } = useDemoMode();
   const { theme, toggleTheme } = useTheme();
   const [demoDialogOpen, setDemoDialogOpen] = useState(false);
@@ -94,6 +96,17 @@ export function AppSidebar() {
         </SidebarHeader>
 
         <SidebarContent className="px-2">
+          {/* Campo Selector - for pastor_senior_global, admin, pastor_de_campo */}
+          {(isPastorSeniorGlobal || isAdmin || isPastorDeCampo) && (
+            <SidebarGroup>
+              <SidebarGroupContent>
+                <div className="px-3 py-2">
+                  <CampoSelector />
+                </div>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          )}
+
           {/* Demo Mode Button - only for admin */}
           {isOriginalAdmin && (
             <SidebarGroup>

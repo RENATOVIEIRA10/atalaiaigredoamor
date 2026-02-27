@@ -70,8 +70,10 @@ export default function HomePage() {
       if (data?.campo_id && data.campos) {
         const campo = data.campos as any;
         setActiveCampo({ id: campo.id, nome: campo.nome });
+        return campo;
       }
     } catch (_) { /* silent */ }
+    return null;
   };
 
   // Auto-redirect: if user has exactly 1 linked function and no role selected yet, activate it
@@ -83,6 +85,12 @@ export default function HomePage() {
       const st = link.scope_type as ScopeType;
 
       const doAutoActivate = async () => {
+        // Resolve campo from link directly if available
+        if (link.campo_id) {
+          const { data: campoData } = await supabase.from('campos').select('id, nome').eq('id', link.campo_id).single();
+          if (campoData) setActiveCampo({ id: campoData.id, nome: campoData.nome });
+        }
+
         if (st === 'recomeco_operador' || st === 'recomeco_leitura') {
           setScopeAccess(st, link.scope_id, link.access_key_id);
           navigate('/recomeco');
@@ -217,11 +225,13 @@ export default function HomePage() {
 
       // Save link to user
       const label = scopeLabel(match.scope_type);
+      const campoResolved = await resolveCampoFromAccessKey(match.id);
       await upsertLink({
         id: match.id,
         scope_type: match.scope_type,
         scope_id: match.scope_id,
         rede_id: match.rede_id,
+        campo_id: match.campo_id,
       }, label);
 
       const scopeType = match.scope_type as ScopeType;
