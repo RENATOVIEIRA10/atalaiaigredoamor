@@ -17,6 +17,7 @@ export type Database = {
       access_keys: {
         Row: {
           active: boolean | null
+          campo_id: string | null
           code: string
           created_at: string | null
           expires_at: string | null
@@ -29,6 +30,7 @@ export type Database = {
         }
         Insert: {
           active?: boolean | null
+          campo_id?: string | null
           code: string
           created_at?: string | null
           expires_at?: string | null
@@ -41,6 +43,7 @@ export type Database = {
         }
         Update: {
           active?: boolean | null
+          campo_id?: string | null
           code?: string
           created_at?: string | null
           expires_at?: string | null
@@ -52,6 +55,13 @@ export type Database = {
           scope_type?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "access_keys_campo_id_fkey"
+            columns: ["campo_id"]
+            isOneToOne: false
+            referencedRelation: "campos"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "access_keys_rede_id_fkey"
             columns: ["rede_id"]
@@ -141,6 +151,84 @@ export type Database = {
           },
         ]
       }
+      campo_pastores: {
+        Row: {
+          campo_id: string
+          created_at: string
+          id: string
+          profile_id: string
+          tipo: string
+        }
+        Insert: {
+          campo_id: string
+          created_at?: string
+          id?: string
+          profile_id: string
+          tipo?: string
+        }
+        Update: {
+          campo_id?: string
+          created_at?: string
+          id?: string
+          profile_id?: string
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campo_pastores_campo_id_fkey"
+            columns: ["campo_id"]
+            isOneToOne: false
+            referencedRelation: "campos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campo_pastores_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      campos: {
+        Row: {
+          ativo: boolean
+          cidade: string | null
+          created_at: string
+          endereco: string | null
+          estado: string | null
+          horarios_culto: string | null
+          id: string
+          nome: string
+          pais: string | null
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          cidade?: string | null
+          created_at?: string
+          endereco?: string | null
+          estado?: string | null
+          horarios_culto?: string | null
+          id?: string
+          nome: string
+          pais?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          cidade?: string | null
+          created_at?: string
+          endereco?: string | null
+          estado?: string | null
+          horarios_culto?: string | null
+          id?: string
+          nome?: string
+          pais?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       casais: {
         Row: {
           celula_id: string
@@ -199,6 +287,7 @@ export type Database = {
           address: string | null
           bairro: string | null
           bairros_atendidos: string[] | null
+          campo_id: string | null
           cidade: string | null
           coordenacao_id: string
           created_at: string
@@ -226,6 +315,7 @@ export type Database = {
           address?: string | null
           bairro?: string | null
           bairros_atendidos?: string[] | null
+          campo_id?: string | null
           cidade?: string | null
           coordenacao_id: string
           created_at?: string
@@ -253,6 +343,7 @@ export type Database = {
           address?: string | null
           bairro?: string | null
           bairros_atendidos?: string[] | null
+          campo_id?: string | null
           cidade?: string | null
           coordenacao_id?: string
           created_at?: string
@@ -276,6 +367,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "celulas_campo_id_fkey"
+            columns: ["campo_id"]
+            isOneToOne: false
+            referencedRelation: "campos"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "celulas_coordenacao_id_fkey"
             columns: ["coordenacao_id"]
@@ -322,6 +420,7 @@ export type Database = {
       }
       coordenacoes: {
         Row: {
+          campo_id: string | null
           created_at: string
           id: string
           is_test_data: boolean | null
@@ -334,6 +433,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          campo_id?: string | null
           created_at?: string
           id?: string
           is_test_data?: boolean | null
@@ -346,6 +446,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          campo_id?: string | null
           created_at?: string
           id?: string
           is_test_data?: boolean | null
@@ -358,6 +459,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "coordenacoes_campo_id_fkey"
+            columns: ["campo_id"]
+            isOneToOne: false
+            referencedRelation: "campos"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "coordenacoes_leader_id_fkey"
             columns: ["leader_id"]
@@ -390,6 +498,7 @@ export type Database = {
       }
       discipulado_encontros: {
         Row: {
+          campo_id: string | null
           celula_id: string | null
           coordenacao_id: string | null
           created_at: string
@@ -403,6 +512,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          campo_id?: string | null
           celula_id?: string | null
           coordenacao_id?: string | null
           created_at?: string
@@ -416,6 +526,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          campo_id?: string | null
           celula_id?: string | null
           coordenacao_id?: string | null
           created_at?: string
@@ -429,6 +540,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "discipulado_encontros_campo_id_fkey"
+            columns: ["campo_id"]
+            isOneToOne: false
+            referencedRelation: "campos"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "discipulado_encontros_celula_id_fkey"
             columns: ["celula_id"]
@@ -454,6 +572,7 @@ export type Database = {
       }
       discipulado_presencas: {
         Row: {
+          campo_id: string | null
           created_at: string
           encontro_id: string
           id: string
@@ -462,6 +581,7 @@ export type Database = {
           profile_id: string | null
         }
         Insert: {
+          campo_id?: string | null
           created_at?: string
           encontro_id: string
           id?: string
@@ -470,6 +590,7 @@ export type Database = {
           profile_id?: string | null
         }
         Update: {
+          campo_id?: string | null
           created_at?: string
           encontro_id?: string
           id?: string
@@ -478,6 +599,13 @@ export type Database = {
           profile_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "discipulado_presencas_campo_id_fkey"
+            columns: ["campo_id"]
+            isOneToOne: false
+            referencedRelation: "campos"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "discipulado_presencas_encontro_id_fkey"
             columns: ["encontro_id"]
@@ -503,6 +631,7 @@ export type Database = {
       }
       encaminhamentos_recomeco: {
         Row: {
+          campo_id: string | null
           celula_id: string
           contatado_at: string | null
           created_at: string
@@ -520,6 +649,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          campo_id?: string | null
           celula_id: string
           contatado_at?: string | null
           created_at?: string
@@ -537,6 +667,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          campo_id?: string | null
           celula_id?: string
           contatado_at?: string | null
           created_at?: string
@@ -554,6 +685,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "encaminhamentos_recomeco_campo_id_fkey"
+            columns: ["campo_id"]
+            isOneToOne: false
+            referencedRelation: "campos"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "encaminhamentos_recomeco_celula_id_fkey"
             columns: ["celula_id"]
@@ -579,6 +717,7 @@ export type Database = {
       }
       event_registrations: {
         Row: {
+          campo_id: string | null
           celula_id: string | null
           coordenacao_id: string | null
           created_at: string
@@ -596,6 +735,7 @@ export type Database = {
           whatsapp: string | null
         }
         Insert: {
+          campo_id?: string | null
           celula_id?: string | null
           coordenacao_id?: string | null
           created_at?: string
@@ -613,6 +753,7 @@ export type Database = {
           whatsapp?: string | null
         }
         Update: {
+          campo_id?: string | null
           celula_id?: string | null
           coordenacao_id?: string | null
           created_at?: string
@@ -630,6 +771,13 @@ export type Database = {
           whatsapp?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "event_registrations_campo_id_fkey"
+            columns: ["campo_id"]
+            isOneToOne: false
+            referencedRelation: "campos"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "event_registrations_celula_id_fkey"
             columns: ["celula_id"]
@@ -676,6 +824,7 @@ export type Database = {
       }
       events_spiritual: {
         Row: {
+          campo_id: string | null
           created_at: string
           event_date: string
           id: string
@@ -686,6 +835,7 @@ export type Database = {
           type: string
         }
         Insert: {
+          campo_id?: string | null
           created_at?: string
           event_date: string
           id?: string
@@ -696,6 +846,7 @@ export type Database = {
           type: string
         }
         Update: {
+          campo_id?: string | null
           created_at?: string
           event_date?: string
           id?: string
@@ -705,7 +856,15 @@ export type Database = {
           title?: string
           type?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "events_spiritual_campo_id_fkey"
+            columns: ["campo_id"]
+            isOneToOne: false
+            referencedRelation: "campos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       leadership_couples: {
         Row: {
@@ -781,6 +940,7 @@ export type Database = {
       members: {
         Row: {
           batismo: boolean | null
+          campo_id: string | null
           celula_id: string
           curso_lidere: boolean | null
           encontro_com_deus: boolean | null
@@ -799,6 +959,7 @@ export type Database = {
         }
         Insert: {
           batismo?: boolean | null
+          campo_id?: string | null
           celula_id: string
           curso_lidere?: boolean | null
           encontro_com_deus?: boolean | null
@@ -817,6 +978,7 @@ export type Database = {
         }
         Update: {
           batismo?: boolean | null
+          campo_id?: string | null
           celula_id?: string
           curso_lidere?: boolean | null
           encontro_com_deus?: boolean | null
@@ -834,6 +996,13 @@ export type Database = {
           whatsapp?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "members_campo_id_fkey"
+            columns: ["campo_id"]
+            isOneToOne: false
+            referencedRelation: "campos"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "members_celula_id_fkey"
             columns: ["celula_id"]
@@ -866,6 +1035,7 @@ export type Database = {
       }
       multiplicacoes: {
         Row: {
+          campo_id: string | null
           celula_destino_id: string
           celula_origem_id: string
           created_at: string
@@ -878,6 +1048,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          campo_id?: string | null
           celula_destino_id: string
           celula_origem_id: string
           created_at?: string
@@ -890,6 +1061,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          campo_id?: string | null
           celula_destino_id?: string
           celula_origem_id?: string
           created_at?: string
@@ -902,6 +1074,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "multiplicacoes_campo_id_fkey"
+            columns: ["campo_id"]
+            isOneToOne: false
+            referencedRelation: "campos"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "multiplicacoes_celula_destino_id_fkey"
             columns: ["celula_destino_id"]
@@ -937,6 +1116,7 @@ export type Database = {
           assigned_cell_id: string | null
           assigned_to_user_id: string | null
           bairro: string | null
+          campo_id: string | null
           cidade: string | null
           created_at: string
           created_by_user_id: string | null
@@ -960,6 +1140,7 @@ export type Database = {
           assigned_cell_id?: string | null
           assigned_to_user_id?: string | null
           bairro?: string | null
+          campo_id?: string | null
           cidade?: string | null
           created_at?: string
           created_by_user_id?: string | null
@@ -983,6 +1164,7 @@ export type Database = {
           assigned_cell_id?: string | null
           assigned_to_user_id?: string | null
           bairro?: string | null
+          campo_id?: string | null
           cidade?: string | null
           created_at?: string
           created_by_user_id?: string | null
@@ -1008,6 +1190,13 @@ export type Database = {
             columns: ["assigned_cell_id"]
             isOneToOne: false
             referencedRelation: "celulas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "novas_vidas_campo_id_fkey"
+            columns: ["campo_id"]
+            isOneToOne: false
+            referencedRelation: "campos"
             referencedColumns: ["id"]
           },
         ]
@@ -1247,6 +1436,7 @@ export type Database = {
         Row: {
           ativa: boolean
           branding: Json | null
+          campo_id: string | null
           created_at: string
           id: string
           is_test_data: boolean | null
@@ -1260,6 +1450,7 @@ export type Database = {
         Insert: {
           ativa?: boolean
           branding?: Json | null
+          campo_id?: string | null
           created_at?: string
           id?: string
           is_test_data?: boolean | null
@@ -1273,6 +1464,7 @@ export type Database = {
         Update: {
           ativa?: boolean
           branding?: Json | null
+          campo_id?: string | null
           created_at?: string
           id?: string
           is_test_data?: boolean | null
@@ -1284,6 +1476,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "redes_campo_id_fkey"
+            columns: ["campo_id"]
+            isOneToOne: false
+            referencedRelation: "campos"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "redes_leader_id_fkey"
             columns: ["leader_id"]
@@ -1354,6 +1553,7 @@ export type Database = {
       }
       roteiros_celula: {
         Row: {
+          campo_id: string | null
           celula_id: string
           created_at: string
           criado_por: string | null
@@ -1365,6 +1565,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          campo_id?: string | null
           celula_id: string
           created_at?: string
           criado_por?: string | null
@@ -1376,6 +1577,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          campo_id?: string | null
           celula_id?: string
           created_at?: string
           criado_por?: string | null
@@ -1387,6 +1589,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "roteiros_celula_campo_id_fkey"
+            columns: ["campo_id"]
+            isOneToOne: false
+            referencedRelation: "campos"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "roteiros_celula_celula_id_fkey"
             columns: ["celula_id"]
@@ -1534,6 +1743,7 @@ export type Database = {
           apresentacao_visitantes: boolean | null
           avisos: boolean | null
           cadeira_amor: boolean | null
+          campo_id: string | null
           celula_id: string
           celula_realizada: boolean
           comunhao: boolean | null
@@ -1567,6 +1777,7 @@ export type Database = {
           apresentacao_visitantes?: boolean | null
           avisos?: boolean | null
           cadeira_amor?: boolean | null
+          campo_id?: string | null
           celula_id: string
           celula_realizada?: boolean
           comunhao?: boolean | null
@@ -1600,6 +1811,7 @@ export type Database = {
           apresentacao_visitantes?: boolean | null
           avisos?: boolean | null
           cadeira_amor?: boolean | null
+          campo_id?: string | null
           celula_id?: string
           celula_realizada?: boolean
           comunhao?: boolean | null
@@ -1630,6 +1842,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "supervisoes_campo_id_fkey"
+            columns: ["campo_id"]
+            isOneToOne: false
+            referencedRelation: "campos"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "supervisoes_celula_id_fkey"
             columns: ["celula_id"]
@@ -1662,6 +1881,7 @@ export type Database = {
       }
       supervisores: {
         Row: {
+          campo_id: string | null
           coordenacao_id: string
           created_at: string
           id: string
@@ -1674,6 +1894,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          campo_id?: string | null
           coordenacao_id: string
           created_at?: string
           id?: string
@@ -1686,6 +1907,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          campo_id?: string | null
           coordenacao_id?: string
           created_at?: string
           id?: string
@@ -1698,6 +1920,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "supervisores_campo_id_fkey"
+            columns: ["campo_id"]
+            isOneToOne: false
+            referencedRelation: "campos"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "supervisores_coordenacao_id_fkey"
             columns: ["coordenacao_id"]
@@ -1848,6 +2077,7 @@ export type Database = {
       }
       weekly_reports: {
         Row: {
+          campo_id: string | null
           celula_id: string
           children: number
           created_at: string
@@ -1870,6 +2100,7 @@ export type Database = {
           week_start: string
         }
         Insert: {
+          campo_id?: string | null
           celula_id: string
           children?: number
           created_at?: string
@@ -1892,6 +2123,7 @@ export type Database = {
           week_start: string
         }
         Update: {
+          campo_id?: string | null
           celula_id?: string
           children?: number
           created_at?: string
@@ -1914,6 +2146,13 @@ export type Database = {
           week_start?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "weekly_reports_campo_id_fkey"
+            columns: ["campo_id"]
+            isOneToOne: false
+            referencedRelation: "campos"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "weekly_reports_celula_id_fkey"
             columns: ["celula_id"]
