@@ -151,10 +151,10 @@ export default function Presenca() {
     }
   };
 
-  const handleExport = () => {
+  const handleExport = async () => {
     if (!celulas || !coordenacoes) return;
     
-    exportToExcel({
+    await exportToExcel({
       reports: filteredReports,
       celulas,
       coordenacoes,

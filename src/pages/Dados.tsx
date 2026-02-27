@@ -103,8 +103,8 @@ export default function Dados() {
   const scopedCoordName = isCoordScope ? coordenacoes?.find(c => c.id === scopeId)?.name : null;
   const periodLabel = `${format(dateRange.from, "dd/MM/yyyy", { locale: ptBR })} - ${format(dateRange.to, "dd/MM/yyyy", { locale: ptBR })}`;
 
-  const handleExportCSV = () => {
-    exportToExcel({
+  const handleExportCSV = async () => {
+    await exportToExcel({
       reports: filteredReports, celulas: filteredCelulas, coordenacoes: filteredCoords,
       redes: redes || [], members: filteredMembers, periodLabel, byRede, byCoordenacao, byCelula, byLider, ranking, kpis,
     });
