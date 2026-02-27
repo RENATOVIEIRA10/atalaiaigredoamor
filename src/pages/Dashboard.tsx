@@ -20,7 +20,7 @@ const LiderRecomecoCentralDashboard = lazy(() => import('@/components/dashboard/
 const EventLeaderDashboard = lazy(() => import('@/components/dashboard/EventLeaderDashboard'));
 
 export default function Dashboard() {
-  const { isAdmin, isRedeLeader, isCoordenador, isSupervisor, isPastor, isDemoInstitucional, isLiderRecomecoCentral, isLiderBatismo, isLiderAclamacao } = useRole();
+  const { isAdmin, isRedeLeader, isCoordenador, isSupervisor, isPastor, isDemoInstitucional, isLiderRecomecoCentral, isLiderBatismoAclamacao } = useRole();
   const isPWA = useIsPWA();
   const isMobile = useIsMobile();
   const isPWAMobile = isPWA && isMobile;
@@ -28,11 +28,8 @@ export default function Dashboard() {
   const suspenseFallback = <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
 
   const renderDashboard = () => {
-    if (isLiderBatismo) {
-      return <Suspense fallback={suspenseFallback}><EventLeaderDashboard type="batismo" /></Suspense>;
-    }
-    if (isLiderAclamacao) {
-      return <Suspense fallback={suspenseFallback}><EventLeaderDashboard type="aclamacao" /></Suspense>;
+    if (isLiderBatismoAclamacao) {
+      return <Suspense fallback={suspenseFallback}><EventLeaderDashboard /></Suspense>;
     }
     if (isLiderRecomecoCentral) {
       return <Suspense fallback={suspenseFallback}><LiderRecomecoCentralDashboard /></Suspense>;

@@ -33,7 +33,7 @@ interface RoleProtectedRouteProps {
 
 export function RoleProtectedRoute({ children }: RoleProtectedRouteProps) {
   const { user, isLoading: authLoading } = useAuth();
-  const { selectedRole, accessKeyId, isSupervisor, isCoordenador, isRedeLeader, isCelulaLeader, isAdmin, isPastor, isDemoInstitucional, isRecomecoOperador, isRecomecoLeitura, isLiderRecomecoCentral, isLiderBatismo, isLiderAclamacao } = useRole();
+  const { selectedRole, accessKeyId, isSupervisor, isCoordenador, isRedeLeader, isCelulaLeader, isAdmin, isPastor, isDemoInstitucional, isRecomecoOperador, isRecomecoLeitura, isLiderRecomecoCentral, isLiderBatismoAclamacao } = useRole();
   const { isDemoActive } = useDemoMode();
   const accepted = usePolicyAcceptance(accessKeyId);
   const isPWA = useIsPWA();
@@ -64,7 +64,7 @@ export function RoleProtectedRoute({ children }: RoleProtectedRouteProps) {
   const isLiderRCBlocked = isLiderRecomecoCentral && !LIDER_RC_ALLOWED.includes(location.pathname);
 
   // Líder Batismo/Aclamação route guard
-  const isEventLeaderBlocked = (isLiderBatismo || isLiderAclamacao) && !LIDER_RC_ALLOWED.includes(location.pathname);
+  const isEventLeaderBlocked = isLiderBatismoAclamacao && !LIDER_RC_ALLOWED.includes(location.pathname);
 
   const isBlocked = isSupervisorBlocked || isPulsoBlocked || isCoordRedeBlocked || isCelulaBlocked || isDemoBlocked || isRecomecoBlocked || isLiderRCBlocked || isEventLeaderBlocked;
 
@@ -103,7 +103,7 @@ export function RoleProtectedRoute({ children }: RoleProtectedRouteProps) {
   }
 
   // During demo mode, demo_institucional, recomeco, or lider_recomeco_central, skip onboarding guard
-  if (isDemoActive || isDemoInstitucional || isRecomecoOperador || isRecomecoLeitura || isLiderRecomecoCentral || isLiderBatismo || isLiderAclamacao) {
+  if (isDemoActive || isDemoInstitucional || isRecomecoOperador || isRecomecoLeitura || isLiderRecomecoCentral || isLiderBatismoAclamacao) {
     return <>{children}</>;
   }
 

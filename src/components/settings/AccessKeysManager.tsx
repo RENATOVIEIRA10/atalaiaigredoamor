@@ -29,8 +29,7 @@ const scopeLabels: Record<string, string> = {
   recomeco_cadastro: 'Recomeço (Cadastro)',
   central_celulas: 'Central de Células',
   lider_recomeco_central: 'Líder Recomeço + Central',
-  lider_batismo: 'Líder do Batismo',
-  lider_aclamacao: 'Líder da Aclamação',
+  lider_batismo_aclamacao: 'Líder de Batismo / Aclamação',
   operador_recomeco: 'Operador Recomeço',
   operador_central: 'Operador Central',
   demo_guiada: 'Demo Guiada',
@@ -45,8 +44,7 @@ const scopesWithoutEntity = [
   'recomeco_cadastro',
   'central_celulas',
   'lider_recomeco_central',
-  'lider_batismo',
-  'lider_aclamacao',
+  'lider_batismo_aclamacao',
   'operador_recomeco',
   'operador_central',
   'demo_guiada',
@@ -455,8 +453,7 @@ export function AccessKeysManager() {
                   <SelectItem value="recomeco_cadastro">Recomeço (Cadastro)</SelectItem>
                   <SelectItem value="central_celulas">Central de Células</SelectItem>
                   <SelectItem value="lider_recomeco_central">Líder Recomeço + Central</SelectItem>
-                  <SelectItem value="lider_batismo">Líder do Batismo</SelectItem>
-                  <SelectItem value="lider_aclamacao">Líder da Aclamação</SelectItem>
+                  <SelectItem value="lider_batismo_aclamacao">Líder de Batismo / Aclamação</SelectItem>
                   <SelectItem value="operador_recomeco">Operador Recomeço</SelectItem>
                   <SelectItem value="operador_central">Operador Central</SelectItem>
                   <SelectItem value="demo_guiada">Demo Guiada</SelectItem>
