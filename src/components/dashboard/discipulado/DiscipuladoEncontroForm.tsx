@@ -8,19 +8,30 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Loader2, ChevronLeft, BookOpen, CheckCircle2 } from 'lucide-react';
-import { useMembers, Member } from '@/hooks/useMembers';
-import { useCreateDiscipuladoEncontro } from '@/hooks/useDiscipulado';
+import { useMembers } from '@/hooks/useMembers';
+import { useCreateDiscipuladoEncontro, DiscipuladoNivel } from '@/hooks/useDiscipulado';
 import { format } from 'date-fns';
 
+interface Participant {
+  id: string;
+  name: string;
+  avatar_url?: string | null;
+  type: 'member' | 'profile';
+}
+
 interface Props {
-  celulaId: string;
+  nivel: DiscipuladoNivel;
+  celulaId?: string;
+  coordenacaoId?: string;
   redeId?: string | null;
+  participants?: Participant[];
   onBack: () => void;
   onSuccess?: () => void;
 }
 
-export function DiscipuladoEncontroForm({ celulaId, redeId, onBack, onSuccess }: Props) {
-  const { data: members, isLoading } = useMembers(celulaId);
+export function DiscipuladoEncontroForm({ nivel, celulaId, coordenacaoId, redeId, participants: externalParticipants, onBack, onSuccess }: Props) {
+  // For celula level, load members internally
+  const { data: members, isLoading: membersLoading } = useMembers(nivel === 'celula' ? celulaId : undefined);
   const createEncontro = useCreateDiscipuladoEncontro();
 
   const [dataEncontro, setDataEncontro] = useState(format(new Date(), 'yyyy-MM-dd'));
@@ -28,9 +39,18 @@ export function DiscipuladoEncontroForm({ celulaId, redeId, onBack, onSuccess }:
   const [observacao, setObservacao] = useState('');
   const [presentes, setPresentes] = useState<Set<string>>(new Set());
 
-  const activeMembers = (members || []).filter(m => m.is_active);
+  const participants: Participant[] = nivel === 'celula'
+    ? (members || []).filter(m => m.is_active).map(m => ({
+        id: m.id,
+        name: m.profile?.name || 'Membro',
+        avatar_url: m.profile?.avatar_url,
+        type: 'member' as const,
+      }))
+    : externalParticipants || [];
 
-  const toggleMember = (id: string) => {
+  const isLoading = nivel === 'celula' ? membersLoading : false;
+
+  const toggleParticipant = (id: string) => {
     setPresentes(prev => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -40,24 +60,28 @@ export function DiscipuladoEncontroForm({ celulaId, redeId, onBack, onSuccess }:
   };
 
   const selectAll = () => {
-    if (presentes.size === activeMembers.length) {
+    if (presentes.size === participants.length) {
       setPresentes(new Set());
     } else {
-      setPresentes(new Set(activeMembers.map(m => m.id)));
+      setPresentes(new Set(participants.map(p => p.id)));
     }
   };
 
   const handleSubmit = () => {
+    const presencasData = participants.map(p => ({
+      ...(p.type === 'member' ? { member_id: p.id } : { profile_id: p.id }),
+      presente: presentes.has(p.id),
+    }));
+
     createEncontro.mutate({
-      celula_id: celulaId,
-      rede_id: redeId,
+      celula_id: celulaId || null,
+      coordenacao_id: coordenacaoId || null,
+      rede_id: redeId || null,
+      nivel,
       data_encontro: dataEncontro,
       realizado,
       observacao: observacao.trim() || undefined,
-      presencas: activeMembers.map(m => ({
-        member_id: m.id,
-        presente: presentes.has(m.id),
-      })),
+      presencas: presencasData,
     }, {
       onSuccess: () => {
         onSuccess?.();
@@ -65,6 +89,8 @@ export function DiscipuladoEncontroForm({ celulaId, redeId, onBack, onSuccess }:
       },
     });
   };
+
+  const nivelLabel = nivel === 'celula' ? 'Membros' : nivel === 'coordenacao' ? 'Líderes de Célula' : 'Coordenadores';
 
   if (isLoading) {
     return <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
@@ -86,28 +112,15 @@ export function DiscipuladoEncontroForm({ celulaId, redeId, onBack, onSuccess }:
         <CardContent className="p-4 space-y-4">
           <div>
             <Label className="text-sm text-muted-foreground">Data do Encontro</Label>
-            <Input
-              type="date"
-              value={dataEncontro}
-              onChange={e => setDataEncontro(e.target.value)}
-              className="h-12 mt-1"
-            />
+            <Input type="date" value={dataEncontro} onChange={e => setDataEncontro(e.target.value)} className="h-12 mt-1" />
           </div>
-
           <div className="flex items-center justify-between">
             <Label className="text-sm">Encontro realizado?</Label>
             <Switch checked={realizado} onCheckedChange={setRealizado} />
           </div>
-
           <div>
             <Label className="text-sm text-muted-foreground">Observação (opcional)</Label>
-            <Textarea
-              value={observacao}
-              onChange={e => setObservacao(e.target.value)}
-              placeholder="Ex: Capítulo 3 discutido..."
-              className="mt-1 min-h-[60px]"
-              maxLength={200}
-            />
+            <Textarea value={observacao} onChange={e => setObservacao(e.target.value)} placeholder="Ex: Capítulo 3 discutido..." className="mt-1 min-h-[60px]" maxLength={200} />
           </div>
         </CardContent>
       </Card>
@@ -118,54 +131,47 @@ export function DiscipuladoEncontroForm({ celulaId, redeId, onBack, onSuccess }:
           <CardHeader className="pb-2 pt-4 px-4">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm text-muted-foreground">
-                Participantes ({presentes.size}/{activeMembers.length})
+                {nivelLabel} ({presentes.size}/{participants.length})
               </CardTitle>
               <Button variant="ghost" size="sm" onClick={selectAll} className="text-xs h-8">
-                {presentes.size === activeMembers.length ? 'Desmarcar todos' : 'Marcar todos'}
+                {presentes.size === participants.length ? 'Desmarcar todos' : 'Marcar todos'}
               </Button>
             </div>
           </CardHeader>
           <CardContent className="px-4 pb-4 space-y-1">
-            {activeMembers.map(m => (
-              <div
-                key={m.id}
-                className="flex items-center gap-3 p-3 rounded-lg cursor-pointer active:bg-accent/50 touch-manipulation transition-colors"
-                onClick={() => toggleMember(m.id)}
-              >
-                <Checkbox
-                  checked={presentes.has(m.id)}
-                  onCheckedChange={() => toggleMember(m.id)}
-                  className="h-5 w-5"
-                />
-                <Avatar className="h-8 w-8 shrink-0">
-                  <AvatarImage src={m.profile?.avatar_url || undefined} />
-                  <AvatarFallback className="text-xs">{m.profile?.name?.charAt(0) || '?'}</AvatarFallback>
-                </Avatar>
-                <span className="text-sm flex-1 truncate">{m.profile?.name || 'Membro'}</span>
-                {presentes.has(m.id) && <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" />}
-              </div>
-            ))}
+            {participants.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">Nenhum participante encontrado</p>
+            ) : (
+              participants.map(p => (
+                <div
+                  key={p.id}
+                  className="flex items-center gap-3 p-3 rounded-lg cursor-pointer active:bg-accent/50 touch-manipulation transition-colors"
+                  onClick={() => toggleParticipant(p.id)}
+                >
+                  <Checkbox checked={presentes.has(p.id)} onCheckedChange={() => toggleParticipant(p.id)} className="h-5 w-5" />
+                  <Avatar className="h-8 w-8 shrink-0">
+                    <AvatarImage src={p.avatar_url || undefined} />
+                    <AvatarFallback className="text-xs">{p.name?.charAt(0) || '?'}</AvatarFallback>
+                  </Avatar>
+                  <span className="text-sm flex-1 truncate">{p.name}</span>
+                  {presentes.has(p.id) && <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" />}
+                </div>
+              ))
+            )}
           </CardContent>
         </Card>
       )}
 
-      {/* Submit */}
       <Button
         className="w-full h-14 text-base font-semibold"
         onClick={handleSubmit}
         disabled={createEncontro.isPending || (!realizado && !observacao.trim())}
       >
-        {createEncontro.isPending ? (
-          <Loader2 className="h-5 w-5 animate-spin mr-2" />
-        ) : (
-          <CheckCircle2 className="h-5 w-5 mr-2" />
-        )}
+        {createEncontro.isPending ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <CheckCircle2 className="h-5 w-5 mr-2" />}
         Registrar Encontro
       </Button>
 
-      <p className="text-xs text-center text-muted-foreground italic">
-        Discipulado é presença, constância e cuidado.
-      </p>
+      <p className="text-xs text-center text-muted-foreground italic">Discipulado é presença, constância e cuidado.</p>
     </div>
   );
 }

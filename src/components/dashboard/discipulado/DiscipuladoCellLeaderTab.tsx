@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, BookOpen, Plus, Calendar, Users, ChevronRight } from 'lucide-react';
@@ -24,6 +24,7 @@ export function DiscipuladoCellLeaderTab({ celulaId, celulaName, redeId }: Props
   if (showForm) {
     return (
       <DiscipuladoEncontroForm
+        nivel="celula"
         celulaId={celulaId}
         redeId={redeId}
         onBack={() => setShowForm(false)}
@@ -32,12 +33,7 @@ export function DiscipuladoCellLeaderTab({ celulaId, celulaName, redeId }: Props
   }
 
   if (selectedEncontro) {
-    return (
-      <EncontroDetail
-        encontroId={selectedEncontro}
-        onBack={() => setSelectedEncontro(null)}
-      />
-    );
+    return <EncontroDetail encontroId={selectedEncontro} onBack={() => setSelectedEncontro(null)} />;
   }
 
   if (isLoading) {
@@ -48,15 +44,11 @@ export function DiscipuladoCellLeaderTab({ celulaId, celulaName, redeId }: Props
 
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <BookOpen className="h-5 w-5 text-primary" />
-          <h2 className="text-lg font-semibold">Discipulado</h2>
-        </div>
+      <div className="flex items-center gap-2">
+        <BookOpen className="h-5 w-5 text-primary" />
+        <h2 className="text-lg font-semibold">Discipulado</h2>
       </div>
 
-      {/* Program info */}
       <Card className="border-l-4 border-l-primary">
         <CardContent className="p-4">
           <p className="font-semibold text-sm">📖 Impacto da Santidade</p>
@@ -64,19 +56,16 @@ export function DiscipuladoCellLeaderTab({ celulaId, celulaName, redeId }: Props
         </CardContent>
       </Card>
 
-      {/* KPIs */}
       <div className="grid grid-cols-2 gap-3">
         <StatCard icon={Calendar} label="Encontros" value={stats.totalEncontros} />
         <StatCard icon={Users} label="Constância" value={`${stats.constancia}%`} />
       </div>
 
-      {/* CTA */}
       <Button className="w-full h-14 text-base font-semibold" onClick={() => setShowForm(true)}>
         <Plus className="h-5 w-5 mr-2" />
         Registrar Encontro
       </Button>
 
-      {/* History */}
       <h3 className="text-sm font-semibold text-muted-foreground">Histórico</h3>
       {!encontros?.length ? (
         <EmptyState icon={BookOpen} title="Nenhum encontro" description="Registre o primeiro encontro de discipulado" />
@@ -90,12 +79,8 @@ export function DiscipuladoCellLeaderTab({ celulaId, celulaName, redeId }: Props
             >
               <CardContent className="p-4 flex items-center justify-between">
                 <div className="min-w-0 flex-1">
-                  <p className="font-medium text-sm">
-                    {format(parseISO(e.data_encontro), "dd 'de' MMMM", { locale: ptBR })}
-                  </p>
-                  {e.observacao && (
-                    <p className="text-xs text-muted-foreground truncate mt-0.5">{e.observacao}</p>
-                  )}
+                  <p className="font-medium text-sm">{format(parseISO(e.data_encontro), "dd 'de' MMMM", { locale: ptBR })}</p>
+                  {e.observacao && <p className="text-xs text-muted-foreground truncate mt-0.5">{e.observacao}</p>}
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <Badge variant={e.realizado ? 'default' : 'outline'} className="text-xs">
@@ -109,25 +94,18 @@ export function DiscipuladoCellLeaderTab({ celulaId, celulaName, redeId }: Props
         </div>
       )}
 
-      <p className="text-xs text-center text-muted-foreground italic pt-2">
-        Discipulado é presença, constância e cuidado.
-      </p>
+      <p className="text-xs text-center text-muted-foreground italic pt-2">Discipulado é presença, constância e cuidado.</p>
     </div>
   );
 }
 
-// ── Detail view ──
 function EncontroDetail({ encontroId, onBack }: { encontroId: string; onBack: () => void }) {
   const { data: presencas, isLoading } = useDiscipuladoPresencas(encontroId);
 
   return (
     <div className="space-y-4">
-      <Button variant="ghost" size="sm" onClick={onBack} className="gap-1 -ml-2 h-11 touch-manipulation">
-        ← Voltar
-      </Button>
-
+      <Button variant="ghost" size="sm" onClick={onBack} className="gap-1 -ml-2 h-11 touch-manipulation">← Voltar</Button>
       <h3 className="text-sm font-semibold text-muted-foreground">Presenças do Encontro</h3>
-
       {isLoading ? (
         <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
       ) : !presencas?.length ? (
@@ -137,7 +115,7 @@ function EncontroDetail({ encontroId, onBack }: { encontroId: string; onBack: ()
           {presencas.map(p => (
             <Card key={p.id}>
               <CardContent className="p-3 flex items-center justify-between">
-                <span className="text-sm">{p.member_id.slice(0, 8)}...</span>
+                <span className="text-sm">{(p.member_id || p.profile_id || '').slice(0, 8)}...</span>
                 <Badge variant={p.presente ? 'default' : 'secondary'} className="text-xs">
                   {p.presente ? '✓ Presente' : 'Ausente'}
                 </Badge>

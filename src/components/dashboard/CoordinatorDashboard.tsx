@@ -294,7 +294,7 @@ export function CoordinatorDashboard() {
             </TabsContent>
 
             <TabsContent value="discipulado">
-              <DiscipuladoCoordView coordId={selectedCoordenacao} />
+              <DiscipuladoCoordView coordId={selectedCoordenacao} redeId={selectedCoordData?.rede_id} />
             </TabsContent>
           </Tabs>
         </>
