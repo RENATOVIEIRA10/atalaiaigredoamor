@@ -16,9 +16,9 @@ export interface CoordMonthlyData extends MonthlyDataPoint {
   [coordName: string]: number | string;
 }
 
-export function usePastoralGrowthCharts() {
+export function usePastoralGrowthCharts(campoId?: string | null) {
   return useQuery({
-    queryKey: ['pastoral-growth-charts'],
+    queryKey: ['pastoral-growth-charts', campoId],
     queryFn: async () => {
       const now = new Date();
       const months: { start: string; end: string; label: string; key: string }[] = [];
@@ -32,14 +32,23 @@ export function usePastoralGrowthCharts() {
         });
       }
 
-      const [redesRes, coordsRes, celulasRes, reportsRes] = await Promise.all([
-        supabase.from('redes').select('id, name'),
-        supabase.from('coordenacoes').select('id, name, rede_id'),
-        supabase.from('celulas').select('id, coordenacao_id').eq('is_test_data', false),
-        supabase.from('weekly_reports')
+      let redesQ = supabase.from('redes').select('id, name');
+      let coordsQ = supabase.from('coordenacoes').select('id, name, rede_id');
+      let celulasQ = supabase.from('celulas').select('id, coordenacao_id').eq('is_test_data', false);
+      let reportsQ = supabase.from('weekly_reports')
           .select('celula_id, members_present, visitors, week_start')
           .gte('week_start', months[0].start)
-          .lte('week_start', months[5].end),
+          .lte('week_start', months[5].end);
+
+      if (campoId) {
+        redesQ = redesQ.eq('campo_id', campoId);
+        coordsQ = coordsQ.eq('campo_id', campoId);
+        celulasQ = celulasQ.eq('campo_id', campoId);
+        reportsQ = reportsQ.eq('campo_id', campoId);
+      }
+
+      const [redesRes, coordsRes, celulasRes, reportsRes] = await Promise.all([
+        redesQ, coordsQ, celulasQ, reportsQ,
       ]);
 
       const redes = redesRes.data || [];

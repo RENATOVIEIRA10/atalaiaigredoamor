@@ -11,6 +11,7 @@ import { StatCard } from '@/components/ui/stat-card';
 interface RadarSaudePanelProps {
   scopeType: 'rede' | 'coordenacao' | 'all';
   scopeId?: string;
+  campoId?: string | null;
   title?: string;
   compact?: boolean; // PWA mode
 }
@@ -22,8 +23,8 @@ const STATUS_CONFIG = {
   sem_avaliacao: { label: 'Sem avaliação', emoji: '⚪', color: 'text-muted-foreground', bg: 'bg-muted/50', border: 'border-muted' },
 } as const;
 
-export function RadarSaudePanel({ scopeType, scopeId, title = 'Radar de Saúde', compact = false }: RadarSaudePanelProps) {
-  const { data, isLoading } = useRadarSaude({ scopeType, scopeId });
+export function RadarSaudePanel({ scopeType, scopeId, campoId, title = 'Radar de Saúde', compact = false }: RadarSaudePanelProps) {
+  const { data, isLoading } = useRadarSaude({ scopeType, scopeId, campoId });
 
   if (isLoading) {
     return (

@@ -34,15 +34,16 @@ export interface EventRegistration {
   celula?: { id: string; name: string } | null;
 }
 
-export function useSpiritualEvents(type?: 'batismo' | 'aclamacao') {
+export function useSpiritualEvents(type?: 'batismo' | 'aclamacao', campoId?: string | null) {
   return useQuery({
-    queryKey: ['events_spiritual', type],
+    queryKey: ['events_spiritual', type, campoId],
     queryFn: async () => {
       let query = supabase
         .from('events_spiritual')
         .select('*')
         .order('event_date', { ascending: false });
       if (type) query = query.eq('type', type);
+      if (campoId) query = query.eq('campo_id', campoId);
       const { data, error } = await query;
       if (error) throw error;
       return (data || []) as SpiritualEvent[];
@@ -50,16 +51,18 @@ export function useSpiritualEvents(type?: 'batismo' | 'aclamacao') {
   });
 }
 
-export function useActiveEvents() {
+export function useActiveEvents(campoId?: string | null) {
   return useQuery({
-    queryKey: ['events_spiritual_active'],
+    queryKey: ['events_spiritual_active', campoId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('events_spiritual')
         .select('*')
         .eq('is_active', true)
         .gte('event_date', new Date().toISOString().split('T')[0])
         .order('event_date', { ascending: true });
+      if (campoId) query = query.eq('campo_id', campoId);
+      const { data, error } = await query;
       if (error) throw error;
       return (data || []) as SpiritualEvent[];
     },

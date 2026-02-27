@@ -395,7 +395,7 @@ export function PastorDashboard() {
 
       {/* Radar de Saúde (baseado em supervisões) */}
       <section>
-        <RadarSaudePanel scopeType="all" title="Radar de Saúde da Rede" />
+        <RadarSaudePanel scopeType="all" campoId={campoId} title="Radar de Saúde da Rede" />
       </section>
 
       {/* Frutos e Celebrações */}
@@ -434,7 +434,7 @@ export function PastorDashboard() {
       {/* Evolução Temporal */}
       <section>
         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">📈 Evolução dos Últimos 6 Meses</h2>
-        <PastoralGrowthCharts />
+        <PastoralGrowthCharts campoId={campoId} />
       </section>
 
       {/* Visão de Governo */}
