@@ -169,12 +169,25 @@ export function CreateLeadershipDialog({ open, onOpenChange }: { open: boolean; 
         }
 
         // For pastor_de_campo, create campo_pastores entry
-        if (fn.functionType === 'pastor_de_campo' && fn.entityId && profileId) {
-          await supabase.from('campo_pastores').insert({
-            profile_id: profileId,
-            campo_id: fn.entityId,
-            tipo: 'pastor_de_campo',
-          });
+        if (fn.functionType === 'pastor_de_campo' && fn.entityId) {
+          let pastorProfileId = profileId;
+          // For couples, use spouse1's profile_id
+          if (!pastorProfileId && coupleId) {
+            const { data: lc } = await supabase.from('leadership_couples').select('spouse1_id, spouse2_id').eq('id', coupleId).single();
+            if (lc) {
+              // Insert both spouses as pastors of this campo
+              await supabase.from('campo_pastores').insert([
+                { profile_id: lc.spouse1_id, campo_id: fn.entityId, tipo: 'pastor_de_campo' },
+                { profile_id: lc.spouse2_id, campo_id: fn.entityId, tipo: 'pastor_de_campo' },
+              ]);
+            }
+          } else if (pastorProfileId) {
+            await supabase.from('campo_pastores').insert({
+              profile_id: pastorProfileId,
+              campo_id: fn.entityId,
+              tipo: 'pastor_de_campo',
+            });
+          }
         }
 
         // Determine campo_id and rede_id
@@ -210,7 +223,7 @@ export function CreateLeadershipDialog({ open, onOpenChange }: { open: boolean; 
         // 3. Auto-create access key
         const akScopeType = getScopeTypeForAccessKey(fn.functionType);
         const code = generateAccessCode();
-        await supabase.from('access_keys').insert({
+        const { error: akError } = await supabase.from('access_keys').insert({
           scope_type: akScopeType,
           scope_id: scopeEntityId,
           code,
@@ -218,6 +231,9 @@ export function CreateLeadershipDialog({ open, onOpenChange }: { open: boolean; 
           rede_id: redeId,
           campo_id: campoId,
         });
+        if (akError) {
+          console.error('Erro ao criar access_key:', akError);
+        }
       }
 
       queryClient.invalidateQueries({ queryKey: ['leadership_functions_unified'] });
