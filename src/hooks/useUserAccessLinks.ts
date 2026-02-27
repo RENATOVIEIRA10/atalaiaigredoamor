@@ -9,6 +9,7 @@ export interface UserAccessLink {
   scope_type: string;
   scope_id: string | null;
   rede_id: string | null;
+  campo_id: string | null;
   label: string;
   active: boolean;
   created_at: string;
@@ -50,6 +51,7 @@ export function useUserAccessLinks() {
         scope_type: accessKey.scope_type,
         scope_id: accessKey.scope_id,
         rede_id: accessKey.rede_id,
+        campo_id: (accessKey as any).campo_id ?? null,
         label,
         active: true,
       }, { onConflict: 'user_id,access_key_id' });
