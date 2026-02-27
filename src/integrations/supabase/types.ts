@@ -390,33 +390,39 @@ export type Database = {
       }
       discipulado_encontros: {
         Row: {
-          celula_id: string
+          celula_id: string | null
+          coordenacao_id: string | null
           created_at: string
           created_by: string | null
           data_encontro: string
           id: string
+          nivel: string
           observacao: string | null
           realizado: boolean
           rede_id: string | null
           updated_at: string
         }
         Insert: {
-          celula_id: string
+          celula_id?: string | null
+          coordenacao_id?: string | null
           created_at?: string
           created_by?: string | null
           data_encontro: string
           id?: string
+          nivel?: string
           observacao?: string | null
           realizado?: boolean
           rede_id?: string | null
           updated_at?: string
         }
         Update: {
-          celula_id?: string
+          celula_id?: string | null
+          coordenacao_id?: string | null
           created_at?: string
           created_by?: string | null
           data_encontro?: string
           id?: string
+          nivel?: string
           observacao?: string | null
           realizado?: boolean
           rede_id?: string | null
@@ -428,6 +434,13 @@ export type Database = {
             columns: ["celula_id"]
             isOneToOne: false
             referencedRelation: "celulas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "discipulado_encontros_coordenacao_id_fkey"
+            columns: ["coordenacao_id"]
+            isOneToOne: false
+            referencedRelation: "coordenacoes"
             referencedColumns: ["id"]
           },
           {
@@ -444,22 +457,25 @@ export type Database = {
           created_at: string
           encontro_id: string
           id: string
-          member_id: string
+          member_id: string | null
           presente: boolean
+          profile_id: string | null
         }
         Insert: {
           created_at?: string
           encontro_id: string
           id?: string
-          member_id: string
+          member_id?: string | null
           presente?: boolean
+          profile_id?: string | null
         }
         Update: {
           created_at?: string
           encontro_id?: string
           id?: string
-          member_id?: string
+          member_id?: string | null
           presente?: boolean
+          profile_id?: string | null
         }
         Relationships: [
           {
@@ -474,6 +490,13 @@ export type Database = {
             columns: ["member_id"]
             isOneToOne: false
             referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "discipulado_presencas_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
