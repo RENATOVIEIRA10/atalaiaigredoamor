@@ -13,11 +13,10 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
 import { EmptyState } from '@/components/ui/empty-state';
 import {
-  Loader2, ChevronLeft, Droplets, Plus, Users, CheckCircle,
-  Clock, XCircle, UserPlus, AlertTriangle,
+  Loader2, ChevronLeft, Droplets, Users, CheckCircle,
+  Clock, XCircle, UserPlus, AlertTriangle, Search,
 } from 'lucide-react';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -44,12 +43,6 @@ export default function CentralBatismoDashboard() {
   const activeEventId = selectedEventId || events?.[0]?.id || '';
   const { data: registrations, isLoading: regsLoading } = useEventRegistrations(activeEventId || undefined);
   const updateStatus = useUpdateRegistrationStatus();
-  const createReg = useCreateEventRegistration();
-
-  // New registration form state
-  const [regName, setRegName] = useState('');
-  const [regWhatsapp, setRegWhatsapp] = useState('');
-  const [regType, setRegType] = useState<'vida' | 'membro'>('vida');
 
   // Get operator name
   const { data: profile } = useQuery({
@@ -80,28 +73,6 @@ export default function CentralBatismoDashboard() {
       semCelula: all.filter(r => !r.celula_id).length,
     };
   }, [registrations]);
-
-  const handleRegister = () => {
-    if (!regName.trim() || !activeEventId) return;
-    createReg.mutate({
-      event_id: activeEventId,
-      person_type: regType,
-      vida_id: null,
-      membro_id: null,
-      full_name: regName.trim(),
-      whatsapp: regWhatsapp || null,
-      celula_id: null,
-      rede_id: null,
-      created_by_user_id: user?.id || null,
-      created_by_name: profile?.name || 'Central Batismo',
-    } as any, {
-      onSuccess: () => {
-        setShowRegister(false);
-        setRegName('');
-        setRegWhatsapp('');
-      },
-    });
-  };
 
   const handleStatusChange = (regId: string, status: string) => {
     updateStatus.mutate({ id: regId, status });
@@ -183,7 +154,7 @@ export default function CentralBatismoDashboard() {
                             <Badge variant="outline" className={`text-[10px] ${st.color}`}>{st.label}</Badge>
                             {!reg.celula_id && (
                               <Badge variant="outline" className="text-[10px] bg-amber-500/20 text-amber-600 border-amber-500/30">
-                                Sem célula
+                                Sem célula → Central
                               </Badge>
                             )}
                           </div>
@@ -237,33 +208,231 @@ export default function CentralBatismoDashboard() {
       )}
 
       {/* Register Dialog */}
-      <Dialog open={showRegister} onOpenChange={setShowRegister}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader><DialogTitle>Inscrever Pessoa</DialogTitle></DialogHeader>
-          <div className="space-y-3">
-            <Input placeholder="Nome completo" value={regName} onChange={e => setRegName(e.target.value)} />
-            <Input placeholder="WhatsApp (opcional)" value={regWhatsapp} onChange={e => setRegWhatsapp(e.target.value)} />
-            <Select value={regType} onValueChange={v => setRegType(v as 'vida' | 'membro')}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="vida">Nova Vida</SelectItem>
-                <SelectItem value="membro">Membro</SelectItem>
-              </SelectContent>
-            </Select>
-            <div className="flex gap-3">
-              <Button variant="outline" onClick={() => setShowRegister(false)} className="flex-1">Cancelar</Button>
-              <Button onClick={handleRegister} disabled={!regName.trim() || createReg.isPending} className="flex-1">
-                {createReg.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                Inscrever
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <RegisterDialog
+        open={showRegister}
+        onOpenChange={setShowRegister}
+        activeEventId={activeEventId}
+        operatorName={profile?.name || 'Central Batismo'}
+        userId={user?.id}
+      />
     </div>
   );
 }
 
+/* ─── Register Dialog (refactored) ─── */
+function RegisterDialog({
+  open, onOpenChange, activeEventId, operatorName, userId,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  activeEventId: string;
+  operatorName: string;
+  userId?: string;
+}) {
+  const createReg = useCreateEventRegistration();
+  const [regType, setRegType] = useState<'vida' | 'membro'>('vida');
+  const [regName, setRegName] = useState('');
+  const [regWhatsapp, setRegWhatsapp] = useState('');
+
+  // Member search
+  const [memberSearch, setMemberSearch] = useState('');
+  const [selectedMember, setSelectedMember] = useState<any>(null);
+
+  const { data: allMembers } = useQuery({
+    queryKey: ['members-for-batismo'],
+    enabled: regType === 'membro' && open,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('members')
+        .select(`
+          id, celula_id, whatsapp,
+          profile:profiles!members_profile_id_fkey(id, name),
+          celula:celulas!members_celula_id_fkey(
+            id, name,
+            coordenacao:coordenacoes!celulas_coordenacao_id_fkey(
+              id, name,
+              rede:redes!coordenacoes_rede_id_fkey(id, name)
+            )
+          )
+        `)
+        .eq('is_active', true)
+        .order('joined_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const filteredMembers = useMemo(() => {
+    if (!allMembers || !memberSearch.trim()) return [];
+    const q = memberSearch.toLowerCase();
+    return allMembers
+      .filter((m: any) => (m.profile as any)?.name?.toLowerCase().includes(q))
+      .slice(0, 10);
+  }, [allMembers, memberSearch]);
+
+  const resetForm = () => {
+    setRegName('');
+    setRegWhatsapp('');
+    setMemberSearch('');
+    setSelectedMember(null);
+    setRegType('vida');
+  };
+
+  const handleRegister = () => {
+    if (regType === 'membro') {
+      if (!selectedMember) return;
+      const celula = selectedMember.celula as any;
+      const coord = celula?.coordenacao as any;
+      const rede = coord?.rede as any;
+      createReg.mutate({
+        event_id: activeEventId,
+        person_type: 'membro',
+        vida_id: null,
+        membro_id: selectedMember.id,
+        full_name: (selectedMember.profile as any)?.name || '',
+        whatsapp: selectedMember.whatsapp || null,
+        celula_id: celula?.id || null,
+        coordenacao_id: coord?.id || null,
+        rede_id: rede?.id || null,
+        created_by_user_id: userId || null,
+        created_by_name: operatorName,
+      } as any, {
+        onSuccess: () => { onOpenChange(false); resetForm(); },
+      });
+    } else {
+      if (!regName.trim()) return;
+      createReg.mutate({
+        event_id: activeEventId,
+        person_type: 'vida',
+        vida_id: null,
+        membro_id: null,
+        full_name: regName.trim(),
+        whatsapp: regWhatsapp || null,
+        celula_id: null,
+        rede_id: null,
+        created_by_user_id: userId || null,
+        created_by_name: operatorName,
+      } as any, {
+        onSuccess: () => { onOpenChange(false); resetForm(); },
+      });
+    }
+  };
+
+  const celula = selectedMember?.celula as any;
+  const coord = celula?.coordenacao as any;
+  const rede = coord?.rede as any;
+  const memberHasNoCelula = selectedMember && !celula?.id;
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => { onOpenChange(v); if (!v) resetForm(); }}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader><DialogTitle>Inscrever Pessoa</DialogTitle></DialogHeader>
+        <div className="space-y-3">
+          <Select value={regType} onValueChange={v => { setRegType(v as 'vida' | 'membro'); setSelectedMember(null); setMemberSearch(''); }}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="vida">Nova Vida</SelectItem>
+              <SelectItem value="membro">Membro</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {regType === 'vida' ? (
+            <>
+              <Input placeholder="Nome completo" value={regName} onChange={e => setRegName(e.target.value)} />
+              <Input placeholder="WhatsApp (opcional)" value={regWhatsapp} onChange={e => setRegWhatsapp(e.target.value)} />
+              <p className="text-[11px] text-amber-600 flex items-center gap-1">
+                <AlertTriangle className="h-3 w-3" />
+                Sem célula → será encaminhado automaticamente para a Central de Células.
+              </p>
+            </>
+          ) : (
+            <>
+              {!selectedMember ? (
+                <div className="space-y-2">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Buscar membro pelo nome..."
+                      value={memberSearch}
+                      onChange={e => setMemberSearch(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                  {filteredMembers.length > 0 && (
+                    <div className="max-h-48 overflow-y-auto space-y-1 border border-border rounded-lg p-1">
+                      {filteredMembers.map((m: any) => {
+                        const mc = m.celula as any;
+                        const mco = mc?.coordenacao as any;
+                        const mr = mco?.rede as any;
+                        return (
+                          <button
+                            key={m.id}
+                            onClick={() => setSelectedMember(m)}
+                            className="w-full text-left p-2 rounded-md hover:bg-muted/50 transition-colors"
+                          >
+                            <p className="text-sm font-medium text-foreground">{(m.profile as any)?.name}</p>
+                            {mc?.name ? (
+                              <p className="text-[10px] text-muted-foreground">
+                                {[mr?.name, mco?.name, mc?.name].filter(Boolean).join(' › ')}
+                              </p>
+                            ) : (
+                              <p className="text-[10px] text-amber-600">⚠ Sem célula vinculada</p>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                  {memberSearch.trim().length >= 2 && filteredMembers.length === 0 && (
+                    <p className="text-xs text-muted-foreground text-center py-2">Nenhum membro encontrado.</p>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <div className="p-3 rounded-lg bg-muted/30 border border-border">
+                    <div className="flex items-center justify-between">
+                      <p className="font-semibold text-sm text-foreground">{(selectedMember.profile as any)?.name}</p>
+                      <Button variant="ghost" size="sm" onClick={() => { setSelectedMember(null); setMemberSearch(''); }}>
+                        Trocar
+                      </Button>
+                    </div>
+                    {celula?.name ? (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        📍 {[rede?.name, coord?.name, celula?.name].filter(Boolean).join(' › ')}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-destructive mt-1 font-medium">
+                        ⚠ Este membro está sem célula vinculada. Corrija o cadastro do membro antes de inscrever.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+
+          <div className="flex gap-3">
+            <Button variant="outline" onClick={() => { onOpenChange(false); resetForm(); }} className="flex-1">Cancelar</Button>
+            <Button
+              onClick={handleRegister}
+              disabled={
+                createReg.isPending ||
+                (regType === 'vida' && !regName.trim()) ||
+                (regType === 'membro' && (!selectedMember || memberHasNoCelula))
+              }
+              className="flex-1"
+            >
+              {createReg.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Inscrever
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/* ─── Stat Mini ─── */
 function StatMini({ icon: Icon, label, value, color }: { icon: any; label: string; value: number; color?: string }) {
   return (
     <Card>
