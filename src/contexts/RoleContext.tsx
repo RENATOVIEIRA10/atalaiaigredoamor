@@ -1,8 +1,8 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-type UserRole = 'pastor' | 'admin' | 'rede_leader' | 'coordenador' | 'supervisor' | 'celula_leader' | 'demo_institucional' | 'recomeco_operador' | 'recomeco_leitura' | 'recomeco_cadastro' | 'central_celulas';
-type ScopeType = 'pastor' | 'admin' | 'rede' | 'coordenacao' | 'supervisor' | 'celula' | 'demo_institucional' | 'recomeco_operador' | 'recomeco_leitura' | 'recomeco_cadastro' | 'central_celulas';
+type UserRole = 'pastor' | 'admin' | 'rede_leader' | 'coordenador' | 'supervisor' | 'celula_leader' | 'demo_institucional' | 'recomeco_operador' | 'recomeco_leitura' | 'recomeco_cadastro' | 'central_celulas' | 'lider_recomeco_central';
+type ScopeType = 'pastor' | 'admin' | 'rede' | 'coordenacao' | 'supervisor' | 'celula' | 'demo_institucional' | 'recomeco_operador' | 'recomeco_leitura' | 'recomeco_cadastro' | 'central_celulas' | 'lider_recomeco_central';
 
 const SESSION_KEY = 'rede_amor_session';
 const SESSION_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
@@ -32,7 +32,8 @@ interface RoleContextType {
   isRecomecoOperador: boolean;
   isRecomecoLeitura: boolean;
   isRecomecoCadastro: boolean;
-  isCentralCelulas: boolean;
+    isCentralCelulas: boolean;
+    isLiderRecomecoCentral: boolean;
 }
 
 const RoleContext = createContext<RoleContextType | undefined>(undefined);
@@ -50,6 +51,7 @@ function scopeTypeToRole(scopeType: ScopeType): UserRole {
     case 'recomeco_leitura': return 'recomeco_leitura';
     case 'recomeco_cadastro': return 'recomeco_cadastro';
     case 'central_celulas': return 'central_celulas';
+    case 'lider_recomeco_central': return 'lider_recomeco_central';
   }
 }
 
@@ -144,6 +146,7 @@ export function RoleProvider({ children }: { children: ReactNode }) {
     isRecomecoLeitura: selectedRole === 'recomeco_leitura',
     isRecomecoCadastro: selectedRole === 'recomeco_cadastro',
     isCentralCelulas: selectedRole === 'central_celulas',
+    isLiderRecomecoCentral: selectedRole === 'lider_recomeco_central',
   };
 
   return (

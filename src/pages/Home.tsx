@@ -18,7 +18,7 @@ import { RedeSelector } from '@/components/rede/RedeSelector';
 import { roleLabels } from '@/lib/icons';
 
 type LoginStep = 'code' | 'rede-select';
-type ScopeType = 'pastor' | 'admin' | 'rede' | 'coordenacao' | 'supervisor' | 'celula' | 'demo_institucional' | 'recomeco_operador' | 'recomeco_leitura' | 'recomeco_cadastro' | 'central_celulas';
+type ScopeType = 'pastor' | 'admin' | 'rede' | 'coordenacao' | 'supervisor' | 'celula' | 'demo_institucional' | 'recomeco_operador' | 'recomeco_leitura' | 'recomeco_cadastro' | 'central_celulas' | 'lider_recomeco_central';
 
 function scopeTypeToRoleKey(st: string) {
   const map: Record<string, string> = {
@@ -27,6 +27,7 @@ function scopeTypeToRoleKey(st: string) {
     celula: 'celula_leader', demo_institucional: 'demo_institucional',
     recomeco_operador: 'recomeco_operador', recomeco_leitura: 'recomeco_leitura',
     recomeco_cadastro: 'recomeco_cadastro', central_celulas: 'central_celulas',
+    lider_recomeco_central: 'lider_recomeco_central',
   };
   return map[st] || st;
 }
@@ -74,6 +75,11 @@ export default function HomePage() {
         if (st === 'central_celulas') {
           setScopeAccess(st, link.scope_id, link.access_key_id);
           navigate('/central-celulas');
+          return;
+        }
+        if (st === 'lider_recomeco_central') {
+          setScopeAccess(st, link.scope_id, link.access_key_id);
+          navigate('/dashboard');
           return;
         }
         if (st === 'pastor' || st === 'admin') {
@@ -191,6 +197,12 @@ export default function HomePage() {
       if (scopeType === 'central_celulas') {
         setScopeAccess(scopeType, match.scope_id, match.id);
         navigate('/central-celulas');
+        setIsLoading(false);
+        return;
+      }
+      if (scopeType === 'lider_recomeco_central') {
+        setScopeAccess(scopeType, match.scope_id, match.id);
+        navigate('/dashboard');
         setIsLoading(false);
         return;
       }

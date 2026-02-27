@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useRole } from '@/contexts/RoleContext';
 import { useIsPWA } from '@/hooks/useIsPWA';
@@ -13,14 +14,24 @@ import { CoordinatorPWADashboard } from '@/components/dashboard/pwa/CoordinatorP
 import { NetworkLeaderPWADashboard } from '@/components/dashboard/pwa/NetworkLeaderPWADashboard';
 import { CellLeaderPWADashboard } from '@/components/dashboard/pwa/CellLeaderPWADashboard';
 import { SupervisorPWADashboard } from '@/components/dashboard/pwa/SupervisorPWADashboard';
+import { Loader2 } from 'lucide-react';
+
+const LiderRecomecoCentralDashboard = lazy(() => import('@/components/dashboard/LiderRecomecoCentralDashboard'));
 
 export default function Dashboard() {
-  const { isAdmin, isRedeLeader, isCoordenador, isSupervisor, isPastor, isDemoInstitucional } = useRole();
+  const { isAdmin, isRedeLeader, isCoordenador, isSupervisor, isPastor, isDemoInstitucional, isLiderRecomecoCentral } = useRole();
   const isPWA = useIsPWA();
   const isMobile = useIsMobile();
   const isPWAMobile = isPWA && isMobile;
 
   const renderDashboard = () => {
+    if (isLiderRecomecoCentral) {
+      return (
+        <Suspense fallback={<div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>}>
+          <LiderRecomecoCentralDashboard />
+        </Suspense>
+      );
+    }
     if (isDemoInstitucional) {
       return <InstitutionalDashboard />;
     }
