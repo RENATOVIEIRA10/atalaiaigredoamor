@@ -1694,6 +1694,7 @@ export type Database = {
         Row: {
           cleaned_at: string | null
           cleaned_by: string | null
+          config: Json | null
           created_at: string
           created_by: string | null
           environment: string
@@ -1706,6 +1707,7 @@ export type Database = {
         Insert: {
           cleaned_at?: string | null
           cleaned_by?: string | null
+          config?: Json | null
           created_at?: string
           created_by?: string | null
           environment?: string
@@ -1718,6 +1720,7 @@ export type Database = {
         Update: {
           cleaned_at?: string | null
           cleaned_by?: string | null
+          config?: Json | null
           created_at?: string
           created_by?: string | null
           environment?: string
