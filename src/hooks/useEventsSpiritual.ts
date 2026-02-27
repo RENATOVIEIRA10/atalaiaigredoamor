@@ -115,11 +115,35 @@ export function useCreateEventRegistration() {
         .select()
         .single();
       if (error) throw error;
+
+      // Auto-encaminhar para Central de Células se inscrição sem célula
+      if (!reg.celula_id) {
+        // Se já tem vida_id, apenas garantir que está visível na Central
+        if (reg.vida_id) {
+          await supabase
+            .from('novas_vidas')
+            .update({ status: 'nova' } as any)
+            .eq('id', reg.vida_id)
+            .in('status', ['integrada', 'convertida_membro', 'nao_convertida']);
+        } else if (!reg.membro_id) {
+          // Registro manual sem vida vinculada — criar nova_vida para Central de Células
+          const { data: { user } } = await supabase.auth.getUser();
+          await supabase.from('novas_vidas').insert({
+            nome: reg.full_name || 'Sem nome',
+            whatsapp: reg.whatsapp || null,
+            status: 'nova',
+            created_by_user_id: user?.id || null,
+            observacao: `Inscrição Batismo/Aclamação sem célula (ID: ${data.id})`,
+          } as any);
+        }
+      }
+
       return data;
     },
-    onSuccess: (_, vars) => {
+    onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['event_registrations'] });
       qc.invalidateQueries({ queryKey: ['events_spiritual'] });
+      qc.invalidateQueries({ queryKey: ['novas_vidas'] });
       toast({ title: 'Inscrição realizada!' });
     },
     onError: (e: any) => toast({ title: 'Erro na inscrição', description: e.message, variant: 'destructive' }),
