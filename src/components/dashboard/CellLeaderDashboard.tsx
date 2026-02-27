@@ -15,6 +15,7 @@ import { CellLeaderMembrosTab } from './cellleader/CellLeaderMembrosTab';
 import { CellLeaderPulsoTab } from './cellleader/CellLeaderPulsoTab';
 import { CellLeaderNovasVidasTab } from './cellleader/CellLeaderNovasVidasTab';
 import { CellLeaderRoteiroTab } from './cellleader/CellLeaderRoteiroTab';
+import { CellProfileSection } from './cellleader/CellProfileSection';
 import { StatCard } from '@/components/ui/stat-card';
 import { Badge } from '@/components/ui/badge';
 
@@ -104,7 +105,10 @@ export function CellLeaderDashboard() {
             </TabsList>
 
           <TabsContent value="pulso">
-            <CellLeaderPulsoTab celulaId={singleCell.id} />
+            <div className="space-y-4">
+              <CellProfileSection celulaId={singleCell.id} />
+              <CellLeaderPulsoTab celulaId={singleCell.id} />
+            </div>
           </TabsContent>
 
           <TabsContent value="celula">
