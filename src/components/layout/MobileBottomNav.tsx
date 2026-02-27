@@ -18,7 +18,7 @@ export function MobileBottomNav() {
   const isMobile = useIsMobile();
   const location = useLocation();
   const navigate = useNavigate();
-  const { isSupervisor, isCoordenador, isRedeLeader, isCelulaLeader, isAdmin, isPastor, isDemoInstitucional } = useRole();
+  const { isSupervisor, isCoordenador, isRedeLeader, isCelulaLeader, isAdmin, isPastor, isDemoInstitucional, isPastorSeniorGlobal, isPastorDeCampo } = useRole();
   const [menuOpen, setMenuOpen] = useState(false);
 
   // Only render in PWA + mobile
@@ -31,6 +31,13 @@ export function MobileBottomNav() {
     // Demo institucional: only Dashboard
     navItems = [
       { label: 'Início', icon: LayoutDashboard, path: '/dashboard' },
+    ];
+  } else if (isPastorSeniorGlobal || isPastorDeCampo || isPastor) {
+    // Pastor: Início, Pulso, Ações
+    navItems = [
+      { label: 'Início', icon: LayoutDashboard, path: '/dashboard' },
+      { label: 'Pulso', icon: Heart, path: '/dashboard?tab=pulso' },
+      { label: 'Ações', icon: Zap, path: '/dashboard?tab=acoes' },
     ];
   } else if (isCellLeaderOnly) {
     // Líder de Célula: Início, Ações, Histórico
