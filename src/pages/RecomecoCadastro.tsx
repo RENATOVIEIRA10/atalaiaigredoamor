@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useCallback } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useRole } from '@/contexts/RoleContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -14,11 +14,11 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Heart, UserPlus, MapPin, Phone, ChevronLeft, Loader2, ListChecks, Eye, MessageCircle, CheckCircle } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { Heart, UserPlus, MapPin, Phone, ChevronLeft, Loader2, ListChecks, Eye, MessageCircle, CheckCircle, ArrowLeft, ArrowRight } from 'lucide-react';
 import { differenceInDays } from 'date-fns';
 
 const DIAS_SEMANA = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
@@ -131,10 +131,16 @@ interface ExtendedFormData extends NovaVidaInsert {
   ja_participou_celula?: boolean;
 }
 
+// ═══════════════════════════════════════════
+// PWA WIZARD (3 steps) + Desktop single form
+// ═══════════════════════════════════════════
 function CadastroForm({ isPWAMobile }: { isPWAMobile?: boolean }) {
   const createMutation = useCreateNovaVida();
   const [form, setForm] = useState<ExtendedFormData>({ nome: '', dias_disponiveis: [] });
   const [lastCreated, setLastCreated] = useState<any>(null);
+  const [wizardStep, setWizardStep] = useState(1);
+
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const toggleDia = (dia: string) => {
     const current = form.dias_disponiveis || [];
@@ -144,67 +150,130 @@ function CadastroForm({ isPWAMobile }: { isPWAMobile?: boolean }) {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = useCallback(() => {
     if (!form.nome.trim()) return;
     createMutation.mutate(form as any, {
       onSuccess: (data) => {
         setLastCreated(data);
         setForm({ nome: '', dias_disponiveis: [] });
+        setWizardStep(1);
       },
     });
+  }, [form, createMutation]);
+
+  const handleDesktopSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleSubmit();
   };
 
-  return (
-    <div className="space-y-4">
-      {lastCreated && (
-        <div className="space-y-3">
-          <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20 text-sm text-center text-foreground">
-            ✅ {lastCreated.nome} cadastrada com sucesso!
-          </div>
-          <BoasVindasWhatsApp vida={lastCreated} />
-          <Button size="sm" variant="outline" className="w-full h-12" onClick={() => setLastCreated(null)}>
-            Cadastrar outra vida
-          </Button>
+  // Focus scroll helper for PWA
+  const scrollIntoInput = useCallback((e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    if (!isPWAMobile) return;
+    setTimeout(() => {
+      e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 300);
+  }, [isPWAMobile]);
+
+  // Step validation
+  const step1Valid = form.nome.trim().length > 0;
+  const step2Valid = !!(form.bairro && form.bairro.trim());
+
+  if (lastCreated) {
+    return (
+      <div className="space-y-3">
+        <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20 text-sm text-center text-foreground">
+          ✅ {lastCreated.nome} cadastrada com sucesso!
         </div>
-      )}
+        <BoasVindasWhatsApp vida={lastCreated} />
+        <Button size="sm" variant="outline" className="w-full h-12" onClick={() => setLastCreated(null)}>
+          Cadastrar outra vida
+        </Button>
+      </div>
+    );
+  }
 
-      {!lastCreated && (
-        <Card>
-          <CardContent className="p-5">
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Nome + WhatsApp */}
-              <div className="space-y-2">
-                <Label className="text-primary">Nome *</Label>
-                <Input value={form.nome} onChange={e => setForm(p => ({ ...p, nome: e.target.value }))} className="h-12 text-base" placeholder="Nome completo" required />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-primary">WhatsApp</Label>
-                <Input value={form.whatsapp || ''} onChange={e => setForm(p => ({ ...p, whatsapp: e.target.value }))} className="h-12 text-base" placeholder="(81) 99999-9999" inputMode="tel" />
-              </div>
+  // ──── PWA WIZARD ────
+  if (isPWAMobile) {
+    return (
+      <div className="fixed inset-0 z-50 bg-background flex flex-col" style={{ height: '100dvh' }}>
+        {/* Header */}
+        <header
+          className="flex items-center gap-3 px-4 border-b border-border/30 shrink-0 bg-background/95 backdrop-blur-md"
+          style={{
+            minHeight: 'calc(48px + env(safe-area-inset-top, 0px))',
+            paddingTop: 'env(safe-area-inset-top, 0px)',
+          }}
+        >
+          <button
+            onClick={() => {
+              if (wizardStep > 1) setWizardStep(wizardStep - 1);
+              else window.history.back();
+            }}
+            className="flex items-center justify-center h-11 w-11 -ml-2 rounded-xl active:bg-accent/60 touch-manipulation transition-colors"
+            aria-label="Voltar"
+          >
+            <ArrowLeft className="h-5 w-5 text-foreground" />
+          </button>
+          <div className="flex-1 min-w-0">
+            <h2 className="text-sm font-semibold text-foreground truncate">Nova Vida</h2>
+            <p className="text-[11px] text-muted-foreground">Passo {wizardStep} de 3</p>
+          </div>
+          <span className="text-xs font-medium text-primary">{wizardStep}/3</span>
+        </header>
 
-              {/* Location */}
-              <div className="grid grid-cols-2 gap-3">
+        {/* Progress */}
+        <div className="px-4 pt-3 pb-1 shrink-0">
+          <Progress value={(wizardStep / 3) * 100} className="h-1.5" />
+        </div>
+
+        {/* Scrollable content */}
+        <div ref={scrollRef} className="flex-1 overflow-y-auto overscroll-y-contain px-4 py-4 space-y-4">
+          {wizardStep === 1 && (
+            <>
+              <p className="text-xs font-medium uppercase tracking-wider text-primary">Dados Básicos</p>
+              <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label className="text-primary">Bairro</Label>
-                  <Input value={form.bairro || ''} onChange={e => setForm(p => ({ ...p, bairro: e.target.value }))} className="h-12 text-base" />
+                  <Label className="text-sm text-foreground">Nome completo *</Label>
+                  <Input
+                    value={form.nome}
+                    onChange={e => setForm(p => ({ ...p, nome: e.target.value }))}
+                    onFocus={scrollIntoInput}
+                    className="h-12 text-base"
+                    placeholder="Nome completo"
+                    autoComplete="name"
+                  />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-primary">Cidade</Label>
-                  <Input value={form.cidade || ''} onChange={e => setForm(p => ({ ...p, cidade: e.target.value }))} className="h-12 text-base" />
+                  <Label className="text-sm text-foreground">WhatsApp</Label>
+                  <Input
+                    value={form.whatsapp || ''}
+                    onChange={e => setForm(p => ({ ...p, whatsapp: e.target.value }))}
+                    onFocus={scrollIntoInput}
+                    className="h-12 text-base"
+                    placeholder="(81) 99999-9999"
+                    inputMode="tel"
+                    type="tel"
+                    autoComplete="tel"
+                  />
                 </div>
-              </div>
-              <div className="space-y-2">
-                <Label className="text-primary">Rua (opcional)</Label>
-                <Input value={form.rua || ''} onChange={e => setForm(p => ({ ...p, rua: e.target.value }))} className="h-12 text-base" placeholder="Rua / referência" />
-              </div>
-
-              {/* Profile */}
-              <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
-                  <Label className="text-primary">Estado Civil</Label>
+                  <Label className="text-sm text-foreground">Idade</Label>
+                  <Input
+                    type="number"
+                    value={form.idade ?? ''}
+                    onChange={e => setForm(p => ({ ...p, idade: e.target.value ? parseInt(e.target.value) : null }))}
+                    onFocus={scrollIntoInput}
+                    className="h-12 text-base"
+                    placeholder="Ex: 32"
+                    inputMode="numeric"
+                    min={0}
+                    max={120}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm text-foreground">Estado Civil</Label>
                   <Select value={form.estado_civil || ''} onValueChange={v => setForm(p => ({ ...p, estado_civil: v }))}>
-                    <SelectTrigger className="h-12"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectTrigger className="h-12 text-base"><SelectValue placeholder="Selecione" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="solteiro(a)">Solteiro(a)</SelectItem>
                       <SelectItem value="casado(a)">Casado(a)</SelectItem>
@@ -213,10 +282,64 @@ function CadastroForm({ isPWAMobile }: { isPWAMobile?: boolean }) {
                     </SelectContent>
                   </Select>
                 </div>
+                <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30 border border-border/40">
+                  <Label className="text-sm text-foreground">Tem filhos?</Label>
+                  <Switch checked={form.tem_filhos || false} onCheckedChange={v => setForm(p => ({ ...p, tem_filhos: v }))} />
+                </div>
+              </div>
+            </>
+          )}
+
+          {wizardStep === 2 && (
+            <>
+              <p className="text-xs font-medium uppercase tracking-wider text-primary">Localização</p>
+              <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label className="text-primary">Faixa Etária</Label>
+                  <Label className="text-sm text-foreground">Cidade</Label>
+                  <Select value={form.cidade || ''} onValueChange={v => setForm(p => ({ ...p, cidade: v }))}>
+                    <SelectTrigger className="h-12 text-base"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Olinda">Olinda</SelectItem>
+                      <SelectItem value="Paulista">Paulista</SelectItem>
+                      <SelectItem value="Recife">Recife</SelectItem>
+                      <SelectItem value="Abreu e Lima">Abreu e Lima</SelectItem>
+                      <SelectItem value="Igarassu">Igarassu</SelectItem>
+                      <SelectItem value="Outra">Outra</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm text-foreground">Bairro *</Label>
+                  <Input
+                    value={form.bairro || ''}
+                    onChange={e => setForm(p => ({ ...p, bairro: e.target.value }))}
+                    onFocus={scrollIntoInput}
+                    className="h-12 text-base"
+                    placeholder="Ex: Casa Caiada"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm text-foreground">Rua / Referência (opcional)</Label>
+                  <Input
+                    value={form.rua || ''}
+                    onChange={e => setForm(p => ({ ...p, rua: e.target.value }))}
+                    onFocus={scrollIntoInput}
+                    className="h-12 text-base"
+                    placeholder="Rua, número ou ponto de referência"
+                  />
+                </div>
+              </div>
+            </>
+          )}
+
+          {wizardStep === 3 && (
+            <>
+              <p className="text-xs font-medium uppercase tracking-wider text-primary">Preferências</p>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-sm text-foreground">Faixa Etária</Label>
                   <Select value={form.faixa_etaria || ''} onValueChange={v => setForm(p => ({ ...p, faixa_etaria: v }))}>
-                    <SelectTrigger className="h-12"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectTrigger className="h-12 text-base"><SelectValue placeholder="Selecione" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="18-25">18-25</SelectItem>
                       <SelectItem value="26-35">26-35</SelectItem>
@@ -226,26 +349,31 @@ function CadastroForm({ isPWAMobile }: { isPWAMobile?: boolean }) {
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
-                  <Label className="text-primary">Idade</Label>
-                  <Input
-                    type="number"
-                    value={form.idade ?? ''}
-                    onChange={e => setForm(p => ({ ...p, idade: e.target.value ? parseInt(e.target.value) : null }))}
-                    className="h-12 text-base"
-                    placeholder="Ex: 32"
-                    inputMode="numeric"
-                    min={0}
-                    max={120}
-                  />
+                  <Label className="text-sm text-foreground">Dias Disponíveis</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {DIAS_SEMANA.map(dia => (
+                      <button
+                        key={dia}
+                        type="button"
+                        onClick={() => toggleDia(dia)}
+                        className={`px-4 py-2.5 rounded-full text-sm font-medium border transition-colors touch-manipulation ${
+                          (form.dias_disponiveis || []).includes(dia)
+                            ? 'bg-primary/20 text-primary border-primary/40'
+                            : 'bg-muted/30 text-muted-foreground border-border/40'
+                        }`}
+                      >
+                        {dia.slice(0, 3)}
+                      </button>
+                    ))}
+                  </div>
                 </div>
+
                 <div className="space-y-2">
-                  <Label className="text-primary">Horário Preferido</Label>
+                  <Label className="text-sm text-foreground">Horário Preferido</Label>
                   <Select value={form.horario_preferido || ''} onValueChange={v => setForm(p => ({ ...p, horario_preferido: v }))}>
-                    <SelectTrigger className="h-12"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectTrigger className="h-12 text-base"><SelectValue placeholder="Selecione" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="manhã">Manhã</SelectItem>
                       <SelectItem value="tarde">Tarde</SelectItem>
@@ -253,59 +381,196 @@ function CadastroForm({ isPWAMobile }: { isPWAMobile?: boolean }) {
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
 
-              {/* Dias disponíveis */}
-              <div className="space-y-2">
-                <Label className="text-primary">Dias Disponíveis</Label>
-                <div className="flex flex-wrap gap-2">
-                  {DIAS_SEMANA.map(dia => (
-                    <button
-                      key={dia}
-                      type="button"
-                      onClick={() => toggleDia(dia)}
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
-                        (form.dias_disponiveis || []).includes(dia)
-                          ? 'bg-primary/20 text-primary border-primary/40'
-                          : 'bg-muted/30 text-muted-foreground border-border/40'
-                      }`}
-                    >
-                      {dia.slice(0, 3)}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Boolean toggles */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <Label className="text-sm text-foreground">Tem filhos</Label>
-                  <Switch checked={form.tem_filhos || false} onCheckedChange={v => setForm(p => ({ ...p, tem_filhos: v }))} />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label className="text-sm text-foreground">Primeira vez na igreja</Label>
+                <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30 border border-border/40">
+                  <Label className="text-sm text-foreground">Primeira vez na igreja?</Label>
                   <Switch checked={form.primeira_vez_igreja || false} onCheckedChange={v => setForm(p => ({ ...p, primeira_vez_igreja: v }))} />
                 </div>
-                <div className="flex items-center justify-between">
-                  <Label className="text-sm text-foreground">Já participou de célula</Label>
+
+                <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30 border border-border/40">
+                  <Label className="text-sm text-foreground">Já participou de célula?</Label>
                   <Switch checked={form.ja_participou_celula || false} onCheckedChange={v => setForm(p => ({ ...p, ja_participou_celula: v }))} />
                 </div>
-              </div>
 
-              {/* Observation */}
+                <div className="space-y-2">
+                  <Label className="text-sm text-foreground">Observação</Label>
+                  <Textarea
+                    value={form.observacao || ''}
+                    onChange={e => setForm(p => ({ ...p, observacao: e.target.value }))}
+                    onFocus={scrollIntoInput as any}
+                    rows={2}
+                    className="min-h-[48px] text-base"
+                  />
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Fixed CTA footer */}
+        <div
+          className="shrink-0 px-4 pt-3 pb-3 border-t border-border/30 bg-background"
+          style={{ paddingBottom: 'calc(12px + env(safe-area-inset-bottom, 0px))' }}
+        >
+          {wizardStep < 3 ? (
+            <Button
+              className="w-full h-14 text-base font-semibold gap-2"
+              disabled={wizardStep === 1 ? !step1Valid : !step2Valid}
+              onClick={() => {
+                setWizardStep(wizardStep + 1);
+                scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+            >
+              Próximo
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          ) : (
+            <Button
+              className="w-full h-14 text-base font-semibold gap-2"
+              disabled={createMutation.isPending}
+              onClick={handleSubmit}
+            >
+              {createMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}
+              Cadastrar Nova Vida
+            </Button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ──── DESKTOP: single form (unchanged) ────
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardContent className="p-5">
+          <form onSubmit={handleDesktopSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-primary">Nome *</Label>
+              <Input value={form.nome} onChange={e => setForm(p => ({ ...p, nome: e.target.value }))} className="h-12 text-base" placeholder="Nome completo" required />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-primary">WhatsApp</Label>
+              <Input value={form.whatsapp || ''} onChange={e => setForm(p => ({ ...p, whatsapp: e.target.value }))} className="h-12 text-base" placeholder="(81) 99999-9999" inputMode="tel" />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label className="text-primary">Observação</Label>
-                <Textarea value={form.observacao || ''} onChange={e => setForm(p => ({ ...p, observacao: e.target.value }))} rows={2} className="min-h-[48px]" />
+                <Label className="text-primary">Bairro</Label>
+                <Input value={form.bairro || ''} onChange={e => setForm(p => ({ ...p, bairro: e.target.value }))} className="h-12 text-base" />
               </div>
+              <div className="space-y-2">
+                <Label className="text-primary">Cidade</Label>
+                <Input value={form.cidade || ''} onChange={e => setForm(p => ({ ...p, cidade: e.target.value }))} className="h-12 text-base" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-primary">Rua (opcional)</Label>
+              <Input value={form.rua || ''} onChange={e => setForm(p => ({ ...p, rua: e.target.value }))} className="h-12 text-base" placeholder="Rua / referência" />
+            </div>
 
-              <Button type="submit" className="w-full h-14 text-base font-semibold" disabled={createMutation.isPending}>
-                {createMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <UserPlus className="h-4 w-4 mr-2" />}
-                Cadastrar Nova Vida
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-      )}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label className="text-primary">Estado Civil</Label>
+                <Select value={form.estado_civil || ''} onValueChange={v => setForm(p => ({ ...p, estado_civil: v }))}>
+                  <SelectTrigger className="h-12"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="solteiro(a)">Solteiro(a)</SelectItem>
+                    <SelectItem value="casado(a)">Casado(a)</SelectItem>
+                    <SelectItem value="divorciado(a)">Divorciado(a)</SelectItem>
+                    <SelectItem value="viuvo(a)">Viúvo(a)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-primary">Faixa Etária</Label>
+                <Select value={form.faixa_etaria || ''} onValueChange={v => setForm(p => ({ ...p, faixa_etaria: v }))}>
+                  <SelectTrigger className="h-12"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="18-25">18-25</SelectItem>
+                    <SelectItem value="26-35">26-35</SelectItem>
+                    <SelectItem value="36-45">36-45</SelectItem>
+                    <SelectItem value="46-55">46-55</SelectItem>
+                    <SelectItem value="56+">56+</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label className="text-primary">Idade</Label>
+                <Input
+                  type="number"
+                  value={form.idade ?? ''}
+                  onChange={e => setForm(p => ({ ...p, idade: e.target.value ? parseInt(e.target.value) : null }))}
+                  className="h-12 text-base"
+                  placeholder="Ex: 32"
+                  inputMode="numeric"
+                  min={0}
+                  max={120}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-primary">Horário Preferido</Label>
+                <Select value={form.horario_preferido || ''} onValueChange={v => setForm(p => ({ ...p, horario_preferido: v }))}>
+                  <SelectTrigger className="h-12"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="manhã">Manhã</SelectItem>
+                    <SelectItem value="tarde">Tarde</SelectItem>
+                    <SelectItem value="noite">Noite</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-primary">Dias Disponíveis</Label>
+              <div className="flex flex-wrap gap-2">
+                {DIAS_SEMANA.map(dia => (
+                  <button
+                    key={dia}
+                    type="button"
+                    onClick={() => toggleDia(dia)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                      (form.dias_disponiveis || []).includes(dia)
+                        ? 'bg-primary/20 text-primary border-primary/40'
+                        : 'bg-muted/30 text-muted-foreground border-border/40'
+                    }`}
+                  >
+                    {dia.slice(0, 3)}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm text-foreground">Tem filhos</Label>
+                <Switch checked={form.tem_filhos || false} onCheckedChange={v => setForm(p => ({ ...p, tem_filhos: v }))} />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label className="text-sm text-foreground">Primeira vez na igreja</Label>
+                <Switch checked={form.primeira_vez_igreja || false} onCheckedChange={v => setForm(p => ({ ...p, primeira_vez_igreja: v }))} />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label className="text-sm text-foreground">Já participou de célula</Label>
+                <Switch checked={form.ja_participou_celula || false} onCheckedChange={v => setForm(p => ({ ...p, ja_participou_celula: v }))} />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-primary">Observação</Label>
+              <Textarea value={form.observacao || ''} onChange={e => setForm(p => ({ ...p, observacao: e.target.value }))} rows={2} className="min-h-[48px]" />
+            </div>
+
+            <Button type="submit" className="w-full h-14 text-base font-semibold" disabled={createMutation.isPending}>
+              {createMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <UserPlus className="h-4 w-4 mr-2" />}
+              Cadastrar Nova Vida
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }

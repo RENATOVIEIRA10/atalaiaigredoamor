@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, FileText, Users, Cake, Zap, Clock, CheckCircle, AlertTriangle, ChevronRight, Heart, History } from 'lucide-react';
+import { Loader2, FileText, Users, Cake, Zap, Clock, CheckCircle, AlertTriangle, ChevronRight, Heart, History, Settings2 } from 'lucide-react';
 import { useCelulas } from '@/hooks/useCelulas';
 import { useWeeklyReports, getCurrentWeekStart } from '@/hooks/useWeeklyReports';
 import { useMembers } from '@/hooks/useMembers';
@@ -13,6 +13,7 @@ import { CelulaDetailsDialog } from '../CelulaDetailsDialog';
 import { CellLeaderMembrosTab } from '../cellleader/CellLeaderMembrosTab';
 import { CellLeaderPulsoTab } from '../cellleader/CellLeaderPulsoTab';
 import { CellLeaderNovasVidasTab } from '../cellleader/CellLeaderNovasVidasTab';
+import { CellProfilePWA } from '../cellleader/CellProfilePWA';
 import { MissionVerse } from '../MissionVerse';
 import { EmptyState } from '@/components/ui/empty-state';
 import { format, parseISO } from 'date-fns';
@@ -179,7 +180,12 @@ function AcoesTab({ celulaId, celulaName, coupleNames, onOpenReport, novasVidasC
   const [showMembers, setShowMembers] = useState(false);
   const [showBirthdays, setShowBirthdays] = useState(false);
   const [showNovasVidas, setShowNovasVidas] = useState(initialView === 'novas-vidas');
+  const [showCellProfile, setShowCellProfile] = useState(false);
   const [celulaDialogOpen, setCelulaDialogOpen] = useState(false);
+
+  if (showCellProfile) {
+    return <CellProfilePWA celulaId={celulaId} onBack={() => setShowCellProfile(false)} />;
+  }
 
   if (showMembers) {
     return <CellLeaderMembrosTab celulaId={celulaId} celulaName={celulaName} />;
@@ -259,6 +265,19 @@ function AcoesTab({ celulaId, celulaName, coupleNames, onOpenReport, novasVidasC
           <div className="flex-1">
             <h3 className="font-semibold">Aniversariantes</h3>
             <p className="text-xs text-muted-foreground">Da semana + enviar parabéns</p>
+          </div>
+          <ChevronRight className="h-5 w-5 text-muted-foreground" />
+        </CardContent>
+      </Card>
+
+      <Card className="cursor-pointer card-hover active:scale-[0.98] transition-all" onClick={() => setShowCellProfile(true)}>
+        <CardContent className="p-5 flex items-center gap-4">
+          <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+            <Settings2 className="h-6 w-6 text-primary" />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-semibold">Configurar Minha Célula</h3>
+            <p className="text-xs text-muted-foreground">Perfil, tipo, bairro e horário</p>
           </div>
           <ChevronRight className="h-5 w-5 text-muted-foreground" />
         </CardContent>
