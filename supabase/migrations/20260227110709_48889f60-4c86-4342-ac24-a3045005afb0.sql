@@ -1,0 +1,1 @@
+ALTER TABLE public.event_registrations DROP CONSTRAINT chk_person_ref;
