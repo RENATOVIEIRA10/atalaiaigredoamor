@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { subDays, format, parseISO, addDays, startOfWeek } from 'date-fns';
-import { useCampoFilter } from './useCampoFilter';
+import { useDemoScope } from './useDemoScope';
 
 export interface PastoralStats {
   totalCelulas: number;
@@ -54,7 +54,7 @@ export interface RedeGrowth {
 
 // Stats gerais
 export function usePastoralStats() {
-  const campoId = useCampoFilter();
+  const { campoId } = useDemoScope();
   return useQuery({
     queryKey: ['pastoral-stats', campoId],
     queryFn: async () => {
@@ -86,7 +86,7 @@ export function usePastoralStats() {
 
 // Membros ausentes
 export function useAbsentMembers() {
-  const campoId = useCampoFilter();
+  const { campoId } = useDemoScope();
   return useQuery({
     queryKey: ['pastoral-absent-members', campoId],
     queryFn: async () => {
@@ -161,7 +161,7 @@ export interface StagnantMember {
 }
 
 export function useSpiritualStagnation() {
-  const campoId = useCampoFilter();
+  const { campoId } = useDemoScope();
   return useQuery({
     queryKey: ['pastoral-spiritual-stagnation', campoId],
     queryFn: async () => {
@@ -206,7 +206,7 @@ export function useSpiritualStagnation() {
 
 // Aniversários da semana
 export function useWeeklyBirthdays() {
-  const campoId = useCampoFilter();
+  const { campoId } = useDemoScope();
   return useQuery({
     queryKey: ['pastoral-weekly-birthdays', campoId],
     queryFn: async () => {
@@ -273,7 +273,7 @@ export function useWeeklyBirthdays() {
 
 // Radar Pastoral - Alertas
 export function usePastoralAlerts() {
-  const campoId = useCampoFilter();
+  const { campoId } = useDemoScope();
   return useQuery({
     queryKey: ['pastoral-alerts', campoId],
     queryFn: async () => {
@@ -368,7 +368,7 @@ export function usePastoralAlerts() {
 
 // Celebrações
 export function usePastoralCelebrations() {
-  const campoId = useCampoFilter();
+  const { campoId } = useDemoScope();
   return useQuery({
     queryKey: ['pastoral-celebrations', campoId],
     queryFn: async () => {
@@ -463,7 +463,7 @@ export function usePastoralCelebrations() {
 
 // Crescimento por rede (scoped by campo)
 export function useRedeGrowthData() {
-  const campoId = useCampoFilter();
+  const { campoId } = useDemoScope();
   return useQuery({
     queryKey: ['pastoral-rede-growth', campoId],
     queryFn: async () => {

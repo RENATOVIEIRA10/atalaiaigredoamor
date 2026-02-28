@@ -8,10 +8,10 @@ import { useCelulas } from '@/hooks/useCelulas';
 import { calcDiscipuladoStats, DiscipuladoEncontro } from '@/hooks/useDiscipulado';
 import { StatCard } from '@/components/ui/stat-card';
 import { EmptyState } from '@/components/ui/empty-state';
-import { useCampoFilter } from '@/hooks/useCampoFilter';
+import { useDemoScope } from '@/hooks/useDemoScope';
 
 export function DiscipuladoPastorView() {
-  const campoId = useCampoFilter();
+  const { campoId } = useDemoScope();
   const { data: redes } = useRedes();
   const { data: celulas } = useCelulas();
 

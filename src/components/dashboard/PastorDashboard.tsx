@@ -20,7 +20,7 @@ import {
 import { usePulsoPastoral, CelulaReportStatus } from '@/hooks/usePulsoPastoral';
 import { useAIInsights } from '@/hooks/useAIInsights';
 import { useWeeklyReports } from '@/hooks/useWeeklyReports';
-import { useCampoFilter } from '@/hooks/useCampoFilter';
+import { useDemoScope } from '@/hooks/useDemoScope';
 import { StatCard } from '@/components/ui/stat-card';
 import { PageHeader } from '@/components/ui/page-header';
 import { format, subDays } from 'date-fns';
@@ -46,7 +46,7 @@ export function PastorDashboard() {
 
   // AI
   const { isLoading: aiLoading, insight: aiInsight, generateInsight, clearInsight } = useAIInsights();
-  const campoId = useCampoFilter();
+  const { campoId } = useDemoScope();
   const dateRange = { from: format(subDays(new Date(), 30), 'yyyy-MM-dd'), to: format(new Date(), 'yyyy-MM-dd') };
   const { data: allReports } = useWeeklyReports(undefined, dateRange, campoId);
 

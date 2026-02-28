@@ -13,11 +13,11 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, Trash2, GitBranch, ArrowRight, Loader2 } from 'lucide-react';
 import { useMultiplicacoes, useCreateMultiplicacao, useDeleteMultiplicacao } from '@/hooks/useMultiplicacoes';
 import { useCelulas } from '@/hooks/useCelulas';
-import { useCampoFilter } from '@/hooks/useCampoFilter';
+import { useDemoScope } from '@/hooks/useDemoScope';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 export function MultiplicacoesTab() {
-  const campoId = useCampoFilter();
+  const { campoId } = useDemoScope();
   const { data: multiplicacoes = [], isLoading } = useMultiplicacoes(campoId);
   const { data: celulas = [] } = useCelulas();
   const createMutation = useCreateMultiplicacao();
