@@ -17,19 +17,11 @@ export function useDashboardStats() {
     queryFn: async () => {
       // Get total active members
       let membersQuery = supabase.from('members').select('*', { count: 'exact', head: true }).eq('is_active', true);
-      if (isDemoActive && seedRunId) {
-        membersQuery = membersQuery.eq('is_test_data', true).eq('seed_run_id', seedRunId);
-      }
       if (campoId) membersQuery = membersQuery.eq('campo_id', campoId);
       const { count: totalMembers } = await membersQuery;
       
       // Get total celulas
       let celulasQuery = supabase.from('celulas').select('*', { count: 'exact', head: true });
-      if (isDemoActive && seedRunId) {
-        celulasQuery = celulasQuery.eq('is_test_data', true).eq('seed_run_id', seedRunId);
-      } else {
-        celulasQuery = celulasQuery.eq('is_test_data', false);
-      }
       if (campoId) celulasQuery = celulasQuery.eq('campo_id', campoId);
       const { count: totalCelulas } = await celulasQuery;
       
@@ -67,16 +59,10 @@ export function useDashboardStats() {
       sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
       
       let recentQuery = supabase.from('members').select('*', { count: 'exact', head: true }).gte('joined_at', thirtyDaysAgo.toISOString());
-      if (isDemoActive && seedRunId) {
-        recentQuery = recentQuery.eq('is_test_data', true).eq('seed_run_id', seedRunId);
-      }
       if (campoId) recentQuery = recentQuery.eq('campo_id', campoId);
       const { count: recentMembers } = await recentQuery;
       
       let prevQuery = supabase.from('members').select('*', { count: 'exact', head: true }).gte('joined_at', sixtyDaysAgo.toISOString()).lt('joined_at', thirtyDaysAgo.toISOString());
-      if (isDemoActive && seedRunId) {
-        prevQuery = prevQuery.eq('is_test_data', true).eq('seed_run_id', seedRunId);
-      }
       if (campoId) prevQuery = prevQuery.eq('campo_id', campoId);
       const { count: previousMembers } = await prevQuery;
       

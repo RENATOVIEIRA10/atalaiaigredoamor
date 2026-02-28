@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { moduleIcons, roleIcons, actionIcons, themeIcons, roleLabels } from '@/lib/icons';
-import { Eye, LogOut, PlayCircle, RefreshCw } from 'lucide-react';
+import { ShieldCheck, LogOut, PlayCircle, RefreshCw } from 'lucide-react';
 import logoIgreja from '@/assets/logo-igreja-do-amor-new.png';
 import logoRedeAmor from '@/assets/logo-amor-a-dois-new.png';
 import { AtalaiaIcon } from '@/components/institutional/AtalaiaLogoHeader';
@@ -114,11 +114,11 @@ export function AppSidebar() {
                   <SidebarMenuItem>
                     <SidebarMenuButton
                       onClick={() => setDemoDialogOpen(true)}
-                      className="h-11 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400"
+                      className="h-11 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400"
                     >
-                      <Eye className="h-4 w-4" />
+                      <ShieldCheck className="h-4 w-4" />
                       <span className="font-medium">
-                        {isDemoActive ? 'Trocar Visão' : 'Modo Demonstração'}
+                        {isDemoActive ? 'Trocar Visão' : 'Modo Validação'}
                       </span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -214,7 +214,7 @@ export function AppSidebar() {
                 {selectedRole ? roleLabels[selectedRole] : 'Usuário'}
               </span>
               {isDemoActive && (
-                <span className="truncate text-[10px] text-amber-500 font-medium">Demo ativo</span>
+              <span className="truncate text-[10px] text-emerald-500 font-medium">Validação ativa</span>
               )}
             </div>
             <Button

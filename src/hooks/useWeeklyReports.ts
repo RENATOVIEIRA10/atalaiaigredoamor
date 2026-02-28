@@ -98,9 +98,6 @@ export function useWeeklyReports(celulaId?: string, dateRange?: DateRangeFilter,
         query = query.eq('celula_id', celulaId);
       }
 
-      if (isDemoActive && seedRunId) {
-        query = query.eq('is_test_data', true).eq('seed_run_id', seedRunId);
-      }
 
       if (campoId) {
         query = query.eq('campo_id', campoId);
@@ -126,9 +123,6 @@ export function useWeeklyReportsByCoordenacao(coordenacaoId?: string, dateRange?
     queryKey: ['weekly-reports-coordenacao', coordenacaoId, dateRange?.from, dateRange?.to, ...queryKeyExtra],
     queryFn: async () => {
       let celulasQ = supabase.from('celulas').select('id').eq('coordenacao_id', coordenacaoId);
-      if (isDemoActive && seedRunId) {
-        celulasQ = celulasQ.eq('is_test_data', true).eq('seed_run_id', seedRunId);
-      }
       const { data: celulas } = await celulasQ;
       
       if (!celulas || celulas.length === 0) return [];
@@ -142,9 +136,6 @@ export function useWeeklyReportsByCoordenacao(coordenacaoId?: string, dateRange?
         .order('meeting_date', { ascending: false, nullsFirst: false })
         .order('week_start', { ascending: false });
 
-      if (isDemoActive && seedRunId) {
-        query = query.eq('is_test_data', true).eq('seed_run_id', seedRunId);
-      }
       
       if (dateRange) {
         query = query.or(
@@ -167,9 +158,6 @@ export function useWeeklyReportsByRede(redeId?: string, dateRange?: DateRangeFil
     queryKey: ['weekly-reports-rede', redeId, dateRange?.from, dateRange?.to, ...queryKeyExtra],
     queryFn: async () => {
       let coordQ = supabase.from('coordenacoes').select('id, name').eq('rede_id', redeId);
-      if (isDemoActive && seedRunId) {
-        coordQ = coordQ.eq('is_test_data', true).eq('seed_run_id', seedRunId);
-      }
       const { data: coordenacoes } = await coordQ;
       
       if (!coordenacoes || coordenacoes.length === 0) return { reports: [], coordenacoes: [] };
@@ -177,9 +165,6 @@ export function useWeeklyReportsByRede(redeId?: string, dateRange?: DateRangeFil
       const coordenacaoIds = coordenacoes.map(c => c.id);
       
       let celulasQ = supabase.from('celulas').select('id, coordenacao_id').in('coordenacao_id', coordenacaoIds);
-      if (isDemoActive && seedRunId) {
-        celulasQ = celulasQ.eq('is_test_data', true).eq('seed_run_id', seedRunId);
-      }
       const { data: celulas } = await celulasQ;
       
       if (!celulas || celulas.length === 0) return { reports: [], coordenacoes };
@@ -193,9 +178,6 @@ export function useWeeklyReportsByRede(redeId?: string, dateRange?: DateRangeFil
         .order('meeting_date', { ascending: false, nullsFirst: false })
         .order('week_start', { ascending: false });
 
-      if (isDemoActive && seedRunId) {
-        query = query.eq('is_test_data', true).eq('seed_run_id', seedRunId);
-      }
       
       if (dateRange) {
         query = query.or(

@@ -4,13 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Search, Eye, Network, FolderTree, ClipboardCheck, Home, Crown, Database } from 'lucide-react';
+import { Search, ShieldCheck, Network, FolderTree, ClipboardCheck, Home, Crown } from 'lucide-react';
 import { useRedes } from '@/hooks/useRedes';
 import { useCoordenacoes } from '@/hooks/useCoordenacoes';
 import { useSupervisores } from '@/hooks/useSupervisoes';
 import { useCelulas } from '@/hooks/useCelulas';
+import { useCampos } from '@/hooks/useCampos';
 import { useDemoMode } from '@/contexts/DemoModeContext';
-import { useSeedRuns } from '@/hooks/useSeedRuns';
 import { useNavigate } from 'react-router-dom';
 
 interface DemoModeDialogProps {
@@ -30,22 +30,16 @@ const levels: { value: DemoLevel; label: string; icon: any; color: string }[] = 
 
 export function DemoModeDialog({ open, onOpenChange }: DemoModeDialogProps) {
   const [selectedLevel, setSelectedLevel] = useState<DemoLevel | null>(null);
+  const [selectedCampusId, setSelectedCampusId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
-  const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
   const navigate = useNavigate();
   const { activateDemo } = useDemoMode();
 
+  const { data: campos } = useCampos();
   const { data: redes } = useRedes();
   const { data: coordenacoes } = useCoordenacoes();
   const { data: supervisores } = useSupervisores();
   const { data: celulas } = useCelulas();
-
-  // Available demo seed runs (done, not cleaned)
-  const { data: seedRuns } = useSeedRuns();
-  const demoRuns = useMemo(() =>
-    (seedRuns || []).filter(r => r.status === 'done' && !r.cleaned_at),
-    [seedRuns]
-  );
 
   const getCoupleLabel = (lc: any) => {
     if (!lc) return null;
@@ -105,11 +99,12 @@ export function DemoModeDialog({ open, onOpenChange }: DemoModeDialogProps) {
   }, [selectedLevel, search, redes, coordenacoes, supervisores, celulas]);
 
   const handleSelect = (level: DemoLevel, scopeId: string | null, label: string) => {
-    activateDemo(level, scopeId, label, selectedRunId);
+    // No demo_run_id — validation reads real data
+    activateDemo(level, scopeId, label, null, selectedCampusId);
     onOpenChange(false);
     setSelectedLevel(null);
     setSearch('');
-    setSelectedRunId(null);
+    setSelectedCampusId(null);
     navigate('/dashboard');
   };
 
@@ -118,48 +113,50 @@ export function DemoModeDialog({ open, onOpenChange }: DemoModeDialogProps) {
     setSearch('');
   };
 
+  const activeCampos = (campos || []).filter(c => c.ativo);
+
   return (
-    <Dialog open={open} onOpenChange={(v) => { onOpenChange(v); if (!v) { setSelectedLevel(null); setSearch(''); setSelectedRunId(null); } }}>
+    <Dialog open={open} onOpenChange={(v) => { onOpenChange(v); if (!v) { setSelectedLevel(null); setSearch(''); setSelectedCampusId(null); } }}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Eye className="h-5 w-5 text-amber-500" />
-            Modo Demonstração
+            <ShieldCheck className="h-5 w-5 text-emerald-600" />
+            Modo Validação
           </DialogTitle>
           <DialogDescription>
             {selectedLevel
               ? 'Selecione o escopo para visualizar'
-              : 'Escolha o nível de visualização'
+              : 'Visualize o sistema como outros papéis (somente leitura, dados reais).'
             }
           </DialogDescription>
         </DialogHeader>
 
         {!selectedLevel ? (
           <div className="space-y-3 py-2">
-            {/* Dataset selector */}
-            {demoRuns.length > 0 && (
+            {/* Campus selector */}
+            {activeCampos.length > 0 && (
               <div className="space-y-2">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
-                  <Database className="h-3 w-3" /> Dataset Demo
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Campus inicial
                 </p>
                 <div className="flex flex-wrap gap-1.5">
                   <button
-                    onClick={() => setSelectedRunId(null)}
+                    onClick={() => setSelectedCampusId(null)}
                     className={`px-2.5 py-1.5 rounded-lg text-xs border transition-all ${
-                      !selectedRunId ? 'border-primary bg-primary/10 text-primary font-medium' : 'border-border/50 text-muted-foreground hover:bg-accent/50'
+                      !selectedCampusId ? 'border-emerald-500 bg-emerald-500/10 text-emerald-700 font-medium' : 'border-border/50 text-muted-foreground hover:bg-accent/50'
                     }`}
                   >
-                    Dados reais
+                    🌐 Todos (Global)
                   </button>
-                  {demoRuns.map(run => (
+                  {activeCampos.map(c => (
                     <button
-                      key={run.id}
-                      onClick={() => setSelectedRunId(run.id)}
+                      key={c.id}
+                      onClick={() => setSelectedCampusId(c.id)}
                       className={`px-2.5 py-1.5 rounded-lg text-xs border transition-all ${
-                        selectedRunId === run.id ? 'border-primary bg-primary/10 text-primary font-medium' : 'border-border/50 text-muted-foreground hover:bg-accent/50'
+                        selectedCampusId === c.id ? 'border-emerald-500 bg-emerald-500/10 text-emerald-700 font-medium' : 'border-border/50 text-muted-foreground hover:bg-accent/50'
                       }`}
                     >
-                      {run.name}
+                      {c.nome}
                     </button>
                   ))}
                 </div>

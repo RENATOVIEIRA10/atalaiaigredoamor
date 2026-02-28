@@ -5,43 +5,33 @@ import { useCampoFilter } from './useCampoFilter';
  * useDemoScope – Camada unificada de escopo para todos os hooks de dados.
  *
  * Combina:
- * - useCampoFilter: campus ativo (real ou demo)
- * - useDemoFilter: demo_run_id quando demo ativo
+ * - useCampoFilter: campus ativo (real ou validação)
+ * - useDemoFilter: modo validação ativo
  *
- * Retorna helpers para aplicar filtros de forma consistente em queries Supabase.
+ * MODO VALIDAÇÃO (read-only):
+ *   - Lê TODOS os dados reais do sistema (não filtra is_test_data)
+ *   - campus = demoCampusId (override do contexto demo)
+ *   - Sem filtro de seed_run_id
  *
- * Quando demo ATIVO:
- *   - is_test_data = true
- *   - seed_run_id = demoRunId
- *   - campo_id = demoCampusId (overrides campus filter)
- *
- * Quando demo INATIVO:
- *   - is_test_data = false (exclui dados de demo/teste)
- *   - campo_id = campus real do contexto
+ * MODO NORMAL:
+ *   - campus = campus real do contexto
+ *   - Sem filtro especial
  */
 export function useDemoScope() {
-  const { isDemoActive, demoRunId, demoCampusId } = useDemoFilter();
+  const { isDemoActive, demoCampusId } = useDemoFilter();
   const realCampoId = useCampoFilter();
 
-  // In demo mode, campus comes from demo context; otherwise from real context
+  // In validation mode, campus comes from demo context; otherwise from real context
   const campoId = isDemoActive ? demoCampusId : realCampoId;
-  const seedRunId = isDemoActive ? demoRunId : null;
 
   /**
-   * Apply demo/scope filters to a Supabase query builder.
-   * Works with any table that has is_test_data and seed_run_id columns.
-   *
-   * Usage:
-   *   let query = supabase.from('celulas').select('*');
-   *   query = applyScope(query);
+   * Apply scope filters to a Supabase query builder.
+   * In validation mode: no is_test_data filter (reads ALL data).
+   * In normal mode: no special filter either.
+   * Campus filter always applied when set.
    */
   function applyScope<T extends { eq: (col: string, val: any) => T }>(query: T): T {
-    if (isDemoActive && seedRunId) {
-      query = query.eq('is_test_data', true);
-      query = query.eq('seed_run_id', seedRunId);
-    } else {
-      query = query.eq('is_test_data', false);
-    }
+    // Validation mode reads all data — no is_test_data filtering
     if (campoId) {
       query = query.eq('campo_id', campoId);
     }
@@ -62,13 +52,13 @@ export function useDemoScope() {
    * Extra keys to add to react-query queryKey for proper cache isolation.
    */
   const queryKeyExtra = isDemoActive
-    ? ['demo', seedRunId ?? 'none', campoId ?? 'all']
+    ? ['validacao', campoId ?? 'all']
     : ['real', campoId ?? 'all'];
 
   return {
     isDemoActive,
     campoId,
-    seedRunId,
+    seedRunId: null as string | null, // Always null — validation reads all data
     applyScope,
     applyCampoOnly,
     queryKeyExtra,

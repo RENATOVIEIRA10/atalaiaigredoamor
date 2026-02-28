@@ -134,12 +134,7 @@ export function usePulsoEngine({ scopeType, scopeId, campoId, enabled = true }: 
         .from('celulas')
         .select('id, name, coordenacao_id, coordenacao:coordenacoes!celulas_coordenacao_id_fkey(name, rede_id)');
 
-      // Demo: filter by seed_run_id; Real: exclude test data
-      if (isDemoActive && seedRunId) {
-        celulasQuery = celulasQuery.eq('is_test_data', true).eq('seed_run_id', seedRunId);
-      } else {
-        celulasQuery = celulasQuery.eq('is_test_data', false);
-      }
+      // No is_test_data filter — validation mode reads all data
 
       if (campoId) celulasQuery = celulasQuery.eq('campo_id', campoId);
 
@@ -169,11 +164,7 @@ export function usePulsoEngine({ scopeType, scopeId, campoId, enabled = true }: 
           .from('weekly_reports')
           .select('celula_id')
           .in('celula_id', celulaIds);
-        if (isDemoActive && seedRunId) {
-          rq = rq.eq('is_test_data', true).eq('seed_run_id', seedRunId);
-        } else {
-          rq = rq.eq('is_test_data', false);
-        }
+        // No is_test_data filter — reads all data
         return rq
           // Prioridade: meeting_date (fonte de verdade). Fallback: week_start.
           .or(

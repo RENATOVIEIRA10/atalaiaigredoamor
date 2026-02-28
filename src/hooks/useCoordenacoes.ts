@@ -32,9 +32,6 @@ export function useCoordenacoes() {
         `)
         .order('ordem');
 
-      if (isDemoActive && seedRunId) {
-        query = query.eq('is_test_data', true).eq('seed_run_id', seedRunId);
-      }
 
       if (campoId) {
         query = query.eq('campo_id', campoId);
@@ -45,9 +42,6 @@ export function useCoordenacoes() {
       
       // Get celula counts
       let celulaQuery = supabase.from('celulas').select('coordenacao_id');
-      if (isDemoActive && seedRunId) {
-        celulaQuery = celulaQuery.eq('is_test_data', true).eq('seed_run_id', seedRunId);
-      }
       if (campoId) celulaQuery = celulaQuery.eq('campo_id', campoId);
       const { data: celulaCounts } = await celulaQuery;
       

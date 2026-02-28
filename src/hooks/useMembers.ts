@@ -45,10 +45,6 @@ export function useMembers(celulaId?: string) {
         query = query.eq('celula_id', celulaId);
       }
 
-      if (isDemoActive && seedRunId) {
-        query = query.eq('is_test_data', true).eq('seed_run_id', seedRunId);
-      }
-
       if (campoId) {
         query = query.eq('campo_id', campoId);
       }

@@ -1,10 +1,10 @@
+import { useEffect } from 'react';
 import { useDemoMode } from '@/contexts/DemoModeContext';
-import { useDemoActions } from '@/hooks/useDemoActions';
 import { useCampos } from '@/hooks/useCampos';
 import { useRedes } from '@/hooks/useRedes';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Eye, ArrowLeft, RefreshCw, Database, Loader2 } from 'lucide-react';
+import { ShieldCheck, ArrowLeft } from 'lucide-react';
 import { useIsPWA } from '@/hooks/useIsPWA';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -16,6 +16,8 @@ const scopeLabels: Record<string, string> = {
   supervisor: 'Supervisor',
   celula: 'Líder de Célula',
   demo_institucional: 'Demo Institucional',
+  pastor_senior_global: 'Pastor Global',
+  pastor_de_campo: 'Pastor de Campo',
 };
 
 type DemoScopeType = 'pastor' | 'admin' | 'rede' | 'coordenacao' | 'supervisor' | 'celula' | 'demo_institucional';
@@ -30,55 +32,53 @@ const ROLE_OPTIONS: { value: DemoScopeType; label: string }[] = [
 
 export function DemoBar() {
   const {
-    isDemoActive, demoScopeType, demoLabel, demoRunId,
-    demoCampusId, deactivateDemo, activateDemo, setDemoCampusId,
+    isDemoActive, demoScopeType, demoCampusId,
+    deactivateDemo, activateDemo, setDemoCampusId,
   } = useDemoMode();
-  const { resetDemo, isResetting } = useDemoActions();
   const { data: campos } = useCampos();
   const { data: redes } = useRedes();
   const isPWA = useIsPWA();
   const isMobile = useIsMobile();
   const isPWAMobile = isPWA && isMobile;
 
-  if (!isDemoActive) return null;
-
-  // Filter redes by campus when applicable
+  // Filter redes by campus
   const filteredRedes = demoCampusId
     ? (redes || []).filter(r => r.campo_id === demoCampusId)
     : redes || [];
+
+  // CRITICAL: Reset rede selection when campus changes and current rede doesn't belong
+  // This is handled via the campus switch handler below
+
+  if (!isDemoActive) return null;
 
   const isGlobalRole = demoScopeType === 'pastor' || demoScopeType === 'admin';
 
   const handleRoleSwitch = (newRole: string) => {
     const role = newRole as DemoScopeType;
-    activateDemo(role, null, scopeLabels[role] || role, demoRunId, demoCampusId);
+    activateDemo(role, null, scopeLabels[role] || role, null, demoCampusId);
   };
 
   const handleCampusSwitch = (campusId: string) => {
     const id = campusId === 'ALL' ? null : campusId;
     setDemoCampusId(id);
-  };
-
-  const handleReset = async () => {
-    const campusIds = demoCampusId ? [demoCampusId] : ['ALL'];
-    await resetDemo(campusIds, 3);
+    // Rede will be automatically invalidated since useRedes filters by campoId via useDemoScope
   };
 
   return (
     <div
-      className="fixed top-0 left-0 right-0 z-50 bg-amber-500 text-amber-950 shadow-lg"
+      className="fixed top-0 left-0 right-0 z-50 bg-emerald-600 text-white shadow-lg"
       style={{ paddingTop: isPWAMobile ? 'env(safe-area-inset-top, 0px)' : undefined }}
     >
       <div className="flex items-center gap-2 px-3 py-1.5 overflow-x-auto">
-        {/* Demo indicator */}
+        {/* Validation indicator */}
         <div className="flex items-center gap-1.5 shrink-0">
-          <Eye className="h-4 w-4" />
-          <span className="text-xs font-bold uppercase tracking-wide">Demo</span>
+          <ShieldCheck className="h-4 w-4" />
+          <span className="text-xs font-bold uppercase tracking-wide">Validação</span>
         </div>
 
         {/* Role switch */}
         <Select value={demoScopeType || 'pastor'} onValueChange={handleRoleSwitch}>
-          <SelectTrigger className="h-7 text-xs bg-amber-600/30 border-amber-700/30 text-amber-950 w-[130px] shrink-0">
+          <SelectTrigger className="h-7 text-xs bg-emerald-700/40 border-emerald-800/30 text-white w-[130px] shrink-0">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -93,7 +93,7 @@ export function DemoBar() {
         {/* Campus switch (only for global roles) */}
         {isGlobalRole && (campos || []).length > 0 && (
           <Select value={demoCampusId || 'ALL'} onValueChange={handleCampusSwitch}>
-            <SelectTrigger className="h-7 text-xs bg-amber-600/30 border-amber-700/30 text-amber-950 w-[130px] shrink-0">
+            <SelectTrigger className="h-7 text-xs bg-emerald-700/40 border-emerald-800/30 text-white w-[130px] shrink-0">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -107,48 +107,21 @@ export function DemoBar() {
           </Select>
         )}
 
-        {/* Rede switch (when applicable) */}
-        {(demoScopeType === 'rede' || demoScopeType === 'coordenacao') && filteredRedes.length > 0 && !isMobile && (
-          <Select value={''} onValueChange={() => {}}>
-            <SelectTrigger className="h-7 text-xs bg-amber-600/30 border-amber-700/30 text-amber-950 w-[120px] shrink-0">
-              <SelectValue placeholder="Rede" />
-            </SelectTrigger>
-            <SelectContent>
-              {filteredRedes.map(r => (
-                <SelectItem key={r.id} value={r.id} className="text-xs">{r.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-
-        {/* Dataset indicator */}
-        {demoRunId && !isMobile && (
-          <span className="text-[10px] bg-amber-600/30 px-1.5 py-0.5 rounded flex items-center gap-1 shrink-0">
-            <Database className="h-3 w-3" />
-            {demoRunId.slice(0, 8)}
+        {/* Rede indicator (when applicable, read-only info) */}
+        {(demoScopeType === 'rede' || demoScopeType === 'coordenacao') && !isMobile && (
+          <span className="text-[10px] bg-emerald-700/40 px-2 py-0.5 rounded shrink-0">
+            {filteredRedes.length} rede(s) no campus
           </span>
         )}
 
         {/* Spacer */}
         <div className="flex-1" />
 
-        {/* Reset */}
-        <Button
-          size="sm"
-          variant="ghost"
-          className="h-7 text-xs text-amber-950 hover:bg-amber-600/30 shrink-0 px-2"
-          onClick={handleReset}
-          disabled={isResetting}
-        >
-          {isResetting ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
-          {!isMobile && <span className="ml-1">Reset</span>}
-        </Button>
-
         {/* Exit */}
         <Button
           size="sm"
           variant="outline"
-          className="bg-amber-600 border-amber-700 text-amber-50 hover:bg-amber-700 hover:text-white h-7 text-xs shrink-0"
+          className="bg-emerald-700 border-emerald-800 text-white hover:bg-emerald-800 hover:text-white h-7 text-xs shrink-0"
           onClick={deactivateDemo}
         >
           <ArrowLeft className="h-3 w-3 mr-1" />

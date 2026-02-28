@@ -30,10 +30,6 @@ export function useRedes() {
         `)
         .order('name');
 
-      if (isDemoActive && seedRunId) {
-        query = query.eq('is_test_data', true).eq('seed_run_id', seedRunId);
-      }
-
       if (campoId) {
         query = query.eq('campo_id', campoId);
       }
@@ -43,9 +39,6 @@ export function useRedes() {
       
       // Get coordenacao counts
       let coordQuery = supabase.from('coordenacoes').select('rede_id');
-      if (isDemoActive && seedRunId) {
-        coordQuery = coordQuery.eq('is_test_data', true).eq('seed_run_id', seedRunId);
-      }
       if (campoId) coordQuery = coordQuery.eq('campo_id', campoId);
       const { data: coordCounts } = await coordQuery;
       

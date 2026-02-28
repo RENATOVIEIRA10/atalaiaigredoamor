@@ -76,11 +76,7 @@ export function useRadarSaude({ scopeType, scopeId, campoId }: UseRadarSaudeOpti
         .from('celulas')
         .select('id, name, coordenacao_id, coordenacao:coordenacoes(id, name, rede_id)');
 
-      if (isDemoActive && seedRunId) {
-        celulasQuery = celulasQuery.eq('is_test_data', true).eq('seed_run_id', seedRunId);
-      } else {
-        celulasQuery = celulasQuery.eq('is_test_data', false);
-      }
+      // No is_test_data filter — reads all data
 
       if (campoId) celulasQuery = celulasQuery.eq('campo_id', campoId);
 
