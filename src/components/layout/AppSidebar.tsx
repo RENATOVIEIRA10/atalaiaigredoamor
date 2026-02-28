@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { moduleIcons, roleIcons, actionIcons, themeIcons, roleLabels } from '@/lib/icons';
-import { Eye, LogOut, FlaskConical, PlayCircle, RefreshCw } from 'lucide-react';
+import { Eye, LogOut, PlayCircle, RefreshCw } from 'lucide-react';
 import logoIgreja from '@/assets/logo-igreja-do-amor-new.png';
 import logoRedeAmor from '@/assets/logo-amor-a-dois-new.png';
 import { AtalaiaIcon } from '@/components/institutional/AtalaiaLogoHeader';
@@ -47,7 +47,6 @@ const adminNavItems = [
   { title: 'Redes', href: '/redes', icon: moduleIcons.redes },
   { title: 'Coordenações', href: '/coordenacoes', icon: moduleIcons.coordenacoes },
   { title: 'Configurações', href: '/configuracoes', icon: moduleIcons.configuracoes },
-  { title: 'Ferramentas', href: '/ferramentas-teste', icon: FlaskConical },
 ];
 
 export function AppSidebar() {
