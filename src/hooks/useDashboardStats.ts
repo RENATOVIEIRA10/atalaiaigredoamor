@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useCampoFilter } from '@/hooks/useCampoFilter';
+import { useDemoScope } from '@/hooks/useDemoScope';
 
 export interface DashboardStats {
   totalMembers: number;
@@ -10,18 +10,26 @@ export interface DashboardStats {
 }
 
 export function useDashboardStats() {
-  const campoId = useCampoFilter();
+  const { campoId, isDemoActive, seedRunId, queryKeyExtra } = useDemoScope();
 
   return useQuery({
-    queryKey: ['dashboard-stats', campoId],
+    queryKey: ['dashboard-stats', ...queryKeyExtra],
     queryFn: async () => {
       // Get total active members
       let membersQuery = supabase.from('members').select('*', { count: 'exact', head: true }).eq('is_active', true);
+      if (isDemoActive && seedRunId) {
+        membersQuery = membersQuery.eq('is_test_data', true).eq('seed_run_id', seedRunId);
+      }
       if (campoId) membersQuery = membersQuery.eq('campo_id', campoId);
       const { count: totalMembers } = await membersQuery;
       
       // Get total celulas
-      let celulasQuery = supabase.from('celulas').select('*', { count: 'exact', head: true }).eq('is_test_data', false);
+      let celulasQuery = supabase.from('celulas').select('*', { count: 'exact', head: true });
+      if (isDemoActive && seedRunId) {
+        celulasQuery = celulasQuery.eq('is_test_data', true).eq('seed_run_id', seedRunId);
+      } else {
+        celulasQuery = celulasQuery.eq('is_test_data', false);
+      }
       if (campoId) celulasQuery = celulasQuery.eq('campo_id', campoId);
       const { count: totalCelulas } = await celulasQuery;
       
@@ -59,10 +67,16 @@ export function useDashboardStats() {
       sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
       
       let recentQuery = supabase.from('members').select('*', { count: 'exact', head: true }).gte('joined_at', thirtyDaysAgo.toISOString());
+      if (isDemoActive && seedRunId) {
+        recentQuery = recentQuery.eq('is_test_data', true).eq('seed_run_id', seedRunId);
+      }
       if (campoId) recentQuery = recentQuery.eq('campo_id', campoId);
       const { count: recentMembers } = await recentQuery;
       
       let prevQuery = supabase.from('members').select('*', { count: 'exact', head: true }).gte('joined_at', sixtyDaysAgo.toISOString()).lt('joined_at', thirtyDaysAgo.toISOString());
+      if (isDemoActive && seedRunId) {
+        prevQuery = prevQuery.eq('is_test_data', true).eq('seed_run_id', seedRunId);
+      }
       if (campoId) prevQuery = prevQuery.eq('campo_id', campoId);
       const { count: previousMembers } = await prevQuery;
       
@@ -90,7 +104,6 @@ export function useAttendanceByCell() {
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
       
-      // Single query: get all meetings with their attendances in one go
       const { data: meetings } = await supabase
         .from('meetings')
         .select('id, celula_id, celulas(name)')
@@ -100,13 +113,11 @@ export function useAttendanceByCell() {
       
       const meetingIds = meetings.map(m => m.id);
       
-      // Single query for all attendances
       const { data: attendances } = await supabase
         .from('attendances')
         .select('meeting_id, present')
         .in('meeting_id', meetingIds);
       
-      // Group by celula
       const celulaMap = new Map<string, { name: string; total: number; present: number }>();
       
       for (const meeting of meetings) {
@@ -118,7 +129,6 @@ export function useAttendanceByCell() {
       }
       
       if (attendances) {
-        // Build meeting -> celula lookup
         const meetingToCelula = new Map(meetings.map(m => [m.id, m.celula_id]));
         
         for (const att of attendances) {

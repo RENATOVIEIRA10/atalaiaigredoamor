@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 import { useToast } from '@/hooks/use-toast';
 import { LeadershipCouple } from './useLeadershipCouples';
-import { useCampoFilter } from '@/hooks/useCampoFilter';
+import { useDemoScope } from '@/hooks/useDemoScope';
 
 export type Celula = Tables<'celulas'> & {
   leader?: { id: string; name: string; avatar_url: string | null } | null;
@@ -13,10 +13,10 @@ export type Celula = Tables<'celulas'> & {
 };
 
 export function useCelulas() {
-  const campoId = useCampoFilter();
+  const { campoId, isDemoActive, seedRunId, queryKeyExtra } = useDemoScope();
 
   return useQuery({
-    queryKey: ['celulas', campoId],
+    queryKey: ['celulas', ...queryKeyExtra],
     queryFn: async () => {
       let query = supabase
         .from('celulas')
@@ -32,6 +32,10 @@ export function useCelulas() {
         `)
         .order('name');
 
+      if (isDemoActive && seedRunId) {
+        query = query.eq('is_test_data', true).eq('seed_run_id', seedRunId);
+      }
+
       if (campoId) {
         query = query.eq('campo_id', campoId);
       }
@@ -44,6 +48,9 @@ export function useCelulas() {
         .from('members')
         .select('celula_id')
         .eq('is_active', true);
+      if (isDemoActive && seedRunId) {
+        memberQuery = memberQuery.eq('is_test_data', true).eq('seed_run_id', seedRunId);
+      }
       if (campoId) memberQuery = memberQuery.eq('campo_id', campoId);
 
       const { data: memberCounts } = await memberQuery;

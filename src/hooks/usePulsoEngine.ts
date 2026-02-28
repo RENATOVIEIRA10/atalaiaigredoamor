@@ -16,6 +16,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { format, startOfWeek, addDays, parseISO, subDays } from 'date-fns';
+import { useDemoScope } from './useDemoScope';
 
 // ─── Tipos exportados ────────────────────────────────────────────────────────
 
@@ -101,8 +102,10 @@ function getMondayNWeeksAgo(currentMonday: Date, weeksAgo: number): Date {
 // ─── Hook principal ───────────────────────────────────────────────────────────
 
 export function usePulsoEngine({ scopeType, scopeId, campoId, enabled = true }: UsePulsoEngineOptions) {
+  const { isDemoActive, seedRunId, queryKeyExtra } = useDemoScope();
+
   return useQuery({
-    queryKey: ['pulso-engine', scopeType, scopeId ?? 'all', campoId ?? 'global'],
+    queryKey: ['pulso-engine', scopeType, scopeId ?? 'all', campoId ?? 'global', ...queryKeyExtra],
     enabled: enabled && (scopeType === 'all' || !!scopeId),
     staleTime: 60_000, // 1 min
     queryFn: async (): Promise<PulsoData> => {
@@ -129,8 +132,14 @@ export function usePulsoEngine({ scopeType, scopeId, campoId, enabled = true }: 
       // Sempre buscamos com join para ter rede_id disponível para filtro client-side
       let celulasQuery = supabase
         .from('celulas')
-        .select('id, name, coordenacao_id, coordenacao:coordenacoes!celulas_coordenacao_id_fkey(name, rede_id)')
-        .eq('is_test_data', false);
+        .select('id, name, coordenacao_id, coordenacao:coordenacoes!celulas_coordenacao_id_fkey(name, rede_id)');
+
+      // Demo: filter by seed_run_id; Real: exclude test data
+      if (isDemoActive && seedRunId) {
+        celulasQuery = celulasQuery.eq('is_test_data', true).eq('seed_run_id', seedRunId);
+      } else {
+        celulasQuery = celulasQuery.eq('is_test_data', false);
+      }
 
       if (campoId) celulasQuery = celulasQuery.eq('campo_id', campoId);
 
@@ -155,17 +164,23 @@ export function usePulsoEngine({ scopeType, scopeId, campoId, enabled = true }: 
       if (totalCelulas === 0) return emptyResult;
 
       // ── PASSO 2: Montar query de relatórios por janela ───────────────────
-      const buildReportQuery = (window: { from: string; to: string }) =>
-        supabase
+      const buildReportQuery = (window: { from: string; to: string }) => {
+        let rq = supabase
           .from('weekly_reports')
           .select('celula_id')
-          .in('celula_id', celulaIds)
-          .eq('is_test_data', false)
+          .in('celula_id', celulaIds);
+        if (isDemoActive && seedRunId) {
+          rq = rq.eq('is_test_data', true).eq('seed_run_id', seedRunId);
+        } else {
+          rq = rq.eq('is_test_data', false);
+        }
+        return rq
           // Prioridade: meeting_date (fonte de verdade). Fallback: week_start.
           .or(
             `and(meeting_date.gte.${window.from},meeting_date.lte.${window.to}),` +
             `and(meeting_date.is.null,week_start.gte.${window.from},week_start.lte.${window.to})`
           );
+      };
 
       const twoYearsAgo = subDays(now, 730);
 

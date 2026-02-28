@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 import { useToast } from '@/hooks/use-toast';
 import { LeadershipCouple } from './useLeadershipCouples';
-import { useCampoFilter } from '@/hooks/useCampoFilter';
+import { useDemoScope } from '@/hooks/useDemoScope';
 
 export type Coordenacao = Tables<'coordenacoes'> & {
   leader?: { id: string; name: string; avatar_url: string | null } | null;
@@ -13,10 +13,10 @@ export type Coordenacao = Tables<'coordenacoes'> & {
 };
 
 export function useCoordenacoes() {
-  const campoId = useCampoFilter();
+  const { campoId, isDemoActive, seedRunId, queryKeyExtra } = useDemoScope();
 
   return useQuery({
-    queryKey: ['coordenacoes', campoId],
+    queryKey: ['coordenacoes', ...queryKeyExtra],
     queryFn: async () => {
       let query = supabase
         .from('coordenacoes')
@@ -32,6 +32,10 @@ export function useCoordenacoes() {
         `)
         .order('ordem');
 
+      if (isDemoActive && seedRunId) {
+        query = query.eq('is_test_data', true).eq('seed_run_id', seedRunId);
+      }
+
       if (campoId) {
         query = query.eq('campo_id', campoId);
       }
@@ -41,6 +45,9 @@ export function useCoordenacoes() {
       
       // Get celula counts
       let celulaQuery = supabase.from('celulas').select('coordenacao_id');
+      if (isDemoActive && seedRunId) {
+        celulaQuery = celulaQuery.eq('is_test_data', true).eq('seed_run_id', seedRunId);
+      }
       if (campoId) celulaQuery = celulaQuery.eq('campo_id', campoId);
       const { data: celulaCounts } = await celulaQuery;
       

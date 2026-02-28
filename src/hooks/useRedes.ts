@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 import { useToast } from '@/hooks/use-toast';
 import { LeadershipCouple } from './useLeadershipCouples';
-import { useCampoFilter } from '@/hooks/useCampoFilter';
+import { useDemoScope } from '@/hooks/useDemoScope';
 
 export type Rede = Tables<'redes'> & {
   leader?: { id: string; name: string; avatar_url: string | null } | null;
@@ -12,10 +12,10 @@ export type Rede = Tables<'redes'> & {
 };
 
 export function useRedes() {
-  const campoId = useCampoFilter();
+  const { campoId, isDemoActive, seedRunId, queryKeyExtra } = useDemoScope();
 
   return useQuery({
-    queryKey: ['redes', campoId],
+    queryKey: ['redes', ...queryKeyExtra],
     queryFn: async () => {
       let query = supabase
         .from('redes')
@@ -30,6 +30,10 @@ export function useRedes() {
         `)
         .order('name');
 
+      if (isDemoActive && seedRunId) {
+        query = query.eq('is_test_data', true).eq('seed_run_id', seedRunId);
+      }
+
       if (campoId) {
         query = query.eq('campo_id', campoId);
       }
@@ -39,6 +43,9 @@ export function useRedes() {
       
       // Get coordenacao counts
       let coordQuery = supabase.from('coordenacoes').select('rede_id');
+      if (isDemoActive && seedRunId) {
+        coordQuery = coordQuery.eq('is_test_data', true).eq('seed_run_id', seedRunId);
+      }
       if (campoId) coordQuery = coordQuery.eq('campo_id', campoId);
       const { data: coordCounts } = await coordQuery;
       

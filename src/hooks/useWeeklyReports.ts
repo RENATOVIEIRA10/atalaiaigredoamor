@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useDemoScope } from '@/hooks/useDemoScope';
 
 export interface WeeklyReport {
   id: string;
@@ -55,7 +56,7 @@ export interface DateRangeFilter {
 
 // Get the Monday of the week that contains the given date
 export function getWeekStartFromDate(dateStr: string): string {
-  const date = new Date(dateStr + 'T12:00:00'); // noon to avoid timezone shifts
+  const date = new Date(dateStr + 'T12:00:00');
   const dayOfWeek = date.getDay();
   const diff = date.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
   const monday = new Date(date);
@@ -63,15 +64,16 @@ export function getWeekStartFromDate(dateStr: string): string {
   return monday.toISOString().split('T')[0];
 }
 
-// Get current week's Monday (convenience wrapper)
 export function getCurrentWeekStart(): string {
   const now = new Date();
   return getWeekStartFromDate(now.toISOString().split('T')[0]);
 }
 
 export function useWeeklyReports(celulaId?: string, dateRange?: DateRangeFilter, campoId?: string | null) {
+  const { isDemoActive, seedRunId, queryKeyExtra } = useDemoScope();
+
   return useQuery({
-    queryKey: ['weekly-reports', celulaId, dateRange?.from, dateRange?.to, campoId],
+    queryKey: ['weekly-reports', celulaId, dateRange?.from, dateRange?.to, campoId, ...queryKeyExtra],
     queryFn: async () => {
       let query = supabase
         .from('weekly_reports')
@@ -96,12 +98,15 @@ export function useWeeklyReports(celulaId?: string, dateRange?: DateRangeFilter,
         query = query.eq('celula_id', celulaId);
       }
 
+      if (isDemoActive && seedRunId) {
+        query = query.eq('is_test_data', true).eq('seed_run_id', seedRunId);
+      }
+
       if (campoId) {
         query = query.eq('campo_id', campoId);
       }
       
       if (dateRange) {
-        // Filter by actual meeting day when available; fallback to week_start (Monday)
         query = query.or(
           `and(meeting_date.gte.${dateRange.from},meeting_date.lte.${dateRange.to}),and(week_start.gte.${dateRange.from},week_start.lte.${dateRange.to})`
         );
@@ -115,13 +120,16 @@ export function useWeeklyReports(celulaId?: string, dateRange?: DateRangeFilter,
 }
 
 export function useWeeklyReportsByCoordenacao(coordenacaoId?: string, dateRange?: DateRangeFilter) {
+  const { isDemoActive, seedRunId, queryKeyExtra } = useDemoScope();
+
   return useQuery({
-    queryKey: ['weekly-reports-coordenacao', coordenacaoId, dateRange?.from, dateRange?.to],
+    queryKey: ['weekly-reports-coordenacao', coordenacaoId, dateRange?.from, dateRange?.to, ...queryKeyExtra],
     queryFn: async () => {
-      const { data: celulas } = await supabase
-        .from('celulas')
-        .select('id')
-        .eq('coordenacao_id', coordenacaoId);
+      let celulasQ = supabase.from('celulas').select('id').eq('coordenacao_id', coordenacaoId);
+      if (isDemoActive && seedRunId) {
+        celulasQ = celulasQ.eq('is_test_data', true).eq('seed_run_id', seedRunId);
+      }
+      const { data: celulas } = await celulasQ;
       
       if (!celulas || celulas.length === 0) return [];
       
@@ -129,23 +137,20 @@ export function useWeeklyReportsByCoordenacao(coordenacaoId?: string, dateRange?
       
       let query = supabase
         .from('weekly_reports')
-        .select(`
-          *,
-          celula:celulas(
-            id,
-            name,
-            coordenacao_id
-          )
-        `)
+        .select(`*, celula:celulas(id, name, coordenacao_id)`)
         .in('celula_id', celulaIds)
         .order('meeting_date', { ascending: false, nullsFirst: false })
         .order('week_start', { ascending: false });
+
+      if (isDemoActive && seedRunId) {
+        query = query.eq('is_test_data', true).eq('seed_run_id', seedRunId);
+      }
       
-       if (dateRange) {
-         query = query.or(
-           `and(meeting_date.gte.${dateRange.from},meeting_date.lte.${dateRange.to}),and(week_start.gte.${dateRange.from},week_start.lte.${dateRange.to})`
-         );
-       }
+      if (dateRange) {
+        query = query.or(
+          `and(meeting_date.gte.${dateRange.from},meeting_date.lte.${dateRange.to}),and(week_start.gte.${dateRange.from},week_start.lte.${dateRange.to})`
+        );
+      }
       
       const { data, error } = await query;
       if (error) throw error;
@@ -156,22 +161,26 @@ export function useWeeklyReportsByCoordenacao(coordenacaoId?: string, dateRange?
 }
 
 export function useWeeklyReportsByRede(redeId?: string, dateRange?: DateRangeFilter) {
+  const { isDemoActive, seedRunId, queryKeyExtra } = useDemoScope();
+
   return useQuery({
-    queryKey: ['weekly-reports-rede', redeId, dateRange?.from, dateRange?.to],
+    queryKey: ['weekly-reports-rede', redeId, dateRange?.from, dateRange?.to, ...queryKeyExtra],
     queryFn: async () => {
-      const { data: coordenacoes } = await supabase
-        .from('coordenacoes')
-        .select('id, name')
-        .eq('rede_id', redeId);
+      let coordQ = supabase.from('coordenacoes').select('id, name').eq('rede_id', redeId);
+      if (isDemoActive && seedRunId) {
+        coordQ = coordQ.eq('is_test_data', true).eq('seed_run_id', seedRunId);
+      }
+      const { data: coordenacoes } = await coordQ;
       
       if (!coordenacoes || coordenacoes.length === 0) return { reports: [], coordenacoes: [] };
       
       const coordenacaoIds = coordenacoes.map(c => c.id);
       
-      const { data: celulas } = await supabase
-        .from('celulas')
-        .select('id, coordenacao_id')
-        .in('coordenacao_id', coordenacaoIds);
+      let celulasQ = supabase.from('celulas').select('id, coordenacao_id').in('coordenacao_id', coordenacaoIds);
+      if (isDemoActive && seedRunId) {
+        celulasQ = celulasQ.eq('is_test_data', true).eq('seed_run_id', seedRunId);
+      }
+      const { data: celulas } = await celulasQ;
       
       if (!celulas || celulas.length === 0) return { reports: [], coordenacoes };
       
@@ -179,24 +188,20 @@ export function useWeeklyReportsByRede(redeId?: string, dateRange?: DateRangeFil
       
       let query = supabase
         .from('weekly_reports')
-        .select(`
-          *,
-          celula:celulas(
-            id,
-            name,
-            coordenacao_id,
-            coordenacao:coordenacoes(id, name)
-          )
-        `)
+        .select(`*, celula:celulas(id, name, coordenacao_id, coordenacao:coordenacoes(id, name))`)
         .in('celula_id', celulaIds)
         .order('meeting_date', { ascending: false, nullsFirst: false })
         .order('week_start', { ascending: false });
+
+      if (isDemoActive && seedRunId) {
+        query = query.eq('is_test_data', true).eq('seed_run_id', seedRunId);
+      }
       
-       if (dateRange) {
-         query = query.or(
-           `and(meeting_date.gte.${dateRange.from},meeting_date.lte.${dateRange.to}),and(week_start.gte.${dateRange.from},week_start.lte.${dateRange.to})`
-         );
-       }
+      if (dateRange) {
+        query = query.or(
+          `and(meeting_date.gte.${dateRange.from},meeting_date.lte.${dateRange.to}),and(week_start.gte.${dateRange.from},week_start.lte.${dateRange.to})`
+        );
+      }
       
       const { data, error } = await query;
       if (error) throw error;
@@ -215,7 +220,6 @@ export function useCreateWeeklyReport() {
   
   return useMutation({
     mutationFn: async (input: WeeklyReportInput) => {
-      // First, check if a report already exists for this celula and week_start
       const { data: existingReport } = await supabase
         .from('weekly_reports')
         .select('id')
@@ -224,7 +228,6 @@ export function useCreateWeeklyReport() {
         .maybeSingle();
       
       if (existingReport) {
-        // Update existing report
         const { data, error } = await supabase
           .from('weekly_reports')
           .update({
@@ -247,7 +250,6 @@ export function useCreateWeeklyReport() {
         if (error) throw error;
         return data;
       } else {
-        // Insert new report
         const { data, error } = await supabase
           .from('weekly_reports')
           .insert(input)

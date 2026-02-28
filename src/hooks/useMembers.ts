@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 import { useToast } from '@/hooks/use-toast';
-import { useCampoFilter } from '@/hooks/useCampoFilter';
+import { useDemoScope } from '@/hooks/useDemoScope';
 
 export type Member = Tables<'members'> & {
   profile?: { 
@@ -24,10 +24,10 @@ export type Member = Tables<'members'> & {
 };
 
 export function useMembers(celulaId?: string) {
-  const campoId = useCampoFilter();
+  const { campoId, isDemoActive, seedRunId, queryKeyExtra } = useDemoScope();
 
   return useQuery({
-    queryKey: ['members', celulaId, campoId],
+    queryKey: ['members', celulaId, ...queryKeyExtra],
     queryFn: async () => {
       let query = supabase
         .from('members')
@@ -43,6 +43,10 @@ export function useMembers(celulaId?: string) {
       
       if (celulaId) {
         query = query.eq('celula_id', celulaId);
+      }
+
+      if (isDemoActive && seedRunId) {
+        query = query.eq('is_test_data', true).eq('seed_run_id', seedRunId);
       }
 
       if (campoId) {
@@ -116,7 +120,6 @@ export function useRemoveMember() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      // Soft delete - just set is_active to false
       const { error } = await supabase
         .from('members')
         .update({ is_active: false })
