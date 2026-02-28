@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useDemoScope } from './useDemoScope';
 
 export interface CelulaSaude {
   celula_id: string;
@@ -65,14 +66,21 @@ interface UseRadarSaudeOptions {
 }
 
 export function useRadarSaude({ scopeType, scopeId, campoId }: UseRadarSaudeOptions) {
+  const { isDemoActive, seedRunId, queryKeyExtra } = useDemoScope();
+
   return useQuery({
-    queryKey: ['radar-saude', scopeType, scopeId, campoId],
+    queryKey: ['radar-saude', scopeType, scopeId, campoId, ...queryKeyExtra],
     queryFn: async (): Promise<RadarSaudeData> => {
       // 1) Fetch all cells in scope
       let celulasQuery = supabase
         .from('celulas')
-        .select('id, name, coordenacao_id, coordenacao:coordenacoes(id, name, rede_id)')
-        .eq('is_test_data', false);
+        .select('id, name, coordenacao_id, coordenacao:coordenacoes(id, name, rede_id)');
+
+      if (isDemoActive && seedRunId) {
+        celulasQuery = celulasQuery.eq('is_test_data', true).eq('seed_run_id', seedRunId);
+      } else {
+        celulasQuery = celulasQuery.eq('is_test_data', false);
+      }
 
       if (campoId) celulasQuery = celulasQuery.eq('campo_id', campoId);
 
