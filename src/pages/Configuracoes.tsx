@@ -7,7 +7,10 @@ import { WeeklyReportsHistory } from '@/components/reports/WeeklyReportsHistory'
 import { PolicyAcceptancesManager } from '@/components/settings/PolicyAcceptancesManager';
 import { CamposManager } from '@/components/settings/CamposManager';
 import { SeedRunSimulationPanel } from '@/components/settings/SeedRunSimulationPanel';
-import { User, Shield, History, Lock, Church, FlaskConical } from 'lucide-react';
+import { DemoHealthCheck } from '@/components/demo/DemoHealthCheck';
+import { DemoTourChecklist } from '@/components/demo/DemoTourChecklist';
+import { useDemoMode } from '@/contexts/DemoModeContext';
+import { User, Shield, History, Lock, Church, FlaskConical, Eye } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 const roleLabels: Record<string, { label: string; variant: 'default' | 'secondary' | 'outline' }> = {
@@ -20,6 +23,7 @@ const roleLabels: Record<string, { label: string; variant: 'default' | 'secondar
 
 export default function Configuracoes() {
   const { selectedRole, isAdmin } = useRole();
+  const { isDemoActive } = useDemoMode();
 
   return (
     <AppLayout title="Configurações">
@@ -51,6 +55,12 @@ export default function Configuracoes() {
             <TabsTrigger value="seedrun" className="flex items-center gap-2">
               <FlaskConical className="h-4 w-4" />
               Seed Run / Simulações
+            </TabsTrigger>
+          )}
+          {isAdmin && isDemoActive && (
+            <TabsTrigger value="demo" className="flex items-center gap-2">
+              <Eye className="h-4 w-4" />
+              Demo
             </TabsTrigger>
           )}
           <TabsTrigger value="history" className="flex items-center gap-2">
@@ -107,6 +117,15 @@ export default function Configuracoes() {
         {isAdmin && (
           <TabsContent value="seedrun">
             <SeedRunSimulationPanel />
+          </TabsContent>
+        )}
+
+        {isAdmin && isDemoActive && (
+          <TabsContent value="demo">
+            <div className="space-y-6 max-w-4xl">
+              <DemoHealthCheck />
+              <DemoTourChecklist />
+            </div>
           </TabsContent>
         )}
       </Tabs>
