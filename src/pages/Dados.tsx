@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useRole } from '@/contexts/RoleContext';
-import { useCampoFilter } from '@/hooks/useCampoFilter';
+import { useDemoScope } from '@/hooks/useDemoScope';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -49,7 +49,7 @@ export default function Dados() {
   const [filterCoord, setFilterCoord] = useState<string>(isCoordScope ? scopeId : 'all');
 
   const dateRangeFilter: DateRangeFilter = { from: getDateString(dateRange.from), to: getDateString(dateRange.to) };
-  const campoId = useCampoFilter();
+  const { campoId } = useDemoScope();
 
   // Ensure coord filter stays locked for coordenador scope
   const effectiveFilterCoord = isCoordScope ? scopeId : filterCoord;

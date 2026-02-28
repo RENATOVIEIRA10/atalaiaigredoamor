@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { Navigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useRole } from '@/contexts/RoleContext';
-import { useCampoFilter } from '@/hooks/useCampoFilter';
+import { useDemoScope } from '@/hooks/useDemoScope';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
@@ -26,7 +26,7 @@ export default function Presenca() {
   const [periodFilter, setPeriodFilter] = useState<PeriodFilter>('all');
   const [searchTerm, setSearchTerm] = useState('');
   
-  const campoId = useCampoFilter();
+  const { campoId } = useDemoScope();
   const { data: celulas } = useCelulas();
   const { data: coordenacoes } = useCoordenacoes();
   const { data: allReports, isLoading } = useWeeklyReports(undefined, undefined, campoId);

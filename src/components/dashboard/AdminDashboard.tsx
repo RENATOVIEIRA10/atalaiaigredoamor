@@ -18,11 +18,11 @@ import { ptBR } from 'date-fns/locale';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatCard } from '@/components/ui/stat-card';
 import { MissionVerse } from './MissionVerse';
-import { useCampoFilter } from '@/hooks/useCampoFilter';
+import { useDemoScope } from '@/hooks/useDemoScope';
 
 export function AdminDashboard() {
   const { toast } = useToast();
-  const campoId = useCampoFilter();
+  const { campoId } = useDemoScope();
   const { data: redes, isLoading: redesLoading } = useRedes();
   const { data: coordenacoes, isLoading: coordenacoesLoading } = useCoordenacoes();
   const { data: celulas, isLoading: celulasLoading } = useCelulas();
