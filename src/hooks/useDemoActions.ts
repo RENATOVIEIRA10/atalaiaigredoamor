@@ -28,7 +28,11 @@ export function useDemoActions() {
         body: { action: 'generate', campus_ids: campusIds, months_back: monthsBack },
       });
       if (error) throw new Error(error.message);
-      if (data?.error) throw new Error(data.error);
+      if (data?.ok === false || data?.error) {
+        const msg = data.message || data.error || 'Erro desconhecido';
+        const cid = data.correlation_id || '';
+        throw new Error(`${msg}${cid ? ` [${cid}]` : ''}`);
+      }
 
       const result = data as DemoGenerateResult;
       if (result.success) {
@@ -64,7 +68,11 @@ export function useDemoActions() {
         },
       });
       if (error) throw new Error(error.message);
-      if (data?.error) throw new Error(data.error);
+      if (data?.ok === false || data?.error) {
+        const msg = data.message || data.error || 'Erro desconhecido';
+        const cid = data.correlation_id || '';
+        throw new Error(`${msg}${cid ? ` [${cid}]` : ''}`);
+      }
 
       const result = data as DemoGenerateResult;
       if (result.success) {

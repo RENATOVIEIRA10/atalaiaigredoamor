@@ -23,6 +23,16 @@ const DEMO_MODULES = [
   { action: 'seed_aniversarios', label: 'Aniversários' },
 ];
 
+function makeCorrelationId(): string {
+  return crypto.randomUUID().slice(0, 12);
+}
+
+function errorResponse(status: number, error_code: string, message: string, details: string | null, correlation_id: string) {
+  return new Response(JSON.stringify({
+    ok: false, error_code, message, details, correlation_id,
+  }), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+}
+
 async function callSeedData(action: string, seedRunId: string): Promise<any> {
   const url = `${SUPABASE_URL}/functions/v1/seed-data`;
   const resp = await fetch(url, {
@@ -34,11 +44,13 @@ async function callSeedData(action: string, seedRunId: string): Promise<any> {
     },
     body: JSON.stringify({ action, seed_run_id: seedRunId }),
   });
+  const body = await resp.text();
   if (!resp.ok) {
-    const text = await resp.text();
-    throw new Error(`seed-data ${action} failed: ${text}`);
+    let parsed: any;
+    try { parsed = JSON.parse(body); } catch { parsed = { message: body }; }
+    throw new Error(parsed.message || parsed.error || `seed-data ${action} failed (${resp.status}): ${body.slice(0, 200)}`);
   }
-  return resp.json();
+  try { return JSON.parse(body); } catch { return {}; }
 }
 
 Deno.serve(async (req) => {
@@ -46,20 +58,28 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const cid = makeCorrelationId();
+
   try {
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     const body = await req.json();
     const { action } = body;
 
+    // ─── Validate action ───
+    if (!action || !['generate', 'reset'].includes(action)) {
+      return errorResponse(400, 'INVALID_ACTION', `Ação inválida: ${action}. Use "generate" ou "reset".`, null, cid);
+    }
+
     // ─── ACTION: generate ───
-    // Creates a demo seed run job and executes all modules
     if (action === 'generate') {
       const { campus_ids, months_back } = body;
 
+      // Payload validation
       if (!campus_ids || (Array.isArray(campus_ids) && campus_ids.length === 0)) {
-        return new Response(JSON.stringify({ error: 'campus_ids é obrigatório' }), {
-          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
+        return errorResponse(400, 'MISSING_CAMPUS_IDS', 'campus_ids é obrigatório. Selecione ao menos um campus.', null, cid);
+      }
+      if (months_back !== undefined && (typeof months_back !== 'number' || months_back < 1)) {
+        return errorResponse(400, 'INVALID_MONTHS_BACK', 'months_back deve ser um número >= 1.', `Valor recebido: ${months_back}`, cid);
       }
 
       const period = months_back === 1 ? '1m' : months_back === 2 ? '2m' : '3m';
@@ -89,13 +109,12 @@ Deno.serve(async (req) => {
       }).select('id').single();
 
       if (jobErr || !job) {
-        return new Response(JSON.stringify({ error: `Falha ao criar job: ${jobErr?.message}` }), {
-          status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
+        console.error(`[${cid}] Job creation failed:`, jobErr);
+        return errorResponse(500, 'JOB_CREATION_FAILED', `Falha ao criar job: ${jobErr?.message || 'unknown'}`, jobErr?.details || null, cid);
       }
 
       const seedRunId = job.id;
-      console.log(`Demo seed run created: ${seedRunId}`);
+      console.log(`[${cid}] Demo seed run created: ${seedRunId}`);
 
       // Update to running
       await supabase.from('seed_runs').update({ status: 'running' }).eq('id', seedRunId);
@@ -106,12 +125,12 @@ Deno.serve(async (req) => {
 
       for (const mod of DEMO_MODULES) {
         try {
-          console.log(`  Demo → ${mod.label}...`);
+          console.log(`[${cid}]   Demo → ${mod.label}...`);
           const result = await callSeedData(mod.action, seedRunId);
           results[mod.action] = { status: 'done', created: result?.created ?? 0 };
         } catch (e) {
           const msg = e instanceof Error ? e.message : String(e);
-          console.error(`  Demo → ${mod.label} FAILED: ${msg}`);
+          console.error(`[${cid}]   Demo → ${mod.label} FAILED: ${msg}`);
           results[mod.action] = { status: 'failed', error: msg };
           failedModule = mod.label;
           break;
@@ -130,25 +149,26 @@ Deno.serve(async (req) => {
       }).eq('id', seedRunId);
 
       return new Response(JSON.stringify({
+        ok: !failedModule,
         success: !failedModule,
         seed_run_id: seedRunId,
         status: finalStatus,
         modules: results,
+        correlation_id: cid,
       }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     // ─── ACTION: reset ───
-    // Cleans old demo run and generates a new one
     if (action === 'reset') {
       const { old_seed_run_id, campus_ids, months_back } = body;
 
       // Clean old run if provided
       if (old_seed_run_id) {
-        console.log(`Cleaning old demo run: ${old_seed_run_id}`);
+        console.log(`[${cid}] Cleaning old demo run: ${old_seed_run_id}`);
         try {
           await callSeedData('cleanup', old_seed_run_id);
         } catch (e) {
-          console.error('Cleanup failed (continuing):', e);
+          console.error(`[${cid}] Cleanup failed (continuing):`, e);
         }
       }
 
@@ -163,20 +183,20 @@ Deno.serve(async (req) => {
         body: JSON.stringify({ action: 'generate', campus_ids: campus_ids || ['ALL'], months_back: months_back || 3 }),
       });
 
-      const result = await generateResp.json();
-      return new Response(JSON.stringify(result), {
+      const resultBody = await generateResp.text();
+      let result: any;
+      try { result = JSON.parse(resultBody); } catch { result = { ok: false, error_code: 'PARSE_ERROR', message: resultBody.slice(0, 200) }; }
+      
+      return new Response(JSON.stringify({ ...result, correlation_id: cid }), {
+        status: generateResp.ok ? 200 : generateResp.status,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    return new Response(JSON.stringify({ error: `Unknown action: ${action}` }), {
-      status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return errorResponse(400, 'UNKNOWN_ACTION', `Ação desconhecida: ${action}`, null, cid);
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
-    console.error('seed-demo error:', msg);
-    return new Response(JSON.stringify({ error: msg }), {
-      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    console.error(`[${cid}] seed-demo error:`, msg);
+    return errorResponse(500, 'INTERNAL_ERROR', msg, null, cid);
   }
 });
