@@ -10,12 +10,11 @@ import { Slider } from '@/components/ui/slider';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   FlaskConical, Play, Trash2, Loader2, CheckCircle2, XCircle, RefreshCw,
-  Terminal, AlertTriangle, Shield, Info, Calendar, Eye, Settings2, ChevronRight
+  Terminal, AlertTriangle, Shield, Settings2, ChevronRight, MapPin, Globe
 } from 'lucide-react';
 import { useSeedRuns, useCreateSeedRun, useSeedActions, SeedRun, SeedStepResult } from '@/hooks/useSeedRuns';
 import { useCampos } from '@/hooks/useCampos';
@@ -28,9 +27,9 @@ import { useToast } from '@/hooks/use-toast';
 
 // ─── Types ───
 export interface SeedConfig {
-  campos: string[];
+  campos: string[];  // campus IDs or ["ALL"]
   redes: string[];
-  period: string; // '1m' | '2m' | '3m' | 'bimestre' | 'trimestre'
+  period: string;
   modules: string[];
   advanced: {
     volumeNovasVidas: number;
@@ -87,10 +86,17 @@ export function SeedRunSimulationPanel() {
   const [showCreate, setShowCreate] = useState(false);
   const [selectedRun, setSelectedRun] = useState<SeedRun | null>(null);
   const [cleanupTarget, setCleanupTarget] = useState<SeedRun | null>(null);
+  const { data: campos } = useCampos();
+
+  // Map campo IDs to names
+  const campoMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    (campos || []).forEach(c => { map[c.id] = c.nome; });
+    return map;
+  }, [campos]);
 
   return (
     <div className="space-y-6 max-w-6xl">
-      {/* Header */}
       <div className="flex items-start justify-between flex-wrap gap-4">
         <div>
           <h2 className="text-xl font-bold flex items-center gap-2">
@@ -110,11 +116,10 @@ export function SeedRunSimulationPanel() {
       <Alert>
         <Shield className="h-4 w-4" />
         <AlertDescription className="text-sm">
-          <strong>Isolamento garantido:</strong> Todo dado sintético carrega <code className="bg-muted px-1 rounded text-xs">is_test_data=true</code> + <code className="bg-muted px-1 rounded text-xs">seed_run_id</code>.
+          <strong>Isolamento garantido:</strong> Todo dado sintético carrega <code className="bg-muted px-1 rounded text-xs">is_test_data=true</code> + <code className="bg-muted px-1 rounded text-xs">seed_run_id</code> + <code className="bg-muted px-1 rounded text-xs">campo_id</code> explícito.
         </AlertDescription>
       </Alert>
 
-      {/* Content */}
       <div className="grid gap-6 lg:grid-cols-[1fr_1.5fr]">
         {/* Left: History */}
         <div className="space-y-3">
@@ -142,6 +147,7 @@ export function SeedRunSimulationPanel() {
                   <SeedRunHistoryCard
                     key={run.id}
                     run={run}
+                    campoMap={campoMap}
                     isSelected={selectedRun?.id === run.id}
                     onSelect={() => setSelectedRun(run)}
                     onCleanup={() => setCleanupTarget(run)}
@@ -155,7 +161,7 @@ export function SeedRunSimulationPanel() {
         {/* Right: Details */}
         <div>
           {selectedRun ? (
-            <SeedRunDetails run={selectedRun} onCleanup={() => setCleanupTarget(selectedRun)} />
+            <SeedRunDetails run={selectedRun} campoMap={campoMap} onCleanup={() => setCleanupTarget(selectedRun)} />
           ) : (
             <Card className="border-dashed h-full flex items-center justify-center">
               <CardContent className="text-center text-muted-foreground py-16">
@@ -168,7 +174,6 @@ export function SeedRunSimulationPanel() {
         </div>
       </div>
 
-      {/* Dialogs */}
       {showCreate && (
         <CreateSimulationDialog
           open={showCreate}
@@ -183,10 +188,16 @@ export function SeedRunSimulationPanel() {
           onOpenChange={() => setCleanupTarget(null)}
           seedRun={cleanupTarget}
           onConfirm={async () => {
+            const targetId = cleanupTarget.id;
             setCleanupTarget(null);
-            const { runCleanup } = useSeedActionsStandalone(cleanupTarget.id);
-            await runCleanup(cleanupTarget.id);
-            refetch();
+            try {
+              await supabase.functions.invoke('seed-data', {
+                body: { action: 'cleanup', seed_run_id: targetId },
+              });
+              refetch();
+            } catch (e) {
+              console.error('cleanup error', e);
+            }
           }}
         />
       )}
@@ -194,34 +205,19 @@ export function SeedRunSimulationPanel() {
   );
 }
 
-// ─── Standalone seed actions (for cleanup in parent) ───
-function useSeedActionsStandalone(seedRunId: string) {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-
-  const runCleanup = async (targetId: string) => {
-    try {
-      await supabase.functions.invoke('seed-data', {
-        body: { action: 'cleanup', seed_run_id: targetId },
-      });
-      queryClient.invalidateQueries({ queryKey: ['seed_runs'] });
-      toast({ title: 'Limpeza concluída', description: 'Dados de teste removidos com sucesso' });
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Erro';
-      toast({ title: 'Erro na limpeza', description: msg, variant: 'destructive' });
-    }
-  };
-
-  return { runCleanup };
-}
-
 // ─── History Card ───
-function SeedRunHistoryCard({ run, isSelected, onSelect, onCleanup }: {
-  run: SeedRun; isSelected: boolean; onSelect: () => void; onCleanup: () => void;
+function SeedRunHistoryCard({ run, campoMap, isSelected, onSelect, onCleanup }: {
+  run: SeedRun; campoMap: Record<string, string>; isSelected: boolean; onSelect: () => void; onCleanup: () => void;
 }) {
   const totals = run.totals || {};
   const config = (run as any).config as SeedConfig | null;
   const isCleaned = !!run.cleaned_at;
+
+  const campusLabel = useMemo(() => {
+    if (!config?.campos || config.campos.length === 0) return 'Sem campus';
+    if (config.campos[0] === 'ALL') return '🌐 Todos os campus';
+    return config.campos.map(id => campoMap[id] || id.slice(0, 8)).join(', ');
+  }, [config?.campos, campoMap]);
 
   return (
     <Card
@@ -237,22 +233,26 @@ function SeedRunHistoryCard({ run, isSelected, onSelect, onCleanup }: {
             </CardDescription>
           </div>
           <div className="flex flex-col items-end gap-1">
-            <Badge variant={run.environment === 'prod' ? 'destructive' : 'secondary'} className="text-[10px]">
-              {run.environment === 'prod' ? 'PROD' : 'Dev'}
-            </Badge>
             {isCleaned ? (
               <Badge variant="outline" className="text-muted-foreground text-[10px]">Limpo</Badge>
             ) : run.status === 'running' ? (
               <Badge variant="outline" className="border-warning text-warning animate-pulse text-[10px]">Rodando</Badge>
             ) : run.status === 'done' ? (
               <Badge variant="outline" className="border-primary text-primary text-[10px]">Concluído</Badge>
-            ) : (
+            ) : run.status === 'failed' ? (
               <Badge variant="destructive" className="text-[10px]">Falhou</Badge>
+            ) : (
+              <Badge variant="secondary" className="text-[10px]">{run.status}</Badge>
             )}
           </div>
         </div>
       </CardHeader>
       <CardContent className="px-4 pb-3">
+        {/* Campus label */}
+        <div className="flex items-center gap-1 text-[10px] text-muted-foreground mb-1.5">
+          <MapPin className="h-3 w-3" />
+          <span className="truncate">{campusLabel}</span>
+        </div>
         {config?.modules && (
           <div className="flex flex-wrap gap-1 mb-1.5">
             {config.modules.slice(0, 4).map(m => (
@@ -263,10 +263,10 @@ function SeedRunHistoryCard({ run, isSelected, onSelect, onCleanup }: {
         )}
         {Object.keys(totals).length > 0 && (
           <div className="flex flex-wrap gap-2 text-[10px] text-muted-foreground">
-            {totals.members && <span>👥 {totals.members}</span>}
-            {totals.reports && <span>📋 {totals.reports}</span>}
-            {totals.supervisoes && <span>🔍 {totals.supervisoes}</span>}
-            {totals.novas_vidas && <span>🕊️ {totals.novas_vidas}</span>}
+            {totals.members && <span>👥 {String(totals.members)}</span>}
+            {totals.reports && <span>📋 {String(totals.reports)}</span>}
+            {totals.supervisoes && <span>🔍 {String(totals.supervisoes)}</span>}
+            {totals.novas_vidas && <span>🕊️ {String(totals.novas_vidas)}</span>}
           </div>
         )}
         {isSelected && (
@@ -279,40 +279,69 @@ function SeedRunHistoryCard({ run, isSelected, onSelect, onCleanup }: {
   );
 }
 
+// ─── Per-Campus Summary ───
+function PerCampusSummary({ totals, campoMap }: { totals: Record<string, any>; campoMap: Record<string, string> }) {
+  const perCampus = totals?.per_campus as Record<string, any> | undefined;
+  if (!perCampus || Object.keys(perCampus).length === 0) return null;
+
+  return (
+    <div className="space-y-2">
+      <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+        <MapPin className="h-3 w-3" /> Resumo por Campus
+      </h4>
+      <div className="grid gap-2">
+        {Object.entries(perCampus).map(([campoId, data]) => {
+          const nome = (data as any).nome || campoMap[campoId] || campoId.slice(0, 8);
+          const entries = Object.entries(data as Record<string, any>).filter(([k]) => k !== 'nome');
+          return (
+            <Card key={campoId} className="bg-muted/30">
+              <CardContent className="p-3">
+                <p className="text-sm font-medium flex items-center gap-1.5 mb-1">
+                  <MapPin className="h-3.5 w-3.5 text-primary" />
+                  {nome}
+                </p>
+                <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                  {entries.map(([key, val]) => (
+                    <span key={key}>{key}: <strong className="text-foreground">{String(val)}</strong></span>
+                  ))}
+                  {entries.length === 0 && <span className="text-muted-foreground/60">0 registros</span>}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ─── Seed Run Details ───
-function SeedRunDetails({ run, onCleanup }: { run: SeedRun; onCleanup: () => void }) {
+function SeedRunDetails({ run, campoMap, onCleanup }: { run: SeedRun; campoMap: Record<string, string>; onCleanup: () => void }) {
   const config = (run as any).config as SeedConfig | null;
   const { runAction, isRunning, steps, clearSteps } = useSeedActions(run.id);
   const isCleaned = !!run.cleaned_at;
   const queryClient = useQueryClient();
-  const { toast } = useToast();
 
-  const getPeriodDates = (period: string) => {
-    const today = new Date();
-    const fmt = (d: Date) => format(d, 'yyyy-MM-dd');
-    const months: Record<string, number> = { '1m': 1, '2m': 2, '3m': 3, 'bimestre': 2, 'trimestre': 3 };
-    const m = months[period] || 3;
-    const from = new Date(today);
-    from.setMonth(from.getMonth() - m);
-    return { from: fmt(from), to: fmt(today) };
-  };
-
-  const period = config?.period ? getPeriodDates(config.period) : getPeriodDates('3m');
+  const campusLabel = useMemo(() => {
+    if (!config?.campos || config.campos.length === 0) return 'Sem campus';
+    if (config.campos[0] === 'ALL') return '🌐 Todos os campus ativos';
+    return config.campos.map(id => campoMap[id] || id.slice(0, 8)).join(', ');
+  }, [config?.campos, campoMap]);
 
   const moduleActions = useMemo(() => {
     const modules = config?.modules || ['members', 'reports'];
-    const actionMap: Record<string, { action: string; label: string; needsPeriod: boolean }> = {
-      hierarchy: { action: 'seed_hierarchy', label: '🏗️ Hierarquia', needsPeriod: false },
-      members: { action: 'seed_members', label: '👥 Membros', needsPeriod: false },
-      reports: { action: 'seed_reports', label: '📋 Relatórios', needsPeriod: true },
-      supervisoes: { action: 'seed_supervisoes', label: '🔍 Supervisões', needsPeriod: true },
-      multiplicacoes: { action: 'seed_multiplicacoes', label: '🌱 Multiplicações', needsPeriod: true },
-      novas_vidas: { action: 'seed_novas_vidas', label: '🕊️ Novas Vidas', needsPeriod: false },
-      encaminhamentos: { action: 'seed_encaminhamentos', label: '📍 Encaminhamentos', needsPeriod: false },
-      discipulado: { action: 'seed_discipulado', label: '📖 Discipulado', needsPeriod: true },
-      roteiro: { action: 'seed_roteiro', label: '📝 Roteiro', needsPeriod: true },
-      batismo: { action: 'seed_batismo', label: '💧 Batismo', needsPeriod: false },
-      aniversarios: { action: 'seed_aniversarios', label: '🎂 Aniversários', needsPeriod: false },
+    const actionMap: Record<string, { action: string; label: string }> = {
+      hierarchy: { action: 'seed_hierarchy', label: '🏗️ Hierarquia' },
+      members: { action: 'seed_members', label: '👥 Membros' },
+      reports: { action: 'seed_reports', label: '📋 Relatórios' },
+      supervisoes: { action: 'seed_supervisoes', label: '🔍 Supervisões' },
+      multiplicacoes: { action: 'seed_multiplicacoes', label: '🌱 Multiplicações' },
+      novas_vidas: { action: 'seed_novas_vidas', label: '🕊️ Novas Vidas' },
+      encaminhamentos: { action: 'seed_encaminhamentos', label: '📍 Encaminhamentos' },
+      discipulado: { action: 'seed_discipulado', label: '📖 Discipulado' },
+      roteiro: { action: 'seed_roteiro', label: '📝 Roteiro' },
+      batismo: { action: 'seed_batismo', label: '💧 Batismo' },
+      aniversarios: { action: 'seed_aniversarios', label: '🎂 Aniversários' },
     };
     return modules.map(m => actionMap[m]).filter(Boolean);
   }, [config?.modules]);
@@ -321,21 +350,12 @@ function SeedRunDetails({ run, onCleanup }: { run: SeedRun; onCleanup: () => voi
     clearSteps();
     for (const item of moduleActions) {
       try {
-        const extra: Record<string, string> = {};
-        if (item.needsPeriod) {
-          extra.period_from = period.from;
-          extra.period_to = period.to;
-        }
-        if (config?.campos?.length) extra.campo_ids = JSON.stringify(config.campos);
-        if (config?.redes?.length) extra.rede_ids = JSON.stringify(config.redes);
-        if (config?.advanced) extra.advanced = JSON.stringify(config.advanced);
-        extra.include_test_cells = 'true';
-        await runAction(item.action, item.label, extra);
+        // Edge function now reads config from job — no extra params needed
+        await runAction(item.action, item.label);
       } catch {
         break;
       }
     }
-    // Mark as done
     await supabase.from('seed_runs').update({ status: 'done' }).eq('id', run.id);
     queryClient.invalidateQueries({ queryKey: ['seed_runs'] });
   };
@@ -369,6 +389,11 @@ function SeedRunDetails({ run, onCleanup }: { run: SeedRun; onCleanup: () => voi
         </CardHeader>
         {config && (
           <CardContent className="space-y-3">
+            {/* Campus scope */}
+            <div className="p-2 rounded-lg bg-primary/5 border border-primary/20">
+              <p className="text-xs text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3" /> Campus</p>
+              <p className="font-medium text-sm">{campusLabel}</p>
+            </div>
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div>
                 <p className="text-xs text-muted-foreground">Período</p>
@@ -396,6 +421,9 @@ function SeedRunDetails({ run, onCleanup }: { run: SeedRun; onCleanup: () => voi
           </CardContent>
         )}
       </Card>
+
+      {/* Per-Campus Summary */}
+      <PerCampusSummary totals={run.totals} campoMap={campoMap} />
 
       {/* Run All */}
       <Button className="w-full gap-2" size="lg" onClick={runAll} disabled={isRunning || run.status === 'done'}>
@@ -425,14 +453,7 @@ function SeedRunDetails({ run, onCleanup }: { run: SeedRun; onCleanup: () => voi
                     <Button
                       size="sm"
                       variant={step?.status === 'done' ? 'outline' : 'default'}
-                      onClick={() => {
-                        const extra: Record<string, string> = {};
-                        if (item.needsPeriod) { extra.period_from = period.from; extra.period_to = period.to; }
-                        if (config?.campos?.length) extra.campo_ids = JSON.stringify(config.campos);
-                        if (config?.advanced) extra.advanced = JSON.stringify(config.advanced);
-                        extra.include_test_cells = 'true';
-                        runAction(item.action, item.label, extra);
-                      }}
+                      onClick={() => runAction(item.action, item.label)}
                       disabled={isRunning}
                       className="shrink-0"
                     >
@@ -473,7 +494,6 @@ function SeedRunDetails({ run, onCleanup }: { run: SeedRun; onCleanup: () => voi
 
       <Separator />
 
-      {/* Cleanup */}
       <Button variant="destructive" size="sm" onClick={onCleanup} className="gap-2" disabled={isRunning}>
         <Trash2 className="h-4 w-4" /> Limpar Dados de Teste
       </Button>
@@ -493,13 +513,13 @@ function CreateSimulationDialog({ open, onOpenChange, onCreated }: {
   const [name, setName] = useState(`SIM_${format(new Date(), 'yyyy_MM_dd_HHmm')}`);
   const [notes, setNotes] = useState('');
   const [config, setConfig] = useState<SeedConfig>(DEFAULT_CONFIG);
-  const [confirmText, setConfirmText] = useState('');
+  const [isAllCampos, setIsAllCampos] = useState(false);
 
   const filteredRedes = useMemo(() => {
     if (!redes) return [];
-    if (config.campos.length === 0) return redes;
+    if (isAllCampos || config.campos.length === 0) return redes;
     return redes.filter(r => r.campo_id && config.campos.includes(r.campo_id));
-  }, [redes, config.campos]);
+  }, [redes, config.campos, isAllCampos]);
 
   const toggleModule = (id: string) => {
     setConfig(prev => ({
@@ -510,18 +530,30 @@ function CreateSimulationDialog({ open, onOpenChange, onCreated }: {
     }));
   };
 
+  const toggleAllCampos = () => {
+    if (isAllCampos) {
+      setIsAllCampos(false);
+      setConfig(prev => ({ ...prev, campos: [] }));
+    } else {
+      setIsAllCampos(true);
+      setConfig(prev => ({ ...prev, campos: ['ALL'] }));
+    }
+  };
+
   const toggleCampo = (id: string) => {
-    setConfig(prev => ({
-      ...prev,
-      campos: prev.campos.includes(id)
-        ? prev.campos.filter(c => c !== id)
-        : [...prev.campos, id],
-      // Clear redes that no longer belong to selected campos
-      redes: prev.redes.filter(rId => {
-        const rede = redes?.find(r => r.id === rId);
-        return rede?.campo_id && [...prev.campos.filter(c => c !== id), ...(prev.campos.includes(id) ? [] : [id])].includes(rede.campo_id);
-      }),
-    }));
+    setIsAllCampos(false);
+    setConfig(prev => {
+      const newCampos = prev.campos.filter(c => c !== 'ALL');
+      const updated = newCampos.includes(id) ? newCampos.filter(c => c !== id) : [...newCampos, id];
+      return {
+        ...prev,
+        campos: updated,
+        redes: prev.redes.filter(rId => {
+          const rede = redes?.find(r => r.id === rId);
+          return rede?.campo_id && updated.includes(rede.campo_id);
+        }),
+      };
+    });
   };
 
   const toggleRede = (id: string) => {
@@ -545,11 +577,17 @@ function CreateSimulationDialog({ open, onOpenChange, onCreated }: {
     }));
   };
 
+  const campusCount = isAllCampos ? (campos?.length || 0) : config.campos.filter(c => c !== 'ALL').length;
+  const hasCampos = campusCount > 0;
+  const campusLabel = isAllCampos
+    ? `Todos os campus (${campos?.length || 0})`
+    : config.campos.filter(c => c !== 'ALL').map(id => campos?.find(c => c.id === id)?.nome || id.slice(0, 8)).join(', ');
+
   const handleCreate = async () => {
+    if (!hasCampos) return;
     try {
       const run = await createRun.mutateAsync({ name, environment: 'dev', notes });
-      // Save config to seed_runs
-      await supabase.from('seed_runs').update({ config } as any).eq('id', run.id);
+      await supabase.from('seed_runs').update({ config, status: 'queued' } as any).eq('id', run.id);
       queryClient.invalidateQueries({ queryKey: ['seed_runs'] });
       onCreated({ ...run, config } as any);
       onOpenChange(false);
@@ -578,16 +616,37 @@ function CreateSimulationDialog({ open, onOpenChange, onCreated }: {
             <Input value={name} onChange={e => setName(e.target.value)} className="font-mono text-sm" />
           </div>
 
-          {/* Campos */}
+          {/* Campos (OBRIGATÓRIO) */}
           <div className="space-y-2">
-            <Label>Campos (Campus)</Label>
+            <Label className="flex items-center gap-1">
+              <MapPin className="h-3.5 w-3.5" />
+              Campus <span className="text-destructive">*</span>
+            </Label>
+            {!hasCampos && (
+              <Alert className="border-destructive/40 bg-destructive/5 py-2">
+                <AlertTriangle className="h-3.5 w-3.5 text-destructive" />
+                <AlertDescription className="text-xs text-destructive">
+                  Selecione ao menos um campus. Sem campus selecionado, a simulação não será criada.
+                </AlertDescription>
+              </Alert>
+            )}
             <div className="flex flex-wrap gap-2">
+              <Button
+                size="sm"
+                variant={isAllCampos ? 'default' : 'outline'}
+                onClick={toggleAllCampos}
+                className="gap-1"
+              >
+                <Globe className="h-3.5 w-3.5" />
+                Todos
+              </Button>
               {(campos || []).map(campo => (
                 <Button
                   key={campo.id}
                   size="sm"
-                  variant={config.campos.includes(campo.id) ? 'default' : 'outline'}
+                  variant={!isAllCampos && config.campos.includes(campo.id) ? 'default' : 'outline'}
                   onClick={() => toggleCampo(campo.id)}
+                  disabled={isAllCampos}
                 >
                   {campo.nome}
                 </Button>
@@ -601,7 +660,7 @@ function CreateSimulationDialog({ open, onOpenChange, onCreated }: {
           {/* Redes */}
           {filteredRedes.length > 0 && (
             <div className="space-y-2">
-              <Label>Redes</Label>
+              <Label>Redes (opcional — vazio = todas do campus)</Label>
               <div className="flex flex-wrap gap-2">
                 {filteredRedes.map(rede => (
                   <Button
@@ -669,46 +728,28 @@ function CreateSimulationDialog({ open, onOpenChange, onCreated }: {
                 <Label className="text-xs">Volume de Novas Vidas: {config.advanced.volumeNovasVidas}</Label>
                 <Slider
                   value={[config.advanced.volumeNovasVidas]}
-                  min={10}
-                  max={300}
-                  step={10}
-                  onValueChange={([v]) => setConfig(prev => ({
-                    ...prev,
-                    advanced: { ...prev.advanced, volumeNovasVidas: v },
-                  }))}
+                  min={10} max={300} step={10}
+                  onValueChange={([v]) => setConfig(prev => ({ ...prev, advanced: { ...prev.advanced, volumeNovasVidas: v } }))}
                 />
               </div>
-
               <div className="space-y-2">
                 <Label className="text-xs">Taxa de Conversão: {config.advanced.taxaConversao}%</Label>
                 <Slider
                   value={[config.advanced.taxaConversao]}
-                  min={10}
-                  max={100}
-                  step={5}
-                  onValueChange={([v]) => setConfig(prev => ({
-                    ...prev,
-                    advanced: { ...prev.advanced, taxaConversao: v },
-                  }))}
+                  min={10} max={100} step={5}
+                  onValueChange={([v]) => setConfig(prev => ({ ...prev, advanced: { ...prev.advanced, taxaConversao: v } }))}
                 />
               </div>
-
               <div className="space-y-2">
                 <Label className="text-xs">Membros por Célula: {config.advanced.membrosPerCelula}</Label>
                 <Slider
                   value={[config.advanced.membrosPerCelula]}
-                  min={3}
-                  max={20}
-                  step={1}
-                  onValueChange={([v]) => setConfig(prev => ({
-                    ...prev,
-                    advanced: { ...prev.advanced, membrosPerCelula: v },
-                  }))}
+                  min={3} max={20} step={1}
+                  onValueChange={([v]) => setConfig(prev => ({ ...prev, advanced: { ...prev.advanced, membrosPerCelula: v } }))}
                 />
               </div>
             </div>
 
-            {/* Tipo Célula */}
             <div className="space-y-2">
               <Label className="text-xs">Tipos de Célula</Label>
               <div className="flex flex-wrap gap-2">
@@ -725,7 +766,6 @@ function CreateSimulationDialog({ open, onOpenChange, onCreated }: {
               </div>
             </div>
 
-            {/* Age Distribution */}
             <div className="space-y-2">
               <Label className="text-xs">Distribuição por Faixa Etária (%)</Label>
               <div className="grid grid-cols-5 gap-2">
@@ -733,16 +773,10 @@ function CreateSimulationDialog({ open, onOpenChange, onCreated }: {
                   <div key={faixa} className="space-y-1">
                     <Label className="text-[10px] text-muted-foreground">{faixa}</Label>
                     <Input
-                      type="number"
-                      min={0}
-                      max={100}
-                      value={pct}
+                      type="number" min={0} max={100} value={pct}
                       onChange={e => setConfig(prev => ({
                         ...prev,
-                        advanced: {
-                          ...prev.advanced,
-                          distribuicaoIdade: { ...prev.advanced.distribuicaoIdade, [faixa]: parseInt(e.target.value) || 0 },
-                        },
+                        advanced: { ...prev.advanced, distribuicaoIdade: { ...prev.advanced.distribuicaoIdade, [faixa]: parseInt(e.target.value) || 0 } },
                       }))}
                       className="h-8 text-xs"
                     />
@@ -757,11 +791,21 @@ function CreateSimulationDialog({ open, onOpenChange, onCreated }: {
             <Label>Notas (opcional)</Label>
             <Textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2} placeholder="Objetivo desta simulação..." />
           </div>
+
+          {/* Pre-execution summary */}
+          {hasCampos && config.modules.length > 0 && (
+            <Alert className="border-primary/30 bg-primary/5">
+              <FlaskConical className="h-4 w-4 text-primary" />
+              <AlertDescription className="text-sm">
+                <strong>Resumo:</strong> Seed Run será executado em <strong>{campusLabel}</strong> | <strong>{PERIOD_OPTIONS.find(p => p.value === config.period)?.label}</strong> | <strong>{config.modules.length} módulos</strong> selecionados.
+              </AlertDescription>
+            </Alert>
+          )}
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button onClick={handleCreate} disabled={createRun.isPending || config.modules.length === 0}>
+          <Button onClick={handleCreate} disabled={createRun.isPending || config.modules.length === 0 || !hasCampos}>
             {createRun.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <FlaskConical className="h-4 w-4 mr-2" />}
             Criar Simulação
           </Button>
