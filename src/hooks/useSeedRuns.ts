@@ -65,7 +65,12 @@ async function callSeedFunction(action: string, seedRunId: string, extra?: Recor
     body: { action, seed_run_id: seedRunId, ...extra },
   });
   if (error) throw new Error(error.message || 'Erro ao chamar função seed-data');
-  if (data?.error) throw new Error(data.error);
+  if (data?.ok === false || data?.error) {
+    const err = new Error(data.message || data.error || 'Erro desconhecido');
+    (err as any).correlation_id = data.correlation_id;
+    (err as any).error_code = data.error_code;
+    throw err;
+  }
   return data;
 }
 
@@ -137,7 +142,8 @@ export function useSeedActions(seedRunId: string | null) {
         queryClient.invalidateQueries({ queryKey: ['seed_runs'] });
       }
 
-      toast({ title: '✗ Erro', description: `${label}: ${msg}`, variant: 'destructive' });
+      const correlationId = (e as any)?.correlation_id || '';
+      toast({ title: '✗ Erro', description: `${label}: ${msg}${correlationId ? ` [${correlationId}]` : ''}`, variant: 'destructive' });
       throw e;
     } finally {
       setIsRunning(false);

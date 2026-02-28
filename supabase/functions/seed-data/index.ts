@@ -1121,13 +1121,17 @@ Deno.serve(async (req) => {
       });
     }
 
-    return new Response(JSON.stringify({ error: `Unknown action: ${action}` }), {
+    const cid = crypto.randomUUID().slice(0, 12);
+    console.error(`[${cid}] Unknown action: ${action}`);
+    return new Response(JSON.stringify({ ok: false, error_code: 'UNKNOWN_ACTION', message: `Ação desconhecida: ${action}`, correlation_id: cid }), {
       status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
 
   } catch (err) {
-    console.error('seed-data error:', err);
-    return new Response(JSON.stringify({ error: err instanceof Error ? err.message : String(err) }), {
+    const cid = crypto.randomUUID().slice(0, 12);
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error(`[${cid}] seed-data error:`, msg);
+    return new Response(JSON.stringify({ ok: false, error_code: 'INTERNAL_ERROR', message: msg, correlation_id: cid }), {
       status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   }
