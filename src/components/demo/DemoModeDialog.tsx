@@ -4,12 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Search, Eye, Network, FolderTree, ClipboardCheck, Home, Crown } from 'lucide-react';
+import { Search, Eye, Network, FolderTree, ClipboardCheck, Home, Crown, Database } from 'lucide-react';
 import { useRedes } from '@/hooks/useRedes';
 import { useCoordenacoes } from '@/hooks/useCoordenacoes';
 import { useSupervisores } from '@/hooks/useSupervisoes';
 import { useCelulas } from '@/hooks/useCelulas';
 import { useDemoMode } from '@/contexts/DemoModeContext';
+import { useSeedRuns } from '@/hooks/useSeedRuns';
 import { useNavigate } from 'react-router-dom';
 
 interface DemoModeDialogProps {
@@ -30,6 +31,7 @@ const levels: { value: DemoLevel; label: string; icon: any; color: string }[] = 
 export function DemoModeDialog({ open, onOpenChange }: DemoModeDialogProps) {
   const [selectedLevel, setSelectedLevel] = useState<DemoLevel | null>(null);
   const [search, setSearch] = useState('');
+  const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
   const navigate = useNavigate();
   const { activateDemo } = useDemoMode();
 
@@ -37,6 +39,13 @@ export function DemoModeDialog({ open, onOpenChange }: DemoModeDialogProps) {
   const { data: coordenacoes } = useCoordenacoes();
   const { data: supervisores } = useSupervisores();
   const { data: celulas } = useCelulas();
+
+  // Available demo seed runs (done, not cleaned)
+  const { data: seedRuns } = useSeedRuns();
+  const demoRuns = useMemo(() =>
+    (seedRuns || []).filter(r => r.status === 'done' && !r.cleaned_at),
+    [seedRuns]
+  );
 
   const getCoupleLabel = (lc: any) => {
     if (!lc) return null;
@@ -96,10 +105,11 @@ export function DemoModeDialog({ open, onOpenChange }: DemoModeDialogProps) {
   }, [selectedLevel, search, redes, coordenacoes, supervisores, celulas]);
 
   const handleSelect = (level: DemoLevel, scopeId: string | null, label: string) => {
-    activateDemo(level, scopeId, label);
+    activateDemo(level, scopeId, label, selectedRunId);
     onOpenChange(false);
     setSelectedLevel(null);
     setSearch('');
+    setSelectedRunId(null);
     navigate('/dashboard');
   };
 
@@ -109,7 +119,7 @@ export function DemoModeDialog({ open, onOpenChange }: DemoModeDialogProps) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { onOpenChange(v); if (!v) { setSelectedLevel(null); setSearch(''); } }}>
+    <Dialog open={open} onOpenChange={(v) => { onOpenChange(v); if (!v) { setSelectedLevel(null); setSearch(''); setSelectedRunId(null); } }}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -125,7 +135,37 @@ export function DemoModeDialog({ open, onOpenChange }: DemoModeDialogProps) {
         </DialogHeader>
 
         {!selectedLevel ? (
-          <div className="space-y-2 py-2">
+          <div className="space-y-3 py-2">
+            {/* Dataset selector */}
+            {demoRuns.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                  <Database className="h-3 w-3" /> Dataset Demo
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  <button
+                    onClick={() => setSelectedRunId(null)}
+                    className={`px-2.5 py-1.5 rounded-lg text-xs border transition-all ${
+                      !selectedRunId ? 'border-primary bg-primary/10 text-primary font-medium' : 'border-border/50 text-muted-foreground hover:bg-accent/50'
+                    }`}
+                  >
+                    Dados reais
+                  </button>
+                  {demoRuns.map(run => (
+                    <button
+                      key={run.id}
+                      onClick={() => setSelectedRunId(run.id)}
+                      className={`px-2.5 py-1.5 rounded-lg text-xs border transition-all ${
+                        selectedRunId === run.id ? 'border-primary bg-primary/10 text-primary font-medium' : 'border-border/50 text-muted-foreground hover:bg-accent/50'
+                      }`}
+                    >
+                      {run.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {levels.map(level => (
               <button
                 key={level.value}

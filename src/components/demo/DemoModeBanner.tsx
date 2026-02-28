@@ -1,6 +1,6 @@
 import { useDemoMode } from '@/contexts/DemoModeContext';
 import { Button } from '@/components/ui/button';
-import { Eye, ArrowLeft } from 'lucide-react';
+import { Eye, ArrowLeft, Database } from 'lucide-react';
 import { useIsPWA } from '@/hooks/useIsPWA';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -15,7 +15,7 @@ const scopeLabels: Record<string, string> = {
 };
 
 export function DemoModeBanner() {
-  const { isDemoActive, demoScopeType, demoLabel, deactivateDemo } = useDemoMode();
+  const { isDemoActive, demoScopeType, demoLabel, demoRunId, deactivateDemo } = useDemoMode();
   const isPWA = useIsPWA();
   const isMobile = useIsMobile();
   const isPWAMobile = isPWA && isMobile;
@@ -33,6 +33,12 @@ export function DemoModeBanner() {
           🔍 Demo: <strong>{scopeLabels[demoScopeType || ''] || demoScopeType}</strong>
           {demoLabel && !isPWAMobile && <> — {demoLabel}</>}
         </span>
+        {demoRunId && (
+          <span className="hidden sm:inline-flex items-center gap-1 text-xs bg-amber-600/30 px-1.5 py-0.5 rounded">
+            <Database className="h-3 w-3" />
+            Dataset: {demoRunId.slice(0, 8)}
+          </span>
+        )}
       </div>
       <Button
         size="sm"

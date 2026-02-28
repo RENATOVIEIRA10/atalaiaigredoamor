@@ -8,8 +8,16 @@ interface DemoModeContextType {
   demoScopeType: DemoScopeType | null;
   demoScopeId: string | null;
   demoLabel: string | null;
-  activateDemo: (scopeType: DemoScopeType, scopeId: string | null, label: string) => void;
+  /** The seed_run_id whose data should be shown in demo mode */
+  demoRunId: string | null;
+  /** Campus currently selected in demo (for multi-campus switching) */
+  demoCampusId: string | null;
+  activateDemo: (scopeType: DemoScopeType, scopeId: string | null, label: string, runId?: string | null, campusId?: string | null) => void;
   deactivateDemo: () => void;
+  /** Switch the demo seed run (e.g. after reset/regenerate) */
+  setDemoRunId: (runId: string | null) => void;
+  /** Switch the campus in demo without leaving demo mode */
+  setDemoCampusId: (campusId: string | null) => void;
 }
 
 const DemoModeContext = createContext<DemoModeContextType | undefined>(undefined);
@@ -22,6 +30,8 @@ interface DemoStoredState {
   scopeId: string | null;
   label: string;
   savedAccessKeyId: string | null;
+  demoRunId: string | null;
+  demoCampusId: string | null;
 }
 
 export function DemoModeProvider({ children }: { children: ReactNode }) {
@@ -31,8 +41,20 @@ export function DemoModeProvider({ children }: { children: ReactNode }) {
   const [demoScopeId, setDemoScopeId] = useState<string | null>(null);
   const [demoLabel, setDemoLabel] = useState<string | null>(null);
   const [savedAccessKeyId, setSavedAccessKeyId] = useState<string | null>(null);
+  const [demoRunId, setDemoRunIdState] = useState<string | null>(null);
+  const [demoCampusId, setDemoCampusIdState] = useState<string | null>(null);
 
-  const activateDemo = useCallback((scopeType: DemoScopeType, scopeId: string | null, label: string) => {
+  const persistState = useCallback((state: DemoStoredState) => {
+    try { sessionStorage.setItem(DEMO_STORAGE_KEY, JSON.stringify(state)); } catch {}
+  }, []);
+
+  const activateDemo = useCallback((
+    scopeType: DemoScopeType,
+    scopeId: string | null,
+    label: string,
+    runId?: string | null,
+    campusId?: string | null,
+  ) => {
     if (!isAdmin && !isDemoActive) return;
     
     // Save current admin accessKeyId on first activation
@@ -45,22 +67,22 @@ export function DemoModeProvider({ children }: { children: ReactNode }) {
     setDemoScopeType(scopeType);
     setDemoScopeId(scopeId);
     setDemoLabel(label);
+    if (runId !== undefined) setDemoRunIdState(runId ?? null);
+    if (campusId !== undefined) setDemoCampusIdState(campusId ?? null);
     
     // Switch scope but KEEP the admin's accessKeyId so policy guard passes
     setScopeAccess(scopeType, scopeId, akId);
     
-    // Persist demo state
-    try {
-      const state: DemoStoredState = {
-        active: true,
-        scopeType,
-        scopeId,
-        label,
-        savedAccessKeyId: akId,
-      };
-      sessionStorage.setItem(DEMO_STORAGE_KEY, JSON.stringify(state));
-    } catch {}
-  }, [isAdmin, isDemoActive, setScopeAccess, accessKeyId, savedAccessKeyId]);
+    persistState({
+      active: true,
+      scopeType,
+      scopeId,
+      label,
+      savedAccessKeyId: akId,
+      demoRunId: runId ?? demoRunId,
+      demoCampusId: campusId ?? demoCampusId,
+    });
+  }, [isAdmin, isDemoActive, setScopeAccess, accessKeyId, savedAccessKeyId, demoRunId, demoCampusId, persistState]);
 
   const deactivateDemo = useCallback(() => {
     const akId = savedAccessKeyId;
@@ -69,16 +91,30 @@ export function DemoModeProvider({ children }: { children: ReactNode }) {
     setDemoScopeId(null);
     setDemoLabel(null);
     setSavedAccessKeyId(null);
+    setDemoRunIdState(null);
+    setDemoCampusIdState(null);
     
     // Restore admin with the original accessKeyId
     setScopeAccess('admin', null, akId);
     
-    // Clear demo storage
     try { sessionStorage.removeItem(DEMO_STORAGE_KEY); } catch {}
   }, [setScopeAccess, savedAccessKeyId]);
 
+  const setDemoRunId = useCallback((runId: string | null) => {
+    setDemoRunIdState(runId);
+  }, []);
+
+  const setDemoCampusId = useCallback((campusId: string | null) => {
+    setDemoCampusIdState(campusId);
+  }, []);
+
   return (
-    <DemoModeContext.Provider value={{ isDemoActive, demoScopeType, demoScopeId, demoLabel, activateDemo, deactivateDemo }}>
+    <DemoModeContext.Provider value={{
+      isDemoActive, demoScopeType, demoScopeId, demoLabel,
+      demoRunId, demoCampusId,
+      activateDemo, deactivateDemo,
+      setDemoRunId, setDemoCampusId,
+    }}>
       {children}
     </DemoModeContext.Provider>
   );
