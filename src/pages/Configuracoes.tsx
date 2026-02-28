@@ -12,6 +12,7 @@ import { DemoTourChecklist } from '@/components/demo/DemoTourChecklist';
 import { useDemoMode } from '@/contexts/DemoModeContext';
 import { User, Shield, History, Lock, Church, FlaskConical, Eye } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useSearchParams } from 'react-router-dom';
 
 const roleLabels: Record<string, { label: string; variant: 'default' | 'secondary' | 'outline' }> = {
   admin: { label: 'Administrador', variant: 'default' },
@@ -24,10 +25,12 @@ const roleLabels: Record<string, { label: string; variant: 'default' | 'secondar
 export default function Configuracoes() {
   const { selectedRole, isAdmin } = useRole();
   const { isDemoActive } = useDemoMode();
+  const [searchParams] = useSearchParams();
+  const defaultTab = searchParams.get('tab') || 'profile';
 
   return (
     <AppLayout title="Configurações">
-      <Tabs defaultValue="profile" className="space-y-6">
+      <Tabs defaultValue={defaultTab} className="space-y-6">
         <TabsList className="flex-wrap h-auto">
           <TabsTrigger value="profile" className="flex items-center gap-2">
             <User className="h-4 w-4" />

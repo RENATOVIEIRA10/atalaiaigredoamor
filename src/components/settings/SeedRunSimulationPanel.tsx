@@ -87,6 +87,22 @@ export function SeedRunSimulationPanel() {
   const [selectedRun, setSelectedRun] = useState<SeedRun | null>(null);
   const [cleanupTarget, setCleanupTarget] = useState<SeedRun | null>(null);
   const { data: campos } = useCampos();
+  const { toast } = useToast();
+
+  // Concurrency guard: check if any job is currently running
+  const runningJob = useMemo(() => (seedRuns || []).find(r => r.status === 'running' || (r.status as string) === 'queued'), [seedRuns]);
+
+  const handleNewSimulation = () => {
+    if (runningJob) {
+      toast({
+        title: 'Execução em andamento',
+        description: `O job "${runningJob.name}" ainda está rodando. Aguarde a conclusão antes de iniciar uma nova simulação.`,
+        variant: 'destructive',
+      });
+      return;
+    }
+    setShowCreate(true);
+  };
 
   // Map campo IDs to names
   const campoMap = useMemo(() => {
@@ -107,11 +123,21 @@ export function SeedRunSimulationPanel() {
             Motor de simulação configurável — crie cenários de teste sem afetar dados reais.
           </p>
         </div>
-        <Button onClick={() => setShowCreate(true)} className="gap-2">
+        <Button onClick={handleNewSimulation} className="gap-2" disabled={!!runningJob}>
           <FlaskConical className="h-4 w-4" />
           Nova Simulação
         </Button>
       </div>
+
+      {/* Running job alert */}
+      {runningJob && (
+        <Alert className="border-warning/40 bg-warning/5">
+          <Loader2 className="h-4 w-4 text-warning animate-spin" />
+          <AlertDescription className="text-sm">
+            <strong>Execução ativa:</strong> "{runningJob.name}" está em andamento. Novas simulações estão bloqueadas até a conclusão.
+          </AlertDescription>
+        </Alert>
+      )}
 
       <Alert>
         <Shield className="h-4 w-4" />
@@ -161,7 +187,7 @@ export function SeedRunSimulationPanel() {
         {/* Right: Details */}
         <div>
           {selectedRun ? (
-            <SeedRunDetails run={selectedRun} campoMap={campoMap} onCleanup={() => setCleanupTarget(selectedRun)} />
+            <SeedRunDetailsWrapped run={selectedRun} campoMap={campoMap} onCleanup={() => setCleanupTarget(selectedRun)} />
           ) : (
             <Card className="border-dashed h-full flex items-center justify-center">
               <CardContent className="text-center text-muted-foreground py-16">
@@ -315,21 +341,59 @@ function PerCampusSummary({ totals, campoMap }: { totals: Record<string, any>; c
   );
 }
 
+// ─── Error Boundary ───
+import { Component, type ReactNode, type ErrorInfo } from 'react';
+
+class SeedRunErrorBoundary extends Component<{ children: ReactNode; fallback?: ReactNode }, { hasError: boolean; error: Error | null }> {
+  state = { hasError: false, error: null as Error | null };
+  static getDerivedStateFromError(error: Error) { return { hasError: true, error }; }
+  componentDidCatch(error: Error, info: ErrorInfo) { console.error('SeedRunDetails crash:', error, info); }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <Card className="border-destructive/30">
+          <CardContent className="py-8 text-center space-y-3">
+            <AlertTriangle className="h-8 w-8 mx-auto text-destructive" />
+            <p className="font-medium text-destructive">Erro ao renderizar detalhes</p>
+            <p className="text-xs text-muted-foreground max-w-md mx-auto">{this.state.error?.message || 'Erro desconhecido'}</p>
+            <Button size="sm" variant="outline" onClick={() => this.setState({ hasError: false, error: null })}>
+              Tentar novamente
+            </Button>
+          </CardContent>
+        </Card>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+// ─── Wrapped Details with Error Boundary ───
+function SeedRunDetailsWrapped(props: { run: SeedRun; campoMap: Record<string, string>; onCleanup: () => void }) {
+  return (
+    <SeedRunErrorBoundary>
+      <SeedRunDetailsInner {...props} />
+    </SeedRunErrorBoundary>
+  );
+}
+
 // ─── Seed Run Details ───
-function SeedRunDetails({ run, campoMap, onCleanup }: { run: SeedRun; campoMap: Record<string, string>; onCleanup: () => void }) {
-  const config = (run as any).config as SeedConfig | null;
+function SeedRunDetailsInner({ run, campoMap, onCleanup }: { run: SeedRun; campoMap: Record<string, string>; onCleanup: () => void }) {
+  const config = (run as any)?.config as SeedConfig | null | undefined;
   const { runAction, isRunning, steps, clearSteps } = useSeedActions(run.id);
   const isCleaned = !!run.cleaned_at;
   const queryClient = useQueryClient();
 
+  // Detect legacy data (missing expected fields)
+  const isLegacy = !config || !config.campos || !config.modules;
+
   const campusLabel = useMemo(() => {
-    if (!config?.campos || config.campos.length === 0) return 'Sem campus';
+    if (!config?.campos || config.campos.length === 0) return 'Sem campus definido';
     if (config.campos[0] === 'ALL') return '🌐 Todos os campus ativos';
     return config.campos.map(id => campoMap[id] || id.slice(0, 8)).join(', ');
   }, [config?.campos, campoMap]);
 
   const moduleActions = useMemo(() => {
-    const modules = config?.modules || ['members', 'reports'];
+    const modules = config?.modules || [];
     const actionMap: Record<string, { action: string; label: string }> = {
       hierarchy: { action: 'seed_hierarchy', label: '🏗️ Hierarquia' },
       members: { action: 'seed_members', label: '👥 Membros' },
@@ -350,7 +414,6 @@ function SeedRunDetails({ run, campoMap, onCleanup }: { run: SeedRun; campoMap: 
     clearSteps();
     for (const item of moduleActions) {
       try {
-        // Edge function now reads config from job — no extra params needed
         await runAction(item.action, item.label);
       } catch {
         break;
@@ -367,8 +430,51 @@ function SeedRunDetails({ run, campoMap, onCleanup }: { run: SeedRun; campoMap: 
           <CheckCircle2 className="h-8 w-8 mx-auto mb-2 opacity-40" />
           <p className="font-medium">Simulação limpa</p>
           <p className="text-xs mt-1">
-            Limpo em {format(new Date(run.cleaned_at!), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+            Limpo em {run.cleaned_at ? format(new Date(run.cleaned_at), "dd/MM/yyyy HH:mm", { locale: ptBR }) : '—'}
           </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Legacy data warning
+  if (isLegacy) {
+    return (
+      <Card className="border-warning/30">
+        <CardHeader>
+          <CardTitle className="text-sm flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4 text-warning" />
+            Dados Legados Detectados
+          </CardTitle>
+          <CardDescription>
+            Esta execução foi criada por uma versão anterior e não possui configuração completa.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="text-sm space-y-1">
+            <p><strong>Nome:</strong> {run.name || '—'}</p>
+            <p><strong>Status:</strong> {run.status || '—'}</p>
+            <p><strong>Criado em:</strong> {run.created_at ? format(new Date(run.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR }) : '—'}</p>
+            {run.notes && <p><strong>Notas:</strong> {run.notes}</p>}
+            {run.status === 'failed' && (
+              <Alert className="border-destructive/30 bg-destructive/5 mt-2">
+                <XCircle className="h-4 w-4 text-destructive" />
+                <AlertDescription className="text-xs">{run.notes || 'Falha registrada (sem detalhes)'}</AlertDescription>
+              </Alert>
+            )}
+          </div>
+          {Object.keys(run.totals || {}).length > 0 && (
+            <div className="text-xs text-muted-foreground">
+              <p className="font-medium mb-1">Totais (modo leitura):</p>
+              <pre className="bg-muted p-2 rounded text-[10px] overflow-auto max-h-32">
+                {JSON.stringify(run.totals, null, 2)}
+              </pre>
+            </div>
+          )}
+          <Separator />
+          <Button variant="destructive" size="sm" onClick={onCleanup} className="gap-2">
+            <Trash2 className="h-4 w-4" /> Limpar Dados de Teste
+          </Button>
         </CardContent>
       </Card>
     );
@@ -387,6 +493,19 @@ function SeedRunDetails({ run, campoMap, onCleanup }: { run: SeedRun; campoMap: 
             {run.notes && <span> · {run.notes}</span>}
           </CardDescription>
         </CardHeader>
+
+        {/* Status alerts */}
+        {run.status === 'failed' && (
+          <CardContent className="pt-0 pb-3">
+            <Alert className="border-destructive/30 bg-destructive/5">
+              <XCircle className="h-4 w-4 text-destructive" />
+              <AlertDescription className="text-sm text-destructive">
+                <strong>Falhou:</strong> {run.notes || 'Erro não registrado'}
+              </AlertDescription>
+            </Alert>
+          </CardContent>
+        )}
+
         {config && (
           <CardContent className="space-y-3">
             {/* Campus scope */}
@@ -397,23 +516,23 @@ function SeedRunDetails({ run, campoMap, onCleanup }: { run: SeedRun; campoMap: 
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div>
                 <p className="text-xs text-muted-foreground">Período</p>
-                <p className="font-medium">{PERIOD_OPTIONS.find(p => p.value === config.period)?.label || config.period}</p>
+                <p className="font-medium">{PERIOD_OPTIONS.find(p => p.value === config.period)?.label || config.period || '—'}</p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Módulos</p>
-                <p className="font-medium">{config.modules.length} selecionados</p>
+                <p className="font-medium">{config.modules?.length || 0} selecionados</p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Membros/Célula</p>
-                <p className="font-medium">{config.advanced.membrosPerCelula}</p>
+                <p className="font-medium">{config.advanced?.membrosPerCelula ?? '—'}</p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Volume Novas Vidas</p>
-                <p className="font-medium">{config.advanced.volumeNovasVidas}</p>
+                <p className="font-medium">{config.advanced?.volumeNovasVidas ?? '—'}</p>
               </div>
             </div>
             <div className="flex flex-wrap gap-1">
-              {config.modules.map(m => {
+              {(config.modules || []).map(m => {
                 const mod = ALL_MODULES.find(am => am.id === m);
                 return <Badge key={m} variant="outline" className="text-xs">{mod?.label?.split(' ')[0] || m}</Badge>;
               })}
