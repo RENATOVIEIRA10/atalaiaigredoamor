@@ -12,7 +12,7 @@ import { RedeProvider } from "@/contexts/RedeContext";
 import { CampoProvider } from "@/contexts/CampoContext";
 import { RoleProtectedRoute } from "@/components/RoleProtectedRoute";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { DemoModeBanner } from "@/components/demo/DemoModeBanner";
+import { DemoBar } from "@/components/demo/DemoBar";
 import { UpdateBanner } from "@/components/pwa/UpdateBanner";
 import { useVersionCheck } from "@/hooks/useVersionCheck";
 
@@ -59,7 +59,7 @@ function AppInner() {
   return (
     <>
       <UpdateBanner />
-      <DemoModeBanner />
+      <DemoBar />
       <Suspense fallback={<LazyFallback />}>
         <Routes>
           {/* Auth page (no protection) */}
