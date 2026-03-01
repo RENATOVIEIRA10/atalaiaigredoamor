@@ -190,28 +190,35 @@ export default function HomePage() {
     try {
       const normalizedCode = code.trim();
 
-      const { data, error: queryError } = await supabase
+      // Query directly by code (case-insensitive) to avoid 1000-row limit
+      const { data: matchRows, error: queryError } = await supabase
         .from('access_keys')
         .select('*')
-        .eq('active', true);
+        .ilike('code', normalizedCode)
+        .limit(1);
 
       if (queryError) throw new Error('Erro ao validar código');
 
-      const match = data?.find(k => k.code.toLowerCase() === normalizedCode.toLowerCase());
+      const match = matchRows?.[0] ?? null;
 
-      if (!match) {
-        const { data: anyKeys } = await supabase
-          .from('access_keys')
-          .select('id, failed_attempts')
-          .ilike('code', normalizedCode);
-        if (anyKeys && anyKeys.length > 0) {
-          await supabase
+      if (!match || !match.active) {
+        if (match && !match.active) {
+          setError('Código desativado. Contate o administrador.');
+        } else {
+          // Increment failed_attempts for any matching (inactive) key
+          const { data: anyKeys } = await supabase
             .from('access_keys')
-            .update({ failed_attempts: (anyKeys[0].failed_attempts || 0) + 1 })
-            .eq('id', anyKeys[0].id);
+            .select('id, failed_attempts')
+            .ilike('code', normalizedCode);
+          if (anyKeys && anyKeys.length > 0) {
+            await supabase
+              .from('access_keys')
+              .update({ failed_attempts: (anyKeys[0].failed_attempts || 0) + 1 })
+              .eq('id', anyKeys[0].id);
+          }
+          setAttempts(prev => prev + 1);
+          setError('Código inválido. Verifique e tente novamente.');
         }
-        setAttempts(prev => prev + 1);
-        setError('Código inválido. Verifique e tente novamente.');
         setIsLoading(false);
         return;
       }

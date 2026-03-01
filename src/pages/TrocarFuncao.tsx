@@ -184,16 +184,18 @@ export default function TrocarFuncao() {
 
     try {
       const normalizedCode = code.trim();
-      const { data, error: queryError } = await supabase
+      // Query directly by code (case-insensitive) to avoid 1000-row limit
+      const { data: matchRows, error: queryError } = await supabase
         .from('access_keys')
         .select('*')
-        .eq('active', true);
+        .ilike('code', normalizedCode)
+        .limit(1);
 
       if (queryError) throw new Error('Erro ao validar código');
-      const match = data?.find(k => k.code.toLowerCase() === normalizedCode.toLowerCase());
+      const match = matchRows?.[0] ?? null;
 
-      if (!match) {
-        setCodeError('Código inválido.');
+      if (!match || !match.active) {
+        setCodeError(match && !match.active ? 'Código desativado.' : 'Código inválido.');
         setCodeLoading(false);
         return;
       }
