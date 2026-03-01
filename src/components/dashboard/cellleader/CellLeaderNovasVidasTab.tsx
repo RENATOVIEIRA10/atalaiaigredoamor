@@ -126,10 +126,10 @@ export function CellLeaderNovasVidasTab({ celulaId, celulaName, coupleNames }: C
         }
       }
 
-      // Fetch celula to get rede_id
+      // Fetch celula to get rede_id and campo_id
       const { data: celulaData } = await supabase
         .from('celulas')
-        .select('rede_id')
+        .select('rede_id, campo_id')
         .eq('id', celulaId)
         .single();
 
@@ -149,6 +149,7 @@ export function CellLeaderNovasVidasTab({ celulaId, celulaName, coupleNames }: C
         celula_id: celulaId,
         whatsapp: normalizedWa,
         rede_id: celulaData?.rede_id || null,
+        campo_id: celulaData?.campo_id,
       } as any);
 
       // Update via pipeline
