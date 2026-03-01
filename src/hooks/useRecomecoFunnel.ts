@@ -89,23 +89,28 @@ export function useRecomecoFunnel(scopeType: 'coordenacao' | 'rede' | 'all', sco
   const { data: coordenacoes } = useCoordenacoes();
 
   // Derive celula->coordenacao->rede mapping
-  const celulaMap = new Map<string, { coordenacao_id: string; rede_id: string | null; celula_name: string }>();
-  (celulas || []).forEach(c => {
-    celulaMap.set(c.id, { coordenacao_id: c.coordenacao_id, rede_id: c.rede_id || null, celula_name: c.name });
-  });
-
   const coordMap = new Map<string, { name: string; rede_id: string }>();
   (coordenacoes || []).forEach(c => {
     coordMap.set(c.id, { name: c.name, rede_id: c.rede_id });
   });
 
-  // Filter by scope
+  const celulaMap = new Map<string, { coordenacao_id: string; rede_id: string | null; celula_name: string }>();
+  (celulas || []).forEach(c => {
+    // Derive rede_id: prefer celula.rede_id, fallback to coordenacao.rede_id (single source of truth)
+    const effectiveRedeId = c.rede_id || coordMap.get(c.coordenacao_id)?.rede_id || null;
+    celulaMap.set(c.id, { coordenacao_id: c.coordenacao_id, rede_id: effectiveRedeId, celula_name: c.name });
+  });
+
+  // Filter by scope — always derive rede from coordenação hierarchy to avoid NULL rede_id gaps
   let filtered = allEnc || [];
   if (scopeType === 'coordenacao' && scopeId) {
     const coordCelulaIds = new Set((celulas || []).filter(c => c.coordenacao_id === scopeId).map(c => c.id));
     filtered = filtered.filter(e => coordCelulaIds.has(e.celula_id));
   } else if (scopeType === 'rede' && scopeId) {
-    const redeCelulaIds = new Set((celulas || []).filter(c => c.rede_id === scopeId).map(c => c.id));
+    const redeCelulaIds = new Set((celulas || []).filter(c => {
+      const effectiveRedeId = c.rede_id || coordMap.get(c.coordenacao_id)?.rede_id;
+      return effectiveRedeId === scopeId;
+    }).map(c => c.id));
     filtered = filtered.filter(e => redeCelulaIds.has(e.celula_id));
   }
 
