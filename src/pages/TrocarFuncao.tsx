@@ -43,7 +43,7 @@ export default function TrocarFuncao() {
   const { links, isLoading, upsertLink, removeLink } = useUserAccessLinks();
   const { setScopeAccess, clearAccess } = useRole();
   const { setActiveRede, clearRede } = useRede();
-  const { setActiveCampo } = useCampo();
+  const { setActiveCampo, clearCampo, setIsGlobalView } = useCampo();
   const { signOut } = useAuth();
   const [showAddCode, setShowAddCode] = useState(false);
   const [code, setCode] = useState('');
@@ -92,6 +92,15 @@ export default function TrocarFuncao() {
   const activateLink = async (link: typeof links[0]) => {
     const scopeType = link.scope_type as ScopeType;
 
+    // Pastor senior global: skip campus resolution, go straight to global view
+    if (scopeType === 'pastor_senior_global') {
+      setScopeAccess(scopeType, link.scope_id, link.access_key_id);
+      clearCampo();
+      setIsGlobalView(true);
+      navigate('/dashboard');
+      return;
+    }
+
     // Resolve campo from link directly
     if (link.campo_id) {
       const { data: campoData } = await supabase.from('campos').select('id, nome').eq('id', link.campo_id).single();
@@ -136,11 +145,6 @@ export default function TrocarFuncao() {
       return;
     }
 
-    if (scopeType === 'pastor_senior_global') {
-      setScopeAccess(scopeType, link.scope_id, link.access_key_id);
-      navigate('/dashboard');
-      return;
-    }
 
     if (scopeType === 'pastor_de_campo') {
       setScopeAccess(scopeType, link.scope_id, link.access_key_id);

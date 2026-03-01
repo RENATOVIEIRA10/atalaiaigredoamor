@@ -46,7 +46,7 @@ export default function HomePage() {
   const navigate = useNavigate();
   const { setScopeAccess, selectedRole } = useRole();
   const { setActiveRede, clearRede } = useRede();
-  const { setActiveCampo } = useCampo();
+  const { setActiveCampo, clearCampo, setIsGlobalView } = useCampo();
   const { theme, toggleTheme } = useTheme();
   const { user } = useAuth();
   const { links, isLoading: linksLoading, upsertLink } = useUserAccessLinks();
@@ -144,6 +144,9 @@ export default function HomePage() {
         }
         if (st === 'pastor_senior_global') {
           setScopeAccess(st, link.scope_id, link.access_key_id);
+          // Always start in global view, never fall into a campus
+          clearCampo();
+          setIsGlobalView(true);
           navigate('/dashboard');
           return;
         }
@@ -303,10 +306,12 @@ export default function HomePage() {
         return;
       }
 
-      // Pastor senior global
+      // Pastor senior global — ALWAYS starts in global view
       if (scopeType === 'pastor_senior_global') {
         setScopeAccess(scopeType, match.scope_id, match.id);
-        await resolveCampoFromAccessKey(match.id);
+        // Clear any previously saved campus and activate global view
+        clearCampo();
+        setIsGlobalView(true);
         navigate('/dashboard');
         setIsLoading(false);
         return;
