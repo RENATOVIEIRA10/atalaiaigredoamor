@@ -3,6 +3,9 @@ import { useState, useEffect, useCallback } from 'react';
 /**
  * Detects when a new Service Worker is available and provides
  * a function to apply the update (skipWaiting + reload).
+ * 
+ * With autoUpdate + skipWaiting in vite.config, the SW updates
+ * automatically. This hook serves as a fallback UI notification.
  */
 export function useServiceWorkerUpdate() {
   const [waitingWorker, setWaitingWorker] = useState<ServiceWorker | null>(null);
@@ -13,15 +16,17 @@ export function useServiceWorkerUpdate() {
 
     const handleControllerChange = () => {
       // New SW took control – reload once
+      console.log('[SW] Controller changed – reloading');
       window.location.reload();
     };
 
-    // Listen for the new SW activating
     navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange);
 
     navigator.serviceWorker.ready.then((registration) => {
       // If there's already a waiting worker on load
       if (registration.waiting) {
+        console.log('[SW] Waiting worker found on load – auto-activating');
+        registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         setWaitingWorker(registration.waiting);
         setUpdateAvailable(true);
       }
@@ -30,10 +35,13 @@ export function useServiceWorkerUpdate() {
       registration.addEventListener('updatefound', () => {
         const newWorker = registration.installing;
         if (!newWorker) return;
+        console.log('[SW] Update found – new worker installing');
 
         newWorker.addEventListener('statechange', () => {
           if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-            // New content available
+            console.log('[SW] New worker installed – sending SKIP_WAITING');
+            // Auto-activate: send SKIP_WAITING immediately
+            newWorker.postMessage({ type: 'SKIP_WAITING' });
             setWaitingWorker(newWorker);
             setUpdateAvailable(true);
           }
@@ -41,12 +49,12 @@ export function useServiceWorkerUpdate() {
       });
     });
 
-    // Periodically check for updates (every 60s)
+    // Check for updates more frequently (every 30s)
     const interval = setInterval(() => {
       navigator.serviceWorker.getRegistration().then((reg) => {
         reg?.update();
       });
-    }, 60_000);
+    }, 30_000);
 
     return () => {
       clearInterval(interval);
@@ -57,6 +65,9 @@ export function useServiceWorkerUpdate() {
   const applyUpdate = useCallback(() => {
     if (waitingWorker) {
       waitingWorker.postMessage({ type: 'SKIP_WAITING' });
+    } else {
+      // Fallback: just reload
+      window.location.reload();
     }
   }, [waitingWorker]);
 
@@ -65,8 +76,8 @@ export function useServiceWorkerUpdate() {
     const reg = await navigator.serviceWorker.getRegistration();
     if (reg) {
       await reg.update();
-      // If after update there's a waiting worker
       if (reg.waiting) {
+        reg.waiting.postMessage({ type: 'SKIP_WAITING' });
         setWaitingWorker(reg.waiting);
         setUpdateAvailable(true);
         return true;

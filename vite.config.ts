@@ -4,8 +4,14 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { VitePWA } from "vite-plugin-pwa";
 
+// Unique build ID for cache busting
+const BUILD_ID = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
+  define: {
+    __APP_BUILD_ID__: JSON.stringify(BUILD_ID),
+  },
   server: {
     host: "::",
     port: 8080,
@@ -13,19 +19,34 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     mode === "development" && componentTagger(),
+    // Generate /version.json at build time
+    {
+      name: "version-json",
+      generateBundle(_: any, bundle: any) {
+        bundle["version.json"] = {
+          type: "asset",
+          fileName: "version.json",
+          source: JSON.stringify({ version: BUILD_ID, timestamp: new Date().toISOString() }),
+          name: "version.json",
+          needsCodeReference: false,
+        };
+      },
+    },
     VitePWA({
-      registerType: "prompt",
+      registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "placeholder.svg"],
       workbox: {
         // Cache only static assets – never cache API / dynamic data
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff,woff2,ttf,eot}"],
+        // NEVER cache version.json
+        globIgnores: ["version.json"],
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         // Never cache OAuth redirects or Supabase / API calls
         navigateFallbackDenylist: [/^\/~oauth/, /^\/rest/, /^\/auth/],
         // Clean old caches on new SW activation
         cleanupOutdatedCaches: true,
-        // Listen for SKIP_WAITING message from client
-        skipWaiting: false, // we control via message
+        // Force immediate activation of new SW
+        skipWaiting: true,
         clientsClaim: true,
         runtimeCaching: [
           {
@@ -36,6 +57,11 @@ export default defineConfig(({ mode }) => ({
               cacheName: "google-fonts",
               expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 365 },
             },
+          },
+          {
+            // version.json – always network only
+            urlPattern: /\/version\.json/,
+            handler: "NetworkOnly",
           },
         ],
       },

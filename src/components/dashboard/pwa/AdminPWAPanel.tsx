@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Repeat, Eye, Settings, Crown, Network, FolderTree, ClipboardCheck, Home, Search } from 'lucide-react';
+import { ArrowLeft, Repeat, Eye, Settings, Crown, Network, FolderTree, ClipboardCheck, Home, Search, RefreshCw } from 'lucide-react';
+import { forceClearAndReload } from '@/hooks/useVersionCheck';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -247,6 +248,13 @@ export function AdminPWAPanel({ onClose }: AdminPWAPanelProps) {
             onClick={handleBackToAdmin}
           />
         )}
+
+        <AdminMenuItem
+          icon={RefreshCw}
+          label="Forçar Atualização"
+          description="Limpar cache e recarregar app"
+          onClick={forceClearAndReload}
+        />
       </main>
     </div>
   );
