@@ -178,6 +178,7 @@ export function useCreateDiscipuladoEncontro() {
       data_encontro: string;
       realizado: boolean;
       observacao?: string;
+      campo_id: string;
       presencas: { member_id?: string; profile_id?: string; presente: boolean }[];
     }) => {
       const nivel = params.nivel || 'celula';
@@ -191,6 +192,7 @@ export function useCreateDiscipuladoEncontro() {
           data_encontro: params.data_encontro,
           realizado: params.realizado,
           observacao: params.observacao || null,
+          campo_id: params.campo_id,
         })
         .select()
         .single();
@@ -203,6 +205,7 @@ export function useCreateDiscipuladoEncontro() {
           member_id: p.member_id || null,
           profile_id: p.profile_id || null,
           presente: p.presente,
+          campo_id: params.campo_id,
         }));
         const { error: pErr } = await supabase
           .from('discipulado_presencas')

@@ -25,32 +25,41 @@ export function useDashboardStats() {
       if (campoId) celulasQuery = celulasQuery.eq('campo_id', campoId);
       const { count: totalCelulas } = await celulasQuery;
       
-      // Calculate attendance rate from last 30 days
+      // Calculate attendance rate from last 30 days — filter via celulas for campus isolation
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      
-      const { data: recentMeetings } = await supabase
-        .from('meetings')
-        .select('id')
-        .gte('date', thirtyDaysAgo.toISOString().split('T')[0]);
-      
+
+      // Get celula IDs in scope first
+      let scopeCelulasQ = supabase.from('celulas').select('id');
+      if (campoId) scopeCelulasQ = scopeCelulasQ.eq('campo_id', campoId);
+      const { data: scopeCelulas } = await scopeCelulasQ;
+      const scopeCelulaIds = (scopeCelulas || []).map(c => c.id);
+
       let attendanceRate = 0;
-      if (recentMeetings && recentMeetings.length > 0) {
-        const meetingIds = recentMeetings.map(m => m.id);
+      if (scopeCelulaIds.length > 0) {
+        const { data: recentMeetings } = await supabase
+          .from('meetings')
+          .select('id')
+          .in('celula_id', scopeCelulaIds)
+          .gte('date', thirtyDaysAgo.toISOString().split('T')[0]);
         
-        const { count: totalAttendances } = await supabase
-          .from('attendances')
-          .select('*', { count: 'exact', head: true })
-          .in('meeting_id', meetingIds);
-        
-        const { count: presentAttendances } = await supabase
-          .from('attendances')
-          .select('*', { count: 'exact', head: true })
-          .in('meeting_id', meetingIds)
-          .eq('present', true);
-        
-        if (totalAttendances && totalAttendances > 0) {
-          attendanceRate = Math.round(((presentAttendances || 0) / totalAttendances) * 100);
+        if (recentMeetings && recentMeetings.length > 0) {
+          const meetingIds = recentMeetings.map(m => m.id);
+          
+          const { count: totalAttendances } = await supabase
+            .from('attendances')
+            .select('*', { count: 'exact', head: true })
+            .in('meeting_id', meetingIds);
+          
+          const { count: presentAttendances } = await supabase
+            .from('attendances')
+            .select('*', { count: 'exact', head: true })
+            .in('meeting_id', meetingIds)
+            .eq('present', true);
+          
+          if (totalAttendances && totalAttendances > 0) {
+            attendanceRate = Math.round(((presentAttendances || 0) / totalAttendances) * 100);
+          }
         }
       }
       
@@ -84,15 +93,27 @@ export function useDashboardStats() {
 }
 
 export function useAttendanceByCell() {
+  const { campoId, queryKeyExtra } = useDemoScope();
+
   return useQuery({
-    queryKey: ['attendance-by-cell'],
+    queryKey: ['attendance-by-cell', ...queryKeyExtra],
     queryFn: async () => {
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      // Get celulas in scope
+      let celulasQ = supabase.from('celulas').select('id, name');
+      if (campoId) celulasQ = celulasQ.eq('campo_id', campoId);
+      const { data: scopeCelulas } = await celulasQ;
+      if (!scopeCelulas || scopeCelulas.length === 0) return [];
+
+      const celulaIds = scopeCelulas.map(c => c.id);
+      const celulaNameMap = new Map(scopeCelulas.map(c => [c.id, c.name]));
       
       const { data: meetings } = await supabase
         .from('meetings')
-        .select('id, celula_id, celulas(name)')
+        .select('id, celula_id')
+        .in('celula_id', celulaIds)
         .gte('date', thirtyDaysAgo.toISOString().split('T')[0]);
       
       if (!meetings || meetings.length === 0) return [];
@@ -107,10 +128,9 @@ export function useAttendanceByCell() {
       const celulaMap = new Map<string, { name: string; total: number; present: number }>();
       
       for (const meeting of meetings) {
-        const celula = meeting.celulas as any;
         const celulaId = meeting.celula_id;
         if (!celulaMap.has(celulaId)) {
-          celulaMap.set(celulaId, { name: celula?.name || 'Sem nome', total: 0, present: 0 });
+          celulaMap.set(celulaId, { name: celulaNameMap.get(celulaId) || 'Sem nome', total: 0, present: 0 });
         }
       }
       
@@ -136,8 +156,10 @@ export function useAttendanceByCell() {
 }
 
 export function useMemberGrowth() {
+  const { campoId, queryKeyExtra } = useDemoScope();
+
   return useQuery({
-    queryKey: ['member-growth'],
+    queryKey: ['member-growth', ...queryKeyExtra],
     queryFn: async () => {
       const months = [];
       const now = new Date();
@@ -146,10 +168,13 @@ export function useMemberGrowth() {
         const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
         const nextMonth = new Date(now.getFullYear(), now.getMonth() - i + 1, 1);
         
-        const { count } = await supabase
+        let q = supabase
           .from('members')
           .select('*', { count: 'exact', head: true })
           .lt('joined_at', nextMonth.toISOString());
+        if (campoId) q = q.eq('campo_id', campoId);
+        
+        const { count } = await q;
         
         months.push({
           month: date.toLocaleDateString('pt-BR', { month: 'short' }),

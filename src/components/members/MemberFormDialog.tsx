@@ -9,6 +9,7 @@ import { useCreateMember } from '@/hooks/useMembers';
 import { useCelulas } from '@/hooks/useCelulas';
 import { useProfiles } from '@/hooks/useProfiles';
 import { useMembers } from '@/hooks/useMembers';
+import { useCampo } from '@/contexts/CampoContext';
 
 const formSchema = z.object({
   profile_id: z.string().min(1, 'Selecione um perfil'),
@@ -27,6 +28,7 @@ export function MemberFormDialog({ open, onOpenChange }: MemberFormDialogProps) 
   const { data: profiles } = useProfiles();
   const { data: existingMembers } = useMembers();
   const createMember = useCreateMember();
+  const { activeCampoId } = useCampo();
   
   // Filter out profiles that are already members
   const existingProfileIds = new Set(existingMembers?.map(m => m.profile_id) || []);
@@ -42,9 +44,14 @@ export function MemberFormDialog({ open, onOpenChange }: MemberFormDialogProps) 
   
   async function onSubmit(data: FormData) {
     try {
+      const selectedCelula = celulas?.find(c => c.id === data.celula_id);
+      const campoIdToUse = selectedCelula?.campo_id || activeCampoId;
+      if (!campoIdToUse) throw new Error('Campus não definido');
+
       await createMember.mutateAsync({
         profile_id: data.profile_id,
         celula_id: data.celula_id,
+        campo_id: campoIdToUse,
       });
       onOpenChange(false);
       form.reset();

@@ -12,6 +12,7 @@ import { InlineCoupleFields } from '@/components/leadership/InlineCoupleFields';
 import { useCreateCoupleFromNames } from '@/hooks/useCreateCoupleFromNames';
 import { Loader2 } from 'lucide-react';
 import { useState } from 'react';
+import { useCampo } from '@/contexts/CampoContext';
 
 const formSchema = z.object({
   name: z.string().min(1, 'Nome é obrigatório'),
@@ -34,6 +35,7 @@ export function CoordenacaoFormDialog({ open, onOpenChange, coordenacao }: Coord
   const updateCoordenacao = useUpdateCoordenacao();
   const { createOrUpdateCouple } = useCreateCoupleFromNames();
   const [submitting, setSubmitting] = useState(false);
+  const { activeCampoId } = useCampo();
   
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -54,10 +56,15 @@ export function CoordenacaoFormDialog({ open, onOpenChange, coordenacao }: Coord
         coordenacao?.leadership_couple_id
       );
       
+      const selectedRede = redes?.find(r => r.id === data.rede_id);
+      const campoIdToUse = selectedRede?.campo_id || activeCampoId;
+      if (!campoIdToUse) throw new Error('Campus não definido');
+
       const payload = {
         name: data.name,
         rede_id: data.rede_id,
         leadership_couple_id: coupleId,
+        campo_id: campoIdToUse,
       };
       
       if (coordenacao) {

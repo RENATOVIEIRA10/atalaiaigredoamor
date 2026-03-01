@@ -12,6 +12,7 @@ import { useCoordenacoes } from '@/hooks/useCoordenacoes';
 import { InlineCoupleFields } from '@/components/leadership/InlineCoupleFields';
 import { useCreateCoupleFromNames } from '@/hooks/useCreateCoupleFromNames';
 import { Loader2 } from 'lucide-react';
+import { useCampo } from '@/contexts/CampoContext';
 
 const formSchema = z.object({
   name: z.string().min(1, 'Nome é obrigatório'),
@@ -52,6 +53,7 @@ export function CelulaFormDialog({ open, onOpenChange, celula }: CelulaFormDialo
   const updateCelula = useUpdateCelula();
   const { createOrUpdateCouple } = useCreateCoupleFromNames();
   const [submitting, setSubmitting] = useState(false);
+  const { activeCampoId } = useCampo();
   
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -80,6 +82,11 @@ export function CelulaFormDialog({ open, onOpenChange, celula }: CelulaFormDialo
         celula?.leadership_couple_id
       );
       
+      // Derive campo_id from coordenacao or active campus
+      const selectedCoord = coordenacoes?.find(c => c.id === data.coordenacao_id);
+      const campoIdToUse = selectedCoord?.campo_id || activeCampoId;
+      if (!campoIdToUse) throw new Error('Campus não definido');
+
       const payload = {
         name: data.name,
         coordenacao_id: data.coordenacao_id,
@@ -92,6 +99,7 @@ export function CelulaFormDialog({ open, onOpenChange, celula }: CelulaFormDialo
         instagram_lider1: data.instagram_lider1 || null,
         instagram_lider2: data.instagram_lider2 || null,
         instagram_celula: data.instagram_celula || null,
+        campo_id: campoIdToUse,
       };
       
       if (celula) {

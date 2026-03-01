@@ -127,12 +127,18 @@ export function useSupervisoresByCoordenacao(coordenacaoId: string) {
   });
 }
 
-// Hook para buscar todos os supervisores
-export function useSupervisores() {
+// Hook para buscar todos os supervisores (com filtro de campus)
+export function useSupervisores(campoId?: string | null) {
   return useQuery({
-    queryKey: ['supervisores'],
+    queryKey: ['supervisores', campoId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // supervisores don't have campo_id directly, filter via coordenacao
+      let coordQ = supabase.from('coordenacoes').select('id');
+      if (campoId) coordQ = coordQ.eq('campo_id', campoId);
+      const { data: coords } = await coordQ;
+      const coordIds = (coords || []).map(c => c.id);
+      
+      let query = supabase
         .from('supervisores')
         .select(`
           *,
@@ -145,6 +151,12 @@ export function useSupervisores() {
           )
         `)
         .order('ordem');
+      
+      if (campoId && coordIds.length > 0) {
+        query = query.in('coordenacao_id', coordIds);
+      }
+      
+      const { data, error } = await query;
       if (error) throw error;
       return data as Supervisor[];
     },
@@ -220,13 +232,13 @@ export function useSupervisoesBySupervisor(supervisorId: string) {
   });
 }
 
-// Hook para buscar supervisões por rede
-export function useSupervisoesByRede(redeId: string) {
+// Hook para buscar supervisões por rede (with campus filter)
+export function useSupervisoesByRede(redeId: string, campoId?: string | null) {
   return useQuery({
-    queryKey: ['supervisoes', 'rede', redeId],
+    queryKey: ['supervisoes', 'rede', redeId, campoId],
     queryFn: async () => {
       if (!redeId) return [];
-      const { data, error } = await supabase
+      let query = supabase
         .from('supervisoes')
         .select(`
           *,
@@ -245,6 +257,9 @@ export function useSupervisoesByRede(redeId: string) {
         `)
         .order('data_supervisao', { ascending: false });
       
+      if (campoId) query = query.eq('campo_id', campoId);
+      
+      const { data, error } = await query;
       if (error) throw error;
       
       // Filter by rede

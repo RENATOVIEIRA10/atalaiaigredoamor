@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, ClipboardList, Send, Copy, Check, ChevronLeft, ChevronRight, Eye, Save } from 'lucide-react';
 import { useMembers } from '@/hooks/useMembers';
+import { useCampo } from '@/contexts/CampoContext';
 import { useProfiles } from '@/hooks/useProfiles';
 import {
   ROTEIRO_TIPOS,
@@ -54,6 +55,7 @@ export function CellLeaderRoteiroTab({ celulaId, celulaName, meetingDay, redeId,
   const statusMutation = useUpdateRoteiroStatus(celulaId);
   const { data: members } = useMembers(celulaId);
   const { data: profiles } = useProfiles();
+  const { activeCampoId } = useCampo();
 
   const activeMembers = useMemo(() => {
     if (!members || !profiles) return [];
@@ -116,6 +118,7 @@ export function CellLeaderRoteiroTab({ celulaId, celulaName, meetingDay, redeId,
         criadoPor: null,
         status,
         itens: buildItens(),
+        campoId: activeCampoId || '',
       });
       toast.success(status === 'pronto' ? 'Roteiro gerado!' : 'Rascunho salvo!');
       if (status === 'pronto') setView('preview');
