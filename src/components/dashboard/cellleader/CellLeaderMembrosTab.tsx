@@ -227,6 +227,7 @@ export function CellLeaderMembrosTab({ celulaId, celulaName }: CellLeaderMembros
           fullName={(eventRegTarget.profile as any)?.name || 'Sem nome'}
           whatsapp={eventRegTarget.whatsapp}
           celulaId={celulaId}
+          campoId={eventRegTarget.campo_id}
         />
       )}
     </>
