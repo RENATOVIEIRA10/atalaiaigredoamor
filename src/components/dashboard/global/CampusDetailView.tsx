@@ -2,9 +2,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import {
-  ArrowLeft, Home, Users, AlertTriangle, ShieldAlert, Eye,
+  ArrowLeft, Home, Users, ShieldAlert, Eye,
   BookOpen, Heart, ChevronRight, Loader2
 } from 'lucide-react';
 import { useCampusRedesDetail, useCampusAlerts, RedeDetail } from '@/hooks/useGlobalKingdomData';
@@ -14,15 +13,15 @@ interface Props {
   campoNome: string;
   onBack: () => void;
   onSelectRede: (redeId: string, redeNome: string) => void;
+  includeSynthetic?: boolean;
 }
 
-export function CampusDetailView({ campoId, campoNome, onBack, onSelectRede }: Props) {
-  const { data: redes, isLoading: redesLoading } = useCampusRedesDetail(campoId);
-  const { data: alerts, isLoading: alertsLoading } = useCampusAlerts(campoId);
+export function CampusDetailView({ campoId, campoNome, onBack, onSelectRede, includeSynthetic = false }: Props) {
+  const { data: redes, isLoading: redesLoading } = useCampusRedesDetail(campoId, includeSynthetic);
+  const { data: alerts, isLoading: alertsLoading } = useCampusAlerts(campoId, includeSynthetic);
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="icon" onClick={onBack} className="shrink-0">
           <ArrowLeft className="h-5 w-5" />
@@ -33,42 +32,24 @@ export function CampusDetailView({ campoId, campoNome, onBack, onSelectRede }: P
         </div>
       </div>
 
-      {/* Alertas do Campus */}
+      {/* Alertas */}
       <section>
         <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
           ⚠️ Top Alertas do Campus
         </h3>
         {alertsLoading ? (
-          <div className="flex justify-center py-8">
-            <Loader2 className="h-5 w-5 animate-spin text-primary" />
-          </div>
+          <div className="flex justify-center py-8"><Loader2 className="h-5 w-5 animate-spin text-primary" /></div>
         ) : alerts && alerts.length > 0 ? (
           <div className="grid gap-3 md:grid-cols-2">
             {alerts.map((alert, i) => (
-              <Card
-                key={i}
-                className={
-                  alert.severity === 'critical'
-                    ? 'border-destructive/30 bg-destructive/5'
-                    : 'border-amber-500/20 bg-amber-500/5'
-                }
-              >
+              <Card key={i} className={alert.severity === 'critical' ? 'border-destructive/30 bg-destructive/5' : 'border-amber-500/20 bg-amber-500/5'}>
                 <CardContent className="p-4 flex items-start gap-3">
-                  <ShieldAlert
-                    className={`h-5 w-5 mt-0.5 shrink-0 ${
-                      alert.severity === 'critical' ? 'text-destructive' : 'text-amber-600'
-                    }`}
-                  />
+                  <ShieldAlert className={`h-5 w-5 mt-0.5 shrink-0 ${alert.severity === 'critical' ? 'text-destructive' : 'text-amber-600'}`} />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium">{alert.title}</p>
                     <p className="text-sm text-muted-foreground mt-1">{alert.description}</p>
                   </div>
-                  <Badge
-                    variant={alert.severity === 'critical' ? 'destructive' : 'secondary'}
-                    className="shrink-0"
-                  >
-                    {alert.count}
-                  </Badge>
+                  <Badge variant={alert.severity === 'critical' ? 'destructive' : 'secondary'} className="shrink-0">{alert.count}</Badge>
                 </CardContent>
               </Card>
             ))}
@@ -83,15 +64,13 @@ export function CampusDetailView({ campoId, campoNome, onBack, onSelectRede }: P
         )}
       </section>
 
-      {/* Redes do Campus */}
+      {/* Redes */}
       <section>
         <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
           🕸️ Redes do Campus
         </h3>
         {redesLoading ? (
-          <div className="flex justify-center py-8">
-            <Loader2 className="h-5 w-5 animate-spin text-primary" />
-          </div>
+          <div className="flex justify-center py-8"><Loader2 className="h-5 w-5 animate-spin text-primary" /></div>
         ) : redes && redes.length > 0 ? (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {redes.map((rede) => (
@@ -112,10 +91,7 @@ export function CampusDetailView({ campoId, campoNome, onBack, onSelectRede }: P
 
 function RedeCard({ rede, onSelect }: { rede: RedeDetail; onSelect: (id: string, name: string) => void }) {
   return (
-    <Card
-      className="card-hover cursor-pointer group hover:border-primary/30"
-      onClick={() => onSelect(rede.id, rede.name)}
-    >
+    <Card className="card-hover cursor-pointer group hover:border-primary/30" onClick={() => onSelect(rede.id, rede.name)}>
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base">{rede.name}</CardTitle>
@@ -124,26 +100,18 @@ function RedeCard({ rede, onSelect }: { rede: RedeDetail; onSelect: (id: string,
       </CardHeader>
       <CardContent className="space-y-2">
         <div className="flex justify-between text-sm">
-          <span className="text-muted-foreground flex items-center gap-1.5">
-            <Home className="h-3.5 w-3.5" /> Células
-          </span>
+          <span className="text-muted-foreground flex items-center gap-1.5"><Home className="h-3.5 w-3.5" /> Células</span>
           <span className="font-semibold tabular-nums">{rede.celulas_count}</span>
         </div>
         <div className="flex justify-between text-sm">
-          <span className="text-muted-foreground flex items-center gap-1.5">
-            <Users className="h-3.5 w-3.5" /> Membros
-          </span>
+          <span className="text-muted-foreground flex items-center gap-1.5"><Users className="h-3.5 w-3.5" /> Membros</span>
           <span className="font-semibold tabular-nums">{rede.membros_count}</span>
         </div>
         <div className="flex justify-between text-sm">
-          <span className="text-muted-foreground flex items-center gap-1.5">
-            <Eye className="h-3.5 w-3.5" /> Engajamento
-          </span>
+          <span className="text-muted-foreground flex items-center gap-1.5"><Eye className="h-3.5 w-3.5" /> Engajamento</span>
           <div className="flex items-center gap-2">
             <span className="font-semibold tabular-nums">{rede.engajamento_pct}%</span>
-            <Badge variant="secondary" className="text-xs">
-              {rede.relatorios_semana}/{rede.celulas_count}
-            </Badge>
+            <Badge variant="secondary" className="text-xs">{rede.relatorios_semana}/{rede.celulas_count}</Badge>
           </div>
         </div>
         <Progress value={rede.engajamento_pct} className="h-1.5 mt-1" />
