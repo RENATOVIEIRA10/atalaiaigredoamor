@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useCampo } from '@/contexts/CampoContext';
 
 export interface Encaminhamento {
   id: string;
@@ -58,13 +59,43 @@ export function useEncaminhamentos(novaVidaId?: string, campoId?: string | null)
 export function useCreateEncaminhamento() {
   const qc = useQueryClient();
   const { toast } = useToast();
+  const { activeCampoId } = useCampo();
 
   return useMutation({
     mutationFn: async (enc: EncaminhamentoInsert) => {
       const { data: { user } } = await supabase.auth.getUser();
+
+      // Resolve campo_id: explicit > context > user_access_links > nova_vida
+      let campoId = activeCampoId;
+
+      if (!campoId && user) {
+        const { data: links } = await supabase
+          .from('user_access_links')
+          .select('campo_id')
+          .eq('user_id', user.id)
+          .eq('active', true)
+          .not('campo_id', 'is', null)
+          .limit(1);
+        campoId = links?.[0]?.campo_id ?? null;
+      }
+
+      if (!campoId) {
+        // Last resort: inherit from the nova_vida itself
+        const { data: vida } = await supabase
+          .from('novas_vidas')
+          .select('campo_id')
+          .eq('id', enc.nova_vida_id)
+          .single();
+        campoId = vida?.campo_id ?? null;
+      }
+
+      if (!campoId) {
+        throw new Error('Seu acesso não está vinculado a um campus. Fale com o administrador.');
+      }
+
       const { data, error } = await supabase
         .from('encaminhamentos_recomeco')
-        .insert({ ...enc, created_by_user_id: user?.id ?? null } as any)
+        .insert({ ...enc, campo_id: campoId, created_by_user_id: user?.id ?? null } as any)
         .select()
         .single();
       if (error) throw error;
