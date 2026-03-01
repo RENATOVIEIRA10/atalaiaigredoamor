@@ -5,8 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
-import { Loader2, Plus, Trash2, Network, FolderTree, ClipboardCheck, Home, Church, Shield, Crown, Heart, BookOpen, Users, User } from 'lucide-react';
+import { Loader2, Plus, Trash2, Network, FolderTree, ClipboardCheck, Home, Church, Shield, Crown, Heart, BookOpen, Users, User, MapPin } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useCreateCoupleFromNames } from '@/hooks/useCreateCoupleFromNames';
 import { useRedes } from '@/hooks/useRedes';
@@ -15,7 +14,7 @@ import { useCelulas } from '@/hooks/useCelulas';
 import { useCampos } from '@/hooks/useCampos';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { getFunctionLabel, getScopeTypeForAccessKey } from '@/hooks/useLeadershipFunctions';
+import { getFunctionLabel, getScopeTypeForAccessKey, GLOBAL_FUNCTION_TYPES } from '@/hooks/useLeadershipFunctions';
 
 type FunctionType = string;
 
@@ -24,6 +23,8 @@ interface PendingFunction {
   entityId: string | null;
   entityName: string;
   entityType: string | null;
+  campoId: string | null;
+  campoName: string;
 }
 
 // Which functions require which scope selection
@@ -87,31 +88,58 @@ export function CreateLeadershipDialog({ open, onOpenChange }: { open: boolean; 
   const [functions, setFunctions] = useState<PendingFunction[]>([]);
   const [currentFnType, setCurrentFnType] = useState('');
   const [currentEntity, setCurrentEntity] = useState('');
+  const [currentCampoId, setCurrentCampoId] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [step, setStep] = useState<1 | 2 | 3>(1);
 
   const scopeReq = currentFnType ? SCOPE_REQUIREMENTS[currentFnType] : undefined;
   const needsEntity = scopeReq !== null && scopeReq !== undefined;
+  const isGlobal = GLOBAL_FUNCTION_TYPES.includes(currentFnType);
+  // Ministry functions (no entity scope) that are NOT global need explicit campus
+  const needsExplicitCampus = currentFnType && !needsEntity && !isGlobal;
 
+  // Filter entities by selected campus for structural functions
   const entityOptions = !currentFnType || !needsEntity ? [] :
-    scopeReq?.entityType === 'celula' ? (celulas || []).map(c => ({ id: c.id, name: c.name })) :
-    scopeReq?.entityType === 'coordenacao' ? (coordenacoes || []).map(c => ({ id: c.id, name: c.name })) :
-    scopeReq?.entityType === 'rede' ? (redes || []).map(r => ({ id: r.id, name: r.name })) :
+    scopeReq?.entityType === 'celula' ? (celulas || []).filter(c => !currentCampoId || c.campo_id === currentCampoId).map(c => ({ id: c.id, name: c.name })) :
+    scopeReq?.entityType === 'coordenacao' ? (coordenacoes || []).filter(c => !currentCampoId || c.campo_id === currentCampoId).map(c => ({ id: c.id, name: c.name })) :
+    scopeReq?.entityType === 'rede' ? (redes || []).filter(r => !currentCampoId || r.campo_id === currentCampoId).map(r => ({ id: r.id, name: r.name })) :
     scopeReq?.entityType === 'campo' ? (campos || []).map(c => ({ id: c.id, name: c.nome })) :
     [];
 
   const addFunction = () => {
     if (!currentFnType) return;
     if (needsEntity && !currentEntity) return;
+    if (needsExplicitCampus && !currentCampoId) return;
+    // For structural functions that need entity but also need campus context
+    if (needsEntity && scopeReq?.entityType !== 'campo' && !currentCampoId) return;
+
     const entity = entityOptions.find(e => e.id === currentEntity);
+    const campo = (campos || []).find(c => c.id === currentCampoId);
+
+    // Resolve campoId
+    let resolvedCampoId: string | null = null;
+    let resolvedCampoName = '';
+    if (isGlobal) {
+      // No campus for global
+    } else if (scopeReq?.entityType === 'campo') {
+      resolvedCampoId = currentEntity || null;
+      resolvedCampoName = entity?.name || '';
+    } else if (currentCampoId) {
+      resolvedCampoId = currentCampoId;
+      resolvedCampoName = campo?.nome || '';
+    }
+
     setFunctions([...functions, {
       functionType: currentFnType,
       entityId: needsEntity ? currentEntity : null,
       entityName: entity?.name || '',
       entityType: scopeReq?.entityType || null,
+      campoId: resolvedCampoId,
+      campoName: resolvedCampoName,
     }]);
     setCurrentFnType('');
     setCurrentEntity('');
+    // Keep campoId for convenience when adding multiple functions to same campus
   };
 
   const removeFunction = (index: number) => setFunctions(functions.filter((_, i) => i !== index));
@@ -133,7 +161,6 @@ export function CreateLeadershipDialog({ open, onOpenChange }: { open: boolean; 
         coupleId = await createOrUpdateCouple(person1Name, person2Name);
         if (!coupleId) throw new Error('Erro ao criar casal');
       } else {
-        // Create single profile
         const userId = crypto.randomUUID();
         const { data: profile, error } = await supabase
           .from('profiles')
@@ -144,9 +171,7 @@ export function CreateLeadershipDialog({ open, onOpenChange }: { open: boolean; 
         profileId = profile.id;
       }
 
-      // Create leadership_functions + structural links + access keys
       for (const fn of functions) {
-        // 1. Create structural link (backwards compat)
         let scopeEntityId = fn.entityId;
         if (coupleId) {
           if (fn.functionType === 'celula_leader' && fn.entityId) {
@@ -168,14 +193,11 @@ export function CreateLeadershipDialog({ open, onOpenChange }: { open: boolean; 
           }
         }
 
-        // For pastor_de_campo, create campo_pastores entry
         if (fn.functionType === 'pastor_de_campo' && fn.entityId) {
           let pastorProfileId = profileId;
-          // For couples, use spouse1's profile_id
           if (!pastorProfileId && coupleId) {
             const { data: lc } = await supabase.from('leadership_couples').select('spouse1_id, spouse2_id').eq('id', coupleId).single();
             if (lc) {
-              // Insert both spouses as pastors of this campo
               await supabase.from('campo_pastores').insert([
                 { profile_id: lc.spouse1_id, campo_id: fn.entityId, tipo: 'pastor_de_campo' },
                 { profile_id: lc.spouse2_id, campo_id: fn.entityId, tipo: 'pastor_de_campo' },
@@ -191,24 +213,22 @@ export function CreateLeadershipDialog({ open, onOpenChange }: { open: boolean; 
         }
 
         // Determine campo_id and rede_id
-        let campoId: string | null = null;
+        let campoId = fn.campoId;
         let redeId: string | null = null;
-        if (fn.entityType === 'campo') { campoId = fn.entityId; }
-        else if (fn.entityType === 'rede' && fn.entityId) {
+        if (fn.entityType === 'rede' && fn.entityId) {
           const rede = (redes || []).find(r => r.id === fn.entityId);
-          campoId = rede?.campo_id || null;
+          if (!campoId) campoId = rede?.campo_id || null;
           redeId = fn.entityId;
         } else if (fn.entityType === 'coordenacao' && fn.entityId) {
           const coord = (coordenacoes || []).find(c => c.id === fn.entityId);
-          campoId = coord?.campo_id || null;
+          if (!campoId) campoId = coord?.campo_id || null;
           redeId = coord?.rede_id || null;
         } else if (fn.entityType === 'celula' && fn.entityId) {
           const cel = (celulas || []).find(c => c.id === fn.entityId);
-          campoId = cel?.campo_id || null;
+          if (!campoId) campoId = cel?.campo_id || null;
           redeId = cel?.rede_id || null;
         }
 
-        // 2. Create leadership_function record
         await supabase.from('leadership_functions').insert({
           leadership_couple_id: coupleId,
           profile_id: profileId,
@@ -220,10 +240,9 @@ export function CreateLeadershipDialog({ open, onOpenChange }: { open: boolean; 
           active: true,
         });
 
-        // 3. Auto-create access key
         const akScopeType = getScopeTypeForAccessKey(fn.functionType);
         const code = generateAccessCode();
-        const { error: akError } = await supabase.from('access_keys').insert({
+        await supabase.from('access_keys').insert({
           scope_type: akScopeType,
           scope_id: scopeEntityId,
           code,
@@ -231,9 +250,6 @@ export function CreateLeadershipDialog({ open, onOpenChange }: { open: boolean; 
           rede_id: redeId,
           campo_id: campoId,
         });
-        if (akError) {
-          console.error('Erro ao criar access_key:', akError);
-        }
       }
 
       queryClient.invalidateQueries({ queryKey: ['leadership_functions_unified'] });
@@ -257,11 +273,20 @@ export function CreateLeadershipDialog({ open, onOpenChange }: { open: boolean; 
   const resetAndClose = () => {
     setPerson1Name(''); setPerson2Name('');
     setFunctions([]); setCurrentFnType(''); setCurrentEntity('');
+    setCurrentCampoId('');
     setStep(1); setIsCouple(true);
     onOpenChange(false);
   };
 
   const canGoStep2 = person1Name.trim() && (!isCouple || person2Name.trim());
+
+  // Can add function validation
+  const canAddFunction = currentFnType && (
+    isGlobal ||
+    (needsEntity && currentEntity && (scopeReq?.entityType === 'campo' || currentCampoId)) ||
+    (needsExplicitCampus && currentCampoId) ||
+    false
+  );
 
   return (
     <Dialog open={open} onOpenChange={resetAndClose}>
@@ -322,7 +347,7 @@ export function CreateLeadershipDialog({ open, onOpenChange }: { open: boolean; 
                   const Icon = roleIcons[fn.functionType] || Users;
                   return (
                     <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
-                      <div className="flex items-center gap-2 text-sm">
+                      <div className="flex items-center gap-2 text-sm flex-wrap">
                         <Icon className="h-4 w-4 text-primary" />
                         <span className="font-medium">{getFunctionLabel(fn.functionType)}</span>
                         {fn.entityName && (
@@ -330,6 +355,12 @@ export function CreateLeadershipDialog({ open, onOpenChange }: { open: boolean; 
                             <span className="text-muted-foreground">→</span>
                             <span>{fn.entityName}</span>
                           </>
+                        )}
+                        {fn.campoName && (
+                          <Badge variant="secondary" className="text-[10px] gap-1">
+                            <MapPin className="h-2.5 w-2.5" />
+                            {fn.campoName}
+                          </Badge>
                         )}
                       </div>
                       <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => removeFunction(i)}>
@@ -343,6 +374,24 @@ export function CreateLeadershipDialog({ open, onOpenChange }: { open: boolean; 
 
             <div className="border rounded-lg p-3 space-y-3">
               <p className="text-xs font-medium text-muted-foreground">Adicionar função:</p>
+
+              {/* Campus selector - shown for all non-global functions */}
+              {!isGlobal && (
+                <div className="space-y-1">
+                  <Label className="text-xs flex items-center gap-1">
+                    <MapPin className="h-3 w-3" /> Campus *
+                  </Label>
+                  <Select value={currentCampoId} onValueChange={v => { setCurrentCampoId(v); setCurrentEntity(''); }}>
+                    <SelectTrigger><SelectValue placeholder="Selecionar campus" /></SelectTrigger>
+                    <SelectContent>
+                      {(campos || []).map(c => (
+                        <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
               <Select value={currentFnType} onValueChange={v => { setCurrentFnType(v); setCurrentEntity(''); }}>
                 <SelectTrigger><SelectValue placeholder="Tipo de função" /></SelectTrigger>
                 <SelectContent>
@@ -361,12 +410,28 @@ export function CreateLeadershipDialog({ open, onOpenChange }: { open: boolean; 
                 </SelectContent>
               </Select>
 
-              {currentFnType && needsEntity && (
+              {currentFnType && needsEntity && scopeReq?.entityType !== 'campo' && (
                 <Select value={currentEntity} onValueChange={setCurrentEntity}>
                   <SelectTrigger><SelectValue placeholder={`Selecionar ${scopeReq?.label}`} /></SelectTrigger>
                   <SelectContent>
-                    {entityOptions.map(e => (
+                    {entityOptions.length === 0 ? (
+                      <SelectItem disabled value="__empty">
+                        {currentCampoId ? 'Nenhuma entidade neste campus' : 'Selecione o campus primeiro'}
+                      </SelectItem>
+                    ) : entityOptions.map(e => (
                       <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+
+              {/* For pastor_de_campo, entity IS the campo */}
+              {currentFnType === 'pastor_de_campo' && (
+                <Select value={currentEntity} onValueChange={v => { setCurrentEntity(v); setCurrentCampoId(v); }}>
+                  <SelectTrigger><SelectValue placeholder="Selecionar Campo" /></SelectTrigger>
+                  <SelectContent>
+                    {(campos || []).map(c => (
+                      <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -375,7 +440,7 @@ export function CreateLeadershipDialog({ open, onOpenChange }: { open: boolean; 
               <Button
                 variant="secondary" size="sm" className="w-full"
                 onClick={addFunction}
-                disabled={!currentFnType || (needsEntity && !currentEntity)}
+                disabled={!canAddFunction}
               >
                 <Plus className="h-3 w-3 mr-1" /> Adicionar função
               </Button>
@@ -403,7 +468,7 @@ export function CreateLeadershipDialog({ open, onOpenChange }: { open: boolean; 
               {functions.map((fn, i) => {
                 const Icon = roleIcons[fn.functionType] || Users;
                 return (
-                  <div key={i} className="flex items-center gap-2 text-sm">
+                  <div key={i} className="flex items-center gap-2 text-sm flex-wrap">
                     <Icon className="h-4 w-4 text-primary" />
                     <span>{getFunctionLabel(fn.functionType)}</span>
                     {fn.entityName && (
@@ -411,6 +476,12 @@ export function CreateLeadershipDialog({ open, onOpenChange }: { open: boolean; 
                         <span className="text-muted-foreground">→</span>
                         <span className="font-medium">{fn.entityName}</span>
                       </>
+                    )}
+                    {fn.campoName && (
+                      <Badge variant="secondary" className="text-[10px] gap-1">
+                        <MapPin className="h-2.5 w-2.5" />
+                        {fn.campoName}
+                      </Badge>
                     )}
                   </div>
                 );
