@@ -83,11 +83,20 @@ export function MemberFormDialogSimple({ open, onOpenChange, celulaId }: MemberF
       
       if (profileError) throw profileError;
       
+      // Fetch celula to get campo_id and rede_id
+      const { data: celulaData } = await supabase
+        .from('celulas')
+        .select('campo_id, rede_id')
+        .eq('id', celulaId)
+        .single();
+
       // Then, create the member linked to this profile and celula
       await createMember.mutateAsync({
         profile_id: profile.id,
         celula_id: celulaId,
         whatsapp: normalizedWa,
+        campo_id: celulaData?.campo_id,
+        rede_id: celulaData?.rede_id || null,
       } as any);
       
       toast({ title: 'Membro adicionado com sucesso!' });
