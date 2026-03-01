@@ -2,6 +2,9 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { subDays, format, parseISO, addDays, startOfWeek } from 'date-fns';
 import { useDemoScope } from './useDemoScope';
+import { fetchAllRows, batchedInQuery } from '@/lib/supabasePagination';
+
+// ─── Types ───────────────────────────────────────────────────────────────────
 
 export interface PastoralStats {
   totalCelulas: number;
@@ -52,11 +55,20 @@ export interface RedeGrowth {
   avg_attendance: number;
 }
 
-// Stats gerais
+export interface StagnantMember {
+  id: string;
+  name: string;
+  avatar_url: string | null;
+  celula_name: string;
+  joined_at: string;
+}
+
+// ─── Stats gerais (uses count queries - no pagination needed) ────────────────
+
 export function usePastoralStats() {
   const { campoId } = useDemoScope();
   return useQuery({
-    queryKey: ['pastoral-stats', campoId],
+    queryKey: ['pastoral-stats', campoId ?? 'global'],
     queryFn: async () => {
       const now = new Date();
       const ninetyDaysAgo = subDays(now, 90);
@@ -84,52 +96,56 @@ export function usePastoralStats() {
   });
 }
 
-// Membros ausentes
+// ─── Membros ausentes (paginated) ────────────────────────────────────────────
+
 export function useAbsentMembers() {
   const { campoId } = useDemoScope();
   return useQuery({
-    queryKey: ['pastoral-absent-members', campoId],
+    queryKey: ['pastoral-absent-members', campoId ?? 'global'],
     queryFn: async () => {
       const now = new Date();
       const thirtyDaysAgo = subDays(now, 30);
       const sixtyDaysAgo = subDays(now, 60);
       const ninetyDaysAgo = subDays(now, 90);
 
-      let membersQuery = supabase
-        .from('members')
-        .select(`
-          id,
-          celula_id,
-          profile:profiles!members_profile_id_fkey(name, avatar_url),
-          celula:celulas!members_celula_id_fkey(name)
-        `)
-        .eq('is_active', true);
-      if (campoId) membersQuery = membersQuery.eq('campo_id', campoId);
+      const members = await fetchAllRows(
+        'members',
+        'id, celula_id, profile:profiles!members_profile_id_fkey(name, avatar_url), celula:celulas!members_celula_id_fkey(name)',
+        (q: any) => {
+          q = q.eq('is_active', true);
+          if (campoId) q = q.eq('campo_id', campoId);
+          return q;
+        }
+      );
 
-      const { data: members } = await membersQuery;
-      if (!members || members.length === 0) return { thirty: 0, sixty: 0, ninety: 0 };
+      if (members.length === 0) return { thirty: 0, sixty: 0, ninety: 0 };
 
-      const { data: meetings } = await supabase
-        .from('meetings')
-        .select('id, date')
-        .gte('date', format(ninetyDaysAgo, 'yyyy-MM-dd'));
+      // Get meetings for last 90 days — paginated
+      const meetings = await fetchAllRows(
+        'meetings',
+        'id, date',
+        (q: any) => q.gte('date', format(ninetyDaysAgo, 'yyyy-MM-dd'))
+      );
 
-      if (!meetings || meetings.length === 0) return { thirty: 0, sixty: 0, ninety: 0 };
+      if (meetings.length === 0) return { thirty: 0, sixty: 0, ninety: 0 };
 
-      const meetingIds = meetings.map(m => m.id);
-      const { data: attendances } = await supabase
-        .from('attendances')
-        .select('member_id, meeting_id, present')
-        .in('meeting_id', meetingIds)
-        .eq('present', true);
+      const meetingIds = meetings.map((m: any) => m.id);
+
+      const attendances = await batchedInQuery(
+        'attendances',
+        'member_id, meeting_id, present',
+        'meeting_id',
+        meetingIds,
+        (q: any) => q.eq('present', true)
+      );
 
       const memberLastAttendance = new Map<string, string>();
-      for (const att of attendances || []) {
-        const meeting = meetings.find(m => m.id === att.meeting_id);
+      for (const att of attendances) {
+        const meeting = meetings.find((m: any) => m.id === (att as any).meeting_id);
         if (meeting) {
-          const current = memberLastAttendance.get(att.member_id);
-          if (!current || meeting.date > current) {
-            memberLastAttendance.set(att.member_id, meeting.date);
+          const current = memberLastAttendance.get((att as any).member_id);
+          if (!current || (meeting as any).date > current) {
+            memberLastAttendance.set((att as any).member_id, (meeting as any).date);
           }
         }
       }
@@ -140,7 +156,7 @@ export function useAbsentMembers() {
       const ninetyStr = format(ninetyDaysAgo, 'yyyy-MM-dd');
 
       for (const member of members) {
-        const lastDate = memberLastAttendance.get(member.id);
+        const lastDate = memberLastAttendance.get((member as any).id);
         if (!lastDate || lastDate < ninetyStr) ninety++;
         else if (lastDate < sixtyStr) sixty++;
         else if (lastDate < thirtyStr) thirty++;
@@ -151,51 +167,34 @@ export function useAbsentMembers() {
   });
 }
 
-// Membros sem avanço espiritual
-export interface StagnantMember {
-  id: string;
-  name: string;
-  avatar_url: string | null;
-  celula_name: string;
-  joined_at: string;
-}
+// ─── Estagnação espiritual (paginated) ───────────────────────────────────────
 
 export function useSpiritualStagnation() {
   const { campoId } = useDemoScope();
   return useQuery({
-    queryKey: ['pastoral-spiritual-stagnation', campoId],
+    queryKey: ['pastoral-spiritual-stagnation', campoId ?? 'global'],
     queryFn: async () => {
       const twoYearsAgo = subDays(new Date(), 730);
       
-      let query = supabase
-        .from('members')
-        .select(`
-          id,
-          joined_at,
-          encontro_com_deus,
-          batismo,
-          curso_lidere,
-          is_lider_em_treinamento,
-          profile:profiles!members_profile_id_fkey(name, avatar_url),
-          celula:celulas!members_celula_id_fkey(name)
-        `)
-        .eq('is_active', true)
-        .lt('joined_at', twoYearsAgo.toISOString());
-      
-      if (campoId) query = query.eq('campo_id', campoId);
+      const members = await fetchAllRows(
+        'members',
+        'id, joined_at, encontro_com_deus, batismo, curso_lidere, is_lider_em_treinamento, profile:profiles!members_profile_id_fkey(name, avatar_url), celula:celulas!members_celula_id_fkey(name)',
+        (q: any) => {
+          q = q.eq('is_active', true).lt('joined_at', twoYearsAgo.toISOString());
+          if (campoId) q = q.eq('campo_id', campoId);
+          return q;
+        }
+      );
 
-      const { data: members } = await query;
-      if (!members) return { count: 0, yearsThreshold: 2, members: [] as StagnantMember[] };
-
-      const stagnant = members.filter(m => 
+      const stagnant = members.filter((m: any) => 
         !m.encontro_com_deus && !m.batismo && !m.curso_lidere
       );
 
-      const stagnantMembers: StagnantMember[] = stagnant.map(m => ({
+      const stagnantMembers: StagnantMember[] = stagnant.map((m: any) => ({
         id: m.id,
-        name: (m.profile as any)?.name || 'Sem nome',
-        avatar_url: (m.profile as any)?.avatar_url || null,
-        celula_name: (m.celula as any)?.name || 'Sem célula',
+        name: m.profile?.name || 'Sem nome',
+        avatar_url: m.profile?.avatar_url || null,
+        celula_name: m.celula?.name || 'Sem célula',
         joined_at: m.joined_at,
       }));
 
@@ -204,39 +203,42 @@ export function useSpiritualStagnation() {
   });
 }
 
-// Aniversários da semana
+// ─── Aniversários da semana (paginated) ──────────────────────────────────────
+
 export function useWeeklyBirthdays() {
   const { campoId } = useDemoScope();
   return useQuery({
-    queryKey: ['pastoral-weekly-birthdays', campoId],
+    queryKey: ['pastoral-weekly-birthdays', campoId ?? 'global'],
     queryFn: async () => {
       const today = new Date();
 
-      // Get members scoped by campo, with profile birth_date
-      let membersQuery = supabase
-        .from('members')
-        .select(`
-          profile_id,
-          celula:celulas!members_celula_id_fkey(name),
-          profile:profiles!members_profile_id_fkey(id, name, avatar_url, birth_date)
-        `)
-        .eq('is_active', true);
-      if (campoId) membersQuery = membersQuery.eq('campo_id', campoId);
+      const members = await fetchAllRows(
+        'members',
+        'profile_id, celula:celulas!members_celula_id_fkey(name), profile:profiles!members_profile_id_fkey(id, name, avatar_url, birth_date)',
+        (q: any) => {
+          q = q.eq('is_active', true);
+          if (campoId) q = q.eq('campo_id', campoId);
+          return q;
+        }
+      );
 
-      const { data: members } = await membersQuery;
-      if (!members) return [];
-
-      // Get leaders scoped by campo
-      let celulasQuery = supabase.from('celulas').select('leader_id, name').eq('is_test_data', false);
-      if (campoId) celulasQuery = celulasQuery.eq('campo_id', campoId);
-      const { data: celulas } = await celulasQuery;
-      const leaderSet = new Set((celulas || []).map(c => c.leader_id).filter(Boolean));
+      // Get leaders scoped by campo (paginated)
+      const celulas = await fetchAllRows(
+        'celulas',
+        'leader_id, name',
+        (q: any) => {
+          q = q.eq('is_test_data', false);
+          if (campoId) q = q.eq('campo_id', campoId);
+          return q;
+        }
+      );
+      const leaderSet = new Set(celulas.map((c: any) => c.leader_id).filter(Boolean));
 
       const todayMonthDay = format(today, 'MM-dd');
       const birthdays: PastoralBirthday[] = [];
 
       for (const m of members) {
-        const p = m.profile as any;
+        const p = (m as any).profile;
         if (!p?.birth_date) continue;
         const birthMonthDay = format(parseISO(p.birth_date), 'MM-dd');
 
@@ -255,7 +257,7 @@ export function useWeeklyBirthdays() {
             name: p.name,
             avatar_url: p.avatar_url,
             birth_date: p.birth_date,
-            celula_name: (m.celula as any)?.name || '',
+            celula_name: (m as any).celula?.name || '',
             role: isLeader ? 'Líder' : 'Membro',
             is_today: birthMonthDay === todayMonthDay,
           });
@@ -271,11 +273,12 @@ export function useWeeklyBirthdays() {
   });
 }
 
-// Radar Pastoral - Alertas
+// ─── Radar Pastoral - Alertas (paginated) ────────────────────────────────────
+
 export function usePastoralAlerts() {
   const { campoId } = useDemoScope();
   return useQuery({
-    queryKey: ['pastoral-alerts', campoId],
+    queryKey: ['pastoral-alerts', campoId ?? 'global'],
     queryFn: async () => {
       const alerts: PastoralAlert[] = [];
       const now = new Date();
@@ -284,79 +287,90 @@ export function usePastoralAlerts() {
       const currentSaturday = addDays(currentMonday, 5);
       const lastSaturday = addDays(lastMonday, 5);
 
-      // 1. Células sem relatório na semana operacional (Seg→Sáb)
-      let celulasQ = supabase.from('celulas').select('id, name, coordenacao_id').eq('is_test_data', false);
-      if (campoId) celulasQ = celulasQ.eq('campo_id', campoId);
-      const { data: allCelulas } = await celulasQ;
+      // 1. Células sem relatório na semana operacional (paginated)
+      const allCelulas = await fetchAllRows(
+        'celulas',
+        'id, name, coordenacao_id',
+        (q: any) => {
+          q = q.eq('is_test_data', false);
+          if (campoId) q = q.eq('campo_id', campoId);
+          return q;
+        }
+      );
 
-      if (!allCelulas || allCelulas.length === 0) return alerts;
+      if (allCelulas.length === 0) return alerts;
 
-      const celulaIds = allCelulas.map(c => c.id);
+      const celulaIds = allCelulas.map((c: any) => c.id);
       
-      const { data: weekReports } = await supabase
-        .from('weekly_reports')
-        .select('celula_id')
-        .in('celula_id', celulaIds)
-        .eq('is_test_data', false)
-        .or(
+      const weekReports = await batchedInQuery(
+        'weekly_reports',
+        'celula_id',
+        'celula_id',
+        celulaIds,
+        (q: any) => q.eq('is_test_data', false).or(
           `and(meeting_date.gte.${format(currentMonday, 'yyyy-MM-dd')},meeting_date.lte.${format(currentSaturday, 'yyyy-MM-dd')}),` +
           `and(meeting_date.is.null,week_start.gte.${format(currentMonday, 'yyyy-MM-dd')},week_start.lte.${format(currentSaturday, 'yyyy-MM-dd')})`
-        );
+        )
+      );
 
-      const reportedIds = new Set((weekReports || []).map(r => r.celula_id));
-      const missingCelulas = allCelulas.filter(c => !reportedIds.has(c.id));
+      const reportedIds = new Set(weekReports.map((r: any) => r.celula_id));
+      const missingCelulas = allCelulas.filter((c: any) => !reportedIds.has(c.id));
       
       if (missingCelulas.length > 0) {
         alerts.push({
           type: 'missing_report',
           severity: missingCelulas.length > 3 ? 'critical' : 'warning',
           title: `${missingCelulas.length} célula(s) com relatório pendente`,
-          description: `As células ${missingCelulas.slice(0, 3).map(c => c.name).join(', ')}${missingCelulas.length > 3 ? ` e mais ${missingCelulas.length - 3}` : ''} ainda não enviaram relatório esta semana.`,
+          description: `As células ${missingCelulas.slice(0, 3).map((c: any) => c.name).join(', ')}${missingCelulas.length > 3 ? ` e mais ${missingCelulas.length - 3}` : ''} ainda não enviaram relatório esta semana.`,
           entity_name: 'Relatórios',
         });
       }
 
-      // 2. Coordenações com queda - compare last 2 weeks (scoped)
-      let coordQ = supabase.from('coordenacoes').select('id, name');
-      if (campoId) coordQ = coordQ.eq('campo_id', campoId);
-      const { data: coordenacoes } = await coordQ;
+      // 2. Coordenações com queda (paginated)
+      const coordenacoes = await fetchAllRows(
+        'coordenacoes',
+        'id, name',
+        (q: any) => campoId ? q.eq('campo_id', campoId) : q
+      );
       
-      for (const coord of coordenacoes || []) {
-        const coordCelulas = allCelulas.filter(c => c.coordenacao_id === coord.id);
+      for (const coord of coordenacoes) {
+        const coordCelulas = allCelulas.filter((c: any) => c.coordenacao_id === (coord as any).id);
         if (coordCelulas.length === 0) continue;
-        const coordCelulaIds = coordCelulas.map(c => c.id);
+        const coordCelulaIds = coordCelulas.map((c: any) => c.id);
 
         const [thisWeekRes, lastWeekRes] = await Promise.all([
-          supabase
-            .from('weekly_reports')
-            .select('members_present')
-            .in('celula_id', coordCelulaIds)
-            .eq('is_test_data', false)
-            .or(
+          batchedInQuery(
+            'weekly_reports',
+            'members_present',
+            'celula_id',
+            coordCelulaIds,
+            (q: any) => q.eq('is_test_data', false).or(
               `and(meeting_date.gte.${format(currentMonday, 'yyyy-MM-dd')},meeting_date.lte.${format(currentSaturday, 'yyyy-MM-dd')}),` +
               `and(meeting_date.is.null,week_start.gte.${format(currentMonday, 'yyyy-MM-dd')},week_start.lte.${format(currentSaturday, 'yyyy-MM-dd')})`
-            ),
-          supabase
-            .from('weekly_reports')
-            .select('members_present')
-            .in('celula_id', coordCelulaIds)
-            .eq('is_test_data', false)
-            .or(
+            )
+          ),
+          batchedInQuery(
+            'weekly_reports',
+            'members_present',
+            'celula_id',
+            coordCelulaIds,
+            (q: any) => q.eq('is_test_data', false).or(
               `and(meeting_date.gte.${format(lastMonday, 'yyyy-MM-dd')},meeting_date.lte.${format(lastSaturday, 'yyyy-MM-dd')}),` +
               `and(meeting_date.is.null,week_start.gte.${format(lastMonday, 'yyyy-MM-dd')},week_start.lte.${format(lastSaturday, 'yyyy-MM-dd')})`
-            ),
+            )
+          ),
         ]);
 
-        const thisTotal = (thisWeekRes.data || []).reduce((s, r) => s + r.members_present, 0);
-        const lastTotal = (lastWeekRes.data || []).reduce((s, r) => s + r.members_present, 0);
+        const thisTotal = thisWeekRes.reduce((s: number, r: any) => s + r.members_present, 0);
+        const lastTotal = lastWeekRes.reduce((s: number, r: any) => s + r.members_present, 0);
 
         if (lastTotal > 0 && thisTotal < lastTotal * 0.7) {
           alerts.push({
             type: 'declining_attendance',
             severity: 'warning',
-            title: `Queda na coordenação ${coord.name}`,
-            description: `A coordenação ${coord.name} apresenta queda de constância nas últimas semanas (de ${lastTotal} para ${thisTotal} membros).`,
-            entity_name: coord.name,
+            title: `Queda na coordenação ${(coord as any).name}`,
+            description: `A coordenação ${(coord as any).name} apresenta queda de constância nas últimas semanas (de ${lastTotal} para ${thisTotal} membros).`,
+            entity_name: (coord as any).name,
           });
         }
       }
@@ -366,82 +380,81 @@ export function usePastoralAlerts() {
   });
 }
 
-// Celebrações
+// ─── Celebrações (paginated) ─────────────────────────────────────────────────
+
 export function usePastoralCelebrations() {
   const { campoId } = useDemoScope();
   return useQuery({
-    queryKey: ['pastoral-celebrations', campoId],
+    queryKey: ['pastoral-celebrations', campoId ?? 'global'],
     queryFn: async () => {
       const celebrations: CelebrationItem[] = [];
       const now = new Date();
       const thirtyDaysAgo = subDays(now, 30);
 
-      // Multiplicações recentes (scoped)
-      let multQ = supabase
-        .from('multiplicacoes')
-        .select(`
-          *,
-          celula_origem:celulas!multiplicacoes_celula_origem_id_fkey(name),
-          celula_destino:celulas!multiplicacoes_celula_destino_id_fkey(name)
-        `)
-        .gte('data_multiplicacao', format(thirtyDaysAgo, 'yyyy-MM-dd'))
-        .order('data_multiplicacao', { ascending: false });
-      if (campoId) multQ = multQ.eq('campo_id', campoId);
+      // Multiplicações recentes (paginated)
+      const multiplicacoes = await fetchAllRows(
+        'multiplicacoes',
+        '*, celula_origem:celulas!multiplicacoes_celula_origem_id_fkey(name), celula_destino:celulas!multiplicacoes_celula_destino_id_fkey(name)',
+        (q: any) => {
+          q = q.gte('data_multiplicacao', format(thirtyDaysAgo, 'yyyy-MM-dd')).order('data_multiplicacao', { ascending: false });
+          if (campoId) q = q.eq('campo_id', campoId);
+          return q;
+        }
+      );
 
-      const { data: multiplicacoes } = await multQ;
-
-      for (const mult of multiplicacoes || []) {
+      for (const mult of multiplicacoes) {
         celebrations.push({
           type: 'multiplicacao',
           title: 'Nova Multiplicação! 🎉',
-          description: `A célula ${(mult.celula_origem as any)?.name} multiplicou, dando origem à célula ${(mult.celula_destino as any)?.name}.`,
-          date: mult.data_multiplicacao,
+          description: `A célula ${(mult as any).celula_origem?.name} multiplicou, dando origem à célula ${(mult as any).celula_destino?.name}.`,
+          date: (mult as any).data_multiplicacao,
         });
       }
 
-      // Novos líderes em treinamento (scoped)
-      let leadersQ = supabase
-        .from('members')
-        .select(`
-          id,
-          profile:profiles!members_profile_id_fkey(name),
-          celula:celulas!members_celula_id_fkey(name)
-        `)
-        .eq('is_active', true)
-        .eq('is_lider_em_treinamento', true);
+      // Novos líderes em treinamento (count query)
+      let leadersQ = supabase.from('members').select('id', { count: 'exact', head: true })
+        .eq('is_active', true).eq('is_lider_em_treinamento', true);
       if (campoId) leadersQ = leadersQ.eq('campo_id', campoId);
+      const { count: newLeadersCount } = await leadersQ;
 
-      const { data: newLeaders } = await leadersQ;
-
-      if (newLeaders && newLeaders.length > 0) {
+      if (newLeadersCount && newLeadersCount > 0) {
         celebrations.push({
           type: 'new_leader',
-          title: `${newLeaders.length} líder(es) em treinamento`,
-          description: `A rede conta com ${newLeaders.length} líder(es) em formação, preparando-se para multiplicar.`,
+          title: `${newLeadersCount} líder(es) em treinamento`,
+          description: `A rede conta com ${newLeadersCount} líder(es) em formação, preparando-se para multiplicar.`,
           date: format(now, 'yyyy-MM-dd'),
         });
       }
 
-      // Células constantes (scoped)
-      let celQ = supabase.from('celulas').select('id, name').eq('is_test_data', false);
-      if (campoId) celQ = celQ.eq('campo_id', campoId);
-      const { data: allCelulas } = await celQ;
+      // Células constantes (paginated)
+      const allCelulas = await fetchAllRows(
+        'celulas',
+        'id, name',
+        (q: any) => {
+          q = q.eq('is_test_data', false);
+          if (campoId) q = q.eq('campo_id', campoId);
+          return q;
+        }
+      );
 
-      if (allCelulas && allCelulas.length > 0) {
-        const celulaIds = allCelulas.map(c => c.id);
-        const { data: monthReports } = await supabase
-          .from('weekly_reports')
-          .select('celula_id, week_start')
-          .in('celula_id', celulaIds)
-          .gte('week_start', format(thirtyDaysAgo, 'yyyy-MM-dd'));
+      if (allCelulas.length > 0) {
+        const celulaIds = allCelulas.map((c: any) => c.id);
+        const monthReports = await batchedInQuery(
+          'weekly_reports',
+          'celula_id, week_start',
+          'celula_id',
+          celulaIds,
+          (q: any) => q.gte('week_start', format(thirtyDaysAgo, 'yyyy-MM-dd'))
+        );
 
         const reportsByCell = new Map<string, Set<string>>();
-        for (const r of monthReports || []) {
-          if (!reportsByCell.has(r.celula_id)) reportsByCell.set(r.celula_id, new Set());
-          reportsByCell.get(r.celula_id)!.add(r.week_start);
+        for (const r of monthReports) {
+          const rid = (r as any).celula_id;
+          if (!reportsByCell.has(rid)) reportsByCell.set(rid, new Set());
+          reportsByCell.get(rid)!.add((r as any).week_start);
         }
 
-        const consistentCells = allCelulas.filter(c => {
+        const consistentCells = allCelulas.filter((c: any) => {
           const weeks = reportsByCell.get(c.id);
           return weeks && weeks.size >= 4;
         });
@@ -450,7 +463,7 @@ export function usePastoralCelebrations() {
           celebrations.push({
             type: 'consistent_cell',
             title: `${consistentCells.length} célula(s) exemplares`,
-            description: `As células ${consistentCells.slice(0, 3).map(c => c.name).join(', ')}${consistentCells.length > 3 ? ` e mais ${consistentCells.length - 3}` : ''} mantêm constância exemplar nos relatórios.`,
+            description: `As células ${consistentCells.slice(0, 3).map((c: any) => c.name).join(', ')}${consistentCells.length > 3 ? ` e mais ${consistentCells.length - 3}` : ''} mantêm constância exemplar nos relatórios.`,
             date: format(now, 'yyyy-MM-dd'),
           });
         }
@@ -461,63 +474,59 @@ export function usePastoralCelebrations() {
   });
 }
 
-// Crescimento por rede (scoped by campo)
+// ─── Crescimento por rede (paginated) ────────────────────────────────────────
+
 export function useRedeGrowthData() {
   const { campoId } = useDemoScope();
   return useQuery({
-    queryKey: ['pastoral-rede-growth', campoId],
+    queryKey: ['pastoral-rede-growth', campoId ?? 'global'],
     queryFn: async () => {
-      let redesQ = supabase.from('redes').select('id, name');
-      if (campoId) redesQ = redesQ.eq('campo_id', campoId);
-      const { data: redes } = await redesQ;
-      if (!redes || redes.length === 0) return [];
+      const redes = await fetchAllRows(
+        'redes',
+        'id, name',
+        (q: any) => campoId ? q.eq('campo_id', campoId) : q
+      );
+      if (redes.length === 0) return [];
 
-      const redeIds = redes.map(r => r.id);
-
-      let coordQ = supabase.from('coordenacoes').select('id, rede_id').in('rede_id', redeIds);
-      let celQ = supabase.from('celulas').select('id, coordenacao_id').eq('is_test_data', false);
-      let memQ = supabase.from('members').select('id, celula_id').eq('is_active', true);
-
-      if (campoId) {
-        coordQ = coordQ.eq('campo_id', campoId);
-        celQ = celQ.eq('campo_id', campoId);
-        memQ = memQ.eq('campo_id', campoId);
-      }
+      const redeIds = redes.map((r: any) => r.id);
 
       const sixMonthsAgo = subDays(new Date(), 180);
 
-      const [coordRes, celRes, memRes] = await Promise.all([coordQ, celQ, memQ]);
-      const coordenacoes = coordRes.data || [];
-      const celulas = celRes.data || [];
-      const members = memRes.data || [];
+      const [coordenacoes, celulas, members] = await Promise.all([
+        batchedInQuery('coordenacoes', 'id, rede_id', 'rede_id', redeIds,
+          (q: any) => campoId ? q.eq('campo_id', campoId) : q),
+        fetchAllRows('celulas', 'id, coordenacao_id',
+          (q: any) => { q = q.eq('is_test_data', false); if (campoId) q = q.eq('campo_id', campoId); return q; }),
+        fetchAllRows('members', 'id, celula_id',
+          (q: any) => { q = q.eq('is_active', true); if (campoId) q = q.eq('campo_id', campoId); return q; }),
+      ]);
 
-      // Only fetch reports for cells in scope
-      const allCelulaIds = celulas.map(c => c.id);
-      let reportsData: any[] = [];
-      if (allCelulaIds.length > 0) {
-        const { data } = await supabase
-          .from('weekly_reports')
-          .select('celula_id, members_present')
-          .in('celula_id', allCelulaIds)
-          .gte('week_start', format(sixMonthsAgo, 'yyyy-MM-dd'));
-        reportsData = data || [];
-      }
+      const allCelulaIds = celulas.map((c: any) => c.id);
+      const reportsData = allCelulaIds.length > 0
+        ? await batchedInQuery(
+            'weekly_reports',
+            'celula_id, members_present',
+            'celula_id',
+            allCelulaIds,
+            (q: any) => q.gte('week_start', format(sixMonthsAgo, 'yyyy-MM-dd'))
+          )
+        : [];
 
       const result: RedeGrowth[] = [];
 
       for (const rede of redes) {
-        const redeCoords = coordenacoes.filter(c => c.rede_id === rede.id);
-        const coordIds = redeCoords.map(c => c.id);
-        const redeCelulas = celulas.filter(c => coordIds.includes(c.coordenacao_id));
-        const celulaIds = redeCelulas.map(c => c.id);
-        const redeMembers = members.filter(m => celulaIds.includes(m.celula_id));
-        const redeReports = reportsData.filter(r => celulaIds.includes(r.celula_id));
+        const redeCoords = coordenacoes.filter((c: any) => c.rede_id === (rede as any).id);
+        const coordIds = redeCoords.map((c: any) => c.id);
+        const redeCelulas = celulas.filter((c: any) => coordIds.includes(c.coordenacao_id));
+        const celulaIds = redeCelulas.map((c: any) => c.id);
+        const redeMembers = members.filter((m: any) => celulaIds.includes(m.celula_id));
+        const redeReports = reportsData.filter((r: any) => celulaIds.includes(r.celula_id));
         const avgAttendance = redeReports.length > 0
-          ? Math.round(redeReports.reduce((s, r) => s + r.members_present, 0) / redeReports.length)
+          ? Math.round(redeReports.reduce((s: number, r: any) => s + r.members_present, 0) / redeReports.length)
           : 0;
 
         result.push({
-          rede_name: rede.name,
+          rede_name: (rede as any).name,
           celulas_count: redeCelulas.length,
           members_count: redeMembers.length,
           reports_count: redeReports.length,

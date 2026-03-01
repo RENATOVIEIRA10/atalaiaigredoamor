@@ -31,8 +31,14 @@ import { RadarSaudePanel } from './RadarSaudePanel';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { RecomecoPastorTab } from './recomeco/RecomecoPastorTab';
 import { DiscipuladoPastorView } from './discipulado/DiscipuladoPastorView';
+import { GlobalValidationPanel } from './GlobalValidationPanel';
+import { useRole } from '@/contexts/RoleContext';
+import { useCampo } from '@/contexts/CampoContext';
 
 export function PastorDashboard() {
+  const { isPastorSeniorGlobal } = useRole();
+  const { isGlobalView } = useCampo();
+  const showValidation = isPastorSeniorGlobal && isGlobalView;
   const { data: stats, isLoading: statsLoading } = usePastoralStats();
   const { data: pulso, isLoading: pulsoLoading } = usePulsoPastoral();
   const { data: stagnation } = useSpiritualStagnation();
@@ -545,6 +551,14 @@ export function PastorDashboard() {
           </CardContent>
         </Card>
       </section>
+
+      {/* Validação de Consistência (apenas visão global) */}
+      {showValidation && (
+        <section>
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">🛡️ Validação de Consistência</h2>
+          <GlobalValidationPanel />
+        </section>
+      )}
     </div>
   );
 }
