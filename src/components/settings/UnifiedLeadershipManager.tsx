@@ -126,8 +126,26 @@ export function UnifiedLeadershipManager() {
   }, [filtered]);
 
   const handleGenerateCode = async (fn: UnifiedFunction) => {
-    const code = generateAccessCode();
     const akScopeType = getScopeTypeForAccessKey(fn.functionType);
+
+    // Check for existing active key with same scope to avoid unique constraint violation
+    if (fn.scopeEntityId) {
+      const { data: existing } = await supabase
+        .from('access_keys')
+        .select('id, code, active')
+        .eq('scope_type', akScopeType)
+        .eq('scope_id', fn.scopeEntityId)
+        .eq('active', true)
+        .maybeSingle();
+
+      if (existing) {
+        invalidateAll();
+        toast({ title: 'Código já existe!', description: `Código: ${existing.code}` });
+        return;
+      }
+    }
+
+    const code = generateAccessCode();
     const { error } = await supabase.from('access_keys').insert({
       scope_type: akScopeType,
       scope_id: fn.scopeEntityId,
@@ -147,9 +165,23 @@ export function UnifiedLeadershipManager() {
     if (leadersWithoutCode.length === 0) return;
     setBulkGenerating(true);
     let count = 0;
+    let skipped = 0;
     for (const { fn } of leadersWithoutCode) {
-      const code = generateAccessCode();
       const akScopeType = getScopeTypeForAccessKey(fn.functionType);
+
+      // Check for existing active key to avoid unique constraint violation
+      if (fn.scopeEntityId) {
+        const { data: existing } = await supabase
+          .from('access_keys')
+          .select('id')
+          .eq('scope_type', akScopeType)
+          .eq('scope_id', fn.scopeEntityId)
+          .eq('active', true)
+          .maybeSingle();
+        if (existing) { skipped++; continue; }
+      }
+
+      const code = generateAccessCode();
       const { error } = await supabase.from('access_keys').insert({
         scope_type: akScopeType,
         scope_id: fn.scopeEntityId,
@@ -161,7 +193,8 @@ export function UnifiedLeadershipManager() {
     }
     setBulkGenerating(false);
     invalidateAll();
-    toast({ title: `${count} código(s) gerado(s)!` });
+    const msg = skipped > 0 ? `${count} gerado(s), ${skipped} já existiam` : `${count} código(s) gerado(s)!`;
+    toast({ title: msg });
   };
 
   if (isLoading) {

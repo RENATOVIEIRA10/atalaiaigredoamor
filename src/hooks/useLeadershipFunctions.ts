@@ -112,26 +112,8 @@ export function useLeadershipFunctions() {
       const profileIds = [...new Set((funcs || []).filter(f => f.profile_id && !f.leadership_couple_id).map(f => f.profile_id!))];
 
       let couplesMap = new Map<string, { spouse1: any; spouse2: any }>();
-      if (coupleIds.length > 0) {
-        const { data: couples } = await supabase
-          .from('leadership_couples')
-          .select('id, spouse1:profiles!leadership_couples_spouse1_id_fkey(id, name, avatar_url), spouse2:profiles!leadership_couples_spouse2_id_fkey(id, name, avatar_url)')
-          .in('id', coupleIds);
-        for (const c of (couples || [])) {
-          couplesMap.set(c.id, { spouse1: c.spouse1, spouse2: c.spouse2 });
-        }
-      }
 
       let profilesMap = new Map<string, any>();
-      if (profileIds.length > 0) {
-        const { data: profiles } = await supabase
-          .from('profiles')
-          .select('id, name, avatar_url')
-          .in('id', profileIds);
-        for (const p of (profiles || [])) {
-          profilesMap.set(p.id, p);
-        }
-      }
 
       // 4) Fetch access keys to match codes
       const { data: accessKeys } = await supabase
@@ -149,6 +131,91 @@ export function useLeadershipFunctions() {
       const supIds = (funcs || []).filter(f => f.scope_entity_type === 'supervisor' && f.scope_entity_id).map(f => f.scope_entity_id!);
       const campoIds = (funcs || []).filter(f => f.scope_entity_type === 'campo' && f.scope_entity_id).map(f => f.scope_entity_id!);
 
+      // 5b) Also fetch ALL structural leaders (redes, coordenacoes, celulas) 
+      // to discover those without leadership_functions entries
+      const [allRedes, allCoords, allCelulas] = await Promise.all([
+        supabase.from('redes').select('id, name, campo_id, leader_id, leadership_couple_id').eq('ativa', true),
+        supabase.from('coordenacoes').select('id, name, campo_id, rede_id, leader_id, leadership_couple_id'),
+        supabase.from('celulas').select('id, name, campo_id, coordenacao_id, leader_id, leadership_couple_id'),
+      ]);
+
+      // Build sets of scope_entity_ids already tracked in leadership_functions
+      const trackedRedeIds = new Set((funcs || []).filter(f => f.function_type === 'rede_leader' && f.scope_entity_id).map(f => f.scope_entity_id!));
+      const trackedCoordIds = new Set((funcs || []).filter(f => f.function_type === 'coordenador' && f.scope_entity_id).map(f => f.scope_entity_id!));
+      const trackedCelulaIds = new Set((funcs || []).filter(f => f.function_type === 'celula_leader' && f.scope_entity_id).map(f => f.scope_entity_id!));
+
+      // Discover structural leaders NOT in leadership_functions
+      type StructuralLeader = { 
+        entityId: string; entityName: string; entityType: string; functionType: string;
+        coupleId: string | null; profileId: string | null; campoId: string; parentName?: string;
+      };
+      const structuralLeaders: StructuralLeader[] = [];
+
+      for (const r of (allRedes.data || [])) {
+        if (trackedRedeIds.has(r.id)) continue;
+        if (!r.leader_id && !r.leadership_couple_id) continue;
+        structuralLeaders.push({
+          entityId: r.id, entityName: r.name, entityType: 'rede', functionType: 'rede_leader',
+          coupleId: r.leadership_couple_id, profileId: r.leader_id, campoId: r.campo_id,
+        });
+        entityNameCache.set(r.id, r.name);
+      }
+      for (const co of (allCoords.data || [])) {
+        if (trackedCoordIds.has(co.id)) continue;
+        if (!co.leader_id && !co.leadership_couple_id) continue;
+        const parentRede = (allRedes.data || []).find(r => r.id === co.rede_id);
+        structuralLeaders.push({
+          entityId: co.id, entityName: co.name, entityType: 'coordenacao', functionType: 'coordenador',
+          coupleId: co.leadership_couple_id, profileId: co.leader_id, campoId: co.campo_id,
+          parentName: parentRede?.name,
+        });
+        entityNameCache.set(co.id, co.name);
+        if (parentRede) parentNameCache.set(co.id, parentRede.name);
+      }
+      for (const cel of (allCelulas.data || [])) {
+        if (trackedCelulaIds.has(cel.id)) continue;
+        if (!cel.leader_id && !cel.leadership_couple_id) continue;
+        const parentCoord = (allCoords.data || []).find(c => c.id === cel.coordenacao_id);
+        structuralLeaders.push({
+          entityId: cel.id, entityName: cel.name, entityType: 'celula', functionType: 'celula_leader',
+          coupleId: cel.leadership_couple_id, profileId: cel.leader_id, campoId: cel.campo_id,
+          parentName: parentCoord?.name,
+        });
+        entityNameCache.set(cel.id, cel.name);
+        if (parentCoord) parentNameCache.set(cel.id, parentCoord.name);
+      }
+
+      // Collect all couple/profile IDs including structural
+      for (const sl of structuralLeaders) {
+        if (sl.coupleId) coupleIds.push(sl.coupleId);
+        if (sl.profileId && !sl.coupleId) profileIds.push(sl.profileId);
+      }
+
+      // Deduplicate
+      const uniqueCoupleIds = [...new Set(coupleIds)];
+      const uniqueProfileIds = [...new Set(profileIds)];
+
+      if (uniqueCoupleIds.length > 0) {
+        const { data: couples } = await supabase
+          .from('leadership_couples')
+          .select('id, spouse1:profiles!leadership_couples_spouse1_id_fkey(id, name, avatar_url), spouse2:profiles!leadership_couples_spouse2_id_fkey(id, name, avatar_url)')
+          .in('id', uniqueCoupleIds);
+        for (const c of (couples || [])) {
+          couplesMap.set(c.id, { spouse1: c.spouse1, spouse2: c.spouse2 });
+        }
+      }
+
+      if (uniqueProfileIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, name, avatar_url')
+          .in('id', uniqueProfileIds);
+        for (const p of (profiles || [])) {
+          profilesMap.set(p.id, p);
+        }
+      }
+
+      // Resolve remaining entity names from leadership_functions
       const [celulas, coords, redes, sups, campos] = await Promise.all([
         celulaIds.length > 0 ? supabase.from('celulas').select('id, name, coordenacao_id').in('id', celulaIds) : { data: [] },
         coordIds.length > 0 ? supabase.from('coordenacoes').select('id, name, rede_id').in('id', coordIds) : { data: [] },
@@ -175,9 +242,9 @@ export function useLeadershipFunctions() {
         if (coord) parentNameCache.set(cel.id, coord.name);
       }
 
-      const allRedeIds = [...new Set((coords.data || []).map(c => c.rede_id).filter(Boolean))];
-      if (allRedeIds.length > 0 && !(redes.data || []).length) {
-        const { data: extraRedes } = await supabase.from('redes').select('id, name').in('id', allRedeIds);
+      const allRedeIdsForNames = [...new Set((coords.data || []).map(c => c.rede_id).filter(Boolean))];
+      if (allRedeIdsForNames.length > 0 && !(redes.data || []).length) {
+        const { data: extraRedes } = await supabase.from('redes').select('id, name').in('id', allRedeIdsForNames);
         for (const r of (extraRedes || [])) entityNameCache.set(r.id, r.name);
       }
       for (const c of (coords.data || [])) {
@@ -234,7 +301,6 @@ export function useLeadershipFunctions() {
             matchedKey = accessKeys.find(k => k.scope_type === akScopeType && k.scope_id === f.scope_entity_id && k.active);
             if (!matchedKey) matchedKey = accessKeys.find(k => k.scope_type === akScopeType && k.scope_id === f.scope_entity_id);
           } else {
-            // For functions without scope_entity_id, match by scope_type + campo_id
             matchedKey = accessKeys.find(k => k.scope_type === akScopeType && !k.scope_id && k.active && (
               !f.campo_id || k.campo_id === f.campo_id
             ));
@@ -255,6 +321,61 @@ export function useLeadershipFunctions() {
           scopeEntityName: entityName,
           parentName,
           campoId: f.campo_id,
+          campoName,
+          accessCode: matchedKey?.code,
+          accessKeyId: matchedKey?.id,
+          accessKeyActive: matchedKey?.active,
+        });
+      }
+
+      // 7) Add structural leaders (from redes/coordenacoes/celulas without leadership_functions)
+      for (const sl of structuralLeaders) {
+        let key: string;
+        let leader: UnifiedLeader;
+
+        if (sl.coupleId) {
+          key = `couple:${sl.coupleId}`;
+          if (!leadersMap.has(key)) {
+            const couple = couplesMap.get(sl.coupleId);
+            leadersMap.set(key, {
+              key, coupleId: sl.coupleId, profileId: null, isCouple: true,
+              person1: couple?.spouse1 || null, person2: couple?.spouse2 || null, functions: [],
+            });
+          }
+          leader = leadersMap.get(key)!;
+        } else if (sl.profileId) {
+          key = `profile:${sl.profileId}`;
+          if (!leadersMap.has(key)) {
+            const profile = profilesMap.get(sl.profileId);
+            leadersMap.set(key, {
+              key, coupleId: null, profileId: sl.profileId, isCouple: false,
+              person1: profile || null, person2: null, functions: [],
+            });
+          }
+          leader = leadersMap.get(key)!;
+        } else {
+          continue;
+        }
+
+        // Find matching access key
+        const akScopeType = SCOPE_TYPE_FOR_ACCESS_KEY[sl.functionType];
+        let matchedKey: any = null;
+        if (akScopeType && accessKeys) {
+          matchedKey = accessKeys.find(k => k.scope_type === akScopeType && k.scope_id === sl.entityId && k.active);
+          if (!matchedKey) matchedKey = accessKeys.find(k => k.scope_type === akScopeType && k.scope_id === sl.entityId);
+        }
+
+        const campoName = sl.campoId ? (campoNameMap.get(sl.campoId) || 'Campus indefinido') : '';
+
+        leader.functions.push({
+          id: `structural:${sl.entityType}:${sl.entityId}`,
+          functionType: sl.functionType,
+          functionLabel: (FUNCTION_LABELS[sl.functionType] || sl.functionType) + ' ⚠️',
+          scopeEntityId: sl.entityId,
+          scopeEntityType: sl.entityType,
+          scopeEntityName: sl.entityName,
+          parentName: sl.parentName,
+          campoId: sl.campoId,
           campoName,
           accessCode: matchedKey?.code,
           accessKeyId: matchedKey?.id,
