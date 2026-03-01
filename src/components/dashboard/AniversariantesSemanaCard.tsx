@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Loader2, MessageSquare } from 'lucide-react';
 import { useAniversariantesSemana, AniversarianteSemana } from '@/hooks/useAniversariantesSemana';
+import { useDemoScope } from '@/hooks/useDemoScope';
 
 interface AniversariantesSemanaCardProps {
   scopeType: 'coordenacao' | 'rede';
@@ -60,7 +61,8 @@ function BirthdayRow({ b }: { b: AniversarianteSemana }) {
 }
 
 export function AniversariantesSemanaCard({ scopeType, scopeId }: AniversariantesSemanaCardProps) {
-  const { data: aniversariantes, isLoading } = useAniversariantesSemana({ scopeType, scopeId });
+  const { campoId } = useDemoScope();
+  const { data: aniversariantes, isLoading } = useAniversariantesSemana({ scopeType, scopeId, campoId });
 
   if (isLoading) {
     return (

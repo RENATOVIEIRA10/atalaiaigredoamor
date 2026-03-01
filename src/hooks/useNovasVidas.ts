@@ -106,7 +106,7 @@ export function useCreateNovaVida() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (nv: NovaVidaInsert) => {
+    mutationFn: async (nv: NovaVidaInsert & { campo_id?: string }) => {
       const { data: { user } } = await supabase.auth.getUser();
       const { data, error } = await supabase
         .from('novas_vidas')

@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Loader2 } from 'lucide-react';
 import { useActiveEvents, useCreateEventRegistration } from '@/hooks/useEventsSpiritual';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCampoFilter } from '@/hooks/useCampoFilter';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -25,7 +26,8 @@ export function EventRegistrationDialog({
   fullName, whatsapp, celulaId, redeId,
 }: Props) {
   const { user } = useAuth();
-  const { data: events, isLoading } = useActiveEvents();
+  const campoId = useCampoFilter();
+  const { data: events, isLoading } = useActiveEvents(campoId);
   const createReg = useCreateEventRegistration();
   const [selectedEventId, setSelectedEventId] = useState('');
 

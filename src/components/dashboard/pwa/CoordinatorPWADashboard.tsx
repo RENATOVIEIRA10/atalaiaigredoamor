@@ -13,6 +13,7 @@ import { useWeeklyReportsByCoordenacao } from '@/hooks/useWeeklyReports';
 import { usePulsoRede } from '@/hooks/usePulsoRede';
 import { useAniversariantesSemana, AniversarianteSemana } from '@/hooks/useAniversariantesSemana';
 import { useRole } from '@/contexts/RoleContext';
+import { useDemoScope } from '@/hooks/useDemoScope';
 import { StatCard } from '@/components/ui/stat-card';
 import { MissionVerse } from '../MissionVerse';
 import { PulsoRedeSection } from '../PulsoRedeSection';
@@ -88,10 +89,11 @@ export function CoordinatorPWADashboard() {
 
 // ────────── Aba Início ──────────
 function CoordInicio({ coordId, coordData }: { coordId: string; coordData: any }) {
+  const { campoId } = useDemoScope();
   const { data: celulas } = useCelulas();
   const dateRange = { from: getDateString(subDays(new Date(), 6)), to: getDateString(new Date()) };
   const { data: reports } = useWeeklyReportsByCoordenacao(coordId, dateRange);
-  const { data: aniversariantes } = useAniversariantesSemana({ scopeType: 'coordenacao', scopeId: coordId });
+  const { data: aniversariantes } = useAniversariantesSemana({ scopeType: 'coordenacao', scopeId: coordId, campoId });
   const { data: supervisoes } = useSupervisoesByCoordenacao(coordId);
 
   // Drill-down state
@@ -292,7 +294,8 @@ function PendentesView({ coordId, onBack }: { coordId: string; onBack: () => voi
 }
 
 function AniversariantesView({ coordId, onBack }: { coordId: string; onBack: () => void }) {
-  const { data: aniversariantes, isLoading } = useAniversariantesSemana({ scopeType: 'coordenacao', scopeId: coordId });
+  const { campoId } = useDemoScope();
+  const { data: aniversariantes, isLoading } = useAniversariantesSemana({ scopeType: 'coordenacao', scopeId: coordId, campoId });
 
   if (isLoading) return <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
 
