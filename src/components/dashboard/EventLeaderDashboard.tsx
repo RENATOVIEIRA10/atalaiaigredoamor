@@ -74,7 +74,7 @@ export default function EventLeaderDashboard() {
   }, [registrations]);
 
   const handleCreateEvent = () => {
-    if (!newTitle || !newDate || !newType) return;
+    if (!newTitle || !newDate || !newType || !campoId) return;
     createEvent.mutate({
       type: newType as 'batismo' | 'aclamacao',
       title: newTitle,
@@ -82,7 +82,8 @@ export default function EventLeaderDashboard() {
       start_time: null,
       location: newLocation || null,
       is_active: true,
-    }, {
+      campo_id: campoId,
+    } as any, {
       onSuccess: () => {
         setShowCreateEvent(false);
         setNewTitle('');

@@ -19,15 +19,17 @@ interface Props {
   whatsapp?: string | null;
   celulaId?: string | null;
   redeId?: string | null;
+  campoId?: string | null;
 }
 
 export function EventRegistrationDialog({
   open, onOpenChange, personType, vidaId, membroId,
-  fullName, whatsapp, celulaId, redeId,
+  fullName, whatsapp, celulaId, redeId, campoId: propCampoId,
 }: Props) {
   const { user } = useAuth();
-  const campoId = useCampoFilter();
-  const { data: events, isLoading } = useActiveEvents(campoId);
+  const filterCampoId = useCampoFilter();
+  const effectiveCampoId = propCampoId || filterCampoId;
+  const { data: events, isLoading } = useActiveEvents(effectiveCampoId);
   const createReg = useCreateEventRegistration();
   const [selectedEventId, setSelectedEventId] = useState('');
 
@@ -45,8 +47,19 @@ export function EventRegistrationDialog({
     },
   });
 
+  const selectedEvent = events?.find(e => e.id === selectedEventId);
+
   const handleSubmit = () => {
-    if (!selectedEventId) return;
+    if (!selectedEventId || !selectedEvent) return;
+
+    // Use the event's campo_id as the source of truth
+    const eventCampoId = (selectedEvent as any).campo_id;
+
+    if (!eventCampoId) {
+      createReg.mutate({} as any); // will fail, but won't reach here
+      return;
+    }
+
     createReg.mutate({
       event_id: selectedEventId,
       person_type: personType,
@@ -56,6 +69,7 @@ export function EventRegistrationDialog({
       whatsapp: whatsapp || null,
       celula_id: celulaId || null,
       rede_id: redeId || null,
+      campo_id: eventCampoId,
       created_by_user_id: user?.id || null,
       created_by_name: profile?.name || 'Operador',
     } as any, {
@@ -75,10 +89,14 @@ export function EventRegistrationDialog({
             <p className="font-medium text-foreground">{fullName}</p>
           </div>
 
-          {isLoading ? (
+          {!effectiveCampoId ? (
+            <p className="text-sm text-destructive text-center py-4">
+              Selecione um campus antes de inscrever. Não é possível inscrever sem campus definido.
+            </p>
+          ) : isLoading ? (
             <div className="flex justify-center py-4"><Loader2 className="h-5 w-5 animate-spin text-primary" /></div>
           ) : !events?.length ? (
-            <p className="text-sm text-muted-foreground text-center py-4">Nenhum evento futuro cadastrado.</p>
+            <p className="text-sm text-muted-foreground text-center py-4">Nenhum evento futuro cadastrado neste campus.</p>
           ) : (
             <div className="space-y-3">
               <Select value={selectedEventId} onValueChange={setSelectedEventId}>

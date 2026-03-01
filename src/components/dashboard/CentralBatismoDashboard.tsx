@@ -240,14 +240,16 @@ function RegisterDialog({
   const [memberSearch, setMemberSearch] = useState('');
   const [selectedMember, setSelectedMember] = useState<any>(null);
 
+  const { campoId } = useDemoScope();
+
   const { data: allMembers } = useQuery({
-    queryKey: ['members-for-batismo'],
-    enabled: regType === 'membro' && open,
+    queryKey: ['members-for-batismo', campoId],
+    enabled: regType === 'membro' && open && !!campoId,
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('members')
         .select(`
-          id, celula_id, whatsapp,
+          id, celula_id, whatsapp, campo_id,
           profile:profiles!members_profile_id_fkey(id, name),
           celula:celulas!members_celula_id_fkey(
             id, name,
@@ -259,6 +261,8 @@ function RegisterDialog({
         `)
         .eq('is_active', true)
         .order('joined_at', { ascending: false });
+      if (campoId) query = query.eq('campo_id', campoId);
+      const { data, error } = await query;
       if (error) throw error;
       return data || [];
     },
@@ -281,6 +285,7 @@ function RegisterDialog({
   };
 
   const handleRegister = () => {
+    if (!campoId) return;
     if (regType === 'membro') {
       if (!selectedMember) return;
       const celula = selectedMember.celula as any;
@@ -296,6 +301,7 @@ function RegisterDialog({
         celula_id: celula?.id || null,
         coordenacao_id: coord?.id || null,
         rede_id: rede?.id || null,
+        campo_id: campoId,
         created_by_user_id: userId || null,
         created_by_name: operatorName,
       } as any, {
@@ -312,6 +318,7 @@ function RegisterDialog({
         whatsapp: regWhatsapp || null,
         celula_id: null,
         rede_id: null,
+        campo_id: campoId,
         created_by_user_id: userId || null,
         created_by_name: operatorName,
       } as any, {

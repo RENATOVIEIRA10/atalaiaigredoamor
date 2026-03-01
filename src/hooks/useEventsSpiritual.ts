@@ -11,6 +11,7 @@ export interface SpiritualEvent {
   location: string | null;
   is_active: boolean;
   created_at: string;
+  campo_id: string;
 }
 
 export interface EventRegistration {
@@ -112,6 +113,35 @@ export function useCreateEventRegistration() {
   const { toast } = useToast();
   return useMutation({
     mutationFn: async (reg: Partial<EventRegistration>) => {
+      // Validate campo_id is present
+      if (!(reg as any).campo_id) {
+        throw new Error('campus_id obrigatório — operação cancelada. Selecione um campus antes de inscrever.');
+      }
+
+      // Cross-campus validation: if event_id is set, verify campus match
+      if (reg.event_id) {
+        const { data: evt } = await supabase
+          .from('events_spiritual')
+          .select('campo_id, title')
+          .eq('id', reg.event_id)
+          .single();
+        if (evt && evt.campo_id !== (reg as any).campo_id) {
+          throw new Error(`Este evento pertence a outro campus. Inscrição permitida somente dentro do mesmo campus.`);
+        }
+      }
+
+      // Cross-campus validation: if membro_id is set, verify campus match
+      if (reg.membro_id) {
+        const { data: member } = await supabase
+          .from('members')
+          .select('campo_id')
+          .eq('id', reg.membro_id)
+          .single();
+        if (member && member.campo_id !== (reg as any).campo_id) {
+          throw new Error(`Este membro pertence a outro campus. Inscrição permitida somente dentro do mesmo campus.`);
+        }
+      }
+
       const { data, error } = await supabase
         .from('event_registrations')
         .insert(reg as any)
@@ -121,7 +151,6 @@ export function useCreateEventRegistration() {
 
       // Auto-encaminhar para Central de Células se inscrição sem célula
       if (!reg.celula_id) {
-        // Se já tem vida_id, apenas garantir que está visível na Central
         if (reg.vida_id) {
           await supabase
             .from('novas_vidas')
@@ -129,7 +158,6 @@ export function useCreateEventRegistration() {
             .eq('id', reg.vida_id)
             .in('status', ['integrada', 'convertida_membro', 'nao_convertida']);
         } else if (!reg.membro_id) {
-          // Registro manual sem vida vinculada — criar nova_vida para Central de Células
           const { data: { user } } = await supabase.auth.getUser();
           await supabase.from('novas_vidas').insert({
             nome: reg.full_name || 'Sem nome',
