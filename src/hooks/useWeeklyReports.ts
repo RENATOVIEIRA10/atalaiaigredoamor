@@ -47,6 +47,7 @@ export interface WeeklyReportInput {
   mensagem_whatsapp?: string;
   paixao_whatsapp?: string;
   cultura_whatsapp?: string;
+  campo_id?: string;
 }
 
 export interface DateRangeFilter {
@@ -117,12 +118,13 @@ export function useWeeklyReports(celulaId?: string, dateRange?: DateRangeFilter,
 }
 
 export function useWeeklyReportsByCoordenacao(coordenacaoId?: string, dateRange?: DateRangeFilter) {
-  const { isDemoActive, seedRunId, queryKeyExtra } = useDemoScope();
+  const { isDemoActive, seedRunId, queryKeyExtra, campoId } = useDemoScope();
 
   return useQuery({
     queryKey: ['weekly-reports-coordenacao', coordenacaoId, dateRange?.from, dateRange?.to, ...queryKeyExtra],
     queryFn: async () => {
       let celulasQ = supabase.from('celulas').select('id').eq('coordenacao_id', coordenacaoId);
+      if (campoId) celulasQ = celulasQ.eq('campo_id', campoId);
       const { data: celulas } = await celulasQ;
       
       if (!celulas || celulas.length === 0) return [];
@@ -136,6 +138,7 @@ export function useWeeklyReportsByCoordenacao(coordenacaoId?: string, dateRange?
         .order('meeting_date', { ascending: false, nullsFirst: false })
         .order('week_start', { ascending: false });
 
+      if (campoId) query = query.eq('campo_id', campoId);
       
       if (dateRange) {
         query = query.or(
@@ -152,12 +155,13 @@ export function useWeeklyReportsByCoordenacao(coordenacaoId?: string, dateRange?
 }
 
 export function useWeeklyReportsByRede(redeId?: string, dateRange?: DateRangeFilter) {
-  const { isDemoActive, seedRunId, queryKeyExtra } = useDemoScope();
+  const { isDemoActive, seedRunId, queryKeyExtra, campoId } = useDemoScope();
 
   return useQuery({
     queryKey: ['weekly-reports-rede', redeId, dateRange?.from, dateRange?.to, ...queryKeyExtra],
     queryFn: async () => {
       let coordQ = supabase.from('coordenacoes').select('id, name').eq('rede_id', redeId);
+      if (campoId) coordQ = coordQ.eq('campo_id', campoId);
       const { data: coordenacoes } = await coordQ;
       
       if (!coordenacoes || coordenacoes.length === 0) return { reports: [], coordenacoes: [] };
@@ -165,6 +169,7 @@ export function useWeeklyReportsByRede(redeId?: string, dateRange?: DateRangeFil
       const coordenacaoIds = coordenacoes.map(c => c.id);
       
       let celulasQ = supabase.from('celulas').select('id, coordenacao_id').in('coordenacao_id', coordenacaoIds);
+      if (campoId) celulasQ = celulasQ.eq('campo_id', campoId);
       const { data: celulas } = await celulasQ;
       
       if (!celulas || celulas.length === 0) return { reports: [], coordenacoes };
@@ -178,6 +183,7 @@ export function useWeeklyReportsByRede(redeId?: string, dateRange?: DateRangeFil
         .order('meeting_date', { ascending: false, nullsFirst: false })
         .order('week_start', { ascending: false });
 
+      if (campoId) query = query.eq('campo_id', campoId);
       
       if (dateRange) {
         query = query.or(
@@ -232,9 +238,15 @@ export function useCreateWeeklyReport() {
         if (error) throw error;
         return data;
       } else {
+        // Derive campo_id from celula if not provided
+        let insertData: any = { ...input };
+        if (!insertData.campo_id) {
+          const { data: celula } = await supabase.from('celulas').select('campo_id').eq('id', input.celula_id).single();
+          if (celula) insertData.campo_id = celula.campo_id;
+        }
         const { data, error } = await supabase
           .from('weekly_reports')
-          .insert(input)
+          .insert(insertData)
           .select()
           .single();
         

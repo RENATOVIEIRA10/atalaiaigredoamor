@@ -11,6 +11,7 @@ import { Loader2, ChevronLeft, BookOpen, CheckCircle2 } from 'lucide-react';
 import { useMembers } from '@/hooks/useMembers';
 import { useCreateDiscipuladoEncontro, DiscipuladoNivel } from '@/hooks/useDiscipulado';
 import { format } from 'date-fns';
+import { useCampo } from '@/contexts/CampoContext';
 
 interface Participant {
   id: string;
@@ -38,6 +39,7 @@ export function DiscipuladoEncontroForm({ nivel, celulaId, coordenacaoId, redeId
   const [realizado, setRealizado] = useState(true);
   const [observacao, setObservacao] = useState('');
   const [presentes, setPresentes] = useState<Set<string>>(new Set());
+  const { activeCampoId } = useCampo();
 
   const participants: Participant[] = nivel === 'celula'
     ? (members || []).filter(m => m.is_active).map(m => ({
@@ -81,6 +83,7 @@ export function DiscipuladoEncontroForm({ nivel, celulaId, coordenacaoId, redeId
       data_encontro: dataEncontro,
       realizado,
       observacao: observacao.trim() || undefined,
+      campo_id: activeCampoId || '',
       presencas: presencasData,
     }, {
       onSuccess: () => {

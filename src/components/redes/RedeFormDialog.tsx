@@ -11,6 +11,7 @@ import { useCreateCoupleFromNames } from '@/hooks/useCreateCoupleFromNames';
 import { getCoupleDisplayName } from '@/hooks/useLeadershipCouples';
 import { Loader2 } from 'lucide-react';
 import { useState } from 'react';
+import { useCampo } from '@/contexts/CampoContext';
 
 const formSchema = z.object({
   name: z.string().min(1, 'Nome é obrigatório'),
@@ -31,6 +32,7 @@ export function RedeFormDialog({ open, onOpenChange, rede }: RedeFormDialogProps
   const updateRede = useUpdateRede();
   const { createOrUpdateCouple } = useCreateCoupleFromNames();
   const [submitting, setSubmitting] = useState(false);
+  const { activeCampoId } = useCampo();
   
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -50,9 +52,12 @@ export function RedeFormDialog({ open, onOpenChange, rede }: RedeFormDialogProps
         rede?.leadership_couple_id
       );
       
+      if (!activeCampoId) throw new Error('Campus não definido');
+
       const payload = {
         name: data.name,
         leadership_couple_id: coupleId,
+        campo_id: activeCampoId,
       };
       
       if (rede) {

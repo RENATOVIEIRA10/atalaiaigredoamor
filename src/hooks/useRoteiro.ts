@@ -76,6 +76,7 @@ export function useSaveRoteiro(celulaId: string) {
       criadoPor,
       status,
       itens,
+      campoId,
     }: {
       semanaInicio: string;
       dataReuniao: string;
@@ -83,6 +84,7 @@ export function useSaveRoteiro(celulaId: string) {
       criadoPor?: string | null;
       status: string;
       itens: RoteiroItem[];
+      campoId: string;
     }) => {
       // Upsert roteiro
       const { data: roteiro, error } = await supabase
@@ -95,7 +97,8 @@ export function useSaveRoteiro(celulaId: string) {
             rede_id: redeId || null,
             criado_por: criadoPor || null,
             status,
-          },
+            campo_id: campoId,
+          } as any,
           { onConflict: 'celula_id,semana_inicio' }
         )
         .select()

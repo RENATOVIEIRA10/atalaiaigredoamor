@@ -4,6 +4,7 @@
  */
 
 import { usePulsoEngine, PulsoData, PulsoStagnantMember, PulsoBirthday, CelulaAlertaStatus } from './usePulsoEngine';
+import { useDemoScope } from './useDemoScope';
 
 // Re-exporta tipos para compatibilidade
 export type { PulsoStagnantMember as StagnantMemberScoped };
@@ -17,5 +18,6 @@ interface UsePulsoRedeOptions {
 }
 
 export function usePulsoRede({ scopeType, scopeId }: UsePulsoRedeOptions) {
-  return usePulsoEngine({ scopeType, scopeId, enabled: !!scopeId });
+  const { campoId } = useDemoScope();
+  return usePulsoEngine({ scopeType, scopeId, campoId, enabled: !!scopeId });
 }

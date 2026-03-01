@@ -27,9 +27,9 @@ export interface EncaminhamentoInsert {
   notas?: string | null;
 }
 
-export function useEncaminhamentos(novaVidaId?: string) {
+export function useEncaminhamentos(novaVidaId?: string, campoId?: string | null) {
   return useQuery({
-    queryKey: ['encaminhamentos', novaVidaId],
+    queryKey: ['encaminhamentos', novaVidaId, campoId],
     queryFn: async () => {
       let q = supabase
         .from('encaminhamentos_recomeco')
@@ -43,6 +43,9 @@ export function useEncaminhamentos(novaVidaId?: string) {
 
       if (novaVidaId) {
         q = q.eq('nova_vida_id', novaVidaId);
+      }
+      if (campoId) {
+        q = q.eq('campo_id', campoId);
       }
 
       const { data, error } = await q;
