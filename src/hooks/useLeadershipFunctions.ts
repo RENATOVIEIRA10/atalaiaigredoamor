@@ -115,11 +115,21 @@ export function useLeadershipFunctions() {
 
       let profilesMap = new Map<string, any>();
 
-      // 4) Fetch access keys to match codes
-      const { data: accessKeys } = await supabase
-        .from('access_keys')
-        .select('id, scope_type, scope_id, code, active, campo_id')
-        .order('created_at', { ascending: false });
+      // 4) Fetch ALL access keys (paginated to avoid 1000-row limit)
+      const accessKeys: any[] = [];
+      let akPage = 0;
+      const AK_PAGE_SIZE = 1000;
+      while (true) {
+        const { data: batch } = await supabase
+          .from('access_keys')
+          .select('id, scope_type, scope_id, code, active, campo_id')
+          .range(akPage * AK_PAGE_SIZE, (akPage + 1) * AK_PAGE_SIZE - 1)
+          .order('created_at', { ascending: false });
+        if (!batch || batch.length === 0) break;
+        accessKeys.push(...batch);
+        if (batch.length < AK_PAGE_SIZE) break;
+        akPage++;
+      }
 
       // 5) Fetch entity names
       const entityNameCache = new Map<string, string>();
@@ -133,11 +143,27 @@ export function useLeadershipFunctions() {
 
       // 5b) Also fetch ALL structural leaders (redes, coordenacoes, celulas) 
       // to discover those without leadership_functions entries
-      const [allRedes, allCoords, allCelulas] = await Promise.all([
+      // Celulas can exceed 1000 rows, so we paginate
+      const [allRedes, allCoords] = await Promise.all([
         supabase.from('redes').select('id, name, campo_id, leader_id, leadership_couple_id').eq('ativa', true),
         supabase.from('coordenacoes').select('id, name, campo_id, rede_id, leader_id, leadership_couple_id'),
-        supabase.from('celulas').select('id, name, campo_id, coordenacao_id, leader_id, leadership_couple_id'),
       ]);
+
+      // Paginate celulas fetch
+      const allCelulasData: any[] = [];
+      let celPage = 0;
+      const CEL_PAGE_SIZE = 1000;
+      while (true) {
+        const { data: batch } = await supabase
+          .from('celulas')
+          .select('id, name, campo_id, coordenacao_id, leader_id, leadership_couple_id')
+          .range(celPage * CEL_PAGE_SIZE, (celPage + 1) * CEL_PAGE_SIZE - 1);
+        if (!batch || batch.length === 0) break;
+        allCelulasData.push(...batch);
+        if (batch.length < CEL_PAGE_SIZE) break;
+        celPage++;
+      }
+      const allCelulas = { data: allCelulasData };
 
       // Build sets of scope_entity_ids already tracked in leadership_functions
       const trackedRedeIds = new Set((funcs || []).filter(f => f.function_type === 'rede_leader' && f.scope_entity_id).map(f => f.scope_entity_id!));
@@ -195,23 +221,32 @@ export function useLeadershipFunctions() {
       const uniqueCoupleIds = [...new Set(coupleIds)];
       const uniqueProfileIds = [...new Set(profileIds)];
 
+      // Batch couples in chunks of 500 to avoid query limits
       if (uniqueCoupleIds.length > 0) {
-        const { data: couples } = await supabase
-          .from('leadership_couples')
-          .select('id, spouse1:profiles!leadership_couples_spouse1_id_fkey(id, name, avatar_url), spouse2:profiles!leadership_couples_spouse2_id_fkey(id, name, avatar_url)')
-          .in('id', uniqueCoupleIds);
-        for (const c of (couples || [])) {
-          couplesMap.set(c.id, { spouse1: c.spouse1, spouse2: c.spouse2 });
+        const BATCH = 500;
+        for (let i = 0; i < uniqueCoupleIds.length; i += BATCH) {
+          const chunk = uniqueCoupleIds.slice(i, i + BATCH);
+          const { data: couples } = await supabase
+            .from('leadership_couples')
+            .select('id, spouse1:profiles!leadership_couples_spouse1_id_fkey(id, name, avatar_url), spouse2:profiles!leadership_couples_spouse2_id_fkey(id, name, avatar_url)')
+            .in('id', chunk);
+          for (const c of (couples || [])) {
+            couplesMap.set(c.id, { spouse1: c.spouse1, spouse2: c.spouse2 });
+          }
         }
       }
 
       if (uniqueProfileIds.length > 0) {
-        const { data: profiles } = await supabase
-          .from('profiles')
-          .select('id, name, avatar_url')
-          .in('id', uniqueProfileIds);
-        for (const p of (profiles || [])) {
-          profilesMap.set(p.id, p);
+        const BATCH = 500;
+        for (let i = 0; i < uniqueProfileIds.length; i += BATCH) {
+          const chunk = uniqueProfileIds.slice(i, i + BATCH);
+          const { data: profiles } = await supabase
+            .from('profiles')
+            .select('id, name, avatar_url')
+            .in('id', chunk);
+          for (const p of (profiles || [])) {
+            profilesMap.set(p.id, p);
+          }
         }
       }
 
