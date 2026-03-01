@@ -3,9 +3,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2 } from 'lucide-react';
+import { Loader2, MapPin } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { UnifiedLeader, UnifiedFunction, getFunctionLabel, getScopeTypeForAccessKey } from '@/hooks/useLeadershipFunctions';
+import { UnifiedLeader, UnifiedFunction, getFunctionLabel, getScopeTypeForAccessKey, GLOBAL_FUNCTION_TYPES } from '@/hooks/useLeadershipFunctions';
 import { useRedes } from '@/hooks/useRedes';
 import { useCoordenacoes } from '@/hooks/useCoordenacoes';
 import { useCelulas } from '@/hooks/useCelulas';
@@ -69,20 +69,24 @@ export function EditLeadershipFunctionDialog({ open, onOpenChange, leader, exist
 
   const [fnType, setFnType] = useState(existingFunction?.functionType || '');
   const [entityId, setEntityId] = useState(existingFunction?.scopeEntityId || '');
+  const [campoId, setCampoId] = useState(existingFunction?.campoId || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     setFnType(existingFunction?.functionType || '');
     setEntityId(existingFunction?.scopeEntityId || '');
+    setCampoId(existingFunction?.campoId || '');
   }, [existingFunction]);
 
   const scopeReq = fnType ? SCOPE_REQUIREMENTS[fnType] : undefined;
   const needsEntity = scopeReq !== null && scopeReq !== undefined;
+  const isGlobal = GLOBAL_FUNCTION_TYPES.includes(fnType);
+  const needsExplicitCampus = fnType && !needsEntity && !isGlobal;
 
   const entityOptions = !fnType || !needsEntity ? [] :
-    scopeReq?.entityType === 'celula' ? (celulas || []).map(c => ({ id: c.id, name: c.name })) :
-    scopeReq?.entityType === 'coordenacao' ? (coordenacoes || []).map(c => ({ id: c.id, name: c.name })) :
-    scopeReq?.entityType === 'rede' ? (redes || []).map(r => ({ id: r.id, name: r.name })) :
+    scopeReq?.entityType === 'celula' ? (celulas || []).filter(c => !campoId || c.campo_id === campoId).map(c => ({ id: c.id, name: c.name })) :
+    scopeReq?.entityType === 'coordenacao' ? (coordenacoes || []).filter(c => !campoId || c.campo_id === campoId).map(c => ({ id: c.id, name: c.name })) :
+    scopeReq?.entityType === 'rede' ? (redes || []).filter(r => !campoId || r.campo_id === campoId).map(r => ({ id: r.id, name: r.name })) :
     scopeReq?.entityType === 'campo' ? (campos || []).map(c => ({ id: c.id, name: c.nome })) :
     [];
 
@@ -100,20 +104,25 @@ export function EditLeadershipFunctionDialog({ open, onOpenChange, leader, exist
     queryClient.invalidateQueries({ queryKey: ['leadership_couples'] });
   };
 
+  const canSubmit = fnType && (
+    isGlobal ||
+    (needsEntity && entityId && (scopeReq?.entityType === 'campo' || campoId)) ||
+    (needsExplicitCampus && campoId)
+  ) && !isSubmitting;
+
   const handleSubmit = async () => {
     if (!fnType) return;
     if (needsEntity && !entityId) return;
+    if (!isGlobal && !campoId && scopeReq?.entityType !== 'campo') return;
     setIsSubmitting(true);
 
     try {
-      // If editing, deactivate old leadership_function
       if (mode === 'edit' && existingFunction) {
         await supabase.from('leadership_functions').update({ active: false }).eq('id', existingFunction.id);
       }
 
       let scopeEntityId = needsEntity ? entityId : null;
 
-      // Create structural link for hierarchical roles
       if (leader.coupleId) {
         if (fnType === 'celula_leader' && scopeEntityId) {
           await supabase.from('celulas').update({ leadership_couple_id: leader.coupleId }).eq('id', scopeEntityId);
@@ -133,48 +142,46 @@ export function EditLeadershipFunctionDialog({ open, onOpenChange, leader, exist
       }
 
       // Determine campo/rede ids
-      let campoId: string | null = null;
+      let resolvedCampoId: string | null = campoId || null;
       let redeId: string | null = null;
-      if (scopeReq?.entityType === 'campo') campoId = scopeEntityId;
-      else if (scopeReq?.entityType === 'rede' && scopeEntityId) {
+      if (scopeReq?.entityType === 'campo') {
+        resolvedCampoId = scopeEntityId;
+      } else if (scopeReq?.entityType === 'rede' && scopeEntityId) {
         const r = (redes || []).find(r => r.id === scopeEntityId);
-        campoId = r?.campo_id || null;
+        if (!resolvedCampoId) resolvedCampoId = r?.campo_id || null;
         redeId = scopeEntityId;
       } else if (scopeReq?.entityType === 'coordenacao' && entityId) {
         const c = (coordenacoes || []).find(c => c.id === entityId);
-        campoId = c?.campo_id || null;
+        if (!resolvedCampoId) resolvedCampoId = c?.campo_id || null;
         redeId = c?.rede_id || null;
       } else if (scopeReq?.entityType === 'celula' && entityId) {
         const c = (celulas || []).find(c => c.id === entityId);
-        campoId = c?.campo_id || null;
+        if (!resolvedCampoId) resolvedCampoId = c?.campo_id || null;
         redeId = c?.rede_id || null;
       }
 
-      // Create leadership_function
       await supabase.from('leadership_functions').insert({
         leadership_couple_id: leader.coupleId,
         profile_id: leader.profileId,
         function_type: fnType,
         scope_entity_id: scopeEntityId,
         scope_entity_type: scopeReq?.entityType || null,
-        campo_id: campoId,
+        campo_id: resolvedCampoId,
         rede_id: redeId,
         active: true,
       });
 
       // Auto-create access key if none exists
       const akScopeType = getScopeTypeForAccessKey(fnType);
-      const { data: existingKey } = await supabase
+      const { data: existingKeys } = await supabase
         .from('access_keys')
-        .select('id')
+        .select('id, scope_id, active')
         .eq('scope_type', akScopeType)
-        .eq('active', true)
-        .then(res => {
-          const match = (res.data || []).find(k =>
-            scopeEntityId ? (k as any).scope_id === scopeEntityId : !(k as any).scope_id
-          );
-          return { data: match };
-        });
+        .eq('active', true);
+
+      const existingKey = (existingKeys || []).find(k =>
+        scopeEntityId ? (k as any).scope_id === scopeEntityId : !(k as any).scope_id
+      );
 
       if (!existingKey) {
         const code = generateAccessCode();
@@ -183,7 +190,7 @@ export function EditLeadershipFunctionDialog({ open, onOpenChange, leader, exist
           scope_id: scopeEntityId,
           code, active: true,
           rede_id: redeId,
-          campo_id: campoId,
+          campo_id: resolvedCampoId,
         });
       }
 
@@ -206,6 +213,23 @@ export function EditLeadershipFunctionDialog({ open, onOpenChange, leader, exist
         </DialogHeader>
 
         <div className="space-y-4 py-2">
+          {/* Campus selector for non-global functions */}
+          {!isGlobal && fnType !== 'pastor_de_campo' && (
+            <div className="space-y-1.5">
+              <Label className="flex items-center gap-1">
+                <MapPin className="h-3.5 w-3.5" /> Campus *
+              </Label>
+              <Select value={campoId} onValueChange={v => { setCampoId(v); setEntityId(''); }}>
+                <SelectTrigger><SelectValue placeholder="Selecionar campus" /></SelectTrigger>
+                <SelectContent>
+                  {(campos || []).map(c => (
+                    <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           <div className="space-y-1.5">
             <Label>Função</Label>
             <Select value={fnType} onValueChange={v => { setFnType(v); setEntityId(''); }}>
@@ -218,13 +242,17 @@ export function EditLeadershipFunctionDialog({ open, onOpenChange, leader, exist
             </Select>
           </div>
 
-          {fnType && needsEntity && (
+          {fnType && needsEntity && scopeReq?.entityType !== 'campo' && (
             <div className="space-y-1.5">
               <Label>{scopeReq?.label}</Label>
               <Select value={entityId} onValueChange={setEntityId}>
                 <SelectTrigger><SelectValue placeholder={`Selecionar ${scopeReq?.label}`} /></SelectTrigger>
                 <SelectContent>
-                  {entityOptions.map(e => (
+                  {entityOptions.length === 0 ? (
+                    <SelectItem disabled value="__empty">
+                      {campoId ? 'Nenhuma entidade neste campus' : 'Selecione o campus primeiro'}
+                    </SelectItem>
+                  ) : entityOptions.map(e => (
                     <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>
                   ))}
                 </SelectContent>
@@ -232,7 +260,22 @@ export function EditLeadershipFunctionDialog({ open, onOpenChange, leader, exist
             </div>
           )}
 
-          <Button className="w-full" onClick={handleSubmit} disabled={!fnType || (needsEntity && !entityId) || isSubmitting}>
+          {/* For pastor_de_campo, entity IS the campo */}
+          {fnType === 'pastor_de_campo' && (
+            <div className="space-y-1.5">
+              <Label>Campo</Label>
+              <Select value={entityId} onValueChange={v => { setEntityId(v); setCampoId(v); }}>
+                <SelectTrigger><SelectValue placeholder="Selecionar Campo" /></SelectTrigger>
+                <SelectContent>
+                  {(campos || []).map(c => (
+                    <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          <Button className="w-full" onClick={handleSubmit} disabled={!canSubmit}>
             {isSubmitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
             {mode === 'add' ? 'Adicionar' : 'Salvar'}
           </Button>

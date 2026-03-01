@@ -34,6 +34,8 @@ export interface UnifiedFunction {
   scopeEntityType: string | null;
   scopeEntityName: string;
   parentName?: string;
+  campoId: string | null;
+  campoName: string;
   accessCode?: string;
   accessKeyId?: string;
   accessKeyActive?: boolean;
@@ -75,6 +77,9 @@ const SCOPE_TYPE_FOR_ACCESS_KEY: Record<string, string> = {
   demo_institucional: 'demo_institucional',
 };
 
+/** Functions that are truly global and don't require campus */
+export const GLOBAL_FUNCTION_TYPES = ['pastor_senior_global', 'admin'];
+
 export function getFunctionLabel(ft: string) {
   return FUNCTION_LABELS[ft] || ft;
 }
@@ -97,7 +102,12 @@ export function useLeadershipFunctions() {
         .order('created_at');
       if (fErr) throw fErr;
 
-      // 2) Fetch all leadership_couples with profiles
+      // 2) Fetch all campos for name resolution
+      const { data: allCampos } = await supabase.from('campos').select('id, nome').eq('ativo', true);
+      const campoNameMap = new Map<string, string>();
+      for (const c of (allCampos || [])) campoNameMap.set(c.id, c.nome);
+
+      // 3) Fetch all leadership_couples with profiles
       const coupleIds = [...new Set((funcs || []).filter(f => f.leadership_couple_id).map(f => f.leadership_couple_id!))];
       const profileIds = [...new Set((funcs || []).filter(f => f.profile_id && !f.leadership_couple_id).map(f => f.profile_id!))];
 
@@ -123,17 +133,16 @@ export function useLeadershipFunctions() {
         }
       }
 
-      // 3) Fetch access keys to match codes
+      // 4) Fetch access keys to match codes
       const { data: accessKeys } = await supabase
         .from('access_keys')
-        .select('id, scope_type, scope_id, code, active')
+        .select('id, scope_type, scope_id, code, active, campo_id')
         .order('created_at', { ascending: false });
 
-      // 4) Fetch entity names
+      // 5) Fetch entity names
       const entityNameCache = new Map<string, string>();
       const parentNameCache = new Map<string, string>();
 
-      // Batch fetch entity names
       const celulaIds = (funcs || []).filter(f => f.scope_entity_type === 'celula' && f.scope_entity_id).map(f => f.scope_entity_id!);
       const coordIds = (funcs || []).filter(f => f.scope_entity_type === 'coordenacao' && f.scope_entity_id).map(f => f.scope_entity_id!);
       const redeIds = (funcs || []).filter(f => f.scope_entity_type === 'rede' && f.scope_entity_id).map(f => f.scope_entity_id!);
@@ -153,7 +162,6 @@ export function useLeadershipFunctions() {
       for (const r of (redes.data || [])) entityNameCache.set(r.id, r.name);
       for (const c of (campos.data || [])) entityNameCache.set(c.id, c.nome);
 
-      // For supervisors, get coordenacao name as parent
       for (const s of (sups.data || [])) {
         const coord = (coords.data || []).find(c => c.id === s.coordenacao_id);
         if (coord) {
@@ -162,13 +170,11 @@ export function useLeadershipFunctions() {
         }
       }
 
-      // For celulas, get coordenacao as parent
       for (const cel of (celulas.data || [])) {
         const coord = (coords.data || []).find(c => c.id === cel.coordenacao_id);
         if (coord) parentNameCache.set(cel.id, coord.name);
       }
 
-      // For coordenacoes, get rede as parent
       const allRedeIds = [...new Set((coords.data || []).map(c => c.rede_id).filter(Boolean))];
       if (allRedeIds.length > 0 && !(redes.data || []).length) {
         const { data: extraRedes } = await supabase.from('redes').select('id, name').in('id', allRedeIds);
@@ -179,7 +185,7 @@ export function useLeadershipFunctions() {
         if (rede) parentNameCache.set(c.id, rede.name);
       }
 
-      // 5) Build unified leaders map
+      // 6) Build unified leaders map
       const leadersMap = new Map<string, UnifiedLeader>();
 
       for (const f of (funcs || [])) {
@@ -228,13 +234,17 @@ export function useLeadershipFunctions() {
             matchedKey = accessKeys.find(k => k.scope_type === akScopeType && k.scope_id === f.scope_entity_id && k.active);
             if (!matchedKey) matchedKey = accessKeys.find(k => k.scope_type === akScopeType && k.scope_id === f.scope_entity_id);
           } else {
-            matchedKey = accessKeys.find(k => k.scope_type === akScopeType && !k.scope_id && k.active);
+            // For functions without scope_entity_id, match by scope_type + campo_id
+            matchedKey = accessKeys.find(k => k.scope_type === akScopeType && !k.scope_id && k.active && (
+              !f.campo_id || k.campo_id === f.campo_id
+            ));
             if (!matchedKey) matchedKey = accessKeys.find(k => k.scope_type === akScopeType && !k.scope_id);
           }
         }
 
         const entityName = f.scope_entity_id ? (entityNameCache.get(f.scope_entity_id) || '') : '';
         const parentName = f.scope_entity_id ? parentNameCache.get(f.scope_entity_id) : undefined;
+        const campoName = f.campo_id ? (campoNameMap.get(f.campo_id) || 'Campus indefinido') : '';
 
         leader.functions.push({
           id: f.id,
@@ -244,6 +254,8 @@ export function useLeadershipFunctions() {
           scopeEntityType: f.scope_entity_type,
           scopeEntityName: entityName,
           parentName,
+          campoId: f.campo_id,
+          campoName,
           accessCode: matchedKey?.code,
           accessKeyId: matchedKey?.id,
           accessKeyActive: matchedKey?.active,
