@@ -1,0 +1,78 @@
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { differenceInYears } from 'date-fns';
+
+export interface PotentialServant {
+  id: string;
+  name: string;
+  celula_name: string;
+  anos_igreja: number;
+  marcos: string[];
+}
+
+export interface StagnantMember {
+  id: string;
+  name: string;
+  celula_name: string;
+  anos_igreja: number;
+  missing: string[];
+}
+
+export function useGlobalPastoralRanking(campoId?: string | null) {
+  return useQuery({
+    queryKey: ['global-pastoral-ranking', campoId],
+    staleTime: 120_000,
+    queryFn: async () => {
+      let q = supabase.from('members')
+        .select('id, profile_id, celula_id, joined_at, encontro_com_deus, batismo, curso_lidere, renovo, is_discipulado, is_lider_em_treinamento, celula:celulas!members_celula_id_fkey(name), profile:profiles!members_profile_id_fkey(name)')
+        .eq('is_active', true);
+      if (campoId) q = q.eq('campo_id', campoId);
+      const { data } = await q;
+      const members = data || [];
+
+      // Check who has active leadership functions
+      const { data: funcs } = await supabase.from('leadership_functions').select('profile_id').eq('active', true);
+      const activeLeaderIds = new Set((funcs || []).map(f => f.profile_id));
+
+      const now = new Date();
+      const potentials: PotentialServant[] = [];
+      const stagnant: StagnantMember[] = [];
+
+      for (const m of members) {
+        const joined = m.joined_at ? new Date(m.joined_at) : null;
+        const anos = joined ? differenceInYears(now, joined) : 0;
+        const name = (m as any).profile?.name || 'Membro';
+        const celName = (m as any).celula?.name || 'Célula';
+
+        const marcos: string[] = [];
+        if (m.encontro_com_deus) marcos.push('Encontro');
+        if (m.batismo) marcos.push('Batismo');
+        if (m.curso_lidere) marcos.push('Lidere');
+        if (m.renovo) marcos.push('Renovo');
+        if (m.is_discipulado) marcos.push('Discipulado');
+
+        const hasLeadership = activeLeaderIds.has(m.profile_id);
+
+        // Potentials: 2+ years, 3+ marcos, no active function
+        if (anos >= 2 && marcos.length >= 3 && !hasLeadership && !m.is_lider_em_treinamento) {
+          potentials.push({ id: m.id, name, celula_name: celName, anos_igreja: anos, marcos });
+        }
+
+        // Stagnant: 2+ years, missing key marcos
+        const missing: string[] = [];
+        if (!m.encontro_com_deus) missing.push('Encontro');
+        if (!m.batismo) missing.push('Batismo');
+        if (!m.curso_lidere) missing.push('Lidere');
+
+        if (anos >= 2 && missing.length >= 2) {
+          stagnant.push({ id: m.id, name, celula_name: celName, anos_igreja: anos, missing });
+        }
+      }
+
+      return {
+        potentials: potentials.sort((a, b) => b.marcos.length - a.marcos.length || b.anos_igreja - a.anos_igreja).slice(0, 20),
+        stagnant: stagnant.sort((a, b) => b.anos_igreja - a.anos_igreja || b.missing.length - a.missing.length).slice(0, 20),
+      };
+    },
+  });
+}
