@@ -6,17 +6,19 @@
  *
  * Regras:
  * - Semana operacional: Segunda (weekStartsOn: 1) → Sábado
- * - Membros: contagem real de members cadastrados (is_active=true, is_test_data=false)
+ * - Membros: contagem real de members cadastrados (is_active=true)
  * - Engajamento: weekly_reports filtrado por meeting_date (Seg→Sáb), fallback week_start
- * - Aniversários: birth_date de profiles de membros no escopo
  * - Marcos espirituais: campos booleanos da tabela members
- * - Estagnação: membros ativos há > 2 anos sem marcos básicos (encontro/batismo/curso_lidere)
+ * - Estagnação: membros ativos há > 2 anos sem marcos básicos
+ *
+ * IMPORTANTE: Usa paginação para suportar visão global (>1000 rows).
  */
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { format, startOfWeek, addDays, parseISO, subDays } from 'date-fns';
 import { useDemoScope } from './useDemoScope';
+import { fetchAllRows, batchedInQuery } from '@/lib/supabasePagination';
 
 // ─── Tipos exportados ────────────────────────────────────────────────────────
 
@@ -44,29 +46,23 @@ export interface PulsoBirthday {
 }
 
 export interface PulsoData {
-  // Engajamento
   totalCelulas: number;
   celulasComRelatorio: number;
   percentualEngajamento: number;
   percentualSemanaAnterior: number;
-  // Alertas
   celulasAlerta1Semana: CelulaAlertaStatus[];
   celulasAlerta2Semanas: CelulaAlertaStatus[];
   celulasAlerta3Semanas: CelulaAlertaStatus[];
-  // Discipulado / Liderança
   totalDiscipulados: number;
   lideresEmTreinamento: number;
-  // Marcos espirituais
   marcosEncontro: number;
   marcosBatismo: number;
   marcosDiscipulado: number;
   marcosCursoLidere: number;
   marcosRenovo: number;
   marcosLiderEmTreinamento: number;
-  // Atenção pastoral
   stagnantCount: number;
   stagnantMembers: PulsoStagnantMember[];
-  // Aniversários
   birthdays: PulsoBirthday[];
 }
 
@@ -74,16 +70,13 @@ export type PulsoScopeType = 'rede' | 'coordenacao' | 'all';
 
 export interface UsePulsoEngineOptions {
   scopeType: PulsoScopeType;
-  /** Para 'rede': rede_id. Para 'coordenacao': coordenacao_id. Para 'all': ignorado. */
   scopeId?: string;
-  /** Filtro de campo (campus). null = sem filtro (visão global). */
   campoId?: string | null;
   enabled?: boolean;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-/** Semana operacional: Segunda (weekStartsOn: 1) → Sábado */
 function getOperacionalWindow(referenceMonday: Date): { from: string; to: string } {
   const saturday = addDays(referenceMonday, 5);
   return {
@@ -92,9 +85,6 @@ function getOperacionalWindow(referenceMonday: Date): { from: string; to: string
   };
 }
 
-/**
- * Retorna o monday de N semanas atrás a partir do monday atual.
- */
 function getMondayNWeeksAgo(currentMonday: Date, weeksAgo: number): Date {
   return addDays(currentMonday, -7 * weeksAgo);
 }
@@ -102,15 +92,14 @@ function getMondayNWeeksAgo(currentMonday: Date, weeksAgo: number): Date {
 // ─── Hook principal ───────────────────────────────────────────────────────────
 
 export function usePulsoEngine({ scopeType, scopeId, campoId, enabled = true }: UsePulsoEngineOptions) {
-  const { isDemoActive, seedRunId, queryKeyExtra } = useDemoScope();
+  const { isDemoActive, queryKeyExtra } = useDemoScope();
 
   return useQuery({
     queryKey: ['pulso-engine', scopeType, scopeId ?? 'all', campoId ?? 'global', ...queryKeyExtra],
     enabled: enabled && (scopeType === 'all' || !!scopeId),
-    staleTime: 60_000, // 1 min
+    staleTime: 60_000,
     queryFn: async (): Promise<PulsoData> => {
       const now = new Date();
-      // Segunda-feira da semana atual (fonte de verdade para semana operacional)
       const currentMonday = startOfWeek(now, { weekStartsOn: 1 });
       const lastMonday = getMondayNWeeksAgo(currentMonday, 1);
       const twoWeeksAgoMonday = getMondayNWeeksAgo(currentMonday, 2);
@@ -128,106 +117,91 @@ export function usePulsoEngine({ scopeType, scopeId, campoId, enabled = true }: 
         stagnantCount: 0, stagnantMembers: [], birthdays: [],
       };
 
-      // ── PASSO 1: Buscar células do escopo ────────────────────────────────
-      // Sempre buscamos com join para ter rede_id disponível para filtro client-side
-      let celulasQuery = supabase
-        .from('celulas')
-        .select('id, name, coordenacao_id, coordenacao:coordenacoes!celulas_coordenacao_id_fkey(name, rede_id)');
+      // ── PASSO 1: Buscar TODAS as células do escopo (paginado) ─────────
+      const celulasFilters = (q: any) => {
+        if (campoId) q = q.eq('campo_id', campoId);
+        if (scopeType === 'coordenacao' && scopeId) q = q.eq('coordenacao_id', scopeId);
+        return q;
+      };
 
-      // No is_test_data filter — validation mode reads all data
+      const allCelulasRaw = await fetchAllRows(
+        'celulas',
+        'id, name, coordenacao_id, coordenacao:coordenacoes!celulas_coordenacao_id_fkey(name, rede_id)',
+        celulasFilters
+      );
 
-      if (campoId) celulasQuery = celulasQuery.eq('campo_id', campoId);
-
-      // Filtro server-side quando possível (coordenacao → filtra no banco)
-      const filteredQuery = scopeType === 'coordenacao' && scopeId
-        ? celulasQuery.eq('coordenacao_id', scopeId)
-        : celulasQuery;
-
-      const { data: celulasRaw, error: celulasErr } = await filteredQuery;
-      if (celulasErr) console.error('[usePulsoEngine] celulas error:', celulasErr);
-
-      let allCelulas = celulasRaw || [];
-
-      // Filtro client-side para rede (join já trouxe rede_id)
+      // Client-side filter for rede scope
+      let allCelulas = allCelulasRaw;
       if (scopeType === 'rede' && scopeId) {
-        allCelulas = allCelulas.filter(c => (c.coordenacao as any)?.rede_id === scopeId);
+        allCelulas = allCelulas.filter((c: any) => c.coordenacao?.rede_id === scopeId);
       }
 
-      const celulaIds = allCelulas.map(c => c.id);
+      const celulaIds = allCelulas.map((c: any) => c.id);
       const totalCelulas = celulaIds.length;
 
       if (totalCelulas === 0) return emptyResult;
 
-      // ── PASSO 2: Montar query de relatórios por janela ───────────────────
-      const buildReportQuery = (window: { from: string; to: string }) => {
-        let rq = supabase
-          .from('weekly_reports')
-          .select('celula_id')
-          .in('celula_id', celulaIds);
-        // No is_test_data filter — reads all data
-        return rq
-          // Prioridade: meeting_date (fonte de verdade). Fallback: week_start.
-          .or(
+      // ── PASSO 2: Relatórios por janela (batched .in()) ─────────────────
+      const buildReportBatch = (window: { from: string; to: string }) => {
+        return batchedInQuery(
+          'weekly_reports',
+          'celula_id',
+          'celula_id',
+          celulaIds,
+          (q: any) => q.or(
             `and(meeting_date.gte.${window.from},meeting_date.lte.${window.to}),` +
             `and(meeting_date.is.null,week_start.gte.${window.from},week_start.lte.${window.to})`
-          );
+          )
+        );
       };
 
       const twoYearsAgo = subDays(now, 730);
 
-      // ── PASSO 3: Buscar tudo em paralelo ────────────────────────────────
+      // ── PASSO 3: Buscar tudo em paralelo (tudo paginado/batched) ──────
       const [
-        thisWeekRes,
-        lastWeekRes,
-        twoWeeksAgoRes,
-        membersRes,
-        stagnantRes,
-        birthdayMembersRes,
+        thisWeekData,
+        lastWeekData,
+        twoWeeksAgoData,
+        membersData,
+        stagnantData,
+        birthdayData,
       ] = await Promise.all([
-        buildReportQuery(thisWeek),
-        buildReportQuery(lastWeek),
-        buildReportQuery(twoWeeksAgo),
+        buildReportBatch(thisWeek),
+        buildReportBatch(lastWeek),
+        buildReportBatch(twoWeeksAgo),
 
-        // Membros ativos no escopo — para marcos espirituais
-        // NOTA: NÃO filtramos is_test_data aqui porque membros reais podem estar
-        // marcados como is_test_data=true se vieram de um seed run não limpo.
-        supabase
-          .from('members')
-          .select('id, is_discipulado, is_lider_em_treinamento, encontro_com_deus, batismo, curso_lidere, renovo')
-          .eq('is_active', true)
-          .in('celula_id', celulaIds),
+        // Membros ativos (paginado via batched .in())
+        batchedInQuery(
+          'members',
+          'id, is_discipulado, is_lider_em_treinamento, encontro_com_deus, batismo, curso_lidere, renovo',
+          'celula_id',
+          celulaIds,
+          (q: any) => q.eq('is_active', true)
+        ),
 
-        // Membros há >2 anos sem marcos básicos — atenção pastoral
-        supabase
-          .from('members')
-          .select(`
-            id,
-            encontro_com_deus,
-            batismo,
-            curso_lidere,
-            profile:profiles!members_profile_id_fkey(name, avatar_url),
-            celula:celulas!members_celula_id_fkey(name)
-          `)
-          .eq('is_active', true)
-          .in('celula_id', celulaIds)
-          .lt('joined_at', twoYearsAgo.toISOString()),
+        // Membros estagnados (paginado)
+        batchedInQuery(
+          'members',
+          'id, encontro_com_deus, batismo, curso_lidere, profile:profiles!members_profile_id_fkey(name, avatar_url), celula:celulas!members_celula_id_fkey(name)',
+          'celula_id',
+          celulaIds,
+          (q: any) => q.eq('is_active', true).lt('joined_at', twoYearsAgo.toISOString())
+        ),
 
-        // Membros com data de nascimento — aniversários
-        supabase
-          .from('members')
-          .select(`
-            profile_id,
-            celula:celulas!members_celula_id_fkey(name),
-            profile:profiles!members_profile_id_fkey(id, name, avatar_url, birth_date)
-          `)
-          .eq('is_active', true)
-          .in('celula_id', celulaIds),
+        // Aniversários
+        batchedInQuery(
+          'members',
+          'profile_id, celula:celulas!members_celula_id_fkey(name), profile:profiles!members_profile_id_fkey(id, name, avatar_url, birth_date)',
+          'celula_id',
+          celulaIds,
+          (q: any) => q.eq('is_active', true)
+        ),
       ]);
 
       // ── PASSO 4: Processar engajamento ───────────────────────────────────
-      const thisWeekIds = new Set((thisWeekRes.data || []).map(r => r.celula_id));
-      const lastWeekIds = new Set((lastWeekRes.data || []).map(r => r.celula_id));
-      const twoWeeksAgoIds = new Set((twoWeeksAgoRes.data || []).map(r => r.celula_id));
+      const thisWeekIds = new Set(thisWeekData.map((r: any) => r.celula_id));
+      const lastWeekIds = new Set(lastWeekData.map((r: any) => r.celula_id));
+      const twoWeeksAgoIds = new Set(twoWeeksAgoData.map((r: any) => r.celula_id));
 
       const celulasComRelatorio = thisWeekIds.size;
       const percentualEngajamento = Math.round((celulasComRelatorio / totalCelulas) * 100);
@@ -239,59 +213,56 @@ export function usePulsoEngine({ scopeType, scopeId, campoId, enabled = true }: 
       const celulasAlerta3Semanas: CelulaAlertaStatus[] = [];
 
       for (const cel of allCelulas) {
-        if (thisWeekIds.has(cel.id)) continue; // enviou esta semana → ok
+        if (thisWeekIds.has((cel as any).id)) continue;
 
-        const coordName = (cel.coordenacao as any)?.name || '';
+        const coordName = (cel as any).coordenacao?.name || '';
         const base: CelulaAlertaStatus = {
-          celula_id: cel.id,
-          celula_name: cel.name,
+          celula_id: (cel as any).id,
+          celula_name: (cel as any).name,
           coordenacao_name: coordName,
           weeks_without_report: 1,
         };
 
-        const semLastWeek = !lastWeekIds.has(cel.id);
-        const semTwoWeeks = !twoWeeksAgoIds.has(cel.id);
+        const semLastWeek = !lastWeekIds.has((cel as any).id);
+        const semTwoWeeks = !twoWeeksAgoIds.has((cel as any).id);
 
         if (semLastWeek && semTwoWeeks) {
-          // Sem relatório nas últimas 3 semanas (incluindo esta)
           celulasAlerta3Semanas.push({ ...base, weeks_without_report: 3 });
         } else if (semLastWeek) {
-          // Sem relatório na semana passada e nesta
           celulasAlerta2Semanas.push({ ...base, weeks_without_report: 2 });
         } else {
-          // Enviou na semana passada mas não nesta
           celulasAlerta1Semana.push({ ...base, weeks_without_report: 1 });
         }
       }
 
       // ── PASSO 6: Marcos espirituais ──────────────────────────────────────
-      const members = membersRes.data || [];
-      const totalDiscipulados = members.filter(m => m.is_discipulado).length;
-      const lideresEmTreinamento = members.filter(m => m.is_lider_em_treinamento).length;
-      const marcosEncontro = members.filter(m => m.encontro_com_deus).length;
-      const marcosBatismo = members.filter(m => m.batismo).length;
+      const members = membersData;
+      const totalDiscipulados = members.filter((m: any) => m.is_discipulado).length;
+      const lideresEmTreinamento = members.filter((m: any) => m.is_lider_em_treinamento).length;
+      const marcosEncontro = members.filter((m: any) => m.encontro_com_deus).length;
+      const marcosBatismo = members.filter((m: any) => m.batismo).length;
       const marcosDiscipulado = totalDiscipulados;
-      const marcosCursoLidere = members.filter(m => m.curso_lidere).length;
-      const marcosRenovo = members.filter(m => m.renovo).length;
+      const marcosCursoLidere = members.filter((m: any) => m.curso_lidere).length;
+      const marcosRenovo = members.filter((m: any) => m.renovo).length;
       const marcosLiderEmTreinamento = lideresEmTreinamento;
 
-      // ── PASSO 7: Atenção pastoral – estagnação ───────────────────────────
-      const stagnantRaw = (stagnantRes.data || []).filter(
-        m => !m.encontro_com_deus && !m.batismo && !m.curso_lidere
+      // ── PASSO 7: Estagnação ───────────────────────────────────────────────
+      const stagnantRaw = stagnantData.filter(
+        (m: any) => !m.encontro_com_deus && !m.batismo && !m.curso_lidere
       );
-      const stagnantMembers: PulsoStagnantMember[] = stagnantRaw.map(m => ({
+      const stagnantMembers: PulsoStagnantMember[] = stagnantRaw.map((m: any) => ({
         id: m.id,
-        name: (m.profile as any)?.name || 'Sem nome',
-        avatar_url: (m.profile as any)?.avatar_url || null,
-        celula_name: (m.celula as any)?.name || 'Sem célula',
+        name: m.profile?.name || 'Sem nome',
+        avatar_url: m.profile?.avatar_url || null,
+        celula_name: m.celula?.name || 'Sem célula',
       }));
 
-      // ── PASSO 8: Aniversários da semana (Seg→Dom, 7 dias a partir de hoje) ──
+      // ── PASSO 8: Aniversários da semana ──────────────────────────────────
       const todayMonthDay = format(now, 'MM-dd');
       const birthdays: PulsoBirthday[] = [];
 
-      for (const m of birthdayMembersRes.data || []) {
-        const p = m.profile as any;
+      for (const m of birthdayData) {
+        const p = (m as any).profile;
         if (!p?.birth_date) continue;
 
         const birthMonthDay = format(parseISO(p.birth_date), 'MM-dd');
@@ -308,7 +279,7 @@ export function usePulsoEngine({ scopeType, scopeId, campoId, enabled = true }: 
             id: p.id,
             name: p.name,
             avatar_url: p.avatar_url || null,
-            celula_name: (m.celula as any)?.name || '',
+            celula_name: (m as any).celula?.name || '',
             role: 'Membro',
             is_today: birthMonthDay === todayMonthDay,
           });
