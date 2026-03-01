@@ -109,29 +109,26 @@ export function useCreateNovaVida() {
 
   return useMutation({
     mutationFn: async (nv: NovaVidaInsert & { campo_id?: string }) => {
+      const { data: { user } } = await supabase.auth.getUser();
       // Resolve campo_id: explicit param > context > fetch from user_access_links
       let campoId = nv.campo_id || activeCampoId;
 
-      if (!campoId) {
+      if (!campoId && user) {
         // Last resort: fetch from user_access_links
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          const { data: links } = await supabase
-            .from('user_access_links')
-            .select('campo_id')
-            .eq('user_id', user.id)
-            .eq('active', true)
-            .not('campo_id', 'is', null)
-            .limit(1);
-          campoId = links?.[0]?.campo_id ?? null;
-        }
+        const { data: links } = await supabase
+          .from('user_access_links')
+          .select('campo_id')
+          .eq('user_id', user.id)
+          .eq('active', true)
+          .not('campo_id', 'is', null)
+          .limit(1);
+        campoId = links?.[0]?.campo_id ?? null;
       }
 
       if (!campoId) {
         throw new Error('Seu acesso não está vinculado a um campus. Fale com o administrador.');
       }
 
-      const { data: { user } } = await supabase.auth.getUser();
       const { data, error } = await supabase
         .from('novas_vidas')
         .insert({ ...nv, campo_id: campoId, created_by_user_id: user?.id ?? null } as any)
