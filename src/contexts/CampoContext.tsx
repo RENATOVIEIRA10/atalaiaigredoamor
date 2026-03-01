@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 const CAMPO_SESSION_KEY = 'rede_amor_active_campo';
+const GLOBAL_VIEW_KEY = 'rede_amor_global_view';
 
 export interface CampoInfo {
   id: string;
@@ -22,11 +23,18 @@ const CampoContext = createContext<CampoContextType | undefined>(undefined);
 export function CampoProvider({ children }: { children: ReactNode }) {
   const [activeCampoId, setActiveCampoId] = useState<string | null>(null);
   const [activeCampo, setActiveCampoState] = useState<CampoInfo | null>(null);
-  const [isGlobalView, setIsGlobalView] = useState(false);
+  const [isGlobalView, setIsGlobalViewState] = useState(false);
 
   // Restore on mount
   useEffect(() => {
     try {
+      // Restore global view flag
+      const storedGlobal = localStorage.getItem(GLOBAL_VIEW_KEY);
+      if (storedGlobal === 'true') {
+        setIsGlobalViewState(true);
+        // Don't restore campus when in global view
+        return;
+      }
       const stored = localStorage.getItem(CAMPO_SESSION_KEY);
       if (stored) {
         const campo: CampoInfo = JSON.parse(stored);
@@ -35,21 +43,33 @@ export function CampoProvider({ children }: { children: ReactNode }) {
       }
     } catch {
       localStorage.removeItem(CAMPO_SESSION_KEY);
+      localStorage.removeItem(GLOBAL_VIEW_KEY);
     }
   }, []);
 
   const setActiveCampo = (campo: CampoInfo) => {
     setActiveCampoId(campo.id);
     setActiveCampoState(campo);
-    setIsGlobalView(false);
+    setIsGlobalViewState(false);
     localStorage.setItem(CAMPO_SESSION_KEY, JSON.stringify(campo));
+    localStorage.removeItem(GLOBAL_VIEW_KEY);
+  };
+
+  const setIsGlobalView = (v: boolean) => {
+    setIsGlobalViewState(v);
+    if (v) {
+      localStorage.setItem(GLOBAL_VIEW_KEY, 'true');
+    } else {
+      localStorage.removeItem(GLOBAL_VIEW_KEY);
+    }
   };
 
   const clearCampo = () => {
     setActiveCampoId(null);
     setActiveCampoState(null);
-    setIsGlobalView(false);
+    setIsGlobalViewState(false);
     localStorage.removeItem(CAMPO_SESSION_KEY);
+    localStorage.removeItem(GLOBAL_VIEW_KEY);
   };
 
   return (
