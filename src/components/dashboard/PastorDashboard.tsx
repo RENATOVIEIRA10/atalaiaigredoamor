@@ -32,13 +32,23 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { RecomecoPastorTab } from './recomeco/RecomecoPastorTab';
 import { DiscipuladoPastorView } from './discipulado/DiscipuladoPastorView';
 import { GlobalValidationPanel } from './GlobalValidationPanel';
+import { GlobalPastorDashboard } from './global/GlobalPastorDashboard';
 import { useRole } from '@/contexts/RoleContext';
 import { useCampo } from '@/contexts/CampoContext';
 
 export function PastorDashboard() {
   const { isPastorSeniorGlobal } = useRole();
   const { isGlobalView } = useCampo();
-  const showValidation = isPastorSeniorGlobal && isGlobalView;
+
+  // When pastor_senior_global is in global view, show the executive 3-level dashboard
+  if (isPastorSeniorGlobal && isGlobalView) {
+    return <GlobalPastorDashboard />;
+  }
+
+  return <CampoPastorDashboard />;
+}
+
+function CampoPastorDashboard() {
   const { data: stats, isLoading: statsLoading } = usePastoralStats();
   const { data: pulso, isLoading: pulsoLoading } = usePulsoPastoral();
   const { data: stagnation } = useSpiritualStagnation();
@@ -552,13 +562,7 @@ export function PastorDashboard() {
         </Card>
       </section>
 
-      {/* Validação de Consistência (apenas visão global) */}
-      {showValidation && (
-        <section>
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">🛡️ Validação de Consistência</h2>
-          <GlobalValidationPanel />
-        </section>
-      )}
+      {/* Validação de Consistência removed — now in GlobalPastorDashboard */}
     </div>
   );
 }
