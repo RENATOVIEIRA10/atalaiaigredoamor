@@ -287,7 +287,7 @@ export type Database = {
           address: string | null
           bairro: string | null
           bairros_atendidos: string[] | null
-          campo_id: string | null
+          campo_id: string
           cidade: string | null
           coordenacao_id: string
           created_at: string
@@ -315,7 +315,7 @@ export type Database = {
           address?: string | null
           bairro?: string | null
           bairros_atendidos?: string[] | null
-          campo_id?: string | null
+          campo_id: string
           cidade?: string | null
           coordenacao_id: string
           created_at?: string
@@ -343,7 +343,7 @@ export type Database = {
           address?: string | null
           bairro?: string | null
           bairros_atendidos?: string[] | null
-          campo_id?: string | null
+          campo_id?: string
           cidade?: string | null
           coordenacao_id?: string
           created_at?: string
@@ -420,7 +420,7 @@ export type Database = {
       }
       coordenacoes: {
         Row: {
-          campo_id: string | null
+          campo_id: string
           created_at: string
           id: string
           is_test_data: boolean | null
@@ -433,7 +433,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          campo_id?: string | null
+          campo_id: string
           created_at?: string
           id?: string
           is_test_data?: boolean | null
@@ -446,7 +446,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          campo_id?: string | null
+          campo_id?: string
           created_at?: string
           id?: string
           is_test_data?: boolean | null
@@ -498,7 +498,7 @@ export type Database = {
       }
       discipulado_encontros: {
         Row: {
-          campo_id: string | null
+          campo_id: string
           celula_id: string | null
           coordenacao_id: string | null
           created_at: string
@@ -512,7 +512,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          campo_id?: string | null
+          campo_id: string
           celula_id?: string | null
           coordenacao_id?: string | null
           created_at?: string
@@ -526,7 +526,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          campo_id?: string | null
+          campo_id?: string
           celula_id?: string | null
           coordenacao_id?: string | null
           created_at?: string
@@ -572,7 +572,7 @@ export type Database = {
       }
       discipulado_presencas: {
         Row: {
-          campo_id: string | null
+          campo_id: string
           created_at: string
           encontro_id: string
           id: string
@@ -581,7 +581,7 @@ export type Database = {
           profile_id: string | null
         }
         Insert: {
-          campo_id?: string | null
+          campo_id: string
           created_at?: string
           encontro_id: string
           id?: string
@@ -590,7 +590,7 @@ export type Database = {
           profile_id?: string | null
         }
         Update: {
-          campo_id?: string | null
+          campo_id?: string
           created_at?: string
           encontro_id?: string
           id?: string
@@ -631,7 +631,7 @@ export type Database = {
       }
       encaminhamentos_recomeco: {
         Row: {
-          campo_id: string | null
+          campo_id: string
           celula_id: string
           contatado_at: string | null
           created_at: string
@@ -649,7 +649,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          campo_id?: string | null
+          campo_id: string
           celula_id: string
           contatado_at?: string | null
           created_at?: string
@@ -667,7 +667,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          campo_id?: string | null
+          campo_id?: string
           celula_id?: string
           contatado_at?: string | null
           created_at?: string
@@ -717,7 +717,7 @@ export type Database = {
       }
       event_registrations: {
         Row: {
-          campo_id: string | null
+          campo_id: string
           celula_id: string | null
           coordenacao_id: string | null
           created_at: string
@@ -735,7 +735,7 @@ export type Database = {
           whatsapp: string | null
         }
         Insert: {
-          campo_id?: string | null
+          campo_id: string
           celula_id?: string | null
           coordenacao_id?: string | null
           created_at?: string
@@ -753,7 +753,7 @@ export type Database = {
           whatsapp?: string | null
         }
         Update: {
-          campo_id?: string | null
+          campo_id?: string
           celula_id?: string | null
           coordenacao_id?: string | null
           created_at?: string
@@ -824,7 +824,7 @@ export type Database = {
       }
       events_spiritual: {
         Row: {
-          campo_id: string | null
+          campo_id: string
           created_at: string
           event_date: string
           id: string
@@ -835,7 +835,7 @@ export type Database = {
           type: string
         }
         Insert: {
-          campo_id?: string | null
+          campo_id: string
           created_at?: string
           event_date: string
           id?: string
@@ -846,7 +846,7 @@ export type Database = {
           type: string
         }
         Update: {
-          campo_id?: string | null
+          campo_id?: string
           created_at?: string
           event_date?: string
           id?: string
@@ -1011,7 +1011,7 @@ export type Database = {
       members: {
         Row: {
           batismo: boolean | null
-          campo_id: string | null
+          campo_id: string
           celula_id: string
           curso_lidere: boolean | null
           encontro_com_deus: boolean | null
@@ -1030,7 +1030,7 @@ export type Database = {
         }
         Insert: {
           batismo?: boolean | null
-          campo_id?: string | null
+          campo_id: string
           celula_id: string
           curso_lidere?: boolean | null
           encontro_com_deus?: boolean | null
@@ -1049,7 +1049,7 @@ export type Database = {
         }
         Update: {
           batismo?: boolean | null
-          campo_id?: string | null
+          campo_id?: string
           celula_id?: string
           curso_lidere?: boolean | null
           encontro_com_deus?: boolean | null
@@ -1187,7 +1187,7 @@ export type Database = {
           assigned_cell_id: string | null
           assigned_to_user_id: string | null
           bairro: string | null
-          campo_id: string | null
+          campo_id: string
           cidade: string | null
           created_at: string
           created_by_user_id: string | null
@@ -1211,7 +1211,7 @@ export type Database = {
           assigned_cell_id?: string | null
           assigned_to_user_id?: string | null
           bairro?: string | null
-          campo_id?: string | null
+          campo_id: string
           cidade?: string | null
           created_at?: string
           created_by_user_id?: string | null
@@ -1235,7 +1235,7 @@ export type Database = {
           assigned_cell_id?: string | null
           assigned_to_user_id?: string | null
           bairro?: string | null
-          campo_id?: string | null
+          campo_id?: string
           cidade?: string | null
           created_at?: string
           created_by_user_id?: string | null
@@ -1507,7 +1507,7 @@ export type Database = {
         Row: {
           ativa: boolean
           branding: Json | null
-          campo_id: string | null
+          campo_id: string
           created_at: string
           id: string
           is_test_data: boolean | null
@@ -1521,7 +1521,7 @@ export type Database = {
         Insert: {
           ativa?: boolean
           branding?: Json | null
-          campo_id?: string | null
+          campo_id: string
           created_at?: string
           id?: string
           is_test_data?: boolean | null
@@ -1535,7 +1535,7 @@ export type Database = {
         Update: {
           ativa?: boolean
           branding?: Json | null
-          campo_id?: string | null
+          campo_id?: string
           created_at?: string
           id?: string
           is_test_data?: boolean | null
@@ -1624,7 +1624,7 @@ export type Database = {
       }
       roteiros_celula: {
         Row: {
-          campo_id: string | null
+          campo_id: string
           celula_id: string
           created_at: string
           criado_por: string | null
@@ -1636,7 +1636,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          campo_id?: string | null
+          campo_id: string
           celula_id: string
           created_at?: string
           criado_por?: string | null
@@ -1648,7 +1648,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          campo_id?: string | null
+          campo_id?: string
           celula_id?: string
           created_at?: string
           criado_por?: string | null
@@ -1817,7 +1817,7 @@ export type Database = {
           apresentacao_visitantes: boolean | null
           avisos: boolean | null
           cadeira_amor: boolean | null
-          campo_id: string | null
+          campo_id: string
           celula_id: string
           celula_realizada: boolean
           comunhao: boolean | null
@@ -1851,7 +1851,7 @@ export type Database = {
           apresentacao_visitantes?: boolean | null
           avisos?: boolean | null
           cadeira_amor?: boolean | null
-          campo_id?: string | null
+          campo_id: string
           celula_id: string
           celula_realizada?: boolean
           comunhao?: boolean | null
@@ -1885,7 +1885,7 @@ export type Database = {
           apresentacao_visitantes?: boolean | null
           avisos?: boolean | null
           cadeira_amor?: boolean | null
-          campo_id?: string | null
+          campo_id?: string
           celula_id?: string
           celula_realizada?: boolean
           comunhao?: boolean | null
@@ -2161,7 +2161,7 @@ export type Database = {
       }
       weekly_reports: {
         Row: {
-          campo_id: string | null
+          campo_id: string
           celula_id: string
           children: number
           created_at: string
@@ -2184,7 +2184,7 @@ export type Database = {
           week_start: string
         }
         Insert: {
-          campo_id?: string | null
+          campo_id: string
           celula_id: string
           children?: number
           created_at?: string
@@ -2207,7 +2207,7 @@ export type Database = {
           week_start: string
         }
         Update: {
-          campo_id?: string | null
+          campo_id?: string
           celula_id?: string
           children?: number
           created_at?: string
@@ -2301,6 +2301,10 @@ export type Database = {
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       is_leadership_couple_member: {
         Args: { _couple_id: string; _profile_id: string }
+        Returns: boolean
+      }
+      user_belongs_to_campo: {
+        Args: { _campo_id: string; _user_id: string }
         Returns: boolean
       }
     }
