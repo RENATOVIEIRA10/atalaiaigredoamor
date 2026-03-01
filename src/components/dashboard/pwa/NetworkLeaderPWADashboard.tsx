@@ -16,6 +16,7 @@ import { useAniversariantesSemana, AniversarianteSemana } from '@/hooks/useAnive
 import { useMultiplicacoes } from '@/hooks/useMultiplicacoes';
 import { useSupervisaoRedeOverview } from '@/hooks/useSupervisaoRedeOverview';
 import { useRole } from '@/contexts/RoleContext';
+import { useDemoScope } from '@/hooks/useDemoScope';
 import { StatCard } from '@/components/ui/stat-card';
 import { MissionVerse } from '../MissionVerse';
 import { PulsoRedeSection } from '../PulsoRedeSection';
@@ -84,11 +85,12 @@ export function NetworkLeaderPWADashboard() {
 
 // ────────── Aba Início ──────────
 function RedeInicio({ redeId, redeData }: { redeId: string; redeData: any }) {
+  const { campoId } = useDemoScope();
   const { data: coordenacoes } = useCoordenacoes();
   const dateRange = { from: getDateString(subDays(new Date(), 6)), to: getDateString(new Date()) };
-  const { data: aniversariantes } = useAniversariantesSemana({ scopeType: 'rede', scopeId: redeId });
+  const { data: aniversariantes } = useAniversariantesSemana({ scopeType: 'rede', scopeId: redeId, campoId });
   const { data: pulso } = usePulsoRede({ scopeType: 'rede', scopeId: redeId });
-  const { data: multiplicacoes } = useMultiplicacoes();
+  const { data: multiplicacoes } = useMultiplicacoes(campoId);
   const { data: supOverview } = useSupervisaoRedeOverview(redeId);
 
   // Drill-down state
@@ -411,7 +413,8 @@ function CobrancaMassaView({ redeId, onBack }: { redeId: string; onBack: () => v
 }
 
 function AniversariantesRedeView({ redeId, onBack }: { redeId: string; onBack: () => void }) {
-  const { data: aniversariantes, isLoading } = useAniversariantesSemana({ scopeType: 'rede', scopeId: redeId });
+  const { campoId } = useDemoScope();
+  const { data: aniversariantes, isLoading } = useAniversariantesSemana({ scopeType: 'rede', scopeId: redeId, campoId });
 
   if (isLoading) return <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
 

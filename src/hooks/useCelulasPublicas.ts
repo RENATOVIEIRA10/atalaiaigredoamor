@@ -22,11 +22,12 @@ export function useCelulasPublicas(filters?: {
   bairro?: string;
   cidade?: string;
   rede_id?: string;
+  campo_id?: string | null;
 }) {
   return useQuery({
     queryKey: ['celulas_publicas', filters],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('celulas')
         .select(`
           id, name, bairro, cidade, meeting_day, meeting_time, rede_id,
@@ -39,6 +40,9 @@ export function useCelulasPublicas(filters?: {
         `)
         .order('name');
 
+      if (filters?.campo_id) query = query.eq('campo_id', filters.campo_id);
+
+      const { data, error } = await query;
       if (error) throw error;
 
       let result = (data || []).map((c: any) => {

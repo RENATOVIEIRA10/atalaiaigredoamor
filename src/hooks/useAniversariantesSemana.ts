@@ -16,15 +16,17 @@ export interface AniversarianteSemana {
 interface UseAniversariantesOptions {
   scopeType: 'coordenacao' | 'rede';
   scopeId: string;
+  campoId?: string | null;
 }
 
-export function useAniversariantesSemana({ scopeType, scopeId }: UseAniversariantesOptions) {
+export function useAniversariantesSemana({ scopeType, scopeId, campoId }: UseAniversariantesOptions) {
   return useQuery({
-    queryKey: ['aniversariantes-semana', scopeType, scopeId],
+    queryKey: ['aniversariantes-semana', scopeType, scopeId, campoId],
     enabled: !!scopeId,
     queryFn: async (): Promise<AniversarianteSemana[]> => {
       // Get celulas in scope
       let celulaQuery = supabase.from('celulas').select('id, name, coordenacao_id, coordenacao:coordenacoes!celulas_coordenacao_id_fkey(rede_id)');
+      if (campoId) celulaQuery = celulaQuery.eq('campo_id', campoId);
       if (scopeType === 'coordenacao') {
         celulaQuery = celulaQuery.eq('coordenacao_id', scopeId);
       }

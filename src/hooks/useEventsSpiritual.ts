@@ -135,6 +135,7 @@ export function useCreateEventRegistration() {
             nome: reg.full_name || 'Sem nome',
             whatsapp: reg.whatsapp || null,
             status: 'nova',
+            campo_id: (reg as any).campo_id,
             created_by_user_id: user?.id || null,
             observacao: `Inscrição Batismo/Aclamação sem célula (ID: ${data.id})`,
           } as any);

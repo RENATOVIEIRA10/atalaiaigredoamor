@@ -3,13 +3,15 @@ import { useRecomecoFunnel } from '@/hooks/useRecomecoFunnel';
 import { RecomecoKPICards } from './RecomecoKPICards';
 import { RecomecoGroupTable } from './RecomecoGroupTable';
 import { RecomecoAlerts } from './RecomecoAlerts';
+import { useDemoScope } from '@/hooks/useDemoScope';
 
 interface RecomecoRedeTabProps {
   redeId: string;
 }
 
 export function RecomecoRedeTab({ redeId }: RecomecoRedeTabProps) {
-  const { isLoading, totalKPIs, byCoordenacao, pendingOver3Days, noResponseOver7Days } = useRecomecoFunnel('rede', redeId);
+  const { campoId } = useDemoScope();
+  const { isLoading, totalKPIs, byCoordenacao, pendingOver3Days, noResponseOver7Days } = useRecomecoFunnel('rede', redeId, campoId);
 
   if (isLoading) {
     return <div className="flex items-center justify-center h-32"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
