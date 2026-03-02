@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, UserCheck, Heart, UserPlus, Baby, Loader2, Network, FileSpreadsheet, ChevronDown, ChevronUp, Eye, ClipboardCheck, Image, Sparkles, History, GitBranch, User, Activity, Mail, Calendar, DoorOpen, BookOpen } from 'lucide-react';
+import { Users, UserCheck, Heart, UserPlus, Baby, Loader2, Network, FileSpreadsheet, ChevronDown, ChevronUp, Eye, ClipboardCheck, Image, Sparkles, History, GitBranch, User, Activity, Mail, Calendar, DoorOpen, BookOpen, ArrowLeft } from 'lucide-react';
 import { useRedes } from '@/hooks/useRedes';
 import { useCoordenacoes } from '@/hooks/useCoordenacoes';
 import { useCelulas } from '@/hooks/useCelulas';
@@ -40,7 +40,13 @@ import { SupervisoesRedeHistoryPanel } from './rede/SupervisoesRedeHistoryPanel'
 import { RecomecoRedeTab } from './recomeco/RecomecoRedeTab';
 import { DiscipuladoRedeView } from './discipulado/DiscipuladoRedeView';
 
-export function NetworkLeaderDashboard() {
+interface NetworkLeaderDashboardProps {
+  initialRedeId?: string;
+  onBack?: () => void;
+  breadcrumbLabel?: string;
+}
+
+export function NetworkLeaderDashboard({ initialRedeId, onBack, breadcrumbLabel }: NetworkLeaderDashboardProps = {}) {
   const [searchParams] = useSearchParams();
   const urlTab = searchParams.get('tab');
   const { toast } = useToast();
@@ -48,7 +54,7 @@ export function NetworkLeaderDashboard() {
   const { data: coordenacoes } = useCoordenacoes();
   const { data: celulas } = useCelulas();
   
-  const [selectedRede, setSelectedRede] = useState<string>('');
+  const [selectedRede, setSelectedRede] = useState<string>(initialRedeId || '');
   const { scopeId, scopeType } = useRole();
   const [dateRange, setDateRange] = useState<DateRangeValue>({ from: subDays(new Date(), 6), to: new Date() });
   const [expandedCoords, setExpandedCoords] = useState<Set<string>>(new Set());
@@ -94,9 +100,13 @@ export function NetworkLeaderDashboard() {
 
   const userRedes = redes || [];
   
-  // Auto-select if scoped
-  if (scopeType === 'rede' && scopeId && !selectedRede && userRedes.length > 0) {
-    setSelectedRede(scopeId);
+  // Auto-select if scoped or if initialRedeId is provided
+  if (!selectedRede && userRedes.length > 0) {
+    if (initialRedeId) {
+      setSelectedRede(initialRedeId);
+    } else if (scopeType === 'rede' && scopeId) {
+      setSelectedRede(scopeId);
+    }
   }
   const currentReports = redeData?.reports || [];
   const redeCelulas = redeData?.celulas || [];
@@ -127,8 +137,14 @@ export function NetworkLeaderDashboard() {
 
   return (
     <div className="space-y-6">
+      {onBack && (
+        <Button variant="ghost" size="sm" onClick={onBack} className="gap-2 -ml-2">
+          <ArrowLeft className="h-4 w-4" />
+          Voltar
+        </Button>
+      )}
       <PageHeader
-        title="Gestão da Rede"
+        title={breadcrumbLabel ? `Rede: ${selectedRedeData?.name || ''}` : "Gestão da Rede"}
         subtitle="Acompanhe o desempenho das coordenações"
         icon={Network}
         actions={

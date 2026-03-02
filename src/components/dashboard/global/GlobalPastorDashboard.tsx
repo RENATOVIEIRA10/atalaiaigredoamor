@@ -1,4 +1,4 @@
-import { useState, lazy, Suspense } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { Loader2, Globe, Church, Users, Home, GitBranch, Heart, FlaskConical, Eye, BookOpen, Calendar, Sparkles, ShieldAlert, TrendingUp, UserCheck, ArrowRight, Award } from 'lucide-react';
 import { useGlobalKingdomData, CampusKPI } from '@/hooks/useGlobalKingdomData';
 import { useGlobalKingdomFunnel } from '@/hooks/useGlobalKingdomFunnel';
@@ -22,18 +22,42 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useAIInsights } from '@/hooks/useAIInsights';
 import ReactMarkdown from 'react-markdown';
+import { useCampo } from '@/contexts/CampoContext';
+import { NetworkLeaderDashboard } from '../NetworkLeaderDashboard';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
 
-type DrillLevel = 'kingdom' | 'campus';
+type DrillLevel = 'kingdom' | 'campus' | 'rede';
 
 interface DrillState {
   level: DrillLevel;
   campoId?: string;
   campoNome?: string;
+  redeId?: string;
+  redeNome?: string;
 }
 
 export function GlobalPastorDashboard() {
   const [drill, setDrill] = useState<DrillState>({ level: 'kingdom' });
   const { data: campusData, isLoading } = useGlobalKingdomData(false);
+  const { setActiveCampo, setIsGlobalView } = useCampo();
+
+  // When drilling into a rede, temporarily set the CampoContext so queries filter correctly
+  useEffect(() => {
+    if (drill.level === 'rede' && drill.campoId && drill.campoNome) {
+      setActiveCampo({ id: drill.campoId, nome: drill.campoNome });
+    }
+    if (drill.level === 'kingdom') {
+      // Restore global view so data isn't filtered to a specific campus
+      setIsGlobalView(true);
+    }
+  }, [drill.level, drill.campoId]);
 
   if (isLoading) {
     return (
@@ -43,15 +67,64 @@ export function GlobalPastorDashboard() {
     );
   }
 
+  if (drill.level === 'rede' && drill.campoId && drill.redeId) {
+    return (
+      <div className="space-y-4">
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink className="cursor-pointer" onClick={() => setDrill({ level: 'kingdom' })}>
+                Global
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink className="cursor-pointer" onClick={() => setDrill({ level: 'campus', campoId: drill.campoId, campoNome: drill.campoNome })}>
+                {drill.campoNome}
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>{drill.redeNome}</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+        <NetworkLeaderDashboard
+          initialRedeId={drill.redeId}
+          onBack={() => setDrill({ level: 'campus', campoId: drill.campoId, campoNome: drill.campoNome })}
+          breadcrumbLabel={`${drill.campoNome} > ${drill.redeNome}`}
+        />
+      </div>
+    );
+  }
+
   if (drill.level === 'campus' && drill.campoId) {
     return (
-      <div className="space-y-8">
-        <PageHeader title="Visão do Reino" subtitle={`Campus: ${drill.campoNome}`} icon={Globe} />
+      <div className="space-y-4">
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink className="cursor-pointer" onClick={() => setDrill({ level: 'kingdom' })}>
+                Global
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>{drill.campoNome}</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
         <CampusDetailView
           campoId={drill.campoId}
           campoNome={drill.campoNome!}
           onBack={() => setDrill({ level: 'kingdom' })}
-          onSelectRede={() => {}}
+          onSelectRede={(redeId, redeNome) => setDrill({
+            level: 'rede',
+            campoId: drill.campoId,
+            campoNome: drill.campoNome,
+            redeId,
+            redeNome,
+          })}
         />
       </div>
     );
