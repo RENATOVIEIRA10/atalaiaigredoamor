@@ -307,7 +307,7 @@ export default function TrocarFuncao() {
   }
 
   return (
-    <div className="min-h-[100dvh] flex flex-col items-center relative overflow-auto" style={{ background: 'linear-gradient(160deg, #0f1a2b 0%, #1A2F4B 40%, #0f1a2b 100%)' }}>
+    <div className="min-h-[100dvh] flex flex-col items-center relative overflow-y-auto overscroll-y-contain" style={{ background: 'linear-gradient(160deg, #0f1a2b 0%, #1A2F4B 40%, #0f1a2b 100%)', WebkitOverflowScrolling: 'touch' }}>
       <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at 50% 20%, rgba(197,160,89,0.12) 0%, transparent 60%)' }} />
 
       <div className="relative z-10 w-full max-w-md px-5 py-8 flex flex-col items-center" style={{ paddingTop: 'max(env(safe-area-inset-top, 0px), 2rem)', paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 2rem)' }}>
