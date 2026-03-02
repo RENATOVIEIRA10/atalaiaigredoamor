@@ -1,21 +1,26 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUserAccessLinks } from '@/hooks/useUserAccessLinks';
 import { useRole } from '@/contexts/RoleContext';
 import { useRede } from '@/contexts/RedeContext';
 import { useCampo } from '@/contexts/CampoContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCampos } from '@/hooks/useCampos';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Plus, AlertCircle, Lock, ArrowRight, Trash2, LogOut } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Loader2, Plus, AlertCircle, Lock, ArrowRight, Trash2, LogOut, MapPin, Globe } from 'lucide-react';
 import { roleLabels } from '@/lib/icons';
 import { RedeSelector } from '@/components/rede/RedeSelector';
+import { toast } from 'sonner';
 import logoIgrejaDoAmor from '@/assets/logo-igreja-do-amor-new.png';
 import logoRedeAmor from '@/assets/logo-amor-a-dois-new.png';
 
 type ScopeType = 'pastor' | 'admin' | 'rede' | 'coordenacao' | 'supervisor' | 'celula' | 'demo_institucional' | 'recomeco_operador' | 'recomeco_leitura' | 'recomeco_cadastro' | 'central_celulas' | 'lider_recomeco_central' | 'lider_batismo_aclamacao' | 'central_batismo_aclamacao' | 'pastor_senior_global' | 'pastor_de_campo';
+
+const GLOBAL_SCOPES = new Set(['pastor_senior_global', 'admin', 'pastor', 'demo_institucional']);
 
 function scopeTypeToRole(st: string) {
   const map: Record<string, string> = {
@@ -45,12 +50,71 @@ export default function TrocarFuncao() {
   const { setActiveRede, clearRede } = useRede();
   const { setActiveCampo, clearCampo, setIsGlobalView } = useCampo();
   const { signOut } = useAuth();
+  const { data: campos } = useCampos();
   const [showAddCode, setShowAddCode] = useState(false);
   const [code, setCode] = useState('');
   const [codeError, setCodeError] = useState('');
   const [codeLoading, setCodeLoading] = useState(false);
   const [pendingMatch, setPendingMatch] = useState<any>(null);
   const [showRedeSelect, setShowRedeSelect] = useState(false);
+  const [campusFilter, setCampusFilter] = useState<string | null>(null); // null = todos
+
+  // Build campus name map
+  const campoNameMap = useMemo(() => {
+    const m: Record<string, string> = {};
+    campos?.forEach(c => { m[c.id] = c.nome; });
+    return m;
+  }, [campos]);
+
+  // Group links by campus
+  const groupedLinks = useMemo(() => {
+    const GLOBAL_KEY = '__global__';
+    const groups: Record<string, typeof links> = {};
+
+    links.forEach(link => {
+      const isGlobal = GLOBAL_SCOPES.has(link.scope_type) && !link.campo_id;
+      const key = isGlobal ? GLOBAL_KEY : (link.campo_id || GLOBAL_KEY);
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(link);
+    });
+
+    // Sort: global first, then alphabetical by campus name
+    const sorted = Object.entries(groups).sort(([a], [b]) => {
+      if (a === GLOBAL_KEY) return -1;
+      if (b === GLOBAL_KEY) return 1;
+      return (campoNameMap[a] || '').localeCompare(campoNameMap[b] || '');
+    });
+
+    return sorted;
+  }, [links, campoNameMap]);
+
+  // Available campus IDs for filter chips
+  const availableCampusIds = useMemo(() => {
+    const ids = new Set<string>();
+    links.forEach(l => {
+      if (l.campo_id) ids.add(l.campo_id);
+      else if (GLOBAL_SCOPES.has(l.scope_type)) ids.add('__global__');
+    });
+    return ids;
+  }, [links]);
+
+  const showFilters = links.length > 5 && availableCampusIds.size > 1;
+
+  const filteredGroups = useMemo(() => {
+    if (!campusFilter) return groupedLinks;
+    return groupedLinks.filter(([key]) => key === campusFilter);
+  }, [groupedLinks, campusFilter]);
+
+  const getCampusLabel = (key: string) => {
+    if (key === '__global__') return 'Global / Sem campus';
+    return campoNameMap[key] || 'Campus desconhecido';
+  };
+
+  const getCampusToastLabel = (link: typeof links[0]) => {
+    if (GLOBAL_SCOPES.has(link.scope_type) && !link.campo_id) return 'Visão Global';
+    if (link.campo_id && campoNameMap[link.campo_id]) return `Campus ${campoNameMap[link.campo_id]}`;
+    return null;
+  };
 
   const resolveCampoFromAccessKey = async (accessKeyId: string) => {
     try {
@@ -66,7 +130,6 @@ export default function TrocarFuncao() {
     } catch (_) { /* silent */ }
   };
 
-  // Resolve campo from campo_pastores for pastor_de_campo
   const resolveCampoFromPastores = async () => {
     const { data: authData } = await supabase.auth.getUser();
     const authUser = authData?.user;
@@ -92,7 +155,12 @@ export default function TrocarFuncao() {
   const activateLink = async (link: typeof links[0]) => {
     const scopeType = link.scope_type as ScopeType;
 
-    // Pastor senior global: skip campus resolution, go straight to global view
+    // Show micro-toast
+    const campusToast = getCampusToastLabel(link);
+    if (campusToast) {
+      toast.info(`Entrando no ${campusToast}…`, { duration: 2000 });
+    }
+
     if (scopeType === 'pastor_senior_global') {
       setScopeAccess(scopeType, link.scope_id, link.access_key_id);
       clearCampo();
@@ -101,14 +169,13 @@ export default function TrocarFuncao() {
       return;
     }
 
-    // Resolve campo from link directly
     if (link.campo_id) {
       const { data: campoData } = await supabase.from('campos').select('id, nome').eq('id', link.campo_id).single();
       if (campoData) setActiveCampo({ id: campoData.id, nome: campoData.nome });
     } else {
       await resolveCampoFromAccessKey(link.access_key_id);
     }
-    
+
     if (scopeType === 'recomeco_operador' || scopeType === 'recomeco_leitura') {
       setScopeAccess(scopeType, link.scope_id, link.access_key_id);
       navigate('/recomeco');
@@ -127,24 +194,11 @@ export default function TrocarFuncao() {
       return;
     }
 
-    if (scopeType === 'lider_recomeco_central') {
+    if (scopeType === 'lider_recomeco_central' || scopeType === 'lider_batismo_aclamacao' || scopeType === 'central_batismo_aclamacao') {
       setScopeAccess(scopeType, link.scope_id, link.access_key_id);
       navigate('/dashboard');
       return;
     }
-
-    if (scopeType === 'lider_batismo_aclamacao') {
-      setScopeAccess(scopeType, link.scope_id, link.access_key_id);
-      navigate('/dashboard');
-      return;
-    }
-
-    if (scopeType === 'central_batismo_aclamacao') {
-      setScopeAccess(scopeType, link.scope_id, link.access_key_id);
-      navigate('/dashboard');
-      return;
-    }
-
 
     if (scopeType === 'pastor_de_campo') {
       setScopeAccess(scopeType, link.scope_id, link.access_key_id);
@@ -160,7 +214,6 @@ export default function TrocarFuncao() {
       return;
     }
 
-    // Auto-set rede
     if (link.rede_id) {
       const { data: redeData } = await supabase
         .from('redes')
@@ -188,7 +241,6 @@ export default function TrocarFuncao() {
 
     try {
       const normalizedCode = code.trim();
-      // Query directly by code (case-insensitive) to avoid 1000-row limit
       const { data: matchRows, error: queryError } = await supabase
         .from('access_keys')
         .select('*')
@@ -216,7 +268,6 @@ export default function TrocarFuncao() {
         return;
       }
 
-      // Update last_used_at
       await supabase
         .from('access_keys')
         .update({ last_used_at: new Date().toISOString(), failed_attempts: 0 })
@@ -256,10 +307,10 @@ export default function TrocarFuncao() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden" style={{ background: 'linear-gradient(160deg, #0f1a2b 0%, #1A2F4B 40%, #0f1a2b 100%)' }}>
+    <div className="min-h-[100dvh] flex flex-col items-center relative overflow-auto" style={{ background: 'linear-gradient(160deg, #0f1a2b 0%, #1A2F4B 40%, #0f1a2b 100%)' }}>
       <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at 50% 20%, rgba(197,160,89,0.12) 0%, transparent 60%)' }} />
 
-      <div className="relative z-10 w-full max-w-md px-5 py-8 flex flex-col items-center">
+      <div className="relative z-10 w-full max-w-md px-5 py-8 flex flex-col items-center" style={{ paddingTop: 'max(env(safe-area-inset-top, 0px), 2rem)', paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 2rem)' }}>
         {/* Header */}
         <div className="mb-5 flex items-center justify-center gap-4">
           <img src={logoIgrejaDoAmor} alt="Igreja do Amor" className="h-10 w-auto object-contain opacity-90" />
@@ -275,7 +326,7 @@ export default function TrocarFuncao() {
         </p>
 
         <div
-          className="w-full rounded-2xl p-6 bg-card border border-border"
+          className="w-full rounded-2xl p-5 bg-card border border-border"
           style={{ boxShadow: '0 16px 48px rgba(0,0,0,0.5), 0 0 0 1px rgba(197,160,89,0.06)' }}
         >
           {showRedeSelect ? (
@@ -291,30 +342,91 @@ export default function TrocarFuncao() {
             </>
           ) : (
             <div className="space-y-3">
-              {/* Linked functions */}
-              {links.map((link) => (
-                <div key={link.id} className="flex items-center gap-2">
-                  <Button
-                    onClick={() => activateLink(link)}
-                    className="flex-1 h-12 text-sm font-semibold justify-between"
+              {/* Campus filter chips */}
+              {showFilters && (
+                <div className="flex flex-wrap gap-2 pb-2 border-b" style={{ borderColor: 'rgba(197,160,89,0.15)' }}>
+                  <button
+                    onClick={() => setCampusFilter(null)}
+                    className="px-3 py-1 rounded-full text-xs font-medium transition-all"
                     style={{
-                      background: 'rgba(255,255,255,0.08)',
-                      color: '#F4EDE4',
-                      borderRadius: '12px',
-                      border: '1px solid rgba(197,160,89,0.25)',
+                      background: !campusFilter ? 'rgba(197,160,89,0.25)' : 'rgba(255,255,255,0.06)',
+                      color: !campusFilter ? '#C5A059' : '#B8B6B3',
+                      border: `1px solid ${!campusFilter ? 'rgba(197,160,89,0.4)' : 'rgba(255,255,255,0.1)'}`,
                     }}
                   >
-                    <span>{link.label || scopeLabel(link.scope_type)}</span>
-                    <ArrowRight className="h-4 w-4 opacity-50" />
-                  </Button>
-                  <button
-                    onClick={() => removeLink(link.id)}
-                    className="p-2 rounded-lg transition-colors hover:bg-red-500/10"
-                    style={{ color: '#B8B6B3' }}
-                    title="Desvincular"
-                  >
-                    <Trash2 className="h-4 w-4" />
+                    Todos
                   </button>
+                  {[...availableCampusIds].sort((a, b) => {
+                    if (a === '__global__') return -1;
+                    if (b === '__global__') return 1;
+                    return (campoNameMap[a] || '').localeCompare(campoNameMap[b] || '');
+                  }).map(id => (
+                    <button
+                      key={id}
+                      onClick={() => setCampusFilter(id)}
+                      className="px-3 py-1 rounded-full text-xs font-medium transition-all"
+                      style={{
+                        background: campusFilter === id ? 'rgba(197,160,89,0.25)' : 'rgba(255,255,255,0.06)',
+                        color: campusFilter === id ? '#C5A059' : '#B8B6B3',
+                        border: `1px solid ${campusFilter === id ? 'rgba(197,160,89,0.4)' : 'rgba(255,255,255,0.1)'}`,
+                      }}
+                    >
+                      {id === '__global__' ? 'Global' : (campoNameMap[id] || 'Campus')}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Grouped function links */}
+              {filteredGroups.map(([campusKey, campusLinks]) => (
+                <div key={campusKey} className="space-y-2">
+                  {/* Campus header - show when multiple groups exist */}
+                  {groupedLinks.length > 1 && (
+                    <div className="flex items-center gap-2 pt-1">
+                      {campusKey === '__global__' ? (
+                        <Globe className="h-3.5 w-3.5 shrink-0" style={{ color: '#C5A059' }} />
+                      ) : (
+                        <MapPin className="h-3.5 w-3.5 shrink-0" style={{ color: '#C5A059' }} />
+                      )}
+                      <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#C5A059' }}>
+                        {getCampusLabel(campusKey)}
+                      </span>
+                    </div>
+                  )}
+
+                  {campusLinks.map(link => (
+                    <div key={link.id} className="flex items-center gap-2">
+                      <Button
+                        onClick={() => activateLink(link)}
+                        className="flex-1 h-12 text-sm font-semibold justify-between gap-2"
+                        style={{
+                          background: 'rgba(255,255,255,0.08)',
+                          color: '#F4EDE4',
+                          borderRadius: '12px',
+                          border: '1px solid rgba(197,160,89,0.25)',
+                        }}
+                      >
+                        <span className="truncate text-left">{link.label || scopeLabel(link.scope_type)}</span>
+                        <div className="flex items-center gap-2 shrink-0">
+                          {/* Campus badge inline when only one group (no headers) */}
+                          {groupedLinks.length <= 1 && link.campo_id && campoNameMap[link.campo_id] && (
+                            <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: 'rgba(197,160,89,0.15)', color: '#C5A059' }}>
+                              {campoNameMap[link.campo_id]}
+                            </span>
+                          )}
+                          <ArrowRight className="h-4 w-4 opacity-50" />
+                        </div>
+                      </Button>
+                      <button
+                        onClick={() => removeLink(link.id)}
+                        className="p-2 rounded-lg transition-colors hover:bg-red-500/10"
+                        style={{ color: '#B8B6B3' }}
+                        title="Desvincular"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
                 </div>
               ))}
 
