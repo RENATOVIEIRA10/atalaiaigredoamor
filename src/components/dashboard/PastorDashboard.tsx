@@ -35,6 +35,7 @@ import { GlobalValidationPanel } from './GlobalValidationPanel';
 import { GlobalPastorDashboard } from './global/GlobalPastorDashboard';
 import { useRole } from '@/contexts/RoleContext';
 import { useCampo } from '@/contexts/CampoContext';
+import { RevelaShortcut } from './RevelaShortcut';
 
 export function PastorDashboard() {
   const { isPastorSeniorGlobal } = useRole();
@@ -109,7 +110,10 @@ function CampoPastorDashboard() {
         icon={Heart}
       />
 
-      <MissionVerse role="pastor" />
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <MissionVerse role="pastor" />
+        <RevelaShortcut />
+      </div>
 
       {/* 1. Visão Geral */}
       <section>

@@ -19,6 +19,7 @@ import { CellProfileSection } from './cellleader/CellProfileSection';
 import { DiscipuladoCellLeaderTab } from './discipulado/DiscipuladoCellLeaderTab';
 import { StatCard } from '@/components/ui/stat-card';
 import { Badge } from '@/components/ui/badge';
+import { RevelaShortcut } from './RevelaShortcut';
 
 export function CellLeaderDashboard() {
   const { data: celulas, isLoading } = useCelulas();
@@ -63,7 +64,10 @@ export function CellLeaderDashboard() {
         icon={Users}
       />
 
-      <MissionVerse role="celula_leader" />
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <MissionVerse role="celula_leader" />
+        <RevelaShortcut />
+      </div>
 
       {singleCell ? (
         <>

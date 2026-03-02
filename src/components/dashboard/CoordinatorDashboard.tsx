@@ -34,6 +34,7 @@ import { RadarSaudePanel } from './RadarSaudePanel';
 import { PlanejamentoCoordenadorPanel } from './coordenador/PlanejamentoCoordenadorPanel';
 import { RecomecoCoordTab } from './recomeco/RecomecoCoordTab';
 import { DiscipuladoCoordView } from './discipulado/DiscipuladoCoordView';
+import { RevelaShortcut } from './RevelaShortcut';
 
 export function CoordinatorDashboard() {
   const [searchParams] = useSearchParams();
@@ -120,7 +121,10 @@ export function CoordinatorDashboard() {
         }
       />
 
-      <MissionVerse role="coordenador" />
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <MissionVerse role="coordenador" />
+        <RevelaShortcut />
+      </div>
 
       <Card>
         <CardContent className="p-5">
