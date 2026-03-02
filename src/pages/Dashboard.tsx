@@ -20,8 +20,16 @@ const LiderRecomecoCentralDashboard = lazy(() => import('@/components/dashboard/
 const EventLeaderDashboard = lazy(() => import('@/components/dashboard/EventLeaderDashboard'));
 const CentralBatismoDashboard = lazy(() => import('@/components/dashboard/CentralBatismoDashboard'));
 
+// PWA wrappers for ministry dashboards
+const RecomecoCadastroPWA = lazy(() => import('@/pages/RecomecoCadastro'));
+
 export default function Dashboard() {
-  const { isAdmin, isRedeLeader, isCoordenador, isSupervisor, isPastor, isDemoInstitucional, isLiderRecomecoCentral, isLiderBatismoAclamacao, isCentralBatismoAclamacao, isPastorSeniorGlobal, isPastorDeCampo } = useRole();
+  const {
+    isAdmin, isRedeLeader, isCoordenador, isSupervisor, isPastor,
+    isDemoInstitucional, isLiderRecomecoCentral, isLiderBatismoAclamacao,
+    isCentralBatismoAclamacao, isPastorSeniorGlobal, isPastorDeCampo,
+    isRecomecoCadastro, isCentralCelulas,
+  } = useRole();
   const isPWA = useIsPWA();
   const isMobile = useIsMobile();
   const isPWAMobile = isPWA && isMobile;
@@ -29,6 +37,11 @@ export default function Dashboard() {
   const suspenseFallback = <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
 
   const renderDashboard = () => {
+    // ── Ministry scopes (checked first) ──
+    if (isRecomecoCadastro) {
+      // Recomeço Operador: use the dedicated page which already has PWA support
+      return <Suspense fallback={suspenseFallback}><RecomecoCadastroPWA /></Suspense>;
+    }
     if (isLiderBatismoAclamacao) {
       return <Suspense fallback={suspenseFallback}><EventLeaderDashboard /></Suspense>;
     }
@@ -38,6 +51,12 @@ export default function Dashboard() {
     if (isLiderRecomecoCentral) {
       return <Suspense fallback={suspenseFallback}><LiderRecomecoCentralDashboard /></Suspense>;
     }
+    if (isCentralCelulas) {
+      // Central Células Operador uses the same unified dashboard
+      return <Suspense fallback={suspenseFallback}><LiderRecomecoCentralDashboard /></Suspense>;
+    }
+
+    // ── Standard scopes ──
     if (isDemoInstitucional) return <InstitutionalDashboard />;
     if (isPastorSeniorGlobal) return <PastorDashboard />;
     if (isPastorDeCampo) return <PastorDashboard />;
