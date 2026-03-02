@@ -15,6 +15,7 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   pendente: { label: 'Pendente', color: 'bg-amber-500/10 text-amber-600 border-amber-500/20' },
   contatado: { label: 'Contatado', color: 'bg-blue-500/10 text-blue-600 border-blue-500/20' },
   integrado: { label: 'Integrado', color: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' },
+  convertido: { label: 'Membro', color: 'bg-green-500/10 text-green-600 border-green-500/20' },
   sem_resposta: { label: 'Sem resposta', color: 'bg-muted text-muted-foreground border-border' },
 };
 
