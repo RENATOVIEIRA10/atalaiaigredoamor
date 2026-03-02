@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Heart, FileText, Users, Menu, ClipboardCheck, Zap, History, Calendar } from 'lucide-react';
+import { LayoutDashboard, Heart, FileText, Users, Menu, ClipboardCheck, Zap, History, Calendar, UserPlus, ArrowRight, Droplets, ListChecks, Eye } from 'lucide-react';
 import { useIsPWA } from '@/hooks/useIsPWA';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useRole } from '@/contexts/RoleContext';
@@ -18,7 +18,12 @@ export function MobileBottomNav() {
   const isMobile = useIsMobile();
   const location = useLocation();
   const navigate = useNavigate();
-  const { isSupervisor, isCoordenador, isRedeLeader, isCelulaLeader, isAdmin, isPastor, isDemoInstitucional, isPastorSeniorGlobal, isPastorDeCampo } = useRole();
+  const {
+    isSupervisor, isCoordenador, isRedeLeader, isCelulaLeader, isAdmin, isPastor,
+    isDemoInstitucional, isPastorSeniorGlobal, isPastorDeCampo,
+    isRecomecoCadastro, isCentralCelulas, isLiderRecomecoCentral,
+    isLiderBatismoAclamacao, isCentralBatismoAclamacao,
+  } = useRole();
   const [menuOpen, setMenuOpen] = useState(false);
 
   // Only render in PWA + mobile
@@ -27,27 +32,54 @@ export function MobileBottomNav() {
   let navItems: NavItem[];
   const isCellLeaderOnly = isCelulaLeader && !isSupervisor && !isCoordenador && !isRedeLeader && !isAdmin && !isPastor;
 
-  if (isDemoInstitucional) {
-    // Demo institucional: only Dashboard
+  // ── Ministry scopes ──
+  if (isRecomecoCadastro) {
+    // Recomeço Operador: Cadastrar, Minhas, Tracking
+    navItems = [
+      { label: 'Cadastrar', icon: UserPlus, path: '/dashboard' },
+      { label: 'Minhas', icon: ListChecks, path: '/dashboard?tab=minhas' },
+      { label: 'Tracking', icon: Eye, path: '/dashboard?tab=acompanhamento' },
+    ];
+  } else if (isLiderRecomecoCentral) {
+    // Líder Recomeço + Central: Recomeço, Central, Funil, Auditoria
+    navItems = [
+      { label: 'Recomeço', icon: Heart, path: '/dashboard' },
+      { label: 'Central', icon: ArrowRight, path: '/dashboard?tab=central' },
+      { label: 'Funil', icon: Eye, path: '/dashboard?tab=acompanhamento' },
+    ];
+  } else if (isCentralCelulas) {
+    // Central de Células Operador: Fila, Acompanhamento
+    navItems = [
+      { label: 'Fila', icon: ArrowRight, path: '/dashboard' },
+      { label: 'Acompanhar', icon: Eye, path: '/dashboard?tab=acompanhamento' },
+    ];
+  } else if (isCentralBatismoAclamacao) {
+    // Central Batismo: Inscritos, Inscrever
+    navItems = [
+      { label: 'Inscritos', icon: Droplets, path: '/dashboard' },
+    ];
+  } else if (isLiderBatismoAclamacao) {
+    // Líder Batismo: Eventos, Inscritos
+    navItems = [
+      { label: 'Eventos', icon: Droplets, path: '/dashboard' },
+    ];
+  } else if (isDemoInstitucional) {
     navItems = [
       { label: 'Início', icon: LayoutDashboard, path: '/dashboard' },
     ];
   } else if (isPastorSeniorGlobal || isPastorDeCampo || isPastor) {
-    // Pastor: Início, Pulso, Ações
     navItems = [
       { label: 'Início', icon: LayoutDashboard, path: '/dashboard' },
       { label: 'Pulso', icon: Heart, path: '/dashboard?tab=pulso' },
       { label: 'Ações', icon: Zap, path: '/dashboard?tab=acoes' },
     ];
   } else if (isCellLeaderOnly) {
-    // Líder de Célula: Início, Ações, Histórico
     navItems = [
       { label: 'Início', icon: LayoutDashboard, path: '/dashboard' },
       { label: 'Ações', icon: Zap, path: '/dashboard?tab=acoes' },
       { label: 'Histórico', icon: History, path: '/dashboard?tab=historico' },
     ];
   } else if (isSupervisor) {
-    // Supervisor: Início, Plano, Ações, Histórico
     navItems = [
       { label: 'Início', icon: LayoutDashboard, path: '/dashboard' },
       { label: 'Plano', icon: Calendar, path: '/dashboard?tab=plano' },
@@ -55,14 +87,12 @@ export function MobileBottomNav() {
       { label: 'Histórico', icon: History, path: '/dashboard?tab=historico' },
     ];
   } else if (isCoordenador || isRedeLeader) {
-    // Coordenador / Líder de Rede: app enxuto com 3 abas + menu
     navItems = [
       { label: 'Início', icon: LayoutDashboard, path: '/dashboard' },
       { label: 'Pulso', icon: Heart, path: '/dashboard?tab=pulso' },
       { label: 'Ações', icon: Zap, path: '/dashboard?tab=acoes' },
     ];
   } else {
-    // Default (admin, pastor, etc.)
     navItems = [
       { label: 'Início', icon: LayoutDashboard, path: '/dashboard' },
       { label: 'Pulso', icon: Heart, path: '/dashboard?tab=pulso' },
@@ -76,7 +106,6 @@ export function MobileBottomNav() {
     if (queryPart) {
       return location.pathname === pathPart && location.search === `?${queryPart}`;
     }
-    // Active only when on exact path without query params
     return location.pathname === pathPart && !location.search;
   };
 
