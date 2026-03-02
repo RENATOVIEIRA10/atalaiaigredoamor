@@ -39,6 +39,7 @@ import { PlanejamentoRedePanel } from './rede/PlanejamentoRedePanel';
 import { SupervisoesRedeHistoryPanel } from './rede/SupervisoesRedeHistoryPanel';
 import { RecomecoRedeTab } from './recomeco/RecomecoRedeTab';
 import { DiscipuladoRedeView } from './discipulado/DiscipuladoRedeView';
+import { RevelaShortcut } from './RevelaShortcut';
 
 interface NetworkLeaderDashboardProps {
   initialRedeId?: string;
@@ -166,7 +167,10 @@ export function NetworkLeaderDashboard({ initialRedeId, onBack, breadcrumbLabel 
         }
       />
 
-      <MissionVerse role="rede_leader" />
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <MissionVerse role="rede_leader" />
+        <RevelaShortcut />
+      </div>
 
       <Card>
         <CardContent className="p-5">

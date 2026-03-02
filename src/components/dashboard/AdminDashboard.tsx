@@ -19,6 +19,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { StatCard } from '@/components/ui/stat-card';
 import { MissionVerse } from './MissionVerse';
 import { useDemoScope } from '@/hooks/useDemoScope';
+import { RevelaShortcut } from './RevelaShortcut';
 
 export function AdminDashboard() {
   const { toast } = useToast();
@@ -118,7 +119,10 @@ export function AdminDashboard() {
         }
       />
 
-      <MissionVerse role="admin" />
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <MissionVerse role="admin" />
+        <RevelaShortcut />
+      </div>
 
       <div className="grid gap-4 grid-cols-2 lg:grid-cols-5">
         <StatCard icon={Network} label="Redes" value={redes?.length || 0} />

@@ -18,6 +18,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { MissionVerse } from './MissionVerse';
 import { EmptyState } from '@/components/ui/empty-state';
 import { useRole } from '@/contexts/RoleContext';
+import { RevelaShortcut } from './RevelaShortcut';
 
 export function SupervisorDashboard() {
   const { data: coordenacoes, isLoading: coordenacoesLoading } = useCoordenacoes();
@@ -61,7 +62,10 @@ export function SupervisorDashboard() {
         icon={ClipboardCheck}
       />
 
-      <MissionVerse role="supervisor" />
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <MissionVerse role="supervisor" />
+        <RevelaShortcut />
+      </div>
 
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
