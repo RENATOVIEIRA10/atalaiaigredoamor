@@ -15,6 +15,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { DemoBar } from "@/components/demo/DemoBar";
 import { UpdateBanner } from "@/components/pwa/UpdateBanner";
 import { useVersionCheck } from "@/hooks/useVersionCheck";
+import { useVersionGate } from "@/hooks/useVersionGate";
 
 // Eager: landing + onboarding + auth (first paint)
 import Home from "./pages/Home";
@@ -55,6 +56,7 @@ const LazyFallback = () => (
 );
 
 function AppInner() {
+  useVersionGate();
   useVersionCheck();
   return (
     <>
