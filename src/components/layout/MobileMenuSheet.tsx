@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle
 } from '@/components/ui/sheet';
-import { GitBranch, Settings, Network, FolderTree, LogOut, Moon, Heart, Eye, Home, FlaskConical, FileText, Activity, RefreshCw, PlayCircle, Repeat } from 'lucide-react';
+import { GitBranch, Settings, Network, FolderTree, LogOut, Moon, Heart, Eye, Home, FlaskConical, RefreshCw, PlayCircle, Repeat } from 'lucide-react';
 import { useServiceWorkerUpdate } from '@/hooks/useServiceWorkerUpdate';
 import { useRole } from '@/contexts/RoleContext';
 import { useDemoMode } from '@/contexts/DemoModeContext';
@@ -36,7 +36,7 @@ export function MobileMenuSheet({ open, onOpenChange }: MobileMenuSheetProps) {
     }
   };
 
-  const showAdminItems = isAdmin || isRedeLeader || isDemoActive;
+  // showAdminItems removed — menu items are now role-gated explicitly
   const isCellLeaderOnly = isCelulaLeader && !isSupervisor && !isCoordenador && !isRedeLeader && !isAdmin && !isPastor;
 
   const goTo = (path: string) => {
@@ -92,42 +92,42 @@ export function MobileMenuSheet({ open, onOpenChange }: MobileMenuSheetProps) {
               </>
             )}
 
-            {/* Supervisor PWA: minimal menu items */}
+            {/* PWA menu items: only show routes that are NOT blocked for each role */}
             {isSupervisor ? (
+              // Supervisor PWA: organograma is blocked, so no nav items needed
+              <></>
+            ) : isCellLeaderOnly ? (
+              // Cell leader PWA: organograma is allowed
               <>
                 <MenuButton icon={GitBranch} label="Organograma" onClick={() => goTo('/organograma')} />
               </>
             ) : (isCoordenador || isRedeLeader) ? (
+              // Coord / Rede leader PWA: organograma + células allowed
               <>
                 <MenuButton icon={GitBranch} label="Organograma" onClick={() => goTo('/organograma')} />
                 <MenuButton icon={Home} label="Células" onClick={() => goTo('/celulas')} />
               </>
-            ) : isCellLeaderOnly ? (
+            ) : (isPastor || isPastorSeniorGlobal || isPastorDeCampo) ? (
+              // Pastor PWA: organograma + células (no admin tools)
               <>
                 <MenuButton icon={GitBranch} label="Organograma" onClick={() => goTo('/organograma')} />
+                <MenuButton icon={Home} label="Células" onClick={() => goTo('/celulas')} />
+              </>
+            ) : isAdmin ? (
+              // Admin: full access
+              <>
+                <MenuButton icon={GitBranch} label="Organograma" onClick={() => goTo('/organograma')} />
+                <MenuButton icon={Home} label="Células" onClick={() => goTo('/celulas')} />
+                <div className="border-t border-border/30 my-2" />
+                <MenuButton icon={Network} label="Redes" onClick={() => goTo('/redes')} />
+                <MenuButton icon={FolderTree} label="Coordenações" onClick={() => goTo('/coordenacoes')} />
+                <MenuButton icon={Settings} label="Configurações" onClick={() => goTo('/configuracoes')} />
+                <MenuButton icon={FlaskConical} label="Ferramentas" onClick={() => goTo('/ferramentas-teste')} />
               </>
             ) : (
+              // Default fallback: basic items only
               <>
                 <MenuButton icon={GitBranch} label="Organograma" onClick={() => goTo('/organograma')} />
-                <MenuButton icon={Home} label="Células" onClick={() => goTo('/celulas')} />
-
-                {isCellLeaderOnly && (
-                  <MenuButton icon={Activity} label="Dados" onClick={() => goTo('/dados')} />
-                )}
-
-                {(showAdminItems || isCoordenador) && (
-                  <>
-                    <div className="border-t border-border/30 my-2" />
-                    {showAdminItems && (
-                      <>
-                        <MenuButton icon={Network} label="Redes" onClick={() => goTo('/redes')} />
-                        <MenuButton icon={FolderTree} label="Coordenações" onClick={() => goTo('/coordenacoes')} />
-                        <MenuButton icon={Settings} label="Configurações" onClick={() => goTo('/configuracoes')} />
-                        <MenuButton icon={FlaskConical} label="Ferramentas" onClick={() => goTo('/ferramentas-teste')} />
-                      </>
-                    )}
-                  </>
-                )}
               </>
             )}
 
@@ -135,14 +135,12 @@ export function MobileMenuSheet({ open, onOpenChange }: MobileMenuSheetProps) {
             <MenuButton icon={PlayCircle} label="Manual do Usuário" onClick={() => goTo('/manual-usuario')} />
             <div className="border-t border-border/30 my-2" />
 
-            {/* Demo mode shortcut for non-admin path (when already in demo) */}
+            {/* Demo mode: open admin panel to switch vision */}
             {isDemoActive && !isAdmin && (
               <MenuButton
                 icon={Eye}
                 label="Trocar Visão"
-                onClick={() => {
-                  onOpenChange(false);
-                }}
+                onClick={handleOpenAdminPanel}
                 className="text-amber-600 dark:text-amber-400"
               />
             )}
