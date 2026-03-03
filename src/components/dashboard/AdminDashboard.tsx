@@ -4,7 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, UserCheck, Heart, UserPlus, Baby, Loader2, Network, FileSpreadsheet, LayoutGrid, Home, GitBranch } from 'lucide-react';
+import { Users, UserCheck, Heart, UserPlus, Baby, Loader2, Network, FileSpreadsheet, LayoutGrid, Home, GitBranch, AlertTriangle } from 'lucide-react';
 import { useRedes } from '@/hooks/useRedes';
 import { useCoordenacoes } from '@/hooks/useCoordenacoes';
 import { useCelulas } from '@/hooks/useCelulas';
@@ -18,6 +18,7 @@ import { ptBR } from 'date-fns/locale';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatCard } from '@/components/ui/stat-card';
 import { MissionVerse } from './MissionVerse';
+import { MissionBlock } from './MissionBlock';
 import { useDemoScope } from '@/hooks/useDemoScope';
 import { RevelaShortcut } from './RevelaShortcut';
 import { DashboardScopeBanner } from './DashboardScopeBanner';
@@ -94,12 +95,13 @@ export function AdminDashboard() {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
+    return <div className="flex items-center justify-center h-64"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
   }
+
+  // Calculate cells without reports
+  const totalCelulas = celulas?.length || 0;
+  const celulasComRelatorio = currentReports.length;
+  const celulasPendentes = totalCelulas - celulasComRelatorio;
 
   return (
     <div className="space-y-6">
@@ -126,19 +128,32 @@ export function AdminDashboard() {
         <RevelaShortcut />
       </div>
 
-      <div className="grid gap-4 grid-cols-2 lg:grid-cols-5">
-        <StatCard icon={Network} label="Redes" value={redes?.length || 0} />
-        <StatCard icon={LayoutGrid} label="Coordenações" value={coordenacoes?.length || 0} />
-        <StatCard icon={Home} label="Células" value={celulas?.length || 0} />
-        <StatCard icon={Users} label="Membros" value={grandTotals.members_present} subtitle="semana" />
-        <StatCard icon={UserPlus} label="Visitantes" value={grandTotals.visitors} subtitle="semana" />
-      </div>
+      {/* BLOCO 1 — O que precisa da minha atenção */}
+      <MissionBlock icon={AlertTriangle} title="O que precisa da minha atenção">
+        <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
+          <StatCard icon={AlertTriangle} label="Relatórios pendentes" value={celulasPendentes > 0 ? celulasPendentes : 0} subtitle="células sem relatório" className={celulasPendentes > 0 ? 'border-amber-500/30' : ''} />
+          <StatCard icon={Home} label="Células" value={totalCelulas} />
+        </div>
+      </MissionBlock>
 
-      <div className="grid gap-4 grid-cols-3">
-        <StatCard icon={UserCheck} label="Líderes Trein." value={grandTotals.leaders_in_training} subtitle="semana" />
-        <StatCard icon={Heart} label="Discipulados" value={grandTotals.discipleships} subtitle="semana" />
-        <StatCard icon={Baby} label="Crianças" value={grandTotals.children} subtitle="semana" />
-      </div>
+      {/* BLOCO 2 — Movimento do Reino */}
+      <MissionBlock icon={GitBranch} title="Movimento do Reino">
+        <div className="grid gap-4 grid-cols-2 lg:grid-cols-5">
+          <StatCard icon={Network} label="Redes" value={redes?.length || 0} />
+          <StatCard icon={LayoutGrid} label="Coordenações" value={coordenacoes?.length || 0} />
+          <StatCard icon={Users} label="Membros" value={grandTotals.members_present} subtitle="semana" />
+          <StatCard icon={UserPlus} label="Visitantes" value={grandTotals.visitors} subtitle="semana" />
+        </div>
+      </MissionBlock>
+
+      {/* BLOCO 3 — Saúde e Cuidado */}
+      <MissionBlock icon={Heart} title="Saúde e Cuidado">
+        <div className="grid gap-4 grid-cols-3">
+          <StatCard icon={UserCheck} label="Líderes Trein." value={grandTotals.leaders_in_training} subtitle="semana" />
+          <StatCard icon={Heart} label="Discipulados" value={grandTotals.discipleships} subtitle="semana" />
+          <StatCard icon={Baby} label="Crianças" value={grandTotals.children} subtitle="semana" />
+        </div>
+      </MissionBlock>
 
       <Tabs defaultValue="redes" className="space-y-4">
         <TabsList>

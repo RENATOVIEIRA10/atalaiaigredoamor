@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, UserCheck, Heart, UserPlus, Baby, Loader2, Network, FileSpreadsheet, ChevronDown, ChevronUp, Eye, ClipboardCheck, Image, Sparkles, History, GitBranch, User, Activity, Mail, Calendar, DoorOpen, BookOpen, ArrowLeft } from 'lucide-react';
+import { Users, UserCheck, Heart, UserPlus, Baby, Loader2, Network, FileSpreadsheet, ChevronDown, ChevronUp, Eye, ClipboardCheck, Image, Sparkles, History, GitBranch, User, Activity, Mail, Calendar, DoorOpen, BookOpen, ArrowLeft, AlertTriangle } from 'lucide-react';
 import { useRedes } from '@/hooks/useRedes';
 import { useCoordenacoes } from '@/hooks/useCoordenacoes';
 import { useCelulas } from '@/hooks/useCelulas';
@@ -30,6 +30,7 @@ import { ptBR } from 'date-fns/locale';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatCard } from '@/components/ui/stat-card';
 import { MissionVerse } from './MissionVerse';
+import { MissionBlock } from './MissionBlock';
 import { EmptyState } from '@/components/ui/empty-state';
 import { useRole } from '@/contexts/RoleContext';
 import { PulsoRedeSection } from './PulsoRedeSection';
@@ -44,7 +45,6 @@ import { DashboardScopeBanner } from './DashboardScopeBanner';
 
 interface NetworkLeaderDashboardProps {
   initialRedeId?: string;
-  /** When set (e.g. from Global drill-down), filters redes to this campus WITHOUT mutating CampoContext */
   overrideCampoId?: string;
   onBack?: () => void;
   breadcrumbLabel?: string;
@@ -58,7 +58,6 @@ export function NetworkLeaderDashboard({ initialRedeId, overrideCampoId, onBack,
   const { data: coordenacoes } = useCoordenacoes();
   const { data: celulas } = useCelulas();
   
-  // When overrideCampoId is set (drill-down from Global view), filter redes to that campus only
   const redes = overrideCampoId
     ? (allRedes || []).filter(r => r.campo_id === overrideCampoId)
     : allRedes;
@@ -109,7 +108,6 @@ export function NetworkLeaderDashboard({ initialRedeId, overrideCampoId, onBack,
 
   const userRedes = redes || [];
   
-  // Auto-select if scoped or if initialRedeId is provided
   if (!selectedRede && userRedes.length > 0) {
     if (initialRedeId) {
       setSelectedRede(initialRedeId);
@@ -143,6 +141,11 @@ export function NetworkLeaderDashboard({ initialRedeId, overrideCampoId, onBack,
   });
 
   const selectedRedeData = userRedes.find(r => r.id === selectedRede);
+
+  // Calculate pending cells
+  const totalRedeCelulas = redeCelulas.length;
+  const celulasComRelatorio = currentReports.length;
+  const celulasPendentes = totalRedeCelulas - celulasComRelatorio;
 
   return (
     <div className="space-y-6">
@@ -226,32 +229,48 @@ export function NetworkLeaderDashboard({ initialRedeId, overrideCampoId, onBack,
         <>
           <LeaderBirthdayAlert redeId={selectedRede} />
 
-          <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
-            <StatCard icon={Users} label="Membros" value={totals.members_present} />
-            <StatCard icon={UserCheck} label="Líd. Treino" value={totals.leaders_in_training} />
-            <StatCard icon={Heart} label="Discipulados" value={totals.discipleships} />
-            <StatCard icon={UserPlus} label="Visitantes" value={totals.visitors} />
-            <StatCard icon={Baby} label="Crianças" value={totals.children} />
-            <StatCard icon={FileSpreadsheet} label="Células" value={currentReports.length} />
-          </div>
+          {/* BLOCO 1 — O que precisa da minha atenção */}
+          <MissionBlock icon={AlertTriangle} title="O que precisa da minha atenção">
+            <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
+              <StatCard icon={FileSpreadsheet} label="Relatórios pendentes" value={celulasPendentes > 0 ? celulasPendentes : 0} subtitle="células sem relatório" className={celulasPendentes > 0 ? 'border-amber-500/30' : ''} />
+              <StatCard icon={ClipboardCheck} label="Supervisões" value={supervisoes?.length || 0} subtitle="registradas" />
+              <StatCard icon={FileSpreadsheet} label="Células ativas" value={totalRedeCelulas} />
+            </div>
+          </MissionBlock>
 
-          <Tabs defaultValue={urlTab === 'pulso' ? 'pulso' : 'coordenacoes'} className="space-y-4">
+          {/* BLOCO 2 — Movimento do Reino */}
+          <MissionBlock icon={GitBranch} title="Movimento do Reino">
+            <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
+              <StatCard icon={Users} label="Membros" value={totals.members_present} />
+              <StatCard icon={UserPlus} label="Visitantes" value={totals.visitors} />
+              <StatCard icon={UserCheck} label="Líd. Treino" value={totals.leaders_in_training} />
+              <StatCard icon={Baby} label="Crianças" value={totals.children} />
+            </div>
+          </MissionBlock>
+
+          {/* BLOCO 3 — Saúde e Cuidado */}
+          <MissionBlock icon={Heart} title="Saúde e Cuidado">
+            <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
+              <StatCard icon={Heart} label="Discipulados" value={totals.discipleships} />
+            </div>
+          </MissionBlock>
+
+          <Tabs defaultValue={urlTab === 'pulso' ? 'atencao' : 'atencao'} className="space-y-4">
             <TabsList className="flex flex-wrap h-auto gap-1">
-              <TabsTrigger value="pulso" className="gap-1.5"><Activity className="h-4 w-4" />Pulso</TabsTrigger>
+              <TabsTrigger value="atencao" className="gap-1.5"><Activity className="h-4 w-4" />Atenção</TabsTrigger>
               <TabsTrigger value="saude" className="gap-1.5"><Heart className="h-4 w-4" />Saúde</TabsTrigger>
-              <TabsTrigger value="planejamento" className="gap-1.5"><Calendar className="h-4 w-4" />Planejamento</TabsTrigger>
               <TabsTrigger value="supervisoes-historico" className="gap-1.5"><ClipboardCheck className="h-4 w-4" />Supervisões</TabsTrigger>
+              <TabsTrigger value="planejamento" className="gap-1.5"><Calendar className="h-4 w-4" />Planejamento</TabsTrigger>
               <TabsTrigger value="coordenacoes" className="gap-1.5"><Network className="h-4 w-4" />Coordenações</TabsTrigger>
-              <TabsTrigger value="multiplicacoes" className="gap-1.5"><GitBranch className="h-4 w-4" />Multiplicação</TabsTrigger>
-              <TabsTrigger value="multiplicacoes-visual" className="gap-1.5"><GitBranch className="h-4 w-4" />Visual</TabsTrigger>
+              <TabsTrigger value="movimento" className="gap-1.5"><GitBranch className="h-4 w-4" />Movimento</TabsTrigger>
+              <TabsTrigger value="recomeco" className="gap-1.5"><DoorOpen className="h-4 w-4" />Recomeço</TabsTrigger>
+              <TabsTrigger value="discipulado" className="gap-1.5"><BookOpen className="h-4 w-4" />Discipulado</TabsTrigger>
               <TabsTrigger value="historico" className="gap-1.5"><History className="h-4 w-4" />Histórico</TabsTrigger>
               <TabsTrigger value="insights" className="gap-1.5"><Sparkles className="h-4 w-4" />IA</TabsTrigger>
               <TabsTrigger value="fotos" className="gap-1.5"><Image className="h-4 w-4" />Fotos</TabsTrigger>
-              <TabsTrigger value="recomeco" className="gap-1.5"><DoorOpen className="h-4 w-4" />Recomeço</TabsTrigger>
-              <TabsTrigger value="discipulado" className="gap-1.5"><BookOpen className="h-4 w-4" />Discipulado</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="pulso">
+            <TabsContent value="atencao">
               <PulsoRedeSection scopeType="rede" scopeId={selectedRede} title="Pulso da Rede" />
             </TabsContent>
 
@@ -267,8 +286,13 @@ export function NetworkLeaderDashboard({ initialRedeId, overrideCampoId, onBack,
               <SupervisoesRedeHistoryPanel redeId={selectedRede} />
             </TabsContent>
 
-            <TabsContent value="multiplicacoes"><MultiplicacoesTab /></TabsContent>
-            <TabsContent value="multiplicacoes-visual"><MultiplicacoesVisual celulas={celulas || []} /></TabsContent>
+            <TabsContent value="movimento">
+              <div className="space-y-6">
+                <MultiplicacoesTab />
+                <MultiplicacoesVisual celulas={celulas || []} />
+              </div>
+            </TabsContent>
+
             <TabsContent value="insights"><AIInsightsPanel reports={currentReports} periodLabel={formatDateRangeDisplay()} context="rede" /></TabsContent>
 
             <TabsContent value="coordenacoes">
