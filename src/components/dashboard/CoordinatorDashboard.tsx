@@ -35,6 +35,7 @@ import { PlanejamentoCoordenadorPanel } from './coordenador/PlanejamentoCoordena
 import { RecomecoCoordTab } from './recomeco/RecomecoCoordTab';
 import { DiscipuladoCoordView } from './discipulado/DiscipuladoCoordView';
 import { RevelaShortcut } from './RevelaShortcut';
+import { DashboardScopeBanner } from './DashboardScopeBanner';
 
 export function CoordinatorDashboard() {
   const [searchParams] = useSearchParams();
@@ -105,6 +106,7 @@ export function CoordinatorDashboard() {
 
   return (
     <div className="space-y-6">
+      <DashboardScopeBanner />
       <PageHeader
         title="Dashboard do Coordenador"
         subtitle={`Período: ${formatDateRangeDisplay()}`}

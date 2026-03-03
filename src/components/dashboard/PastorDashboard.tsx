@@ -36,6 +36,7 @@ import { GlobalPastorDashboard } from './global/GlobalPastorDashboard';
 import { useRole } from '@/contexts/RoleContext';
 import { useCampo } from '@/contexts/CampoContext';
 import { RevelaShortcut } from './RevelaShortcut';
+import { DashboardScopeBanner } from './DashboardScopeBanner';
 
 export function PastorDashboard() {
   const { isPastorSeniorGlobal } = useRole();
@@ -104,6 +105,7 @@ function CampoPastorDashboard() {
 
   return (
     <div className="space-y-8">
+      <DashboardScopeBanner />
       <PageHeader
         title="Visão Pastoral"
         subtitle="Saúde espiritual e cuidado do rebanho"
