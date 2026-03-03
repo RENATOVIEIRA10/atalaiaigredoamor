@@ -1,4 +1,6 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
+import { GlobalValidationPanel } from '../GlobalValidationPanel';
+import { IntegrityAuditPanel } from '../IntegrityAuditPanel';
 import { Loader2, Globe, Church, Users, Home, GitBranch, Heart, FlaskConical, Eye, BookOpen, Calendar, Sparkles, ShieldAlert, TrendingUp, UserCheck, ArrowRight, Award } from 'lucide-react';
 import { useGlobalKingdomData, CampusKPI } from '@/hooks/useGlobalKingdomData';
 import { useGlobalKingdomFunnel } from '@/hooks/useGlobalKingdomFunnel';
@@ -198,6 +200,14 @@ function KingdomView({ campusData, onSelectCampus }: { campusData: CampusKPI[]; 
       {/* 8️⃣ BRIEFING */}
       <Section title="8. Briefing Pastoral" subtitle="Resumo automático para reunião" icon="📋">
         <BriefingSection campusData={campusData} />
+      </Section>
+
+      {/* 9️⃣ VALIDAÇÃO & AUDITORIA */}
+      <Section title="9. Validação & Auditoria" subtitle="Consistência de dados entre campus" icon="🛡️">
+        <div className="space-y-6">
+          <GlobalValidationPanel />
+          <IntegrityAuditPanel />
+        </div>
       </Section>
     </div>
   );

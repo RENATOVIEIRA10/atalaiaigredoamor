@@ -8,6 +8,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { CampoSelector } from '@/components/campo/CampoSelector';
+import { CampusBadge } from './CampusBadge';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -56,6 +57,9 @@ export function AppLayout({ children, title }: AppLayoutProps) {
               {title}
             </h1>
           )}
+          <div className="ml-auto">
+            <CampusBadge compact />
+          </div>
         </header>
 
         {/* PWA scrollable content area */}
@@ -95,7 +99,8 @@ export function AppLayout({ children, title }: AppLayoutProps) {
               </h1>
             </>
           )}
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-2">
+            <CampusBadge />
             <CampoSelector />
           </div>
         </header>
