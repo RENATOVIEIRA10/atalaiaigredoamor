@@ -1,7 +1,7 @@
 import { useState, lazy, Suspense } from 'react';
 import { GlobalValidationPanel } from '../GlobalValidationPanel';
 import { IntegrityAuditPanel } from '../IntegrityAuditPanel';
-import { Loader2, Globe, Church, Users, Home, GitBranch, Heart, FlaskConical, Eye, BookOpen, Calendar, Sparkles, ShieldAlert, TrendingUp, UserCheck, ArrowRight, Award } from 'lucide-react';
+import { Loader2, Globe, Church, Users, Home, GitBranch, Heart, FlaskConical, Eye, BookOpen, Calendar, Sparkles, ShieldAlert, TrendingUp, UserCheck, ArrowRight, Award, AlertTriangle } from 'lucide-react';
 import { useGlobalKingdomData, CampusKPI } from '@/hooks/useGlobalKingdomData';
 import { useGlobalKingdomFunnel } from '@/hooks/useGlobalKingdomFunnel';
 import { useGlobalKingdomAgenda } from '@/hooks/useGlobalKingdomAgenda';
@@ -12,6 +12,7 @@ import { KingdomCampusCard } from './KingdomCampusCard';
 import { CampusDetailView } from './CampusDetailView';
 import { PageHeader } from '@/components/ui/page-header';
 import { MissionVerse } from '../MissionVerse';
+import { MissionBlock } from '../MissionBlock';
 import { StatCard } from '@/components/ui/stat-card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -47,14 +48,9 @@ interface DrillState {
 export function GlobalPastorDashboard() {
   const [drill, setDrill] = useState<DrillState>({ level: 'kingdom' });
   const { data: campusData, isLoading } = useGlobalKingdomData(false);
-  // NO useEffect that mutates CampoContext — drill-down uses local state only
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
+    return <div className="flex items-center justify-center h-64"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
   }
 
   if (drill.level === 'rede' && drill.campoId && drill.redeId) {
@@ -62,21 +58,11 @@ export function GlobalPastorDashboard() {
       <div className="space-y-4">
         <Breadcrumb>
           <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink className="cursor-pointer" onClick={() => setDrill({ level: 'kingdom' })}>
-                Global
-              </BreadcrumbLink>
-            </BreadcrumbItem>
+            <BreadcrumbItem><BreadcrumbLink className="cursor-pointer" onClick={() => setDrill({ level: 'kingdom' })}>Global</BreadcrumbLink></BreadcrumbItem>
             <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbLink className="cursor-pointer" onClick={() => setDrill({ level: 'campus', campoId: drill.campoId, campoNome: drill.campoNome })}>
-                {drill.campoNome}
-              </BreadcrumbLink>
-            </BreadcrumbItem>
+            <BreadcrumbItem><BreadcrumbLink className="cursor-pointer" onClick={() => setDrill({ level: 'campus', campoId: drill.campoId, campoNome: drill.campoNome })}>{drill.campoNome}</BreadcrumbLink></BreadcrumbItem>
             <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>{drill.redeNome}</BreadcrumbPage>
-            </BreadcrumbItem>
+            <BreadcrumbItem><BreadcrumbPage>{drill.redeNome}</BreadcrumbPage></BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
         <NetworkLeaderDashboard
@@ -94,28 +80,16 @@ export function GlobalPastorDashboard() {
       <div className="space-y-4">
         <Breadcrumb>
           <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink className="cursor-pointer" onClick={() => setDrill({ level: 'kingdom' })}>
-                Global
-              </BreadcrumbLink>
-            </BreadcrumbItem>
+            <BreadcrumbItem><BreadcrumbLink className="cursor-pointer" onClick={() => setDrill({ level: 'kingdom' })}>Global</BreadcrumbLink></BreadcrumbItem>
             <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>{drill.campoNome}</BreadcrumbPage>
-            </BreadcrumbItem>
+            <BreadcrumbItem><BreadcrumbPage>{drill.campoNome}</BreadcrumbPage></BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
         <CampusDetailView
           campoId={drill.campoId}
           campoNome={drill.campoNome!}
           onBack={() => setDrill({ level: 'kingdom' })}
-          onSelectRede={(redeId, redeNome) => setDrill({
-            level: 'rede',
-            campoId: drill.campoId,
-            campoNome: drill.campoNome,
-            redeId,
-            redeNome,
-          })}
+          onSelectRede={(redeId, redeNome) => setDrill({ level: 'rede', campoId: drill.campoId, campoNome: drill.campoNome, redeId, redeNome })}
         />
       </div>
     );
@@ -125,7 +99,7 @@ export function GlobalPastorDashboard() {
 }
 
 // ============================================================
-// KINGDOM VIEW — All 8 sections
+// KINGDOM VIEW — Reorganized into 3 mission blocks
 // ============================================================
 
 function KingdomView({ campusData, onSelectCampus }: { campusData: CampusKPI[]; onSelectCampus: (id: string, nome: string) => void }) {
@@ -151,70 +125,48 @@ function KingdomView({ campusData, onSelectCampus }: { campusData: CampusKPI[]; 
         <StatCard icon={GitBranch} label="Engajamento" value={`${avgEngajamento}%`} subtitle="relatórios na semana" />
       </div>
 
-      {/* 1️⃣ MAPA DO REINO */}
-      <Section title="1. Mapa do Reino" subtitle="Visão por campus" icon="📊">
-        <KingdomMapTable campusData={campusData} onSelect={onSelectCampus} />
-      </Section>
-
-      {/* 2️⃣ ATENÇÃO PASTORAL */}
-      <Section title="2. Atenção Pastoral" subtitle="Alertas priorizados" icon="🙏">
+      {/* ═══ BLOCO 1 — O que precisa da minha atenção ═══ */}
+      <MissionBlock icon={AlertTriangle} title="O que precisa da minha atenção">
         <PastoralAlertsSection campusData={campusData} />
-      </Section>
+        <div className="mt-4">
+          <SupervisionGovernanceSection />
+        </div>
+      </MissionBlock>
 
-      {/* 3️⃣ MOVIMENTO DO REINO */}
-      <Section title="3. Movimento do Reino" subtitle="Tendências das últimas 8 semanas" icon="📈">
-        <TrendsSection />
-      </Section>
+      {/* ═══ BLOCO 2 — Movimento do Reino ═══ */}
+      <MissionBlock icon={GitBranch} title="Movimento do Reino">
+        <KingdomMapTable campusData={campusData} onSelect={onSelectCampus} />
+        <div className="mt-4">
+          <TrendsSection />
+        </div>
+        <div className="mt-4">
+          <FunnelSection />
+        </div>
+        <div className="mt-4">
+          <AgendaSection />
+        </div>
+      </MissionBlock>
 
-      {/* 4️⃣ POTENCIAIS & CUIDADO */}
-      <Section title="4. Potenciais & Cuidado" subtitle="Ranking pastoral" icon="⭐">
+      {/* ═══ BLOCO 3 — Saúde e Cuidado ═══ */}
+      <MissionBlock icon={Heart} title="Saúde e Cuidado">
         <PastoralRankingSection />
-      </Section>
+        <div className="mt-4">
+          <BriefingSection campusData={campusData} />
+        </div>
+      </MissionBlock>
 
-      {/* 5️⃣ GOVERNANÇA DE SUPERVISÃO */}
-      <Section title="5. Governança de Supervisão" subtitle="Cobertura bimestral por campus" icon="👁️">
-        <SupervisionGovernanceSection />
-      </Section>
-
-      {/* 6️⃣ FUNIL DO ALTAR À CÉLULA */}
-      <Section title="6. Do Altar à Célula" subtitle="Pipeline unificado" icon="🔄">
-        <FunnelSection />
-      </Section>
-
-      {/* 7️⃣ AGENDA DO REINO */}
-      <Section title="7. Agenda do Reino" subtitle="Próximos 14 dias" icon="📅">
-        <AgendaSection />
-      </Section>
-
-      {/* 8️⃣ BRIEFING */}
-      <Section title="8. Briefing Pastoral" subtitle="Resumo automático para reunião" icon="📋">
-        <BriefingSection campusData={campusData} />
-      </Section>
-
-      {/* 9️⃣ VALIDAÇÃO & AUDITORIA */}
-      <Section title="9. Validação & Auditoria" subtitle="Consistência de dados entre campus" icon="🛡️">
+      {/* Validação & Auditoria */}
+      <section>
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-1 flex items-center gap-2">
+          <span>🛡️</span> Validação & Auditoria
+        </h2>
+        <p className="text-xs text-muted-foreground mb-4">Consistência de dados entre campus</p>
         <div className="space-y-6">
           <GlobalValidationPanel />
           <IntegrityAuditPanel />
         </div>
-      </Section>
+      </section>
     </div>
-  );
-}
-
-// ============================================================
-// SECTION WRAPPER
-// ============================================================
-
-function Section({ title, subtitle, icon, children }: { title: string; subtitle: string; icon: string; children: React.ReactNode }) {
-  return (
-    <section>
-      <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-1 flex items-center gap-2">
-        <span>{icon}</span> {title}
-      </h2>
-      <p className="text-xs text-muted-foreground mb-4">{subtitle}</p>
-      {children}
-    </section>
   );
 }
 
@@ -249,10 +201,7 @@ function KingdomMapTable({ campusData, onSelect }: { campusData: CampusKPI[]; on
                 return (
                   <TableRow key={c.campo_id} className="cursor-pointer hover:bg-muted/30" onClick={() => onSelect(c.campo_id, c.campo_nome)}>
                     <TableCell className="font-medium">
-                      <div className="flex items-center gap-2">
-                        <Church className="h-3.5 w-3.5 text-primary" />
-                        {c.campo_nome}
-                      </div>
+                      <div className="flex items-center gap-2"><Church className="h-3.5 w-3.5 text-primary" />{c.campo_nome}</div>
                     </TableCell>
                     <TableCell className="text-center tabular-nums">{c.celulas_ativas}</TableCell>
                     <TableCell className="text-center tabular-nums">{c.membros_total}</TableCell>
@@ -263,14 +212,10 @@ function KingdomMapTable({ campusData, onSelect }: { campusData: CampusKPI[]; on
                     </TableCell>
                     <TableCell className="text-center tabular-nums">{c.novas_vidas_total}</TableCell>
                     <TableCell className="text-center tabular-nums">{c.novas_vidas_convertidas}</TableCell>
-                    <TableCell className="text-center">
-                      <Badge variant="secondary" className="text-xs">{supPct}%</Badge>
-                    </TableCell>
+                    <TableCell className="text-center"><Badge variant="secondary" className="text-xs">{supPct}%</Badge></TableCell>
                     <TableCell className="text-center tabular-nums">{c.disc_encontros}</TableCell>
                     <TableCell className="text-center tabular-nums">{c.marcos_batismo}</TableCell>
-                    <TableCell>
-                      <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                    </TableCell>
+                    <TableCell><ArrowRight className="h-4 w-4 text-muted-foreground" /></TableCell>
                   </TableRow>
                 );
               })}
@@ -286,57 +231,33 @@ function KingdomMapTable({ campusData, onSelect }: { campusData: CampusKPI[]; on
 }
 
 // ============================================================
-// 2. ATENÇÃO PASTORAL
+// ATENÇÃO PASTORAL
 // ============================================================
 
 function PastoralAlertsSection({ campusData }: { campusData: CampusKPI[] }) {
   const alerts: { title: string; description: string; severity: 'warning' | 'critical'; count: number }[] = [];
 
-  // Cells without reports
   const totalSemRelatorio = campusData.reduce((s, c) => s + (c.celulas_ativas - c.celulas_com_relatorio), 0);
   if (totalSemRelatorio > 0) {
-    alerts.push({
-      title: 'Relatórios pendentes',
-      description: `${totalSemRelatorio} células sem relatório esta semana`,
-      severity: totalSemRelatorio > 10 ? 'critical' : 'warning',
-      count: totalSemRelatorio,
-    });
+    alerts.push({ title: 'Relatórios pendentes', description: `${totalSemRelatorio} células sem relatório esta semana`, severity: totalSemRelatorio > 10 ? 'critical' : 'warning', count: totalSemRelatorio });
   }
 
-  // Low supervision coverage
   const lowSupCampus = campusData.filter(c => {
     const pct = c.supervisoes_total_celulas > 0 ? (c.supervisoes_bimestre / c.supervisoes_total_celulas) * 100 : 100;
     return pct < 50 && c.supervisoes_total_celulas > 0;
   });
   if (lowSupCampus.length > 0) {
-    alerts.push({
-      title: 'Supervisões pendentes',
-      description: `${lowSupCampus.map(c => c.campo_nome).join(', ')} com cobertura abaixo de 50%`,
-      severity: 'warning',
-      count: lowSupCampus.length,
-    });
+    alerts.push({ title: 'Supervisões pendentes', description: `${lowSupCampus.map(c => c.campo_nome).join(', ')} com cobertura abaixo de 50%`, severity: 'warning', count: lowSupCampus.length });
   }
 
-  // Low engagement campus
   const lowEngCampus = campusData.filter(c => c.engajamento_pct < 40 && c.celulas_ativas > 0);
   if (lowEngCampus.length > 0) {
-    alerts.push({
-      title: 'Engajamento baixo',
-      description: `${lowEngCampus.map(c => `${c.campo_nome} (${c.engajamento_pct}%)`).join(', ')}`,
-      severity: lowEngCampus.some(c => c.engajamento_pct < 20) ? 'critical' : 'warning',
-      count: lowEngCampus.length,
-    });
+    alerts.push({ title: 'Engajamento baixo', description: `${lowEngCampus.map(c => `${c.campo_nome} (${c.engajamento_pct}%)`).join(', ')}`, severity: lowEngCampus.some(c => c.engajamento_pct < 20) ? 'critical' : 'warning', count: lowEngCampus.length });
   }
 
-  // Stalled funnel
   const totalNVParadas = campusData.reduce((s, c) => s + c.novas_vidas_total - c.novas_vidas_convertidas, 0);
   if (totalNVParadas > 5) {
-    alerts.push({
-      title: 'Vidas aguardando avanço',
-      description: `${totalNVParadas} novas vidas sem progressão no funil`,
-      severity: totalNVParadas > 15 ? 'critical' : 'warning',
-      count: totalNVParadas,
-    });
+    alerts.push({ title: 'Vidas aguardando avanço', description: `${totalNVParadas} novas vidas sem progressão no funil`, severity: totalNVParadas > 15 ? 'critical' : 'warning', count: totalNVParadas });
   }
 
   if (alerts.length === 0) {
@@ -369,7 +290,7 @@ function PastoralAlertsSection({ campusData }: { campusData: CampusKPI[] }) {
 }
 
 // ============================================================
-// 3. TENDÊNCIAS
+// TENDÊNCIAS
 // ============================================================
 
 function TrendsSection() {
@@ -381,9 +302,7 @@ function TrendsSection() {
   return (
     <div className="grid gap-4 md:grid-cols-2">
       <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm">Engajamento de Relatórios</CardTitle>
-        </CardHeader>
+        <CardHeader className="pb-2"><CardTitle className="text-sm">Engajamento de Relatórios</CardTitle></CardHeader>
         <CardContent className="h-48">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={trends}>
@@ -398,9 +317,7 @@ function TrendsSection() {
       </Card>
 
       <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm">Entradas Recomeço & Conversões</CardTitle>
-        </CardHeader>
+        <CardHeader className="pb-2"><CardTitle className="text-sm">Entradas Recomeço & Conversões</CardTitle></CardHeader>
         <CardContent className="h-48">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={trends}>
@@ -417,9 +334,7 @@ function TrendsSection() {
       </Card>
 
       <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm">Supervisões Realizadas</CardTitle>
-        </CardHeader>
+        <CardHeader className="pb-2"><CardTitle className="text-sm">Supervisões Realizadas</CardTitle></CardHeader>
         <CardContent className="h-48">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={trends}>
@@ -434,9 +349,7 @@ function TrendsSection() {
       </Card>
 
       <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm">Multiplicações</CardTitle>
-        </CardHeader>
+        <CardHeader className="pb-2"><CardTitle className="text-sm">Multiplicações</CardTitle></CardHeader>
         <CardContent className="h-48">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={trends}>
@@ -454,7 +367,7 @@ function TrendsSection() {
 }
 
 // ============================================================
-// 4. RANKING PASTORAL
+// RANKING PASTORAL
 // ============================================================
 
 function PastoralRankingSection() {
@@ -467,10 +380,7 @@ function PastoralRankingSection() {
     <div className="grid gap-4 md:grid-cols-2">
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <Award className="h-4 w-4 text-primary" />
-            Potenciais para Servir
-          </CardTitle>
+          <CardTitle className="text-sm flex items-center gap-2"><Award className="h-4 w-4 text-primary" />Potenciais para Servir</CardTitle>
           <CardDescription className="text-xs">Membros com marcos avançados e sem função ativa</CardDescription>
         </CardHeader>
         <CardContent>
@@ -486,9 +396,7 @@ function PastoralRankingSection() {
                       <p className="text-xs text-muted-foreground">{m.celula_name} · {m.anos_igreja}a</p>
                     </div>
                     <div className="flex gap-1 flex-wrap justify-end ml-2">
-                      {m.marcos.map(marco => (
-                        <Badge key={marco} variant="secondary" className="text-[10px]">{marco}</Badge>
-                      ))}
+                      {m.marcos.map(marco => (<Badge key={marco} variant="secondary" className="text-[10px]">{marco}</Badge>))}
                     </div>
                   </div>
                 ))}
@@ -500,10 +408,7 @@ function PastoralRankingSection() {
 
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <Heart className="h-4 w-4 text-amber-600" />
-            Cuidado Pastoral Necessário
-          </CardTitle>
+          <CardTitle className="text-sm flex items-center gap-2"><Heart className="h-4 w-4 text-amber-600" />Cuidado Pastoral Necessário</CardTitle>
           <CardDescription className="text-xs">Membros com tempo de igreja alto e marcos pendentes</CardDescription>
         </CardHeader>
         <CardContent>
@@ -519,9 +424,7 @@ function PastoralRankingSection() {
                       <p className="text-xs text-muted-foreground">{m.celula_name} · {m.anos_igreja}a</p>
                     </div>
                     <div className="flex gap-1 flex-wrap justify-end ml-2">
-                      {m.missing.map(marco => (
-                        <Badge key={marco} variant="outline" className="text-[10px] border-amber-500/30 text-amber-700">Sem {marco}</Badge>
-                      ))}
+                      {m.missing.map(marco => (<Badge key={marco} variant="outline" className="text-[10px] border-amber-500/30 text-amber-700">Sem {marco}</Badge>))}
                     </div>
                   </div>
                 ))}
@@ -535,7 +438,7 @@ function PastoralRankingSection() {
 }
 
 // ============================================================
-// 5. SUPERVISÃO
+// SUPERVISÃO
 // ============================================================
 
 function SupervisionGovernanceSection() {
@@ -585,7 +488,7 @@ function SupervisionGovernanceSection() {
 }
 
 // ============================================================
-// 6. FUNIL DO ALTAR À CÉLULA
+// FUNIL DO ALTAR À CÉLULA
 // ============================================================
 
 function FunnelSection() {
@@ -625,7 +528,7 @@ function FunnelSection() {
 }
 
 // ============================================================
-// 7. AGENDA DO REINO
+// AGENDA DO REINO
 // ============================================================
 
 function AgendaSection() {
@@ -671,7 +574,7 @@ function AgendaSection() {
 }
 
 // ============================================================
-// 8. BRIEFING PASTORAL
+// BRIEFING PASTORAL
 // ============================================================
 
 function BriefingSection({ campusData }: { campusData: CampusKPI[] }) {
@@ -679,13 +582,8 @@ function BriefingSection({ campusData }: { campusData: CampusKPI[] }) {
 
   const handleGenerate = async () => {
     const summary = campusData.map(c => ({
-      campus: c.campo_nome,
-      celulas: c.celulas_ativas,
-      membros: c.membros_total,
-      engajamento: c.engajamento_pct,
-      novas_vidas: c.novas_vidas_total,
-      conversoes: c.novas_vidas_convertidas,
-      supervisoes_bimestre: c.supervisoes_bimestre,
+      campus: c.campo_nome, celulas: c.celulas_ativas, membros: c.membros_total, engajamento: c.engajamento_pct,
+      novas_vidas: c.novas_vidas_total, conversoes: c.novas_vidas_convertidas, supervisoes_bimestre: c.supervisoes_bimestre,
       marcos: { encontro: c.marcos_encontro, batismo: c.marcos_batismo, lidere: c.marcos_curso_lidere, renovo: c.marcos_renovo },
     }));
     await generateInsight('executive_summary', summary as any, 'Visão Global - Semana atual');
@@ -696,9 +594,7 @@ function BriefingSection({ campusData }: { campusData: CampusKPI[] }) {
       <CardContent className="p-5">
         {!aiInsight ? (
           <div className="text-center py-4">
-            <p className="text-sm text-muted-foreground mb-4">
-              Gere um resumo automático para sua reunião pastoral com os dados atualizados de todos os campus.
-            </p>
+            <p className="text-sm text-muted-foreground mb-4">Gere um resumo automático para sua reunião pastoral com os dados atualizados de todos os campus.</p>
             <Button onClick={handleGenerate} disabled={aiLoading} size="lg">
               {aiLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Sparkles className="h-4 w-4 mr-2" />}
               Gerar Resumo Pastoral da Semana

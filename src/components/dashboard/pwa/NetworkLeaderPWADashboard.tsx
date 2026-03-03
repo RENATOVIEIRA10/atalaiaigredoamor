@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Loader2, Users, FileText, Cake, AlertTriangle, MessageSquare, Network, ChevronRight, ClipboardCheck, Calendar, Eye, ExternalLink } from 'lucide-react';
+import { Loader2, Users, FileText, Cake, AlertTriangle, MessageSquare, Network, ChevronRight, ClipboardCheck, Calendar, Eye, ExternalLink, Heart, GitBranch } from 'lucide-react';
 import { useRedes } from '@/hooks/useRedes';
 import { useCoordenacoes } from '@/hooks/useCoordenacoes';
 import { useCelulas } from '@/hooks/useCelulas';
@@ -19,6 +19,7 @@ import { useRole } from '@/contexts/RoleContext';
 import { useDemoScope } from '@/hooks/useDemoScope';
 import { StatCard } from '@/components/ui/stat-card';
 import { MissionVerse } from '../MissionVerse';
+import { MissionBlock } from '../MissionBlock';
 import { PulsoRedeSection } from '../PulsoRedeSection';
 import { RadarSaudePanel } from '../RadarSaudePanel';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -87,13 +88,11 @@ export function NetworkLeaderPWADashboard() {
 function RedeInicio({ redeId, redeData }: { redeId: string; redeData: any }) {
   const { campoId } = useDemoScope();
   const { data: coordenacoes } = useCoordenacoes();
-  const dateRange = { from: getDateString(subDays(new Date(), 6)), to: getDateString(new Date()) };
   const { data: aniversariantes } = useAniversariantesSemana({ scopeType: 'rede', scopeId: redeId, campoId });
   const { data: pulso } = usePulsoRede({ scopeType: 'rede', scopeId: redeId });
   const { data: multiplicacoes } = useMultiplicacoes(campoId);
   const { data: supOverview } = useSupervisaoRedeOverview(redeId);
 
-  // Drill-down state
   const [drillDown, setDrillDown] = useState<'pendentes' | 'aniversariantes' | 'supervisoes_semana' | 'cobertura' | 'pendencias_bimestre' | null>(null);
 
   const redeCoordenacoes = coordenacoes?.filter(c => (c as any).rede_id === redeId) || [];
@@ -143,76 +142,84 @@ function RedeInicio({ redeId, redeData }: { redeId: string; redeData: any }) {
         </Card>
       )}
 
-      {/* KPIs — clickable */}
-      <div className="grid grid-cols-2 gap-3">
-        <div onClick={() => setDrillDown('pendentes')} className="cursor-pointer active:scale-[0.97] transition-transform touch-manipulation">
-          <StatCard icon={FileText} label="Pendentes" value={pendentes} className={pendentes > 0 ? 'border-amber-500/30' : ''} />
-        </div>
-        <div onClick={() => setDrillDown('aniversariantes')} className="cursor-pointer active:scale-[0.97] transition-transform touch-manipulation">
-          <StatCard icon={Cake} label="Aniversários" value={aniversariantes?.length || 0} />
-        </div>
-        <StatCard icon={Network} label="Coordenações" value={redeCoordenacoes.length} />
-        <StatCard icon={Users} label="Células" value={totalCelulas} />
-      </div>
-
-      {/* ── Supervisões section (NEW) ── */}
-      <Card>
-        <CardHeader className="pb-2 pt-4 px-4">
-          <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
-            <ClipboardCheck className="h-4 w-4" /> Supervisões
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="px-4 pb-4 space-y-2">
-          <TappableRow
-            label="Supervisões desta semana"
-            value={supOverview?.supervisoes_semana.length || 0}
-            onClick={() => setDrillDown('supervisoes_semana')}
-          />
-          <TappableRow
-            label="Cobertura do bimestre"
-            value={`${supOverview?.cobertura_percentual || 0}%`}
-            onClick={() => setDrillDown('cobertura')}
-            extra={
-              <Progress value={supOverview?.cobertura_percentual || 0} className="h-1.5 mt-1" />
-            }
-          />
-          <TappableRow
-            label="Pendências do bimestre"
-            value={supOverview?.pendencias.length || 0}
-            variant={(supOverview?.pendencias.length || 0) > 0 ? 'warning' : 'ok'}
-            onClick={() => setDrillDown('pendencias_bimestre')}
-          />
-        </CardContent>
-      </Card>
-
-      {/* Radar card */}
-      <Card>
-        <CardHeader className="pb-2 pt-4 px-4">
-          <CardTitle className="text-sm text-muted-foreground">📡 Radar</CardTitle>
-        </CardHeader>
-        <CardContent className="px-4 pb-4 space-y-3">
-          <div
-            className="cursor-pointer active:bg-accent/30 rounded-lg transition-colors touch-manipulation"
-            onClick={() => setDrillDown('pendentes')}
-          >
-            <RadarItem
-              label="Células 3+ sem relatório"
-              value={pulso?.celulasAlerta3Semanas?.length || 0}
-              variant={pulso?.celulasAlerta3Semanas?.length ? 'danger' : 'ok'}
-            />
+      {/* BLOCO 1 — O que precisa da minha atenção */}
+      <MissionBlock icon={AlertTriangle} title="O que precisa da minha atenção">
+        <div className="grid grid-cols-2 gap-3">
+          <div onClick={() => setDrillDown('pendentes')} className="cursor-pointer active:scale-[0.97] transition-transform touch-manipulation">
+            <StatCard icon={FileText} label="Pendentes" value={pendentes} className={pendentes > 0 ? 'border-amber-500/30' : ''} />
           </div>
-          <RadarItem
-            label="Multiplicações (90 dias)"
-            value={recentMultiplicacoes}
-            variant="neutral"
-          />
-          <RadarItem
-            label="Engajamento semanal"
-            value={`${pulso?.percentualEngajamento || 0}%`}
-            variant={pulso?.percentualEngajamento && pulso.percentualEngajamento < 50 ? 'danger' : 'ok'}
-          />
-        </CardContent>
-      </Card>
+          <div onClick={() => setDrillDown('aniversariantes')} className="cursor-pointer active:scale-[0.97] transition-transform touch-manipulation">
+            <StatCard icon={Cake} label="Aniversários" value={aniversariantes?.length || 0} />
+          </div>
+        </div>
+
+        {/* Supervisões */}
+        <Card className="mt-3">
+          <CardHeader className="pb-2 pt-4 px-4">
+            <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
+              <ClipboardCheck className="h-4 w-4" /> Supervisões
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="px-4 pb-4 space-y-2">
+            <TappableRow
+              label="Supervisões desta semana"
+              value={supOverview?.supervisoes_semana.length || 0}
+              onClick={() => setDrillDown('supervisoes_semana')}
+            />
+            <TappableRow
+              label="Cobertura do bimestre"
+              value={`${supOverview?.cobertura_percentual || 0}%`}
+              onClick={() => setDrillDown('cobertura')}
+              extra={<Progress value={supOverview?.cobertura_percentual || 0} className="h-1.5 mt-1" />}
+            />
+            <TappableRow
+              label="Pendências do bimestre"
+              value={supOverview?.pendencias.length || 0}
+              variant={(supOverview?.pendencias.length || 0) > 0 ? 'warning' : 'ok'}
+              onClick={() => setDrillDown('pendencias_bimestre')}
+            />
+          </CardContent>
+        </Card>
+      </MissionBlock>
+
+      {/* BLOCO 2 — Movimento do Reino */}
+      <MissionBlock icon={GitBranch} title="Movimento do Reino">
+        <div className="grid grid-cols-2 gap-3">
+          <StatCard icon={Network} label="Coordenações" value={redeCoordenacoes.length} />
+          <StatCard icon={Users} label="Células" value={totalCelulas} />
+        </div>
+      </MissionBlock>
+
+      {/* BLOCO 3 — Saúde e Cuidado */}
+      <MissionBlock icon={Heart} title="Saúde e Cuidado">
+        <Card>
+          <CardHeader className="pb-2 pt-4 px-4">
+            <CardTitle className="text-sm text-muted-foreground">📡 Radar</CardTitle>
+          </CardHeader>
+          <CardContent className="px-4 pb-4 space-y-3">
+            <div
+              className="cursor-pointer active:bg-accent/30 rounded-lg transition-colors touch-manipulation"
+              onClick={() => setDrillDown('pendentes')}
+            >
+              <RadarItem
+                label="Células 3+ sem relatório"
+                value={pulso?.celulasAlerta3Semanas?.length || 0}
+                variant={pulso?.celulasAlerta3Semanas?.length ? 'danger' : 'ok'}
+              />
+            </div>
+            <RadarItem
+              label="Multiplicações (90 dias)"
+              value={recentMultiplicacoes}
+              variant="neutral"
+            />
+            <RadarItem
+              label="Engajamento semanal"
+              value={`${pulso?.percentualEngajamento || 0}%`}
+              variant={pulso?.percentualEngajamento && pulso.percentualEngajamento < 50 ? 'danger' : 'ok'}
+            />
+          </CardContent>
+        </Card>
+      </MissionBlock>
     </div>
   );
 }
@@ -412,19 +419,39 @@ function CobrancaMassaView({ redeId, onBack }: { redeId: string; onBack: () => v
   );
 }
 
+// ────────── Drill-down: Aniversariantes ──────────
 function AniversariantesRedeView({ redeId, onBack }: { redeId: string; onBack: () => void }) {
   const { campoId } = useDemoScope();
-  const { data: aniversariantes, isLoading } = useAniversariantesSemana({ scopeType: 'rede', scopeId: redeId, campoId });
-
-  if (isLoading) return <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
+  const { data: aniversariantes } = useAniversariantesSemana({ scopeType: 'rede', scopeId: redeId, campoId });
 
   return (
     <DrillDownContainer title="Aniversariantes da semana" onBack={onBack}>
-      {!aniversariantes?.length ? (
-        <Card><CardContent className="p-6 text-center text-sm text-muted-foreground">Nenhum aniversário esta semana</CardContent></Card>
+      {!aniversariantes || aniversariantes.length === 0 ? (
+        <Card><CardContent className="p-6 text-center text-sm text-muted-foreground">Nenhum aniversariante esta semana</CardContent></Card>
       ) : (
-        aniversariantes.map(b => (
-          <BirthdayCard key={b.id} b={b} />
+        aniversariantes.map((a: AniversarianteSemana) => (
+          <Card key={a.id}>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium text-sm truncate">{a.name}</p>
+                  <p className="text-xs text-muted-foreground">{a.celula_name} • {a.display_date}</p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="shrink-0 gap-1 text-green-600 border-green-600/30 h-10"
+                  onClick={() => {
+                    const msg = encodeURIComponent(`Feliz aniversário, ${a.name}! 🎂🎉\n\nQue Deus abençoe ricamente a sua vida!\n\nCom carinho ❤️`);
+                    window.location.href = `https://wa.me/?text=${msg}`;
+                  }}
+                >
+                  <MessageSquare className="h-4 w-4" />
+                  Parabéns
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         ))
       )}
     </DrillDownContainer>
@@ -432,109 +459,61 @@ function AniversariantesRedeView({ redeId, onBack }: { redeId: string; onBack: (
 }
 
 // ────────── Shared components ──────────
+
 function DrillDownContainer({ title, onBack, children }: { title: string; onBack: () => void; children: React.ReactNode }) {
   return (
     <div className="space-y-3">
-      <Button variant="ghost" size="sm" onClick={onBack} className="gap-1 -ml-2 h-11 touch-manipulation">← Voltar</Button>
-      <h3 className="text-sm font-semibold text-muted-foreground">{title}</h3>
+      <Button variant="ghost" size="sm" onClick={onBack} className="gap-2 -ml-2">
+        <ChevronRight className="h-4 w-4 rotate-180" />
+        {title}
+      </Button>
       {children}
     </div>
   );
 }
 
-function TappableRow({ label, value, variant, onClick, extra }: {
-  label: string;
-  value: number | string;
-  variant?: 'warning' | 'ok';
-  onClick: () => void;
-  extra?: React.ReactNode;
-}) {
+function TappableRow({ label, value, onClick, variant, extra }: { label: string; value: string | number; onClick?: () => void; variant?: 'ok' | 'warning'; extra?: React.ReactNode }) {
   return (
     <div
-      className="flex items-center justify-between p-3 rounded-lg bg-muted/40 cursor-pointer active:bg-accent/50 touch-manipulation transition-colors"
+      className={`flex items-center justify-between p-3 rounded-lg transition-colors touch-manipulation ${onClick ? 'cursor-pointer active:bg-accent/30' : ''} ${variant === 'warning' ? 'bg-amber-500/5' : 'bg-muted/30'}`}
       onClick={onClick}
     >
       <div className="flex-1 min-w-0">
-        <span className="text-sm">{label}</span>
+        <p className="text-sm truncate">{label}</p>
         {extra}
       </div>
       <div className="flex items-center gap-2 shrink-0">
-        <Badge variant="outline" className={
-          variant === 'warning' ? 'border-amber-500/50 text-amber-600' :
-          variant === 'ok' ? 'border-green-500/50 text-green-600' :
-          ''
-        }>
+        <Badge variant={variant === 'warning' ? 'outline' : 'secondary'} className={`text-xs ${variant === 'warning' ? 'border-amber-500/50 text-amber-600' : ''}`}>
           {value}
         </Badge>
-        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+        {onClick && <ChevronRight className="h-4 w-4 text-muted-foreground" />}
       </div>
     </div>
   );
 }
 
-function BirthdayCard({ b }: { b: AniversarianteSemana }) {
-  const firstName = b.name.split(' ')[0];
+function RadarItem({ label, value, variant }: { label: string; value: string | number; variant: 'ok' | 'danger' | 'neutral' }) {
+  const colorClass = variant === 'danger' ? 'text-destructive' : variant === 'ok' ? 'text-green-600' : 'text-muted-foreground';
   return (
-    <Card>
-      <CardContent className="p-4">
-        <div className="flex items-center gap-3">
-          <Avatar className="h-10 w-10 shrink-0">
-            <AvatarImage src={b.avatar_url || undefined} />
-            <AvatarFallback className="text-xs">{b.name.charAt(0)}</AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">{b.name}</p>
-            <p className="text-xs text-muted-foreground">{b.celula_name} · {b.display_date}</p>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            {b.is_today && <Badge className="bg-primary/10 text-primary text-xs">Hoje 🎂</Badge>}
-            {b.whatsapp && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-10 text-green-600 border-green-600/30"
-                onClick={() => {
-                  const msg = encodeURIComponent(`Feliz aniversário, ${firstName}! 🎉\n\nQue Jesus te abençoe muito! ❤️\n\n— Rede Amor a 2`);
-                  window.location.href = `https://wa.me/${b.whatsapp!.replace(/\D/g, '')}?text=${msg}`;
-                }}
-              >
-                <MessageSquare className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function RadarItem({ label, value, variant }: { label: string; value: number | string; variant: 'danger' | 'ok' | 'neutral' }) {
-  return (
-    <div className="flex items-center justify-between p-3 rounded-lg bg-muted/40">
+    <div className="flex items-center justify-between p-2.5 rounded-lg bg-muted/30">
       <span className="text-sm">{label}</span>
-      <Badge variant="outline" className={
-        variant === 'danger' ? 'border-destructive/50 text-destructive' :
-        variant === 'ok' ? 'border-green-500/50 text-green-600' :
-        ''
-      }>
-        {value}
-      </Badge>
+      <Badge variant="outline" className={`text-xs ${colorClass}`}>{value}</Badge>
     </div>
   );
 }
 
 function ActionCard({ label, icon: Icon, description, onClick }: { label: string; icon: any; description: string; onClick: () => void }) {
   return (
-    <Card className="cursor-pointer active:bg-accent/50 touch-manipulation transition-colors" onClick={onClick}>
+    <Card className="cursor-pointer active:scale-[0.98] transition-transform touch-manipulation" onClick={onClick}>
       <CardContent className="p-4 flex items-center gap-4">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+        <div className="p-3 rounded-xl bg-primary/10">
           <Icon className="h-5 w-5 text-primary" />
         </div>
         <div className="flex-1 min-w-0">
           <p className="font-medium text-sm">{label}</p>
           <p className="text-xs text-muted-foreground">{description}</p>
         </div>
-        <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0" />
+        <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
       </CardContent>
     </Card>
   );
