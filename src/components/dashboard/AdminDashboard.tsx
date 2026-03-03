@@ -20,6 +20,7 @@ import { StatCard } from '@/components/ui/stat-card';
 import { MissionVerse } from './MissionVerse';
 import { useDemoScope } from '@/hooks/useDemoScope';
 import { RevelaShortcut } from './RevelaShortcut';
+import { DashboardScopeBanner } from './DashboardScopeBanner';
 
 export function AdminDashboard() {
   const { toast } = useToast();
@@ -102,6 +103,7 @@ export function AdminDashboard() {
 
   return (
     <div className="space-y-6">
+      <DashboardScopeBanner />
       <PageHeader
         title="Dashboard Administrativo"
         subtitle={`Período: ${formatDateRangeDisplay()}`}

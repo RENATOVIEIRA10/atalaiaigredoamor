@@ -40,6 +40,7 @@ import { SupervisoesRedeHistoryPanel } from './rede/SupervisoesRedeHistoryPanel'
 import { RecomecoRedeTab } from './recomeco/RecomecoRedeTab';
 import { DiscipuladoRedeView } from './discipulado/DiscipuladoRedeView';
 import { RevelaShortcut } from './RevelaShortcut';
+import { DashboardScopeBanner } from './DashboardScopeBanner';
 
 interface NetworkLeaderDashboardProps {
   initialRedeId?: string;
@@ -138,6 +139,7 @@ export function NetworkLeaderDashboard({ initialRedeId, onBack, breadcrumbLabel 
 
   return (
     <div className="space-y-6">
+      <DashboardScopeBanner />
       {onBack && (
         <Button variant="ghost" size="sm" onClick={onBack} className="gap-2 -ml-2">
           <ArrowLeft className="h-4 w-4" />

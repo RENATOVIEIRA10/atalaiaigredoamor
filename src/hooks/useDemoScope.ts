@@ -1,37 +1,37 @@
 import { useDemoFilter } from './useDemoFilter';
-import { useCampoFilter } from './useCampoFilter';
+import { useCampoFilterDetailed } from './useCampoFilter';
 
 /**
  * useDemoScope – Camada unificada de escopo para todos os hooks de dados.
  *
  * Combina:
- * - useCampoFilter: campus ativo (real ou validação)
+ * - useCampoFilterDetailed: campus ativo (real ou validação) + missing detection
  * - useDemoFilter: modo validação ativo
  *
- * MODO VALIDAÇÃO (read-only):
- *   - Lê TODOS os dados reais do sistema (não filtra is_test_data)
- *   - campus = demoCampusId (override do contexto demo)
- *   - Sem filtro de seed_run_id
- *
- * MODO NORMAL:
- *   - campus = campus real do contexto
- *   - Sem filtro especial
+ * REGRA MÁXIMA: fora da Visão Global, campoId NUNCA pode ser null.
+ * Se for, `isMissingCampo` será true e os hooks devem bloquear queries.
  */
 export function useDemoScope() {
   const { isDemoActive, demoCampusId } = useDemoFilter();
-  const realCampoId = useCampoFilter();
+  const { campoId: realCampoId, isGlobal, isMissingCampo: realMissing } = useCampoFilterDetailed();
 
   // In validation mode, campus comes from demo context; otherwise from real context
   const campoId = isDemoActive ? demoCampusId : realCampoId;
 
+  // Missing campus: not global, not demo, and no campus set
+  const isMissingCampo = !isDemoActive && !isGlobal && !campoId;
+
   /**
    * Apply scope filters to a Supabase query builder.
-   * In validation mode: no is_test_data filter (reads ALL data).
-   * In normal mode: no special filter either.
-   * Campus filter always applied when set.
+   * BLOCKS query if campus is required but missing (returns filtered-to-nothing).
    */
   function applyScope<T extends { eq: (col: string, val: any) => T }>(query: T): T {
-    // Validation mode reads all data — no is_test_data filtering
+    if (isMissingCampo) {
+      // Force empty result by filtering impossible value
+      console.warn('[useDemoScope] Query blocked: campoId is null outside global view');
+      query = query.eq('campo_id', '00000000-0000-0000-0000-000000000000');
+      return query;
+    }
     if (campoId) {
       query = query.eq('campo_id', campoId);
     }
@@ -42,6 +42,11 @@ export function useDemoScope() {
    * Apply only campus filter (for tables without is_test_data/seed_run_id).
    */
   function applyCampoOnly<T extends { eq: (col: string, val: any) => T }>(query: T): T {
+    if (isMissingCampo) {
+      console.warn('[useDemoScope] Query blocked: campoId is null outside global view');
+      query = query.eq('campo_id', '00000000-0000-0000-0000-000000000000');
+      return query;
+    }
     if (campoId) {
       query = query.eq('campo_id', campoId);
     }
@@ -57,7 +62,9 @@ export function useDemoScope() {
 
   return {
     isDemoActive,
+    isGlobal,
     campoId,
+    isMissingCampo,
     seedRunId: null as string | null, // Always null — validation reads all data
     applyScope,
     applyCampoOnly,

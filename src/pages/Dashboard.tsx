@@ -14,6 +14,7 @@ import { CoordinatorPWADashboard } from '@/components/dashboard/pwa/CoordinatorP
 import { NetworkLeaderPWADashboard } from '@/components/dashboard/pwa/NetworkLeaderPWADashboard';
 import { CellLeaderPWADashboard } from '@/components/dashboard/pwa/CellLeaderPWADashboard';
 import { SupervisorPWADashboard } from '@/components/dashboard/pwa/SupervisorPWADashboard';
+import { ScopeMissingGate } from '@/components/ScopeMissingGate';
 import { Loader2 } from 'lucide-react';
 
 const LiderRecomecoCentralDashboard = lazy(() => import('@/components/dashboard/LiderRecomecoCentralDashboard'));
@@ -39,7 +40,6 @@ export default function Dashboard() {
   const renderDashboard = () => {
     // ── Ministry scopes (checked first) ──
     if (isRecomecoCadastro) {
-      // Recomeço Operador: use the dedicated page which already has PWA support
       return <Suspense fallback={suspenseFallback}><RecomecoCadastroPWA /></Suspense>;
     }
     if (isLiderBatismoAclamacao) {
@@ -52,7 +52,6 @@ export default function Dashboard() {
       return <Suspense fallback={suspenseFallback}><LiderRecomecoCentralDashboard /></Suspense>;
     }
     if (isCentralCelulas) {
-      // Central Células Operador uses the same unified dashboard
       return <Suspense fallback={suspenseFallback}><LiderRecomecoCentralDashboard /></Suspense>;
     }
 
@@ -70,7 +69,9 @@ export default function Dashboard() {
 
   return (
     <AppLayout title="Dashboard">
-      {renderDashboard()}
+      <ScopeMissingGate>
+        {renderDashboard()}
+      </ScopeMissingGate>
     </AppLayout>
   );
 }

@@ -20,6 +20,7 @@ import { DiscipuladoCellLeaderTab } from './discipulado/DiscipuladoCellLeaderTab
 import { StatCard } from '@/components/ui/stat-card';
 import { Badge } from '@/components/ui/badge';
 import { RevelaShortcut } from './RevelaShortcut';
+import { DashboardScopeBanner } from './DashboardScopeBanner';
 
 export function CellLeaderDashboard() {
   const { data: celulas, isLoading } = useCelulas();
@@ -58,6 +59,7 @@ export function CellLeaderDashboard() {
 
   return (
     <div className="space-y-6">
+      <DashboardScopeBanner />
       <PageHeader
         title="Minhas Células"
         subtitle="Gerencie suas células e relatórios semanais"

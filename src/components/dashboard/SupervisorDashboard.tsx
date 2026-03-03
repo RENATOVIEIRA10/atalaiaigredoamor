@@ -19,6 +19,7 @@ import { MissionVerse } from './MissionVerse';
 import { EmptyState } from '@/components/ui/empty-state';
 import { useRole } from '@/contexts/RoleContext';
 import { RevelaShortcut } from './RevelaShortcut';
+import { DashboardScopeBanner } from './DashboardScopeBanner';
 
 export function SupervisorDashboard() {
   const { data: coordenacoes, isLoading: coordenacoesLoading } = useCoordenacoes();
@@ -56,6 +57,7 @@ export function SupervisorDashboard() {
 
   return (
     <div className="space-y-6">
+      <DashboardScopeBanner />
       <PageHeader
         title="Dashboard do Supervisor"
         subtitle="Registre e acompanhe suas supervisões de células"
