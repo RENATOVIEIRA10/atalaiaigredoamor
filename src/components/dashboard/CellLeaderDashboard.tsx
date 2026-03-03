@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, Users, Search, MapPin, Calendar, FileText, Heart, DoorOpen, ClipboardList, BookOpen } from 'lucide-react';
+import { Loader2, Users, Search, MapPin, Calendar, FileText, Heart, DoorOpen, ClipboardList, BookOpen, AlertTriangle, Sprout, HeartPulse, LayoutDashboard } from 'lucide-react';
 import { useCelulas } from '@/hooks/useCelulas';
 import { useEncaminhamentos } from '@/hooks/useEncaminhamentos';
 import { CelulaDetailsDialog } from './CelulaDetailsDialog';
@@ -21,6 +21,7 @@ import { StatCard } from '@/components/ui/stat-card';
 import { Badge } from '@/components/ui/badge';
 import { RevelaShortcut } from './RevelaShortcut';
 import { DashboardScopeBanner } from './DashboardScopeBanner';
+import { MissionBlock } from './MissionBlock';
 
 export function CellLeaderDashboard() {
   const { data: celulas, isLoading } = useCelulas();
@@ -57,6 +58,11 @@ export function CellLeaderDashboard() {
       : undefined
     : undefined;
 
+  const defaultTab = urlTab === 'novas-vidas' ? 'novas-vidas'
+    : urlTab === 'roteiro' ? 'roteiro'
+    : urlTab === 'pulso' ? 'visao-geral'
+    : urlTab || 'visao-geral';
+
   return (
     <div className="space-y-6">
       <DashboardScopeBanner />
@@ -73,24 +79,15 @@ export function CellLeaderDashboard() {
 
       {singleCell ? (
         <>
-          {cellEncaminhamentos.length > 0 && (
-            <StatCard
-              icon={DoorOpen}
-              label="Novas Vidas Encaminhadas"
-              value={cellEncaminhamentos.length}
-              subtitle={pendingNovasVidas > 0 ? `${pendingNovasVidas} aguardando contato` : 'Todas contatadas'}
-            />
-          )}
-
-          <Tabs defaultValue={urlTab === 'novas-vidas' ? 'novas-vidas' : urlTab === 'roteiro' ? 'roteiro' : urlTab === 'pulso' ? 'pulso' : 'celula'} className="space-y-4">
+          <Tabs defaultValue={defaultTab} className="space-y-4">
             <TabsList className="grid w-full grid-cols-6 h-auto p-1">
-              <TabsTrigger value="pulso" className="gap-1.5 py-2.5 text-xs sm:text-sm">
-                <Heart className="h-4 w-4" />
-                <span className="hidden sm:inline">Pulso</span>
+              <TabsTrigger value="visao-geral" className="gap-1.5 py-2.5 text-xs sm:text-sm">
+                <LayoutDashboard className="h-4 w-4" />
+                <span className="hidden sm:inline">Visão Geral</span>
               </TabsTrigger>
               <TabsTrigger value="celula" className="gap-1.5 py-2.5 text-xs sm:text-sm">
                 <FileText className="h-4 w-4" />
-                <span className="hidden sm:inline">Célula</span>
+                <span className="hidden sm:inline">Relatórios</span>
               </TabsTrigger>
               <TabsTrigger value="membros" className="gap-1.5 py-2.5 text-xs sm:text-sm">
                 <Users className="h-4 w-4" />
@@ -115,75 +112,68 @@ export function CellLeaderDashboard() {
               </TabsTrigger>
             </TabsList>
 
-          <TabsContent value="pulso">
-            <div className="space-y-4">
-              <CellProfileSection celulaId={singleCell.id} />
-              <CellLeaderPulsoTab celulaId={singleCell.id} />
-            </div>
-          </TabsContent>
+            <TabsContent value="visao-geral">
+              <div className="space-y-6">
+                {/* BLOCO 1 — O que precisa da minha atenção */}
+                <MissionBlock icon={AlertTriangle} title="O que precisa da minha atenção">
+                  {cellEncaminhamentos.length > 0 ? (
+                    <StatCard
+                      icon={DoorOpen}
+                      label="Vidas Encaminhadas"
+                      value={cellEncaminhamentos.length}
+                      subtitle={pendingNovasVidas > 0 ? `${pendingNovasVidas} aguardando contato` : 'Todas contatadas ✓'}
+                    />
+                  ) : (
+                    <Card>
+                      <CardContent className="p-4 text-sm text-muted-foreground text-center">
+                        Nenhuma pendência no momento 🙏
+                      </CardContent>
+                    </Card>
+                  )}
+                </MissionBlock>
 
-          <TabsContent value="celula">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {userCelulas.map(celula => (
-                <Card
-                  key={celula.id}
-                  className="cursor-pointer card-hover group border-l-4 border-l-primary/30 hover:border-l-primary active:scale-[0.98] transition-all"
-                  onClick={() => setSelectedCelula({ id: celula.id, name: celula.name })}
-                >
-                  <CardHeader className="pb-2 p-4">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      {celula.name}
-                    </CardTitle>
-                    <CardDescription className="flex items-center gap-1.5 text-sm">
-                      {celula.meeting_day && (
-                        <>
-                          <Calendar className="h-3.5 w-3.5" />
-                          {celula.meeting_day}
-                          {celula.meeting_time && ` às ${celula.meeting_time}`}
-                        </>
-                      )}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-2 p-4 pt-0">
-                    {celula.leadership_couple && (
-                      <p className="text-sm font-medium text-foreground">
-                        👫 {celula.leadership_couple.spouse1?.name} & {celula.leadership_couple.spouse2?.name}
-                      </p>
-                    )}
-                    {celula.address && (
-                      <p className="text-sm text-muted-foreground flex items-center gap-1.5">
-                        <MapPin className="h-3.5 w-3.5 shrink-0" />
-                        {celula.address}
-                      </p>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
+                {/* BLOCO 2 — Movimento do Reino */}
+                <MissionBlock icon={Sprout} title="Movimento do Reino">
+                  <CellProfileSection celulaId={singleCell.id} />
+                </MissionBlock>
 
-          <TabsContent value="membros">
-            <CellLeaderMembrosTab celulaId={singleCell.id} celulaName={singleCell.name} />
-          </TabsContent>
+                {/* BLOCO 3 — Saúde e Cuidado */}
+                <MissionBlock icon={HeartPulse} title="Saúde e Cuidado">
+                  <CellLeaderPulsoTab celulaId={singleCell.id} />
+                </MissionBlock>
+              </div>
+            </TabsContent>
 
-          <TabsContent value="discipulado">
-            <DiscipuladoCellLeaderTab celulaId={singleCell.id} celulaName={singleCell.name} redeId={singleCell.rede_id} />
-          </TabsContent>
+            <TabsContent value="celula">
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {userCelulas.map(celula => (
+                  <CelulaCard key={celula.id} celula={celula} onClick={() => setSelectedCelula({ id: celula.id, name: celula.name })} />
+                ))}
+              </div>
+            </TabsContent>
 
-          <TabsContent value="roteiro">
-            <CellLeaderRoteiroTab
-              celulaId={singleCell.id}
-              celulaName={singleCell.name}
-              meetingDay={singleCell.meeting_day}
-              redeId={singleCell.rede_id}
-              coupleNames={coupleNames}
-            />
-          </TabsContent>
+            <TabsContent value="membros">
+              <CellLeaderMembrosTab celulaId={singleCell.id} celulaName={singleCell.name} />
+            </TabsContent>
 
-          <TabsContent value="novas-vidas">
-            <CellLeaderNovasVidasTab celulaId={singleCell.id} celulaName={singleCell.name} coupleNames={coupleNames} />
-          </TabsContent>
-        </Tabs>
+            <TabsContent value="discipulado">
+              <DiscipuladoCellLeaderTab celulaId={singleCell.id} celulaName={singleCell.name} redeId={singleCell.rede_id} />
+            </TabsContent>
+
+            <TabsContent value="roteiro">
+              <CellLeaderRoteiroTab
+                celulaId={singleCell.id}
+                celulaName={singleCell.name}
+                meetingDay={singleCell.meeting_day}
+                redeId={singleCell.rede_id}
+                coupleNames={coupleNames}
+              />
+            </TabsContent>
+
+            <TabsContent value="novas-vidas">
+              <CellLeaderNovasVidasTab celulaId={singleCell.id} celulaName={singleCell.name} coupleNames={coupleNames} />
+            </TabsContent>
+          </Tabs>
         </>
       ) : (
         <>
@@ -206,39 +196,7 @@ export function CellLeaderDashboard() {
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {userCelulas.map(celula => (
-                <Card
-                  key={celula.id}
-                  className="cursor-pointer card-hover group border-l-4 border-l-primary/30 hover:border-l-primary active:scale-[0.98] transition-all"
-                  onClick={() => setSelectedCelula({ id: celula.id, name: celula.name })}
-                >
-                  <CardHeader className="pb-2 p-4">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      {celula.name}
-                    </CardTitle>
-                    <CardDescription className="flex items-center gap-1.5 text-sm">
-                      {celula.meeting_day && (
-                        <>
-                          <Calendar className="h-3.5 w-3.5" />
-                          {celula.meeting_day}
-                          {celula.meeting_time && ` às ${celula.meeting_time}`}
-                        </>
-                      )}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-2 p-4 pt-0">
-                    {celula.leadership_couple && (
-                      <p className="text-sm font-medium text-foreground">
-                        👫 {celula.leadership_couple.spouse1?.name} & {celula.leadership_couple.spouse2?.name}
-                      </p>
-                    )}
-                    {celula.address && (
-                      <p className="text-sm text-muted-foreground flex items-center gap-1.5">
-                        <MapPin className="h-3.5 w-3.5 shrink-0" />
-                        {celula.address}
-                      </p>
-                    )}
-                  </CardContent>
-                </Card>
+                <CelulaCard key={celula.id} celula={celula} onClick={() => setSelectedCelula({ id: celula.id, name: celula.name })} />
               ))}
             </div>
           )}
@@ -254,5 +212,43 @@ export function CellLeaderDashboard() {
         />
       )}
     </div>
+  );
+}
+
+/* ── Extracted card to avoid duplication ── */
+function CelulaCard({ celula, onClick }: { celula: any; onClick: () => void }) {
+  return (
+    <Card
+      className="cursor-pointer card-hover group border-l-4 border-l-primary/30 hover:border-l-primary active:scale-[0.98] transition-all"
+      onClick={onClick}
+    >
+      <CardHeader className="pb-2 p-4">
+        <CardTitle className="text-lg flex items-center gap-2">
+          {celula.name}
+        </CardTitle>
+        <CardDescription className="flex items-center gap-1.5 text-sm">
+          {celula.meeting_day && (
+            <>
+              <Calendar className="h-3.5 w-3.5" />
+              {celula.meeting_day}
+              {celula.meeting_time && ` às ${celula.meeting_time}`}
+            </>
+          )}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-2 p-4 pt-0">
+        {celula.leadership_couple && (
+          <p className="text-sm font-medium text-foreground">
+            👫 {celula.leadership_couple.spouse1?.name} & {celula.leadership_couple.spouse2?.name}
+          </p>
+        )}
+        {celula.address && (
+          <p className="text-sm text-muted-foreground flex items-center gap-1.5">
+            <MapPin className="h-3.5 w-3.5 shrink-0" />
+            {celula.address}
+          </p>
+        )}
+      </CardContent>
+    </Card>
   );
 }
