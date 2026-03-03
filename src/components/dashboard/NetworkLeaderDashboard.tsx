@@ -44,17 +44,24 @@ import { DashboardScopeBanner } from './DashboardScopeBanner';
 
 interface NetworkLeaderDashboardProps {
   initialRedeId?: string;
+  /** When set (e.g. from Global drill-down), filters redes to this campus WITHOUT mutating CampoContext */
+  overrideCampoId?: string;
   onBack?: () => void;
   breadcrumbLabel?: string;
 }
 
-export function NetworkLeaderDashboard({ initialRedeId, onBack, breadcrumbLabel }: NetworkLeaderDashboardProps = {}) {
+export function NetworkLeaderDashboard({ initialRedeId, overrideCampoId, onBack, breadcrumbLabel }: NetworkLeaderDashboardProps = {}) {
   const [searchParams] = useSearchParams();
   const urlTab = searchParams.get('tab');
   const { toast } = useToast();
-  const { data: redes, isLoading: redesLoading } = useRedes();
+  const { data: allRedes, isLoading: redesLoading } = useRedes();
   const { data: coordenacoes } = useCoordenacoes();
   const { data: celulas } = useCelulas();
+  
+  // When overrideCampoId is set (drill-down from Global view), filter redes to that campus only
+  const redes = overrideCampoId
+    ? (allRedes || []).filter(r => r.campo_id === overrideCampoId)
+    : allRedes;
   
   const [selectedRede, setSelectedRede] = useState<string>(initialRedeId || '');
   const { scopeId, scopeType } = useRole();

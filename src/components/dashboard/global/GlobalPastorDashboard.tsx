@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import { GlobalValidationPanel } from '../GlobalValidationPanel';
 import { IntegrityAuditPanel } from '../IntegrityAuditPanel';
 import { Loader2, Globe, Church, Users, Home, GitBranch, Heart, FlaskConical, Eye, BookOpen, Calendar, Sparkles, ShieldAlert, TrendingUp, UserCheck, ArrowRight, Award } from 'lucide-react';
@@ -24,7 +24,6 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useAIInsights } from '@/hooks/useAIInsights';
 import ReactMarkdown from 'react-markdown';
-import { useCampo } from '@/contexts/CampoContext';
 import { NetworkLeaderDashboard } from '../NetworkLeaderDashboard';
 import {
   Breadcrumb,
@@ -48,18 +47,7 @@ interface DrillState {
 export function GlobalPastorDashboard() {
   const [drill, setDrill] = useState<DrillState>({ level: 'kingdom' });
   const { data: campusData, isLoading } = useGlobalKingdomData(false);
-  const { setActiveCampo, setIsGlobalView } = useCampo();
-
-  // When drilling into a rede, temporarily set the CampoContext so queries filter correctly
-  useEffect(() => {
-    if (drill.level === 'rede' && drill.campoId && drill.campoNome) {
-      setActiveCampo({ id: drill.campoId, nome: drill.campoNome });
-    }
-    if (drill.level === 'kingdom') {
-      // Restore global view so data isn't filtered to a specific campus
-      setIsGlobalView(true);
-    }
-  }, [drill.level, drill.campoId]);
+  // NO useEffect that mutates CampoContext — drill-down uses local state only
 
   if (isLoading) {
     return (
@@ -93,6 +81,7 @@ export function GlobalPastorDashboard() {
         </Breadcrumb>
         <NetworkLeaderDashboard
           initialRedeId={drill.redeId}
+          overrideCampoId={drill.campoId}
           onBack={() => setDrill({ level: 'campus', campoId: drill.campoId, campoNome: drill.campoNome })}
           breadcrumbLabel={`${drill.campoNome} > ${drill.redeNome}`}
         />
