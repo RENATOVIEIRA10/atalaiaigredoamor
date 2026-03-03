@@ -52,10 +52,17 @@ export function useCreateMultiplicacao() {
       celula_destino_id: string;
       data_multiplicacao: string;
       notes?: string;
+      campo_id: string;
     }) => {
       const { error } = await supabase
         .from('multiplicacoes')
-        .insert(data);
+        .insert({
+          celula_origem_id: data.celula_origem_id,
+          celula_destino_id: data.celula_destino_id,
+          data_multiplicacao: data.data_multiplicacao,
+          notes: data.notes,
+          campo_id: data.campo_id,
+        });
       
       if (error) throw error;
     },

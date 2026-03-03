@@ -67,10 +67,12 @@ export function MultiplicacoesVisual({ celulas }: MultiplicacoesVisualProps) {
     if (!selectedChild || !selectedParent) return;
     
     try {
+      const parentCelula = celulas.find(c => c.id === selectedParent);
       await createMultiplicacao.mutateAsync({
         celula_origem_id: selectedParent,
         celula_destino_id: selectedChild,
-        data_multiplicacao: date
+        data_multiplicacao: date,
+        campo_id: (parentCelula as any)?.campo_id || '',
       });
       setSelectedChild('');
       toast({
