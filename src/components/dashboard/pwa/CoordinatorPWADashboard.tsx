@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Loader2, Users, FileText, Cake, AlertTriangle, MessageSquare, ClipboardCheck, Eye, ChevronRight, Calendar } from 'lucide-react';
+import { Loader2, Users, FileText, Cake, AlertTriangle, MessageSquare, ClipboardCheck, Eye, ChevronRight, Calendar, Sprout, HeartPulse } from 'lucide-react';
 import { useCoordenacoes } from '@/hooks/useCoordenacoes';
 import { useCelulas } from '@/hooks/useCelulas';
 import { useWeeklyReportsByCoordenacao } from '@/hooks/useWeeklyReports';
@@ -16,6 +16,7 @@ import { useRole } from '@/contexts/RoleContext';
 import { useDemoScope } from '@/hooks/useDemoScope';
 import { StatCard } from '@/components/ui/stat-card';
 import { MissionVerse } from '../MissionVerse';
+import { MissionBlock } from '@/components/dashboard/MissionBlock';
 import { PulsoRedeSection } from '../PulsoRedeSection';
 import { RadarSaudePanel } from '../RadarSaudePanel';
 import { SupervisoesList } from '../SupervisoesList';
@@ -87,7 +88,7 @@ export function CoordinatorPWADashboard() {
   );
 }
 
-// ────────── Aba Início ──────────
+// ────────── Aba Início — 3 blocos pastorais ──────────
 function CoordInicio({ coordId, coordData }: { coordId: string; coordData: any }) {
   const { campoId } = useDemoScope();
   const { data: celulas } = useCelulas();
@@ -96,7 +97,6 @@ function CoordInicio({ coordId, coordData }: { coordId: string; coordData: any }
   const { data: aniversariantes } = useAniversariantesSemana({ scopeType: 'coordenacao', scopeId: coordId, campoId });
   const { data: supervisoes } = useSupervisoesByCoordenacao(coordId);
 
-  // Drill-down state
   const [drillDown, setDrillDown] = useState<'pendentes' | 'aniversariantes' | 'supervisoes_semana' | null>(null);
 
   const coordCelulas = celulas?.filter(c => c.coordenacao_id === coordId) || [];
@@ -104,7 +104,6 @@ function CoordInicio({ coordId, coordData }: { coordId: string; coordData: any }
   const celulasComRelatorio = new Set((reports || []).map(r => r.celula_id)).size;
   const pendentes = totalCelulas - celulasComRelatorio;
 
-  // Supervisões desta semana
   const now = new Date();
   const weekStart = startOfWeek(now, { weekStartsOn: 1 });
   const weekEnd = endOfWeek(now, { weekStartsOn: 1 });
@@ -113,13 +112,12 @@ function CoordInicio({ coordId, coordData }: { coordId: string; coordData: any }
     return d >= weekStart && d <= weekEnd;
   });
 
-  // Drill-down views
   if (drillDown === 'pendentes') return <PendentesView coordId={coordId} onBack={() => setDrillDown(null)} />;
   if (drillDown === 'aniversariantes') return <AniversariantesView coordId={coordId} onBack={() => setDrillDown(null)} />;
   if (drillDown === 'supervisoes_semana') return <SupervisoesSemanaCoordView supervisoes={supervisoesSemana} onBack={() => setDrillDown(null)} />;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <MissionVerse role="coordenador" />
 
       {/* Couple card */}
@@ -150,43 +148,39 @@ function CoordInicio({ coordId, coordData }: { coordId: string; coordData: any }
         </Card>
       )}
 
-      {/* KPIs — clickable */}
-      <div className="grid grid-cols-3 gap-3">
-        <StatCard icon={Users} label="Células" value={totalCelulas} />
-        <div onClick={() => setDrillDown('pendentes')} className="cursor-pointer active:scale-[0.97] transition-transform touch-manipulation">
-          <StatCard icon={FileText} label="Pendentes" value={pendentes} className={pendentes > 0 ? 'border-amber-500/30' : ''} />
-        </div>
-        <div onClick={() => setDrillDown('aniversariantes')} className="cursor-pointer active:scale-[0.97] transition-transform touch-manipulation">
-          <StatCard icon={Cake} label="Aniversários" value={aniversariantes?.length || 0} />
-        </div>
-      </div>
+      {/* ── BLOCO 1 — Atenção ── */}
+      <MissionBlock icon={AlertTriangle} title="O que precisa da minha atenção">
+        <Card>
+          <CardContent className="px-4 py-3 space-y-2">
+            <TappableRow
+              label="Células sem relatório"
+              value={pendentes}
+              variant={pendentes > 0 ? 'warning' : 'ok'}
+              onClick={() => setDrillDown('pendentes')}
+            />
+            <TappableRow
+              label="Supervisões desta semana"
+              value={supervisoesSemana.length}
+              onClick={() => setDrillDown('supervisoes_semana')}
+            />
+          </CardContent>
+        </Card>
+      </MissionBlock>
 
-      {/* Ações da semana (NEW) */}
-      <Card>
-        <CardHeader className="pb-2 pt-4 px-4">
-          <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
-            <Calendar className="h-4 w-4" /> Ações da semana
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="px-4 pb-4 space-y-2">
-          <TappableRow
-            label="Supervisões desta semana"
-            value={supervisoesSemana.length}
-            onClick={() => setDrillDown('supervisoes_semana')}
-          />
-          <TappableRow
-            label="Células sem relatório"
-            value={pendentes}
-            variant={pendentes > 0 ? 'warning' : 'ok'}
-            onClick={() => setDrillDown('pendentes')}
-          />
-          <TappableRow
-            label="Aniversariantes"
-            value={aniversariantes?.length || 0}
-            onClick={() => setDrillDown('aniversariantes')}
-          />
-        </CardContent>
-      </Card>
+      {/* ── BLOCO 2 — Movimento ── */}
+      <MissionBlock icon={Sprout} title="Movimento do Reino">
+        <div className="grid grid-cols-2 gap-3">
+          <StatCard icon={Users} label="Células" value={totalCelulas} />
+          <StatCard icon={ClipboardCheck} label="Supervisões" value={supervisoes?.length || 0} />
+        </div>
+      </MissionBlock>
+
+      {/* ── BLOCO 3 — Saúde e Cuidado ── */}
+      <MissionBlock icon={HeartPulse} title="Saúde e Cuidado">
+        <div onClick={() => setDrillDown('aniversariantes')} className="cursor-pointer active:scale-[0.97] transition-transform touch-manipulation">
+          <StatCard icon={Cake} label="Aniversariantes" value={aniversariantes?.length || 0} />
+        </div>
+      </MissionBlock>
     </div>
   );
 }
@@ -204,17 +198,13 @@ function SupervisoesSemanaCoordView({ supervisoes, onBack }: { supervisoes: any[
               <div className="flex items-center justify-between">
                 <div className="min-w-0 flex-1">
                   <p className="font-medium text-sm truncate">{s.celula?.name || 'Célula'}</p>
-                  <p className="text-xs text-muted-foreground">
-                    👤 {s.supervisor?.profile?.name || 'Supervisor'}
-                  </p>
+                  <p className="text-xs text-muted-foreground">👤 {s.supervisor?.profile?.name || 'Supervisor'}</p>
                 </div>
                 <div className="text-right shrink-0">
                   <Badge variant={s.celula_realizada ? 'default' : 'outline'} className="text-xs">
                     {s.celula_realizada ? 'Realizada' : 'Planejada'}
                   </Badge>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {format(parseISO(s.data_supervisao), "dd/MM", { locale: ptBR })}
-                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">{format(parseISO(s.data_supervisao), "dd/MM", { locale: ptBR })}</p>
                 </div>
               </div>
             </CardContent>
@@ -230,12 +220,16 @@ function CoordAcoes({ coordId }: { coordId: string }) {
   const [activeAction, setActiveAction] = useState<'pendentes' | 'aniversariantes' | 'supervisoes' | null>(null);
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-5">
       {!activeAction && (
         <>
-          <ActionCard label="Células sem relatório" icon={AlertTriangle} description="Cobrar relatórios via WhatsApp" onClick={() => setActiveAction('pendentes')} />
-          <ActionCard label="Aniversariantes da semana" icon={Cake} description="Enviar parabéns via WhatsApp" onClick={() => setActiveAction('aniversariantes')} />
-          <ActionCard label="Supervisões" icon={ClipboardCheck} description="Registrar e ver histórico" onClick={() => setActiveAction('supervisoes')} />
+          <MissionBlock icon={AlertTriangle} title="O que precisa da minha atenção">
+            <ActionCard label="Células sem relatório" icon={AlertTriangle} description="Cobrar relatórios via WhatsApp" onClick={() => setActiveAction('pendentes')} />
+          </MissionBlock>
+          <MissionBlock icon={HeartPulse} title="Saúde e Cuidado">
+            <ActionCard label="Aniversariantes da semana" icon={Cake} description="Enviar parabéns via WhatsApp" onClick={() => setActiveAction('aniversariantes')} />
+            <ActionCard label="Supervisões" icon={ClipboardCheck} description="Registrar e ver histórico" onClick={() => setActiveAction('supervisoes')} />
+          </MissionBlock>
         </>
       )}
 
@@ -388,7 +382,7 @@ function BirthdayCard({ b }: { b: AniversarianteSemana }) {
                 className="h-10 text-green-600 border-green-600/30"
                 onClick={() => {
                   const msg = encodeURIComponent(`Feliz aniversário, ${firstName}! 🎉\n\nQue Jesus te abençoe muito! ❤️\n\n— Rede Amor a 2`);
-                  window.location.href = `https://wa.me/${b.whatsapp!.replace(/\D/g, '')}?text=${msg}`;
+                  window.location.href = `https://wa.me/${b.whatsapp?.replace(/\D/g, '')}?text=${msg}`;
                 }}
               >
                 <MessageSquare className="h-4 w-4" />
@@ -401,18 +395,20 @@ function BirthdayCard({ b }: { b: AniversarianteSemana }) {
   );
 }
 
-function ActionCard({ label, icon: Icon, description, onClick }: { label: string; icon: any; description: string; onClick: () => void }) {
+function ActionCard({ label, icon: Icon, description, onClick }: {
+  label: string; icon: any; description: string; onClick: () => void;
+}) {
   return (
-    <Card className="cursor-pointer active:bg-accent/50 touch-manipulation transition-colors" onClick={onClick}>
-      <CardContent className="p-4 flex items-center gap-4">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-          <Icon className="h-5 w-5 text-primary" />
+    <Card className="cursor-pointer card-hover active:scale-[0.98] transition-all" onClick={onClick}>
+      <CardContent className="p-5 flex items-center gap-4">
+        <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+          <Icon className="h-6 w-6 text-primary" />
         </div>
-        <div className="flex-1 min-w-0">
-          <p className="font-medium text-sm">{label}</p>
+        <div className="flex-1">
+          <h3 className="font-semibold">{label}</h3>
           <p className="text-xs text-muted-foreground">{description}</p>
         </div>
-        <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0" />
+        <ChevronRight className="h-5 w-5 text-muted-foreground" />
       </CardContent>
     </Card>
   );
