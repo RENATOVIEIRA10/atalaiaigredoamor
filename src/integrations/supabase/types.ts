@@ -304,7 +304,7 @@ export type Database = {
           name: string
           ordem: number | null
           perfil_ambiente: string | null
-          rede_id: string | null
+          rede_id: string
           seed_run_id: string | null
           supervisor_id: string | null
           tipo_celula: string | null
@@ -332,7 +332,7 @@ export type Database = {
           name: string
           ordem?: number | null
           perfil_ambiente?: string | null
-          rede_id?: string | null
+          rede_id: string
           seed_run_id?: string | null
           supervisor_id?: string | null
           tipo_celula?: string | null
@@ -360,7 +360,7 @@ export type Database = {
           name?: string
           ordem?: number | null
           perfil_ambiente?: string | null
-          rede_id?: string | null
+          rede_id?: string
           seed_run_id?: string | null
           supervisor_id?: string | null
           tipo_celula?: string | null
@@ -1023,7 +1023,7 @@ export type Database = {
           is_test_data: boolean | null
           joined_at: string
           profile_id: string
-          rede_id: string | null
+          rede_id: string
           renovo: boolean | null
           seed_run_id: string | null
           whatsapp: string | null
@@ -1042,7 +1042,7 @@ export type Database = {
           is_test_data?: boolean | null
           joined_at?: string
           profile_id: string
-          rede_id?: string | null
+          rede_id: string
           renovo?: boolean | null
           seed_run_id?: string | null
           whatsapp?: string | null
@@ -1061,7 +1061,7 @@ export type Database = {
           is_test_data?: boolean | null
           joined_at?: string
           profile_id?: string
-          rede_id?: string | null
+          rede_id?: string
           renovo?: boolean | null
           seed_run_id?: string | null
           whatsapp?: string | null
@@ -1106,7 +1106,7 @@ export type Database = {
       }
       multiplicacoes: {
         Row: {
-          campo_id: string | null
+          campo_id: string
           celula_destino_id: string
           celula_origem_id: string
           created_at: string
@@ -1119,7 +1119,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          campo_id?: string | null
+          campo_id: string
           celula_destino_id: string
           celula_origem_id: string
           created_at?: string
@@ -1132,7 +1132,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          campo_id?: string | null
+          campo_id?: string
           celula_destino_id?: string
           celula_origem_id?: string
           created_at?: string

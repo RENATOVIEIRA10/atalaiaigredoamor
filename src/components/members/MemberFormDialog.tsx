@@ -52,6 +52,7 @@ export function MemberFormDialog({ open, onOpenChange }: MemberFormDialogProps) 
         profile_id: data.profile_id,
         celula_id: data.celula_id,
         campo_id: campoIdToUse,
+        rede_id: selectedCelula?.rede_id || '',
       });
       onOpenChange(false);
       form.reset();

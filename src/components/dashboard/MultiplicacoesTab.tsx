@@ -44,6 +44,7 @@ export function MultiplicacoesTab() {
       celula_destino_id: formData.celula_destino_id,
       data_multiplicacao: formData.data_multiplicacao,
       notes: formData.notes || undefined,
+      campo_id: campoId || '',
     });
 
     setFormData({ celula_origem_id: '', celula_destino_id: '', data_multiplicacao: '', notes: '' });

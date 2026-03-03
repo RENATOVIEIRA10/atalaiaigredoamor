@@ -100,6 +100,7 @@ export function CelulaFormDialog({ open, onOpenChange, celula }: CelulaFormDialo
         instagram_lider2: data.instagram_lider2 || null,
         instagram_celula: data.instagram_celula || null,
         campo_id: campoIdToUse,
+        rede_id: selectedCoord?.rede_id || '',
       };
       
       if (celula) {
