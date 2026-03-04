@@ -255,7 +255,7 @@ Deno.serve(async (req) => {
       const targetId = seed_run_id;
       // Delete in FK-safe order
       await supabase.from('event_registrations').delete().eq('campo_id', targetId); // won't match, but safe
-      await supabase.from('encaminhamentos_recomeco').delete().eq('encaminhado_por', 'Seed Run');
+      await supabase.from('encaminhamentos_recomeco').delete().eq('seed_run_id', targetId);
       await supabase.from('discipulado_encontros').delete().eq('seed_run_id', targetId);
       await supabase.from('roteiros_celula').delete().eq('seed_run_id', targetId);
       await supabase.from('weekly_reports').delete().eq('seed_run_id', targetId);
@@ -872,6 +872,23 @@ Deno.serve(async (req) => {
     if (action === 'seed_encaminhamentos') {
       let grandTotal = 0;
 
+      // Pipeline status distribution for realistic demo data
+      const nvStatusDistribution = [
+        { nvStatus: 'encaminhada', encStatus: 'pendente', weight: 15 },
+        { nvStatus: 'recebida_pela_celula', encStatus: 'recebido', weight: 12 },
+        { nvStatus: 'contatada', encStatus: 'contatado', weight: 15 },
+        { nvStatus: 'sem_resposta', encStatus: 'sem_resposta', weight: 8 },
+        { nvStatus: 'agendada', encStatus: 'contatado', weight: 10 },
+        { nvStatus: 'visitou', encStatus: 'contatado', weight: 10 },
+        { nvStatus: 'integrada', encStatus: 'integrado', weight: 15 },
+        { nvStatus: 'convertida_membro', encStatus: 'convertido', weight: 10 },
+        { nvStatus: 'nao_convertida', encStatus: 'nao_convertida', weight: 5 },
+      ];
+      const weightedPool: typeof nvStatusDistribution = [];
+      for (const s of nvStatusDistribution) {
+        for (let i = 0; i < s.weight; i++) weightedPool.push(s);
+      }
+
       for (const campus of campusList) {
         console.log(`  seed_encaminhamentos → campus ${campus.nome}`);
         const { data: novasVidas } = await supabase
@@ -888,7 +905,7 @@ Deno.serve(async (req) => {
         if (!celulas || celulas.length === 0) continue;
 
         const encaminhamentos: any[] = [];
-        const statusOptions = ['pendente', 'pendente', 'contatado', 'contatado', 'integrado'];
+        const nvUpdates: { id: string; status: string; assigned_cell_id: string }[] = [];
 
         for (const nv of novasVidas) {
           let targetCelula = null;
@@ -906,9 +923,9 @@ Deno.serve(async (req) => {
           }
           if (!targetCelula) targetCelula = randItem(celulas);
 
-          const status = randItem(statusOptions);
+          const picked = randItem(weightedPool);
           const now = new Date();
-          const daysAgo = randInt(1, 30);
+          const daysAgo = randInt(1, 45);
           const encDate = new Date(now.getTime() - daysAgo * 24 * 60 * 60 * 1000);
 
           encaminhamentos.push({
@@ -916,11 +933,25 @@ Deno.serve(async (req) => {
             celula_id: targetCelula.id,
             rede_id: targetCelula.rede_id || null,
             campo_id: campus.id,
-            status,
+            status: picked.encStatus,
             encaminhado_por: 'Seed Run',
-            notas: status === 'integrado' ? 'Já participou de 3+ reuniões' : status === 'contatado' ? 'Líder entrou em contato via WhatsApp' : null,
-            contatado_at: status !== 'pendente' ? encDate.toISOString() : null,
-            integrado_at: status === 'integrado' ? new Date(encDate.getTime() + randInt(3, 14) * 24 * 60 * 60 * 1000).toISOString() : null,
+            seed_run_id,
+            is_test_data: true,
+            notas: picked.encStatus === 'integrado' ? 'Já participou de 3+ reuniões'
+              : picked.encStatus === 'contatado' ? 'Líder entrou em contato via WhatsApp'
+              : picked.encStatus === 'convertido' ? 'Promovido a membro da célula'
+              : null,
+            contatado_at: !['pendente', 'recebido'].includes(picked.encStatus) ? encDate.toISOString() : null,
+            integrado_at: ['integrado', 'convertido'].includes(picked.encStatus)
+              ? new Date(encDate.getTime() + randInt(3, 14) * 24 * 60 * 60 * 1000).toISOString() : null,
+            promovido_membro_at: picked.encStatus === 'convertido'
+              ? new Date(encDate.getTime() + randInt(14, 30) * 24 * 60 * 60 * 1000).toISOString() : null,
+          });
+
+          nvUpdates.push({
+            id: nv.id,
+            status: picked.nvStatus,
+            assigned_cell_id: targetCelula.id,
           });
         }
 
@@ -928,11 +959,15 @@ Deno.serve(async (req) => {
         for (const batch of chunk(encaminhamentos, 50)) {
           const { error } = await supabase.from('encaminhamentos_recomeco').insert(batch);
           if (!error) campusCreated += batch.length;
+          else console.error('  encaminhamento insert error:', error.message);
         }
 
-        const encaminhadasIds = encaminhamentos.map(e => e.nova_vida_id);
-        for (const batch of chunk(encaminhadasIds, 100)) {
-          await supabase.from('novas_vidas').update({ status: 'encaminhada' }).in('id', batch);
+        // Update novas_vidas with their pipeline status and assigned cell
+        for (const upd of nvUpdates) {
+          await supabase.from('novas_vidas').update({
+            status: upd.status,
+            assigned_cell_id: upd.assigned_cell_id,
+          }).eq('id', upd.id);
         }
 
         grandTotal += campusCreated;
