@@ -2,13 +2,23 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, User, Loader2, ShieldAlert, Cake, Church } from 'lucide-react';
+import { ArrowLeft, User, Loader2, ShieldAlert, Cake, Church, Award, HandHeart } from 'lucide-react';
 import { useRole } from '@/contexts/RoleContext';
 import { AvatarEditable } from '@/components/profile/AvatarEditable';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+
+const MARCOS_ESPIRITUAIS = [
+  { key: 'batismo', label: 'Batismo' },
+  { key: 'encontro_com_deus', label: 'Encontro com Deus' },
+  { key: 'renovo', label: 'Renovo' },
+  { key: 'encontro_de_casais', label: 'Encontro de Casais' },
+  { key: 'curso_lidere', label: 'Curso Lidere' },
+  { key: 'is_discipulado', label: 'Discipulado' },
+  { key: 'is_lider_em_treinamento', label: 'Líder em Treinamento' },
+] as const;
 
 export default function PerfilMembro() {
   const { memberId } = useParams<{ memberId: string }>();
@@ -22,6 +32,9 @@ export default function PerfilMembro() {
         .from('members')
         .select(`
           id, celula_id, is_active,
+          batismo, encontro_com_deus, renovo, encontro_de_casais,
+          curso_lidere, is_discipulado, is_lider_em_treinamento,
+          serve_ministerio, ministerios, whatsapp,
           profile:profiles!members_profile_id_fkey(id, name, avatar_url, email, birth_date, joined_church_at),
           celula:celulas!members_celula_id_fkey(id, name)
         `)
@@ -33,7 +46,6 @@ export default function PerfilMembro() {
     enabled: !!memberId,
   });
 
-  // Membro não tem login — somente liderança/admin edita
   const canEdit = scopeType === 'admin' || scopeType === 'celula' || scopeType === 'supervisor' || scopeType === 'coordenacao' || scopeType === 'rede' || scopeType === 'pastor';
 
   const handlePhotoSaved = async (url: string) => {
@@ -68,6 +80,8 @@ export default function PerfilMembro() {
 
   const profile = member.profile as any;
   const celula = member.celula as any;
+  const marcosAtivos = MARCOS_ESPIRITUAIS.filter(m => (member as any)[m.key]);
+  const ministerios = (member.ministerios as string[] | null) || [];
 
   return (
     <div className="min-h-screen bg-background">
@@ -138,6 +152,61 @@ export default function PerfilMembro() {
                 </div>
               )}
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Marcos Espirituais */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Award className="h-5 w-5 text-primary" />
+              Marcos Espirituais
+            </CardTitle>
+            <CardDescription>
+              {marcosAtivos.length}/{MARCOS_ESPIRITUAIS.length} marcos concluídos
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              {MARCOS_ESPIRITUAIS.map(m => {
+                const ativo = (member as any)[m.key];
+                return (
+                  <Badge
+                    key={m.key}
+                    variant={ativo ? 'default' : 'outline'}
+                    className={ativo ? '' : 'opacity-50'}
+                  >
+                    {m.label}
+                  </Badge>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Ministério */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <HandHeart className="h-5 w-5 text-primary" />
+              Ministério
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {member.serve_ministerio ? (
+              <div className="space-y-2">
+                <Badge variant="default" className="bg-green-600">Serve em ministério</Badge>
+                {ministerios.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {ministerios.map(min => (
+                      <Badge key={min} variant="secondary">{min}</Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">Ainda não serve em ministério.</p>
+            )}
           </CardContent>
         </Card>
 
