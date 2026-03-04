@@ -12,30 +12,36 @@ export interface ConversionsMetrics {
   novosMembros90dias: number;
 }
 
-export function useConversionsMetrics(overrideCampoId?: string | null) {
+export function useConversionsMetrics(overrideCampoId?: string | null, redeId?: string | null) {
   const { campoId: scopeCampoId } = useDemoScope();
   const campoId = overrideCampoId !== undefined ? overrideCampoId : scopeCampoId;
 
   return useQuery({
-    queryKey: ['conversions-metrics', campoId ?? 'global'],
+    queryKey: ['conversions-metrics', campoId ?? 'global', redeId ?? 'all'],
     staleTime: 60_000,
     queryFn: async (): Promise<ConversionsMetrics> => {
       const ninetyDaysAgo = format(subDays(new Date(), 90), 'yyyy-MM-dd');
 
-      // Total conversões (novas_vidas)
+      // When filtering by rede, we need to scope novas_vidas through encaminhamentos
+      // because novas_vidas doesn't have rede_id natively — rede attribution starts at encaminhamento.
+      // For conversões (novas_vidas), rede filter is NOT applied (conversões are campus-level).
+      // For novos membros, rede filter IS applied via members.rede_id.
+
+      // Total conversões (novas_vidas) — always campus-scoped, never rede-scoped
       let totalQ = supabase.from('novas_vidas').select('id', { count: 'exact', head: true });
       if (campoId) totalQ = totalQ.eq('campo_id', campoId);
 
-      // Conversões últimos 90 dias
+      // Conversões últimos 90 dias — campus-scoped
       let recentQ = supabase.from('novas_vidas').select('id', { count: 'exact', head: true })
         .gte('created_at', ninetyDaysAgo);
       if (campoId) recentQ = recentQ.eq('campo_id', campoId);
 
-      // Novos membros últimos 90 dias
+      // Novos membros últimos 90 dias — rede-scoped when redeId is provided
       let membrosQ = supabase.from('members').select('id', { count: 'exact', head: true })
         .eq('is_active', true)
         .gte('joined_at', ninetyDaysAgo);
       if (campoId) membrosQ = membrosQ.eq('campo_id', campoId);
+      if (redeId) membrosQ = membrosQ.eq('rede_id', redeId);
 
       const [totalRes, recentRes, membrosRes] = await Promise.all([totalQ, recentQ, membrosQ]);
 

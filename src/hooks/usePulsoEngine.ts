@@ -121,20 +121,16 @@ export function usePulsoEngine({ scopeType, scopeId, campoId, enabled = true }: 
       const celulasFilters = (q: any) => {
         if (campoId) q = q.eq('campo_id', campoId);
         if (scopeType === 'coordenacao' && scopeId) q = q.eq('coordenacao_id', scopeId);
+        // Use direct rede_id column for rede scope (single source of truth, set by trigger)
+        if (scopeType === 'rede' && scopeId) q = q.eq('rede_id', scopeId);
         return q;
       };
 
-      const allCelulasRaw = await fetchAllRows(
+      const allCelulas = await fetchAllRows(
         'celulas',
         'id, name, coordenacao_id, coordenacao:coordenacoes!celulas_coordenacao_id_fkey(name, rede_id)',
         celulasFilters
       );
-
-      // Client-side filter for rede scope
-      let allCelulas = allCelulasRaw;
-      if (scopeType === 'rede' && scopeId) {
-        allCelulas = allCelulas.filter((c: any) => c.coordenacao?.rede_id === scopeId);
-      }
 
       const celulaIds = allCelulas.map((c: any) => c.id);
       const totalCelulas = celulaIds.length;

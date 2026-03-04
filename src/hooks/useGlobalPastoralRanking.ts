@@ -43,12 +43,14 @@ export function useGlobalPastoralRanking(options: RankingOptions = {}) {
       let celulaIds: string[] | null = null;
 
       if (coordenacaoId) {
-        const { data: scopeCelulas } = await supabase
-          .from('celulas').select('id').eq('coordenacao_id', coordenacaoId);
+        let cq = supabase.from('celulas').select('id').eq('coordenacao_id', coordenacaoId);
+        if (campoId) cq = cq.eq('campo_id', campoId);
+        const { data: scopeCelulas } = await cq;
         celulaIds = (scopeCelulas || []).map(c => c.id);
       } else if (redeId) {
-        const { data: scopeCelulas } = await supabase
-          .from('celulas').select('id').eq('rede_id', redeId);
+        let cq = supabase.from('celulas').select('id').eq('rede_id', redeId);
+        if (campoId) cq = cq.eq('campo_id', campoId);
+        const { data: scopeCelulas } = await cq;
         celulaIds = (scopeCelulas || []).map(c => c.id);
       }
 
