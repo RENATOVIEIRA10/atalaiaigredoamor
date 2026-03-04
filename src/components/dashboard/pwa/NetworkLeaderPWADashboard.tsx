@@ -71,8 +71,8 @@ export function NetworkLeaderPWADashboard() {
           {activeTab === 'inicio' && <RedeInicio redeId={selectedRede} redeData={selectedRedeData} />}
           {activeTab === 'pulso' && (
             <div className="space-y-6">
-              <PulsoRedeSection scopeType="rede" scopeId={selectedRede} title="Pulso da Rede" />
-              <RadarSaudePanel scopeType="rede" scopeId={selectedRede} title="Radar de Saúde" compact />
+              <PulsoRedeSection scopeType="rede" scopeId={selectedRede} title="Visão Pastoral da Rede" />
+              <RadarSaudePanel scopeType="rede" scopeId={selectedRede} title="Saúde da Rede" compact />
             </div>
           )}
           {activeTab === 'acoes' && <RedeAcoes redeId={selectedRede} />}

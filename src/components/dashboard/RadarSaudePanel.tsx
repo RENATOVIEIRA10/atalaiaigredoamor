@@ -23,7 +23,7 @@ const STATUS_CONFIG = {
   sem_avaliacao: { label: 'Sem avaliação', emoji: '⚪', color: 'text-muted-foreground', bg: 'bg-muted/50', border: 'border-muted' },
 } as const;
 
-export function RadarSaudePanel({ scopeType, scopeId, campoId, title = 'Radar de Saúde', compact = false }: RadarSaudePanelProps) {
+export function RadarSaudePanel({ scopeType, scopeId, campoId, title = 'Saúde da Rede', compact = false }: RadarSaudePanelProps) {
   const { data, isLoading } = useRadarSaude({ scopeType, scopeId, campoId });
 
   if (isLoading) {

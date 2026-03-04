@@ -75,8 +75,8 @@ export function CoordinatorPWADashboard() {
           {activeTab === 'inicio' && <CoordInicio coordId={selectedCoordenacao} coordData={selectedCoordData} />}
           {activeTab === 'pulso' && (
             <div className="space-y-6">
-              <PulsoRedeSection scopeType="coordenacao" scopeId={selectedCoordenacao} title="Pulso da Coordenação" />
-              <RadarSaudePanel scopeType="coordenacao" scopeId={selectedCoordenacao} title="Radar de Saúde" compact />
+              <PulsoRedeSection scopeType="coordenacao" scopeId={selectedCoordenacao} title="Visão Pastoral da Coordenação" />
+              <RadarSaudePanel scopeType="coordenacao" scopeId={selectedCoordenacao} title="Saúde da Rede" compact />
             </div>
           )}
           {activeTab === 'acoes' && <CoordAcoes coordId={selectedCoordenacao} />}
@@ -159,7 +159,7 @@ function CoordInicio({ coordId, coordData }: { coordId: string; coordData: any }
               onClick={() => setDrillDown('pendentes')}
             />
             <TappableRow
-              label="Supervisões desta semana"
+              label="Cuidado e Supervisão desta semana"
               value={supervisoesSemana.length}
               onClick={() => setDrillDown('supervisoes_semana')}
             />
@@ -171,7 +171,7 @@ function CoordInicio({ coordId, coordData }: { coordId: string; coordData: any }
       <MissionBlock icon={Sprout} title="Movimento do Reino">
         <div className="grid grid-cols-2 gap-3">
           <StatCard icon={Users} label="Células" value={totalCelulas} />
-          <StatCard icon={ClipboardCheck} label="Supervisões" value={supervisoes?.length || 0} />
+          <StatCard icon={ClipboardCheck} label="Cuidado e Supervisão" value={supervisoes?.length || 0} />
         </div>
       </MissionBlock>
 
@@ -185,10 +185,10 @@ function CoordInicio({ coordId, coordData }: { coordId: string; coordData: any }
   );
 }
 
-// ────────── Drill-down: Supervisões da Semana (Coord) ──────────
+// ────────── Drill-down: Cuidado e Supervisão da Semana (Coord) ──────────
 function SupervisoesSemanaCoordView({ supervisoes, onBack }: { supervisoes: any[]; onBack: () => void }) {
   return (
-    <DrillDownContainer title="Supervisões desta semana" onBack={onBack}>
+    <DrillDownContainer title="Cuidado e Supervisão desta semana" onBack={onBack}>
       {supervisoes.length === 0 ? (
         <Card><CardContent className="p-6 text-center text-sm text-muted-foreground">Nenhuma supervisão esta semana</CardContent></Card>
       ) : (

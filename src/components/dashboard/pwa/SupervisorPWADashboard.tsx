@@ -250,7 +250,7 @@ function SupervisorInicioTab({
       <MissionBlock icon={HeartPulse} title="Saúde e Cuidado">
         <Card>
           <CardContent className="p-4 text-sm text-muted-foreground text-center">
-            Acesse a aba <strong>Planejamento</strong> para ver o radar de saúde das suas células
+            Acesse a aba <strong>Planejamento</strong> para ver a saúde das suas células
           </CardContent>
         </Card>
       </MissionBlock>
@@ -363,7 +363,7 @@ function HistoricoTab({
 
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-semibold">Histórico de Supervisões</h2>
+      <h2 className="text-lg font-semibold">Histórico de Cuidado e Supervisão</h2>
 
       <div className="flex gap-2">
         {[30, 60, 90].map(days => (

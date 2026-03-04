@@ -57,7 +57,7 @@ export default function Configuracoes() {
           {isAdmin && (
             <TabsTrigger value="seedrun" className="flex items-center gap-2">
               <FlaskConical className="h-4 w-4" />
-              Seed Run / Simulações
+              Simulação de Cenários
             </TabsTrigger>
           )}
           {isAdmin && isDemoActive && (

@@ -117,7 +117,7 @@ export function SeedRunSimulationPanel() {
         <div>
           <h2 className="text-xl font-bold flex items-center gap-2">
             <FlaskConical className="h-6 w-6 text-primary" />
-            Seed Run / Simulações
+            Simulação de Cenários
           </h2>
           <p className="text-sm text-muted-foreground mt-1">
             Motor de simulação configurável — crie cenários de teste sem afetar dados reais.

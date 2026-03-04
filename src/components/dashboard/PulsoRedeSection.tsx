@@ -114,7 +114,7 @@ export function PulsoRedeSection({ scopeType, scopeId, title }: PulsoRedeSection
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
               <BookOpen className="h-4 w-4 text-primary" />
-              Movimento de Discipulado
+              Caminho do Discipulado
             </CardTitle>
             <CardDescription>Discipulados ativos {scopeLabel}</CardDescription>
           </CardHeader>

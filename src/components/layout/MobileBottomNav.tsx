@@ -70,7 +70,7 @@ export function MobileBottomNav() {
   } else if (isPastorSeniorGlobal || isPastorDeCampo || isPastor) {
     navItems = [
       { label: 'Início', icon: LayoutDashboard, path: '/dashboard' },
-      { label: 'Pulso', icon: Heart, path: '/dashboard?tab=pulso' },
+      { label: 'Visão', icon: Heart, path: '/dashboard?tab=pulso' },
       { label: 'Ações', icon: Zap, path: '/dashboard?tab=acoes' },
     ];
   } else if (isCellLeaderOnly) {
@@ -89,13 +89,13 @@ export function MobileBottomNav() {
   } else if (isCoordenador || isRedeLeader) {
     navItems = [
       { label: 'Início', icon: LayoutDashboard, path: '/dashboard' },
-      { label: 'Pulso', icon: Heart, path: '/dashboard?tab=pulso' },
+      { label: 'Visão', icon: Heart, path: '/dashboard?tab=pulso' },
       { label: 'Ações', icon: Zap, path: '/dashboard?tab=acoes' },
     ];
   } else {
     navItems = [
       { label: 'Início', icon: LayoutDashboard, path: '/dashboard' },
-      { label: 'Pulso', icon: Heart, path: '/dashboard?tab=pulso' },
+      { label: 'Visão', icon: Heart, path: '/dashboard?tab=pulso' },
       { label: 'Relatórios', icon: FileText, path: '/presenca' },
       { label: 'Pessoas', icon: Users, path: '/membros' },
     ];

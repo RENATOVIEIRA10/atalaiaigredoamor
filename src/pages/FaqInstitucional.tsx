@@ -34,19 +34,19 @@ const SectionTitle = ({ icon: Icon, children }: { icon?: any; children: React.Re
 interface FaqItem { q: string; a: string; }
 
 const faqGeral: FaqItem[] = [
-  { q: 'O que é o Atalaia?', a: 'O Atalaia é o ecossistema digital de saúde e cuidado da Rede Amor a Dois, a serviço da Igreja do Amor. Ele organiza todo o fluxo pastoral — do altar à célula — incluindo relatórios, supervisões, acolhimento de novas vidas (Recomeço), encaminhamento pela Central de Células e acompanhamento contínuo.' },
+  { q: 'O que é o Atalaia?', a: 'O Atalaia é o ecossistema digital de saúde e cuidado da Rede Amor a Dois, a serviço da Igreja do Amor. Ele organiza todo o fluxo pastoral — do altar à célula — incluindo relatórios, cuidado e supervisão, acolhimento de novas vidas (Porta de Entrada), Encaminhamento de Vidas e acompanhamento contínuo.' },
   { q: 'Para quem o Atalaia foi criado?', a: 'Para toda a liderança da Rede Amor a Dois: líderes de célula, supervisores, coordenadores, líderes de rede e pastores. Cada nível de liderança tem uma visão adequada à sua responsabilidade.' },
   { q: 'Qual a relação entre Atalaia, Igreja do Amor e Rede Amor a Dois?', a: 'O Atalaia é a plataforma que cuida da saúde da Rede Amor a Dois, a serviço da Igreja do Amor. Ele não substitui a identidade da Igreja nem da Rede — ele sustenta e apoia ambas com organização e cuidado.' },
-  { q: 'O que é o Recomeço?', a: 'O Recomeço é o braço de acolhimento do Atalaia. Quando uma vida toma uma decisão no altar, a equipe do Recomeço garante o primeiro contato, registra os dados e acompanha essa pessoa até o encaminhamento para uma célula.' },
-  { q: 'O que é a Central de Células?', a: 'A Central de Células conecta a nova vida à célula mais adequada, levando em conta localização, perfil e disponibilidade. Ela garante que o encaminhamento seja feito com critério e cuidado pastoral.' },
-  { q: 'Como o Atalaia cuida da saúde da rede?', a: 'Organizando todo o fluxo pastoral: desde o acolhimento de novas vidas pelo Recomeço, passando pela Central de Células, até o acompanhamento contínuo nas células. Ele mantém o histórico e garante que nenhuma vida fique sem cuidado.' },
+  { q: 'O que é a Porta de Entrada?', a: 'A Porta de Entrada é o braço de acolhimento do Atalaia. Quando uma vida toma uma decisão no altar, a equipe da Porta de Entrada garante o primeiro contato, registra os dados e acompanha essa pessoa até o encaminhamento para uma célula.' },
+  { q: 'O que é o Encaminhamento de Vidas?', a: 'O Encaminhamento de Vidas conecta a nova vida à célula mais adequada, levando em conta localização, perfil e disponibilidade. Ele garante que o encaminhamento seja feito com critério e cuidado pastoral.' },
+  { q: 'Como o Atalaia cuida da saúde da rede?', a: 'Organizando todo o fluxo pastoral: desde o acolhimento de novas vidas pela Porta de Entrada, passando pelo Encaminhamento de Vidas, até o acompanhamento contínuo nas células. Ele mantém o histórico e garante que nenhuma vida fique sem cuidado.' },
   { q: 'O Atalaia substitui reuniões ou liderança?', a: 'De forma alguma. O Atalaia é um apoio — ele organiza informações, mas quem cuida das pessoas continua sendo você. Reuniões, conversas, discipulados e o toque pastoral continuam sendo insubstituíveis.' },
 ];
 
 const faqLideresCelula: FaqItem[] = [
   { q: 'É difícil usar o Atalaia?', a: 'Não! O Atalaia foi feito para ser simples. Se você sabe usar o WhatsApp, consegue usar o Atalaia. Tudo é intuitivo, com botões claros e poucos passos.' },
   { q: 'Preciso usar no computador ou no celular?', a: 'Você pode usar nos dois! O Atalaia funciona no celular como um aplicativo e também no computador pelo navegador. A maioria dos líderes usa diretamente pelo celular.' },
-  { q: 'Como recebo novas vidas na minha célula?', a: 'Quando uma nova vida é encaminhada pela Central de Células para a sua célula, você recebe a notificação com os dados da pessoa — nome, contato e contexto. A vida já chega acompanhada para você acolher.' },
+  { q: 'Como recebo novas vidas na minha célula?', a: 'Quando uma nova vida é encaminhada pelo Encaminhamento de Vidas para a sua célula, você recebe a notificação com os dados da pessoa — nome, contato e contexto. A vida já chega acompanhada para você acolher.' },
   { q: 'O que acontece se eu errar um relatório?', a: 'Sem problema. Você pode editar o relatório depois de enviar. Errar faz parte, e o Atalaia permite correções com facilidade.' },
   { q: 'Quanto tempo leva para enviar um relatório?', a: 'Menos de 2 minutos. É rápido: você preenche os números da célula da semana, adiciona alguma observação se quiser, e pronto.' },
   { q: 'Preciso enviar relatório toda semana?', a: 'Sim, idealmente. O relatório semanal é a forma de manter a saúde da célula visível para a liderança. Mas se uma semana passar, não se preocupe — o Atalaia guarda tudo e você pode preencher depois.' },

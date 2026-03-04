@@ -300,7 +300,7 @@ function StepSupervisor() {
         <CardHeader className="pb-2">
           <CardTitle className="text-sm flex items-center gap-2">
             <Activity className="h-4 w-4 text-primary" />
-            Radar de Saúde
+            Saúde da Rede
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
