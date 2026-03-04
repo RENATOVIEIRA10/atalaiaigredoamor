@@ -37,6 +37,7 @@ import { DiscipuladoCoordView } from './discipulado/DiscipuladoCoordView';
 import { RevelaShortcut } from './RevelaShortcut';
 import { DashboardScopeBanner } from './DashboardScopeBanner';
 import { InitialViewGate } from './InitialViewGate';
+import { SectionLabel } from './SectionLabel';
 import { useMembers } from '@/hooks/useMembers';
 
 export function CoordinatorDashboard() {
@@ -168,6 +169,7 @@ export function CoordinatorDashboard() {
         <div className="space-y-6">
           {/* ═══ PRIMEIRA TELA — Métricas Estruturais ═══ */}
           <LeaderBirthdayAlert coordenacaoId={selectedCoordenacao} />
+          <SectionLabel title="Dados Estruturais" subtitle="Visão consolidada da coordenação" />
           <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
             <StatCard icon={Home} label="Células" value={coordCelulas.length} />
             <StatCard icon={Users} label="Membros Ativos" value={coordMembersCount} />
@@ -192,11 +194,12 @@ export function CoordinatorDashboard() {
                   )}
                 </div>
 
+                <SectionLabel title="Acompanhamento Semanal" subtitle="Período selecionado" />
                 <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-                  <StatCard icon={AlertTriangle} label="Pendentes" value={celulasPendentes.length} subtitle="sem relatório" className={celulasPendentes.length > 0 ? 'border-amber-500/30' : ''} />
-                  <StatCard icon={Users} label="Membros (semana)" value={totals.members_present} />
-                  <StatCard icon={UserPlus} label="Visitantes" value={totals.visitors} />
-                  <StatCard icon={Heart} label="Discipulados" value={totals.discipleships} />
+                  <StatCard icon={AlertTriangle} label="Pendentes" value={celulasPendentes.length} subtitle="sem relatório no período" className={celulasPendentes.length > 0 ? 'border-amber-500/30' : ''} />
+                  <StatCard icon={Users} label="Membros (semana)" value={totals.members_present} subtitle="no período" />
+                  <StatCard icon={UserPlus} label="Visitantes" value={totals.visitors} subtitle="no período" />
+                  <StatCard icon={Heart} label="Discipulados" value={totals.discipleships} subtitle="no período" />
                 </div>
 
                 {celulasPendentes.length > 0 && (

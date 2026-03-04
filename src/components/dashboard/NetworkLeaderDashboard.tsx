@@ -42,6 +42,7 @@ import { RecomecoRedeTab } from './recomeco/RecomecoRedeTab';
 import { DiscipuladoRedeView } from './discipulado/DiscipuladoRedeView';
 import { RevelaShortcut } from './RevelaShortcut';
 import { DashboardScopeBanner } from './DashboardScopeBanner';
+import { SectionLabel } from './SectionLabel';
 
 interface NetworkLeaderDashboardProps {
   initialRedeId?: string;
@@ -209,6 +210,7 @@ export function NetworkLeaderDashboard({ initialRedeId, overrideCampoId, onBack,
           <LeaderBirthdayAlert redeId={selectedRede} />
 
           {/* ═══ PRIMEIRA TELA — Métricas Estruturais ═══ */}
+          <SectionLabel title="Dados Estruturais" subtitle="Visão consolidada da rede" />
           <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
             <StatCard icon={Home} label="Células Ativas" value={totalRedeCelulas} />
             <StatCard icon={Network} label="Coordenações" value={redeCoordenacoes.length} />
@@ -236,11 +238,12 @@ export function NetworkLeaderDashboard({ initialRedeId, overrideCampoId, onBack,
                   </Button>
                 </div>
 
+                <SectionLabel title="Acompanhamento Semanal" subtitle="Período selecionado" />
                 <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-                  <StatCard icon={AlertTriangle} label="Pendentes" value={celulasPendentes > 0 ? celulasPendentes : 0} subtitle="sem relatório" className={celulasPendentes > 0 ? 'border-amber-500/30' : ''} />
-                  <StatCard icon={Users} label="Membros (semana)" value={totals.members_present} />
-                  <StatCard icon={UserPlus} label="Visitantes" value={totals.visitors} />
-                  <StatCard icon={Heart} label="Discipulados" value={totals.discipleships} />
+                  <StatCard icon={AlertTriangle} label="Pendentes" value={celulasPendentes > 0 ? celulasPendentes : 0} subtitle="sem relatório no período" className={celulasPendentes > 0 ? 'border-amber-500/30' : ''} />
+                  <StatCard icon={Users} label="Membros (semana)" value={totals.members_present} subtitle="no período" />
+                  <StatCard icon={UserPlus} label="Visitantes" value={totals.visitors} subtitle="no período" />
+                  <StatCard icon={Heart} label="Discipulados" value={totals.discipleships} subtitle="no período" />
                 </div>
 
                 {/* Coordenações com dados */}

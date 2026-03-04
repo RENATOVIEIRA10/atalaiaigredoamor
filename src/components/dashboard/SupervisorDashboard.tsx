@@ -22,6 +22,7 @@ import { useRole } from '@/contexts/RoleContext';
 import { RevelaShortcut } from './RevelaShortcut';
 import { DashboardScopeBanner } from './DashboardScopeBanner';
 import { InitialViewGate } from './InitialViewGate';
+import { SectionLabel } from './SectionLabel';
 
 export function SupervisorDashboard() {
   const { data: coordenacoes, isLoading: coordenacoesLoading } = useCoordenacoes();
@@ -110,6 +111,7 @@ export function SupervisorDashboard() {
       {selectedSupervisor && (
         <div className="space-y-6">
           {/* ═══ PRIMEIRA TELA — Métricas Estruturais ═══ */}
+          <SectionLabel title="Dados Estruturais" subtitle="Visão consolidada do supervisor" />
           <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
             <StatCard icon={Home} label="Células" value={filteredCelulas.length} />
             <StatCard icon={ClipboardCheck} label="Supervisões" value={supervisoes?.length || 0} subtitle="registradas" />

@@ -13,6 +13,7 @@ import { CampusDetailView } from './CampusDetailView';
 import { PageHeader } from '@/components/ui/page-header';
 import { MissionVerse } from '../MissionVerse';
 import { InitialViewGate } from '../InitialViewGate';
+import { SectionLabel } from '../SectionLabel';
 import { StatCard } from '@/components/ui/stat-card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -115,11 +116,12 @@ function KingdomView({ campusData, onSelectCampus }: { campusData: CampusKPI[]; 
       <MissionVerse role="pastor" />
 
       {/* ═══ PRIMEIRA TELA — Métricas Estruturais ═══ */}
+      <SectionLabel title="Dados Estruturais" subtitle="Visão consolidada de todos os campos" />
       <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
         <StatCard icon={Church} label="Campus Ativos" value={activeCampus.length} subtitle={`de ${campusData.length} total`} />
         <StatCard icon={Home} label="Células" value={totalCelulas} />
         <StatCard icon={Users} label="Membros" value={totalMembros} />
-        <StatCard icon={Heart} label="Novas Vidas" value={totalNV} />
+        <StatCard icon={Heart} label="Novas Vidas" value={totalNV} subtitle="acumulado" />
       </div>
 
       {/* ═══ ABAS OPERACIONAIS ═══ */}

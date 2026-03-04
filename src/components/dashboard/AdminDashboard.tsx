@@ -23,6 +23,7 @@ import { InitialViewGate } from './InitialViewGate';
 import { useDemoScope } from '@/hooks/useDemoScope';
 import { RevelaShortcut } from './RevelaShortcut';
 import { DashboardScopeBanner } from './DashboardScopeBanner';
+import { SectionLabel } from './SectionLabel';
 
 export function AdminDashboard() {
   const { toast } = useToast();
@@ -119,6 +120,7 @@ export function AdminDashboard() {
       </div>
 
       {/* ═══ PRIMEIRA TELA — Métricas Estruturais ═══ */}
+      <SectionLabel title="Dados Estruturais" subtitle="Visão consolidada do campo" />
       <div className="grid gap-4 grid-cols-2 lg:grid-cols-5">
         <StatCard icon={Network} label="Redes" value={redes?.length || 0} />
         <StatCard icon={LayoutGrid} label="Coordenações" value={coordenacoes?.length || 0} />
@@ -146,11 +148,12 @@ export function AdminDashboard() {
             </div>
 
             {/* Pendências */}
+            <SectionLabel title="Acompanhamento Semanal" subtitle="Período selecionado" />
             <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-              <StatCard icon={AlertTriangle} label="Relatórios pendentes" value={celulasPendentes > 0 ? celulasPendentes : 0} subtitle="células sem relatório" className={celulasPendentes > 0 ? 'border-amber-500/30' : ''} />
-              <StatCard icon={Users} label="Membros (semana)" value={grandTotals.members_present} />
-              <StatCard icon={UserPlus} label="Visitantes (semana)" value={grandTotals.visitors} />
-              <StatCard icon={UserCheck} label="Líd. Treinamento" value={grandTotals.leaders_in_training} />
+              <StatCard icon={AlertTriangle} label="Relatórios pendentes" value={celulasPendentes > 0 ? celulasPendentes : 0} subtitle="no período" className={celulasPendentes > 0 ? 'border-amber-500/30' : ''} />
+              <StatCard icon={Users} label="Membros (semana)" value={grandTotals.members_present} subtitle="no período" />
+              <StatCard icon={UserPlus} label="Visitantes (semana)" value={grandTotals.visitors} subtitle="no período" />
+              <StatCard icon={UserCheck} label="Líd. Treinamento" value={grandTotals.leaders_in_training} subtitle="no período" />
             </div>
 
             {/* Tabela por Rede */}
