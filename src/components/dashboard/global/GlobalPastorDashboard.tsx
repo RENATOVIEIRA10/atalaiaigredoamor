@@ -1,14 +1,12 @@
-import { useState, lazy, Suspense } from 'react';
+import { useState } from 'react';
 import { GlobalValidationPanel } from '../GlobalValidationPanel';
 import { IntegrityAuditPanel } from '../IntegrityAuditPanel';
-import { Loader2, Globe, Church, Users, Home, GitBranch, Heart, FlaskConical, Eye, BookOpen, Calendar, Sparkles, ShieldAlert, TrendingUp, UserCheck, ArrowRight, Award, AlertTriangle, Sprout } from 'lucide-react';
+import { Loader2, Globe, Church, Users, Home, GitBranch, Heart, Network, Sparkles, ShieldAlert, TrendingUp, ArrowRight, MessageSquare, RefreshCw, X, Calendar, BookOpen } from 'lucide-react';
 import { useGlobalKingdomData, CampusKPI } from '@/hooks/useGlobalKingdomData';
 import { useGlobalKingdomFunnel } from '@/hooks/useGlobalKingdomFunnel';
 import { useGlobalKingdomAgenda } from '@/hooks/useGlobalKingdomAgenda';
 import { useGlobalPastoralRanking } from '@/hooks/useGlobalPastoralRanking';
-import { useGlobalSupervisionGovernance } from '@/hooks/useGlobalSupervisionGovernance';
 import { useGlobalKingdomTrends } from '@/hooks/useGlobalKingdomTrends';
-import { KingdomCampusCard } from './KingdomCampusCard';
 import { CampusDetailView } from './CampusDetailView';
 import { PageHeader } from '@/components/ui/page-header';
 import { MissionVerse } from '../MissionVerse';
@@ -18,7 +16,6 @@ import { StatCard } from '@/components/ui/stat-card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -29,12 +26,7 @@ import { useAIInsights } from '@/hooks/useAIInsights';
 import ReactMarkdown from 'react-markdown';
 import { NetworkLeaderDashboard } from '../NetworkLeaderDashboard';
 import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
+  Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
 
 type DrillLevel = 'kingdom' | 'campus' | 'rede';
@@ -101,7 +93,7 @@ export function GlobalPastorDashboard() {
 }
 
 // ============================================================
-// KINGDOM VIEW — Structural first, tabs for weekly & movement
+// KINGDOM VIEW — Strategic pastoral governance
 // ============================================================
 
 function KingdomView({ campusData, onSelectCampus }: { campusData: CampusKPI[]; onSelectCampus: (id: string, nome: string) => void }) {
@@ -109,70 +101,85 @@ function KingdomView({ campusData, onSelectCampus }: { campusData: CampusKPI[]; 
   const totalCelulas = campusData.reduce((s, c) => s + c.celulas_ativas, 0);
   const totalMembros = campusData.reduce((s, c) => s + c.membros_total, 0);
   const totalNV = campusData.reduce((s, c) => s + c.novas_vidas_total, 0);
+  const totalConversoes = campusData.reduce((s, c) => s + c.novas_vidas_convertidas, 0);
+  const totalBatismo = campusData.reduce((s, c) => s + c.marcos_batismo, 0);
+  // Count total redes across all campuses (use engajamento as proxy if no direct count)
+  // We can approximate total redes from the campus data
 
   return (
-    <div className="space-y-10">
-      <PageHeader title="Visão do Reino" subtitle="Panorama executivo de todos os campos" icon={Globe} />
+    <div className="space-y-8">
+      <PageHeader title="Visão do Reino" subtitle="Governo espiritual de todos os campos" icon={Globe} />
       <MissionVerse role="pastor" />
 
-      {/* ═══ PRIMEIRA TELA — Métricas Estruturais ═══ */}
-      <SectionLabel title="Dados Estruturais" subtitle="Visão consolidada de todos os campos" />
+      {/* ═══ 1. PANORAMA GLOBAL ═══ */}
+      <SectionLabel title="Panorama Global" subtitle="Dados estruturais consolidados de todos os campos" />
       <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-        <StatCard icon={Church} label="Campus Ativos" value={activeCampus.length} subtitle={`de ${campusData.length} total`} />
+        <StatCard icon={Church} label="Campos Ativos" value={activeCampus.length} subtitle={`de ${campusData.length} total`} />
         <StatCard icon={Home} label="Células" value={totalCelulas} />
         <StatCard icon={Users} label="Membros" value={totalMembros} />
-        <StatCard icon={Heart} label="Novas Vidas" value={totalNV} subtitle="acumulado" />
+        <StatCard icon={GitBranch} label="Batismos" value={totalBatismo} subtitle="acumulado" />
       </div>
 
-      {/* ═══ ABAS OPERACIONAIS ═══ */}
-      <Tabs defaultValue="semanal" className="space-y-4">
+      {/* ═══ 2. MOVIMENTO GLOBAL ═══ */}
+      <SectionLabel title="Movimento Global" subtitle="Crescimento espiritual do Reino" />
+      <Card>
+        <CardContent className="pt-6">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <MarcoCard label="Novas Vidas" value={totalNV} icon="🌱" />
+            <MarcoCard label="Conversões" value={totalConversoes} icon="🔥" />
+            <MarcoCard label="Batismos" value={totalBatismo} icon="💧" />
+            <MarcoCard label="Multiplicações" value={campusData.reduce((s, c) => s + (c.marcos_curso_lidere || 0), 0)} icon="🌿" />
+          </div>
+        </CardContent>
+      </Card>
+
+      <FunnelSection />
+
+      {/* ═══ 3. SAÚDE DOS CAMPOS ═══ */}
+      <SectionLabel title="Saúde dos Campos" subtitle="Visão consolidada por campo" />
+      <CampusHealthTable campusData={campusData} onSelect={onSelectCampus} />
+
+      {/* ═══ 4. PONTOS DE ATENÇÃO ═══ */}
+      <SectionLabel title="Pontos de Atenção" subtitle="Alertas estratégicos gerados automaticamente" />
+      <GlobalStrategicAlerts campusData={campusData} />
+
+      {/* ═══ 5. ABA: REUNIÃO COM PASTORES DE CAMPO ═══ */}
+      <Tabs defaultValue="reuniao" className="space-y-4">
         <TabsList className="flex flex-wrap h-auto gap-1">
-          <TabsTrigger value="semanal" className="gap-1.5"><Calendar className="h-4 w-4" />Acompanhamento Semanal</TabsTrigger>
-          <TabsTrigger value="movimento" className="gap-1.5"><Sprout className="h-4 w-4" />Movimento do Reino</TabsTrigger>
+          <TabsTrigger value="reuniao" className="gap-1.5"><MessageSquare className="h-4 w-4" />Reunião com Pastores de Campo</TabsTrigger>
+          <TabsTrigger value="detalhes" className="gap-1.5"><BookOpen className="h-4 w-4" />Detalhes</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="semanal">
-          <div className="space-y-6">
-            <PastoralAlertsSection campusData={campusData} />
-            <SupervisionGovernanceSection />
-            <TrendsSection />
-          </div>
+        <TabsContent value="reuniao">
+          <MeetingAgendaSection campusData={campusData} />
         </TabsContent>
 
-        <TabsContent value="movimento">
+        <TabsContent value="detalhes">
           <div className="space-y-6">
-            <KingdomMapTable campusData={campusData} onSelect={onSelectCampus} />
-            <FunnelSection />
+            <TrendsSection />
             <AgendaSection />
+            <PastoralRankingSection />
+
+            <section>
+              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-1 flex items-center gap-2">
+                <span>🛡️</span> Validação & Auditoria
+              </h2>
+              <p className="text-xs text-muted-foreground mb-4">Consistência de dados entre campus</p>
+              <div className="space-y-6">
+                <GlobalValidationPanel />
+                <IntegrityAuditPanel />
+              </div>
+            </section>
           </div>
         </TabsContent>
       </Tabs>
-
-      {/* Conteúdo detalhado */}
-      <InitialViewGate>
-        <PastoralRankingSection />
-        <BriefingSection campusData={campusData} />
-
-        <section>
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-1 flex items-center gap-2">
-            <span>🛡️</span> Validação & Auditoria
-          </h2>
-          <p className="text-xs text-muted-foreground mb-4">Consistência de dados entre campus</p>
-          <div className="space-y-6">
-            <GlobalValidationPanel />
-            <IntegrityAuditPanel />
-          </div>
-        </section>
-      </InitialViewGate>
     </div>
   );
 }
 
-// ============================================================
-// MAPA DO REINO
-// ============================================================
+// ── Campus Health Table ──
 
-function KingdomMapTable({ campusData, onSelect }: { campusData: CampusKPI[]; onSelect: (id: string, nome: string) => void }) {
+function CampusHealthTable({ campusData, onSelect }: { campusData: CampusKPI[]; onSelect: (id: string, nome: string) => void }) {
   return (
     <Card>
       <CardContent className="p-0">
@@ -180,45 +187,37 @@ function KingdomMapTable({ campusData, onSelect }: { campusData: CampusKPI[]; on
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/50">
-                <TableHead>Campus</TableHead>
+                <TableHead>Campo</TableHead>
                 <TableHead className="text-center">Células</TableHead>
                 <TableHead className="text-center">Membros</TableHead>
-                <TableHead className="text-center">Engajamento</TableHead>
                 <TableHead className="text-center">Novas Vidas</TableHead>
                 <TableHead className="text-center">Conversões</TableHead>
-                <TableHead className="text-center">Supervisão</TableHead>
-                <TableHead className="text-center">Discipulado</TableHead>
-                <TableHead className="text-center">Batismo</TableHead>
+                <TableHead className="text-center">Batismos</TableHead>
+                <TableHead className="text-center">Engajamento</TableHead>
                 <TableHead></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {campusData.map(c => {
-                const supPct = c.supervisoes_total_celulas > 0 ? Math.round((c.supervisoes_bimestre / c.supervisoes_total_celulas) * 100) : 0;
-                const discPct = c.membros_total > 0 ? Math.round((c.disc_presencas / c.membros_total) * 100) : 0;
-                return (
-                  <TableRow key={c.campo_id} className="cursor-pointer hover:bg-muted/30" onClick={() => onSelect(c.campo_id, c.campo_nome)}>
-                    <TableCell className="font-medium">
-                      <div className="flex items-center gap-2"><Church className="h-3.5 w-3.5 text-primary" />{c.campo_nome}</div>
-                    </TableCell>
-                    <TableCell className="text-center tabular-nums">{c.celulas_ativas}</TableCell>
-                    <TableCell className="text-center tabular-nums">{c.membros_total}</TableCell>
-                    <TableCell className="text-center">
-                      <Badge variant="secondary" className={`text-xs ${c.engajamento_pct >= 80 ? 'bg-green-500/10 text-green-600' : c.engajamento_pct >= 50 ? 'bg-amber-500/10 text-amber-600' : 'bg-destructive/10 text-destructive'}`}>
-                        {c.engajamento_pct}%
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-center tabular-nums">{c.novas_vidas_total}</TableCell>
-                    <TableCell className="text-center tabular-nums">{c.novas_vidas_convertidas}</TableCell>
-                    <TableCell className="text-center"><Badge variant="secondary" className="text-xs">{supPct}%</Badge></TableCell>
-                    <TableCell className="text-center tabular-nums">{c.disc_encontros}</TableCell>
-                    <TableCell className="text-center tabular-nums">{c.marcos_batismo}</TableCell>
-                    <TableCell><ArrowRight className="h-4 w-4 text-muted-foreground" /></TableCell>
-                  </TableRow>
-                );
-              })}
+              {campusData.map(c => (
+                <TableRow key={c.campo_id} className="cursor-pointer hover:bg-muted/30" onClick={() => onSelect(c.campo_id, c.campo_nome)}>
+                  <TableCell className="font-medium">
+                    <div className="flex items-center gap-2"><Church className="h-3.5 w-3.5 text-primary" />{c.campo_nome}</div>
+                  </TableCell>
+                  <TableCell className="text-center tabular-nums">{c.celulas_ativas}</TableCell>
+                  <TableCell className="text-center tabular-nums">{c.membros_total}</TableCell>
+                  <TableCell className="text-center tabular-nums">{c.novas_vidas_total}</TableCell>
+                  <TableCell className="text-center tabular-nums">{c.novas_vidas_convertidas}</TableCell>
+                  <TableCell className="text-center tabular-nums">{c.marcos_batismo}</TableCell>
+                  <TableCell className="text-center">
+                    <Badge variant="secondary" className={`text-xs ${c.engajamento_pct >= 80 ? 'bg-green-500/10 text-green-600' : c.engajamento_pct >= 50 ? 'bg-amber-500/10 text-amber-600' : 'bg-destructive/10 text-destructive'}`}>
+                      {c.engajamento_pct}%
+                    </Badge>
+                  </TableCell>
+                  <TableCell><ArrowRight className="h-4 w-4 text-muted-foreground" /></TableCell>
+                </TableRow>
+              ))}
               {campusData.length === 0 && (
-                <TableRow><TableCell colSpan={10} className="text-center py-8 text-muted-foreground">Nenhum campus cadastrado</TableCell></TableRow>
+                <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Nenhum campus cadastrado</TableCell></TableRow>
               )}
             </TableBody>
           </Table>
@@ -228,34 +227,49 @@ function KingdomMapTable({ campusData, onSelect }: { campusData: CampusKPI[]; on
   );
 }
 
-// ============================================================
-// ATENÇÃO PASTORAL
-// ============================================================
+// ── Global strategic alerts ──
 
-function PastoralAlertsSection({ campusData }: { campusData: CampusKPI[] }) {
-  const alerts: { title: string; description: string; severity: 'warning' | 'critical'; count: number }[] = [];
+function GlobalStrategicAlerts({ campusData }: { campusData: CampusKPI[] }) {
+  const alerts: { title: string; description: string; severity: 'warning' | 'critical' }[] = [];
 
-  const totalSemRelatorio = campusData.reduce((s, c) => s + (c.celulas_ativas - c.celulas_com_relatorio), 0);
-  if (totalSemRelatorio > 0) {
-    alerts.push({ title: 'Relatórios pendentes', description: `${totalSemRelatorio} células sem relatório esta semana`, severity: totalSemRelatorio > 10 ? 'critical' : 'warning', count: totalSemRelatorio });
-  }
-
-  const lowSupCampus = campusData.filter(c => {
-    const pct = c.supervisoes_total_celulas > 0 ? (c.supervisoes_bimestre / c.supervisoes_total_celulas) * 100 : 100;
-    return pct < 50 && c.supervisoes_total_celulas > 0;
-  });
-  if (lowSupCampus.length > 0) {
-    alerts.push({ title: 'Supervisões pendentes', description: `${lowSupCampus.map(c => c.campo_nome).join(', ')} com cobertura abaixo de 50%`, severity: 'warning', count: lowSupCampus.length });
-  }
-
+  // Campos com engajamento baixo
   const lowEngCampus = campusData.filter(c => c.engajamento_pct < 40 && c.celulas_ativas > 0);
   if (lowEngCampus.length > 0) {
-    alerts.push({ title: 'Engajamento baixo', description: `${lowEngCampus.map(c => `${c.campo_nome} (${c.engajamento_pct}%)`).join(', ')}`, severity: lowEngCampus.some(c => c.engajamento_pct < 20) ? 'critical' : 'warning', count: lowEngCampus.length });
+    alerts.push({
+      title: 'Engajamento baixo em campos',
+      description: `${lowEngCampus.map(c => `${c.campo_nome} (${c.engajamento_pct}%)`).join(', ')}`,
+      severity: lowEngCampus.some(c => c.engajamento_pct < 20) ? 'critical' : 'warning',
+    });
   }
 
+  // Campos sem multiplicação (poucas células)
+  const camposPequenos = campusData.filter(c => c.celulas_ativas > 0 && c.celulas_ativas <= 2);
+  if (camposPequenos.length > 0) {
+    alerts.push({
+      title: `${camposPequenos.length} campo(s) com poucas células`,
+      description: `Os campos ${camposPequenos.map(c => c.campo_nome).join(', ')} têm 2 ou menos células ativas. Avaliar estratégia de crescimento.`,
+      severity: 'warning',
+    });
+  }
+
+  // Vidas aguardando avanço
   const totalNVParadas = campusData.reduce((s, c) => s + c.novas_vidas_total - c.novas_vidas_convertidas, 0);
   if (totalNVParadas > 5) {
-    alerts.push({ title: 'Vidas aguardando avanço', description: `${totalNVParadas} novas vidas sem progressão no funil`, severity: totalNVParadas > 15 ? 'critical' : 'warning', count: totalNVParadas });
+    alerts.push({
+      title: `${totalNVParadas} vidas aguardando avanço`,
+      description: `Novas vidas sem progressão no funil de integração. Necessário acompanhamento pastoral.`,
+      severity: totalNVParadas > 15 ? 'critical' : 'warning',
+    });
+  }
+
+  // Campos sem batismo
+  const semBatismo = campusData.filter(c => c.marcos_batismo === 0 && c.membros_total > 10);
+  if (semBatismo.length > 0) {
+    alerts.push({
+      title: `${semBatismo.length} campo(s) sem batismos registrados`,
+      description: `Os campos ${semBatismo.map(c => c.campo_nome).join(', ')} não registraram batismos recentes.`,
+      severity: 'warning',
+    });
   }
 
   if (alerts.length === 0) {
@@ -263,7 +277,7 @@ function PastoralAlertsSection({ campusData }: { campusData: CampusKPI[] }) {
       <Card className="border-dashed">
         <CardContent className="p-6 text-center text-muted-foreground">
           <Sparkles className="h-8 w-8 mx-auto mb-2 opacity-30" />
-          <p className="text-sm">Nenhum alerta pastoral no momento ✨</p>
+          <p className="text-sm">Nenhum ponto de atenção no momento ✨</p>
         </CardContent>
       </Card>
     );
@@ -279,7 +293,9 @@ function PastoralAlertsSection({ campusData }: { campusData: CampusKPI[] }) {
               <p className="text-sm font-medium">{alert.title}</p>
               <p className="text-sm text-muted-foreground mt-1">{alert.description}</p>
             </div>
-            <Badge variant={alert.severity === 'critical' ? 'destructive' : 'secondary'} className="shrink-0">{alert.count}</Badge>
+            <Badge variant={alert.severity === 'critical' ? 'destructive' : 'secondary'} className="shrink-0">
+              {alert.severity === 'critical' ? 'Crítico' : 'Atenção'}
+            </Badge>
           </CardContent>
         </Card>
       ))}
@@ -287,9 +303,66 @@ function PastoralAlertsSection({ campusData }: { campusData: CampusKPI[] }) {
   );
 }
 
-// ============================================================
-// TENDÊNCIAS
-// ============================================================
+// ── Meeting Agenda Section ──
+
+function MeetingAgendaSection({ campusData }: { campusData: CampusKPI[] }) {
+  const { isLoading: aiLoading, insight: aiInsight, generateInsight, clearInsight } = useAIInsights();
+
+  const handleGenerate = async () => {
+    const summary = campusData.map(c => ({
+      campus: c.campo_nome, celulas: c.celulas_ativas, membros: c.membros_total, engajamento: c.engajamento_pct,
+      novas_vidas: c.novas_vidas_total, conversoes: c.novas_vidas_convertidas, supervisoes_bimestre: c.supervisoes_bimestre,
+      batismos: c.marcos_batismo,
+    }));
+    await generateInsight('meeting_agenda' as any, summary as any, 'Reunião com Pastores de Campo');
+  };
+
+  return (
+    <Card className="border-primary/20 bg-gradient-to-br from-background to-primary/5">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="p-2 rounded-lg bg-primary/10"><MessageSquare className="h-5 w-5 text-primary" /></div>
+            <div>
+              <CardTitle className="text-lg">Pauta de Reunião</CardTitle>
+              <CardDescription>Sugestões geradas com base nos dados atuais dos campos</CardDescription>
+            </div>
+          </div>
+          <Badge variant="secondary" className="gap-1"><span className="w-2 h-2 rounded-full bg-primary animate-pulse" />Lovable AI</Badge>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {!aiInsight ? (
+          <div className="text-center py-6">
+            <MessageSquare className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
+            <p className="text-sm text-muted-foreground mb-4">
+              Gere automaticamente sugestões de pauta para sua reunião com os pastores de campo,
+              com base nos dados de saúde, crescimento e pontos de atenção de cada campus.
+            </p>
+            <Button onClick={handleGenerate} disabled={aiLoading || campusData.length === 0} className="gap-2">
+              {aiLoading ? (<><Loader2 className="h-4 w-4 animate-spin" />Gerando pauta...</>) : (<><Sparkles className="h-4 w-4" />Gerar Pauta de Reunião</>)}
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-muted-foreground">Gerado em: {new Date(aiInsight.generatedAt).toLocaleString('pt-BR')}</p>
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="sm" onClick={handleGenerate} disabled={aiLoading} className="gap-1"><RefreshCw className={`h-3 w-3 ${aiLoading ? 'animate-spin' : ''}`} /><span className="hidden sm:inline">Regenerar</span></Button>
+                <Button variant="ghost" size="sm" onClick={clearInsight} className="gap-1"><X className="h-3 w-3" /><span className="hidden sm:inline">Limpar</span></Button>
+              </div>
+            </div>
+            <ScrollArea className="h-[400px] rounded-lg border bg-card p-4">
+              <div className="prose prose-sm dark:prose-invert max-w-none"><ReactMarkdown>{typeof aiInsight === 'string' ? aiInsight : (aiInsight as any)?.insight || ''}</ReactMarkdown></div>
+            </ScrollArea>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+// ── Trends ──
 
 function TrendsSection() {
   const { data: trends, isLoading } = useGlobalKingdomTrends();
@@ -300,22 +373,7 @@ function TrendsSection() {
   return (
     <div className="grid gap-4 md:grid-cols-2">
       <Card>
-        <CardHeader className="pb-2"><CardTitle className="text-sm">Engajamento de Relatórios</CardTitle></CardHeader>
-        <CardContent className="h-48">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={trends}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="week" tick={{ fontSize: 10 }} />
-              <YAxis tick={{ fontSize: 10 }} domain={[0, 100]} />
-              <Tooltip />
-              <Line type="monotone" dataKey="engajamento" stroke="hsl(var(--primary))" strokeWidth={2} name="Engajamento %" dot={{ r: 3 }} />
-            </LineChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="pb-2"><CardTitle className="text-sm">Entradas Recomeço & Conversões</CardTitle></CardHeader>
+        <CardHeader className="pb-2"><CardTitle className="text-sm">Entradas & Conversões</CardTitle></CardHeader>
         <CardContent className="h-48">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={trends}>
@@ -326,21 +384,6 @@ function TrendsSection() {
               <Legend wrapperStyle={{ fontSize: 10 }} />
               <Bar dataKey="novasVidas" fill="hsl(var(--primary))" name="Novas Vidas" radius={[2, 2, 0, 0]} />
               <Bar dataKey="conversoes" fill="hsl(var(--accent))" name="Conversões" radius={[2, 2, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="pb-2"><CardTitle className="text-sm">Supervisões Realizadas</CardTitle></CardHeader>
-        <CardContent className="h-48">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={trends}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="week" tick={{ fontSize: 10 }} />
-              <YAxis tick={{ fontSize: 10 }} />
-              <Tooltip />
-              <Bar dataKey="supervisoes" fill="hsl(var(--primary))" name="Supervisões" radius={[2, 2, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
@@ -364,9 +407,85 @@ function TrendsSection() {
   );
 }
 
-// ============================================================
-// RANKING PASTORAL
-// ============================================================
+// ── Funnel ──
+
+function FunnelSection() {
+  const { data, isLoading } = useGlobalKingdomFunnel();
+
+  if (isLoading) return <Loader2 className="h-5 w-5 animate-spin text-primary mx-auto" />;
+  if (!data) return null;
+
+  const steps = [
+    { label: 'Cadastradas', value: data.cadastradas },
+    { label: 'Boas-vindas', value: data.boasVindasEnviadas },
+    { label: 'Encaminhadas', value: data.encaminhadas },
+    { label: 'Integradas', value: data.integradas },
+    { label: 'Membros', value: data.membros },
+  ];
+
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+      {steps.map((step, i) => (
+        <Card key={step.label} className="text-center">
+          <CardContent className="p-4">
+            <p className="text-2xl font-bold tabular-nums">{step.value}</p>
+            <p className="text-xs text-muted-foreground mt-1">{step.label}</p>
+            {i > 0 && data.cadastradas > 0 && (
+              <Badge variant="secondary" className="text-[10px] mt-2">
+                {Math.round((step.value / data.cadastradas) * 100)}%
+              </Badge>
+            )}
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+// ── Agenda ──
+
+function AgendaSection() {
+  const { data: events, isLoading } = useGlobalKingdomAgenda();
+
+  if (isLoading) return <Loader2 className="h-5 w-5 animate-spin text-primary mx-auto" />;
+  if (!events || events.length === 0) {
+    return (
+      <Card className="border-dashed">
+        <CardContent className="p-6 text-center text-muted-foreground">
+          <Calendar className="h-8 w-8 mx-auto mb-2 opacity-30" />
+          <p className="text-sm">Nenhum evento nos próximos 14 dias</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+      {events.map(ev => (
+        <Card key={ev.id} className="card-hover">
+          <CardContent className="p-4 flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary text-sm font-bold">
+              {format(new Date(ev.date + 'T12:00:00'), 'dd')}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium truncate">{ev.title}</p>
+              <p className="text-xs text-muted-foreground">
+                {format(new Date(ev.date + 'T12:00:00'), "EEEE, dd/MM", { locale: ptBR })}
+                {ev.start_time && ` · ${ev.start_time.slice(0, 5)}`}
+              </p>
+              <div className="flex items-center gap-2 mt-1">
+                <Badge variant="secondary" className="text-[10px]">{ev.type === 'batismo' ? '💧 Batismo' : '🎉 Aclamação'}</Badge>
+                {ev.campo_nome && <span className="text-[10px] text-muted-foreground">{ev.campo_nome}</span>}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+// ── Pastoral Ranking ──
 
 function PastoralRankingSection() {
   const { data, isLoading } = useGlobalPastoralRanking();
@@ -378,7 +497,7 @@ function PastoralRankingSection() {
     <div className="grid gap-4 md:grid-cols-2">
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm flex items-center gap-2"><Award className="h-4 w-4 text-primary" />Potenciais para Servir</CardTitle>
+          <CardTitle className="text-sm flex items-center gap-2">⭐ Potenciais para Servir</CardTitle>
           <CardDescription className="text-xs">Membros com marcos avançados e sem função ativa</CardDescription>
         </CardHeader>
         <CardContent>
@@ -435,186 +554,14 @@ function PastoralRankingSection() {
   );
 }
 
-// ============================================================
-// SUPERVISÃO
-// ============================================================
+// ── Marco Card ──
 
-function SupervisionGovernanceSection() {
-  const { data, isLoading } = useGlobalSupervisionGovernance();
-
-  if (isLoading) return <Loader2 className="h-5 w-5 animate-spin text-primary mx-auto" />;
-  if (!data || data.length === 0) return <p className="text-sm text-muted-foreground text-center">Sem dados</p>;
-
+function MarcoCard({ label, value, icon }: { label: string; value: number; icon: string }) {
   return (
-    <Card>
-      <CardContent className="p-0">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-muted/50">
-                <TableHead>Campus</TableHead>
-                <TableHead className="text-center">Células</TableHead>
-                <TableHead className="text-center">Supervisionadas</TableHead>
-                <TableHead className="text-center">Pendentes</TableHead>
-                <TableHead className="text-center">Cobertura</TableHead>
-                <TableHead className="w-32"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.map(c => (
-                <TableRow key={c.campo_id}>
-                  <TableCell className="font-medium">{c.campo_nome}</TableCell>
-                  <TableCell className="text-center tabular-nums">{c.total_celulas}</TableCell>
-                  <TableCell className="text-center tabular-nums">{c.supervisoes_bimestre}</TableCell>
-                  <TableCell className="text-center tabular-nums">{c.pendentes}</TableCell>
-                  <TableCell className="text-center">
-                    <div className="flex items-center gap-2 justify-center">
-                      <Progress value={c.cobertura_pct} className="h-2 w-16" />
-                      <span className="text-xs tabular-nums font-medium">{c.cobertura_pct}%</span>
-                      {c.cobertura_pct >= 100 && <span className="text-xs" title="Cobertura completa">🏆</span>}
-                    </div>
-                  </TableCell>
-                  <TableCell></TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-// ============================================================
-// FUNIL DO ALTAR À CÉLULA
-// ============================================================
-
-function FunnelSection() {
-  const { data, isLoading } = useGlobalKingdomFunnel();
-
-  if (isLoading) return <Loader2 className="h-5 w-5 animate-spin text-primary mx-auto" />;
-  if (!data) return null;
-
-  const steps = [
-    { label: 'Cadastradas', value: data.cadastradas, color: 'bg-primary/10 text-primary' },
-    { label: 'Boas-vindas', value: data.boasVindasEnviadas, color: 'bg-blue-500/10 text-blue-600' },
-    { label: 'Encaminhadas', value: data.encaminhadas, color: 'bg-indigo-500/10 text-indigo-600' },
-    { label: 'Contatadas', value: data.contatadas, color: 'bg-violet-500/10 text-violet-600' },
-    { label: 'Agendadas', value: data.agendadas, color: 'bg-purple-500/10 text-purple-600' },
-    { label: 'Integradas', value: data.integradas, color: 'bg-green-500/10 text-green-600' },
-    { label: 'Membros', value: data.membros, color: 'bg-emerald-500/10 text-emerald-600' },
-    { label: 'Sem resposta', value: data.semResposta, color: 'bg-destructive/10 text-destructive' },
-  ];
-
-  return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
-      {steps.map((step, i) => (
-        <Card key={step.label} className="text-center">
-          <CardContent className="p-4">
-            <p className="text-2xl font-bold tabular-nums">{step.value}</p>
-            <p className="text-xs text-muted-foreground mt-1">{step.label}</p>
-            {i > 0 && i < steps.length - 1 && data.cadastradas > 0 && (
-              <Badge variant="secondary" className={`text-[10px] mt-2 ${step.color}`}>
-                {Math.round((step.value / data.cadastradas) * 100)}%
-              </Badge>
-            )}
-          </CardContent>
-        </Card>
-      ))}
+    <div className="rounded-xl border bg-card p-3 text-center">
+      <div className="text-2xl mb-1">{icon}</div>
+      <div className="text-2xl font-bold text-foreground">{value}</div>
+      <div className="text-xs text-muted-foreground mt-0.5">{label}</div>
     </div>
-  );
-}
-
-// ============================================================
-// AGENDA DO REINO
-// ============================================================
-
-function AgendaSection() {
-  const { data: events, isLoading } = useGlobalKingdomAgenda();
-
-  if (isLoading) return <Loader2 className="h-5 w-5 animate-spin text-primary mx-auto" />;
-
-  if (!events || events.length === 0) {
-    return (
-      <Card className="border-dashed">
-        <CardContent className="p-6 text-center text-muted-foreground">
-          <Calendar className="h-8 w-8 mx-auto mb-2 opacity-30" />
-          <p className="text-sm">Nenhum evento nos próximos 14 dias</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  return (
-    <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-      {events.map(ev => (
-        <Card key={ev.id} className="card-hover">
-          <CardContent className="p-4 flex items-start gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary text-sm font-bold">
-              {format(new Date(ev.date + 'T12:00:00'), 'dd')}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{ev.title}</p>
-              <p className="text-xs text-muted-foreground">
-                {format(new Date(ev.date + 'T12:00:00'), "EEEE, dd/MM", { locale: ptBR })}
-                {ev.start_time && ` · ${ev.start_time.slice(0, 5)}`}
-              </p>
-              <div className="flex items-center gap-2 mt-1">
-                <Badge variant="secondary" className="text-[10px]">{ev.type === 'batismo' ? '💧 Batismo' : '🎉 Aclamação'}</Badge>
-                {ev.campo_nome && <span className="text-[10px] text-muted-foreground">{ev.campo_nome}</span>}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  );
-}
-
-// ============================================================
-// BRIEFING PASTORAL
-// ============================================================
-
-function BriefingSection({ campusData }: { campusData: CampusKPI[] }) {
-  const { isLoading: aiLoading, insight: aiInsight, generateInsight, clearInsight } = useAIInsights();
-
-  const handleGenerate = async () => {
-    const summary = campusData.map(c => ({
-      campus: c.campo_nome, celulas: c.celulas_ativas, membros: c.membros_total, engajamento: c.engajamento_pct,
-      novas_vidas: c.novas_vidas_total, conversoes: c.novas_vidas_convertidas, supervisoes_bimestre: c.supervisoes_bimestre,
-      marcos: { encontro: c.marcos_encontro, batismo: c.marcos_batismo, lidere: c.marcos_curso_lidere, renovo: c.marcos_renovo },
-    }));
-    await generateInsight('executive_summary', summary as any, 'Visão Global - Semana atual');
-  };
-
-  return (
-    <Card>
-      <CardContent className="p-5">
-        {!aiInsight ? (
-          <div className="text-center py-4">
-            <p className="text-sm text-muted-foreground mb-4">Gere um resumo automático para sua reunião pastoral com os dados atualizados de todos os campus.</p>
-            <Button onClick={handleGenerate} disabled={aiLoading} size="lg">
-              {aiLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Sparkles className="h-4 w-4 mr-2" />}
-              Gerar Resumo Pastoral da Semana
-            </Button>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold">📋 Resumo Pastoral</h3>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={handleGenerate} disabled={aiLoading}>
-                  {aiLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : '🔄'} Atualizar
-                </Button>
-                <Button variant="ghost" size="sm" onClick={clearInsight}>✕</Button>
-              </div>
-            </div>
-            <div className="prose prose-sm max-w-none text-foreground">
-              <ReactMarkdown>{typeof aiInsight === 'string' ? aiInsight : (aiInsight as any)?.insight || ''}</ReactMarkdown>
-            </div>
-          </div>
-        )}
-      </CardContent>
-    </Card>
   );
 }
