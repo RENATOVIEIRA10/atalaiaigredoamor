@@ -15,6 +15,8 @@ import { NetworkLeaderPWADashboard } from '@/components/dashboard/pwa/NetworkLea
 import { CellLeaderPWADashboard } from '@/components/dashboard/pwa/CellLeaderPWADashboard';
 import { SupervisorPWADashboard } from '@/components/dashboard/pwa/SupervisorPWADashboard';
 import { ScopeMissingGate } from '@/components/ScopeMissingGate';
+import { PastoralTourDialog } from '@/components/dashboard/PastoralTourDialog';
+import { usePastoralTour } from '@/hooks/usePastoralTour';
 import { Loader2 } from 'lucide-react';
 
 const LiderRecomecoCentralDashboard = lazy(() => import('@/components/dashboard/LiderRecomecoCentralDashboard'));
@@ -34,6 +36,7 @@ export default function Dashboard() {
   const isPWA = useIsPWA();
   const isMobile = useIsMobile();
   const isPWAMobile = isPWA && isMobile;
+  const { isOpen: tourOpen, closeTour } = usePastoralTour();
 
   const suspenseFallback = <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
 
@@ -72,6 +75,7 @@ export default function Dashboard() {
       <ScopeMissingGate>
         {renderDashboard()}
       </ScopeMissingGate>
+      <PastoralTourDialog open={tourOpen} onClose={closeTour} />
     </AppLayout>
   );
 }

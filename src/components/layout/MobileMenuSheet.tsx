@@ -3,13 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle
 } from '@/components/ui/sheet';
-import { GitBranch, Settings, Network, FolderTree, LogOut, Moon, Heart, Eye, Home, FlaskConical, RefreshCw, PlayCircle, Repeat } from 'lucide-react';
+import { GitBranch, Settings, Network, FolderTree, LogOut, Moon, Heart, Eye, Home, FlaskConical, RefreshCw, PlayCircle, Repeat, HelpCircle } from 'lucide-react';
 import { useServiceWorkerUpdate } from '@/hooks/useServiceWorkerUpdate';
 import { useRole } from '@/contexts/RoleContext';
 import { useDemoMode } from '@/contexts/DemoModeContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { AdminPWAPanel } from '@/components/dashboard/pwa/AdminPWAPanel';
 import { CampoSelector } from '@/components/campo/CampoSelector';
+import { usePastoralTour } from '@/hooks/usePastoralTour';
 import { cn } from '@/lib/utils';
 
 interface MobileMenuSheetProps {
@@ -25,6 +26,7 @@ export function MobileMenuSheet({ open, onOpenChange }: MobileMenuSheetProps) {
   const { checkForUpdate, applyUpdate } = useServiceWorkerUpdate();
   const [checking, setChecking] = useState(false);
   const [showAdminPanel, setShowAdminPanel] = useState(false);
+  const { openTour } = usePastoralTour();
 
   const handleCheckUpdate = async () => {
     setChecking(true);
@@ -133,6 +135,7 @@ export function MobileMenuSheet({ open, onOpenChange }: MobileMenuSheetProps) {
 
             <div className="border-t border-border/30 my-2" />
             <MenuButton icon={PlayCircle} label="Manual do Usuário" onClick={() => goTo('/manual-usuario')} />
+            <MenuButton icon={HelpCircle} label="Tour de Ajuda" onClick={() => { onOpenChange(false); setTimeout(openTour, 200); }} />
             <div className="border-t border-border/30 my-2" />
 
             {/* Demo mode: open admin panel to switch vision */}
