@@ -39,6 +39,7 @@ import { useRole } from '@/contexts/RoleContext';
 import { useCampo } from '@/contexts/CampoContext';
 import { RevelaShortcut } from './RevelaShortcut';
 import { DashboardScopeBanner } from './DashboardScopeBanner';
+import { SectionLabel } from './SectionLabel';
 
 export function PastorDashboard() {
   const { isPastorSeniorGlobal } = useRole();
@@ -101,11 +102,12 @@ function CampoPastorDashboard() {
       </div>
 
       {/* ═══ PRIMEIRA TELA — Métricas Estruturais ═══ */}
+      <SectionLabel title="Dados Estruturais" subtitle="Visão consolidada do campo" />
       <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
         <StatCard icon={Home} label="Células Ativas" value={pulso?.totalCelulas || 0} />
         <StatCard icon={Users} label="Membros" value={stats?.totalMembers || 0} />
         <StatCard icon={GitBranch} label="Multiplicações" value={stats?.multiplicacoes90dias || 0} subtitle="últimos 90 dias" />
-        <StatCard icon={TrendingUp} label="Engajamento" value={`${pulso?.percentualEngajamento || 0}%`} subtitle="relatórios na semana" />
+        <StatCard icon={TrendingUp} label="Engajamento" value={`${pulso?.percentualEngajamento || 0}%`} subtitle="semana atual" />
       </div>
 
       {/* ═══ ABAS OPERACIONAIS ═══ */}
@@ -118,9 +120,10 @@ function CampoPastorDashboard() {
         <TabsContent value="semanal">
           <div className="space-y-4">
             {/* Pendências */}
+            <SectionLabel title="Acompanhamento Semanal" subtitle="Semana atual" />
             <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
               <StatCard icon={Eye} label="Pendência recorrente" value={pendenciaRecorrente} subtitle="sem relatório há 2+ sem." />
-              <StatCard icon={AlertTriangle} label="Relatórios pendentes" value={pendentesNaSemana} subtitle="sem relatório esta semana" className={pendentesNaSemana > 0 ? 'border-amber-500/30' : ''} />
+              <StatCard icon={AlertTriangle} label="Relatórios pendentes" value={pendentesNaSemana} subtitle="semana atual" className={pendentesNaSemana > 0 ? 'border-amber-500/30' : ''} />
               <StatCard icon={Activity} label="Engajamento" value={`${pulso?.percentualEngajamento || 0}%`} subtitle={`${pulso?.celulasComRelatorio || 0} de ${pulso?.totalCelulas || 0}`} />
             </div>
 
