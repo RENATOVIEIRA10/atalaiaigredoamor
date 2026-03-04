@@ -21,6 +21,7 @@ import { useRole } from '@/contexts/RoleContext';
 import { RevelaShortcut } from './RevelaShortcut';
 import { DashboardScopeBanner } from './DashboardScopeBanner';
 import { MissionBlock } from './MissionBlock';
+import { InitialViewGate } from './InitialViewGate';
 
 export function SupervisorDashboard() {
   const { data: coordenacoes, isLoading: coordenacoesLoading } = useCoordenacoes();
@@ -135,6 +136,23 @@ export function SupervisorDashboard() {
 
           {/* BLOCO 2 — Movimento do Reino */}
           <MissionBlock icon={Sprout} title="Movimento do Reino">
+            <Card className="border-l-4 border-l-primary/30">
+              <CardContent className="py-3 px-5">
+                <p className="text-sm">{supervisoes?.length || 0} supervisão(ões) registrada(s)</p>
+              </CardContent>
+            </Card>
+          </MissionBlock>
+
+          {/* BLOCO 3 — Saúde e Cuidado */}
+          <MissionBlock icon={HeartPulse} title="Saúde e Cuidado">
+            <RadarSaudeSupervisorPanel
+              supervisorId={selectedSupervisor}
+              coordenacaoId={selectedCoordenacao}
+            />
+          </MissionBlock>
+
+          {/* Conteúdo detalhado */}
+          <InitialViewGate>
             <Tabs defaultValue="planejamento" className="space-y-4">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="planejamento" className="text-xs gap-1">
@@ -202,15 +220,8 @@ export function SupervisorDashboard() {
                 </Card>
               </TabsContent>
             </Tabs>
-          </MissionBlock>
+          </InitialViewGate>
 
-          {/* BLOCO 3 — Saúde e Cuidado */}
-          <MissionBlock icon={HeartPulse} title="Saúde e Cuidado">
-            <RadarSaudeSupervisorPanel
-              supervisorId={selectedSupervisor}
-              coordenacaoId={selectedCoordenacao}
-            />
-          </MissionBlock>
         </div>
       )}
 

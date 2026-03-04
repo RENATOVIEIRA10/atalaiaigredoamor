@@ -37,6 +37,7 @@ import { DiscipuladoCoordView } from './discipulado/DiscipuladoCoordView';
 import { RevelaShortcut } from './RevelaShortcut';
 import { DashboardScopeBanner } from './DashboardScopeBanner';
 import { MissionBlock } from './MissionBlock';
+import { InitialViewGate } from './InitialViewGate';
 
 export function CoordinatorDashboard() {
   const [searchParams] = useSearchParams();
@@ -213,122 +214,124 @@ export function CoordinatorDashboard() {
             </div>
           </MissionBlock>
 
-          {/* Tabs for detailed views */}
-          <Tabs defaultValue={urlTab === 'pulso' ? 'pulso' : urlTab === 'planejamento' ? 'planejamento' : 'relatorios'} className="space-y-4">
-            <TabsList className="flex flex-wrap h-auto gap-1">
-              <TabsTrigger value="planejamento" className="gap-1.5"><Calendar className="h-4 w-4" />Planejamento</TabsTrigger>
-              <TabsTrigger value="pulso" className="gap-1.5"><Activity className="h-4 w-4" />Visão Pastoral</TabsTrigger>
-              <TabsTrigger value="saude" className="gap-1.5"><Heart className="h-4 w-4" />Saúde da Rede</TabsTrigger>
-              <TabsTrigger value="relatorios" className="gap-1.5"><LayoutGrid className="h-4 w-4" />Relatórios</TabsTrigger>
-              <TabsTrigger value="historico" className="gap-1.5"><History className="h-4 w-4" />Histórico</TabsTrigger>
-              <TabsTrigger value="insights" className="gap-1.5"><Sparkles className="h-4 w-4" />Insights IA</TabsTrigger>
-              <TabsTrigger value="fotos" className="gap-1.5"><Image className="h-4 w-4" />Fotos</TabsTrigger>
-              <TabsTrigger value="supervisoes" className="gap-1.5"><ClipboardCheck className="h-4 w-4" />Cuidado e Supervisão</TabsTrigger>
-              <TabsTrigger value="recomeco" className="gap-1.5"><DoorOpen className="h-4 w-4" />Porta de Entrada</TabsTrigger>
-              <TabsTrigger value="discipulado" className="gap-1.5"><BookOpen className="h-4 w-4" />Caminho do Discipulado</TabsTrigger>
-            </TabsList>
+          {/* Conteúdo detalhado */}
+          <InitialViewGate>
+            <Tabs defaultValue={urlTab === 'pulso' ? 'pulso' : urlTab === 'planejamento' ? 'planejamento' : 'relatorios'} className="space-y-4">
+              <TabsList className="flex flex-wrap h-auto gap-1">
+                <TabsTrigger value="planejamento" className="gap-1.5"><Calendar className="h-4 w-4" />Planejamento</TabsTrigger>
+                <TabsTrigger value="pulso" className="gap-1.5"><Activity className="h-4 w-4" />Visão Pastoral</TabsTrigger>
+                <TabsTrigger value="saude" className="gap-1.5"><Heart className="h-4 w-4" />Saúde da Rede</TabsTrigger>
+                <TabsTrigger value="relatorios" className="gap-1.5"><LayoutGrid className="h-4 w-4" />Relatórios</TabsTrigger>
+                <TabsTrigger value="historico" className="gap-1.5"><History className="h-4 w-4" />Histórico</TabsTrigger>
+                <TabsTrigger value="insights" className="gap-1.5"><Sparkles className="h-4 w-4" />Insights IA</TabsTrigger>
+                <TabsTrigger value="fotos" className="gap-1.5"><Image className="h-4 w-4" />Fotos</TabsTrigger>
+                <TabsTrigger value="supervisoes" className="gap-1.5"><ClipboardCheck className="h-4 w-4" />Cuidado e Supervisão</TabsTrigger>
+                <TabsTrigger value="recomeco" className="gap-1.5"><DoorOpen className="h-4 w-4" />Porta de Entrada</TabsTrigger>
+                <TabsTrigger value="discipulado" className="gap-1.5"><BookOpen className="h-4 w-4" />Caminho do Discipulado</TabsTrigger>
+              </TabsList>
 
-            <TabsContent value="planejamento">
-              <PlanejamentoCoordenadorPanel coordenacaoId={selectedCoordenacao} />
-            </TabsContent>
+              <TabsContent value="planejamento">
+                <PlanejamentoCoordenadorPanel coordenacaoId={selectedCoordenacao} />
+              </TabsContent>
 
-            <TabsContent value="pulso">
-              <PulsoRedeSection scopeType="coordenacao" scopeId={selectedCoordenacao} title="Visão Pastoral da Coordenação" />
-            </TabsContent>
+              <TabsContent value="pulso">
+                <PulsoRedeSection scopeType="coordenacao" scopeId={selectedCoordenacao} title="Visão Pastoral da Coordenação" />
+              </TabsContent>
 
-            <TabsContent value="saude">
-              <RadarSaudePanel scopeType="coordenacao" scopeId={selectedCoordenacao} title="Saúde da Rede" />
-            </TabsContent>
+              <TabsContent value="saude">
+                <RadarSaudePanel scopeType="coordenacao" scopeId={selectedCoordenacao} title="Saúde da Rede" />
+              </TabsContent>
 
-            <TabsContent value="insights">
-              <AIInsightsPanel reports={currentReports} periodLabel={formatDateRangeDisplay()} context="coordenacao" />
-            </TabsContent>
+              <TabsContent value="insights">
+                <AIInsightsPanel reports={currentReports} periodLabel={formatDateRangeDisplay()} context="coordenacao" />
+              </TabsContent>
 
-            <TabsContent value="relatorios">
-              <div className="rounded-lg border bg-card overflow-hidden">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-muted/50">
-                      <TableHead>Célula</TableHead>
-                      <TableHead>Líderes</TableHead>
-                      <TableHead className="text-center">Membros</TableHead>
-                      <TableHead className="text-center">Líd. Trein.</TableHead>
-                      <TableHead className="text-center">Disc.</TableHead>
-                      <TableHead className="text-center">Visit.</TableHead>
-                      <TableHead className="text-center">Crianças</TableHead>
-                      <TableHead className="text-right">Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {celulas?.filter(c => c.coordenacao_id === selectedCoordenacao).map((celula) => {
-                      const cellReports = currentReports.filter(r => r.celula_id === celula.id);
-                      const cellTotals = cellReports.reduce((acc, r) => ({
-                        members_present: acc.members_present + r.members_present,
-                        leaders_in_training: acc.leaders_in_training + r.leaders_in_training,
-                        discipleships: acc.discipleships + r.discipleships,
-                        visitors: acc.visitors + r.visitors,
-                        children: acc.children + r.children,
-                      }), { members_present: 0, leaders_in_training: 0, discipleships: 0, visitors: 0, children: 0 });
+              <TabsContent value="relatorios">
+                <div className="rounded-lg border bg-card overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-muted/50">
+                        <TableHead>Célula</TableHead>
+                        <TableHead>Líderes</TableHead>
+                        <TableHead className="text-center">Membros</TableHead>
+                        <TableHead className="text-center">Líd. Trein.</TableHead>
+                        <TableHead className="text-center">Disc.</TableHead>
+                        <TableHead className="text-center">Visit.</TableHead>
+                        <TableHead className="text-center">Crianças</TableHead>
+                        <TableHead className="text-right">Ações</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {celulas?.filter(c => c.coordenacao_id === selectedCoordenacao).map((celula) => {
+                        const cellReports = currentReports.filter(r => r.celula_id === celula.id);
+                        const cellTotals = cellReports.reduce((acc, r) => ({
+                          members_present: acc.members_present + r.members_present,
+                          leaders_in_training: acc.leaders_in_training + r.leaders_in_training,
+                          discipleships: acc.discipleships + r.discipleships,
+                          visitors: acc.visitors + r.visitors,
+                          children: acc.children + r.children,
+                        }), { members_present: 0, leaders_in_training: 0, discipleships: 0, visitors: 0, children: 0 });
 
-                      return (
-                        <TableRow key={celula.id} className="hover:bg-muted/30">
-                          <TableCell>
-                            <Button variant="link" className="p-0 h-auto font-medium" onClick={() => setSelectedCelula({ id: celula.id, name: celula.name })}>
-                              {celula.name}
-                            </Button>
-                          </TableCell>
-                          <TableCell className="text-sm text-muted-foreground">
-                            {celula.leadership_couple ? `${celula.leadership_couple.spouse1?.name} & ${celula.leadership_couple.spouse2?.name}` : '—'}
-                          </TableCell>
-                          <TableCell className="text-center">{cellTotals.members_present}</TableCell>
-                          <TableCell className="text-center">{cellTotals.leaders_in_training}</TableCell>
-                          <TableCell className="text-center">{cellTotals.discipleships}</TableCell>
-                          <TableCell className="text-center">{cellTotals.visitors}</TableCell>
-                          <TableCell className="text-center">{cellTotals.children}</TableCell>
-                          <TableCell className="text-right">
-                            <Button variant="ghost" size="icon" onClick={() => setSelectedCelula({ id: celula.id, name: celula.name })}>
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="historico">
-              <ReportsHistoryTable reports={currentReports} onEdit={handleEditReport} onDelete={handleDeleteReport} />
-            </TabsContent>
-
-            <TabsContent value="fotos">
-              <CelulaPhotoGallery reports={currentReports} />
-            </TabsContent>
-
-            <TabsContent value="supervisoes">
-              <div className="space-y-4">
-                <div className="flex justify-end">
-                  <Button onClick={() => setShowSupervisorForm(true)} size="sm">
-                    <Plus className="h-4 w-4 mr-2" />Adicionar Supervisor
-                  </Button>
+                        return (
+                          <TableRow key={celula.id} className="hover:bg-muted/30">
+                            <TableCell>
+                              <Button variant="link" className="p-0 h-auto font-medium" onClick={() => setSelectedCelula({ id: celula.id, name: celula.name })}>
+                                {celula.name}
+                              </Button>
+                            </TableCell>
+                            <TableCell className="text-sm text-muted-foreground">
+                              {celula.leadership_couple ? `${celula.leadership_couple.spouse1?.name} & ${celula.leadership_couple.spouse2?.name}` : '—'}
+                            </TableCell>
+                            <TableCell className="text-center">{cellTotals.members_present}</TableCell>
+                            <TableCell className="text-center">{cellTotals.leaders_in_training}</TableCell>
+                            <TableCell className="text-center">{cellTotals.discipleships}</TableCell>
+                            <TableCell className="text-center">{cellTotals.visitors}</TableCell>
+                            <TableCell className="text-center">{cellTotals.children}</TableCell>
+                            <TableCell className="text-right">
+                              <Button variant="ghost" size="icon" onClick={() => setSelectedCelula({ id: celula.id, name: celula.name })}>
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
                 </div>
-                {supervisoes && supervisoes.length > 0 ? (
-                  <SupervisoesList supervisoes={supervisoes} />
-                ) : (
-                  <EmptyState icon={ClipboardCheck} title="Nenhuma supervisão" description="Adicione supervisores para começar" />
-                )}
-              </div>
-            </TabsContent>
+              </TabsContent>
 
-            <TabsContent value="recomeco">
-              <RecomecoCoordTab coordenacaoId={selectedCoordenacao} />
-            </TabsContent>
+              <TabsContent value="historico">
+                <ReportsHistoryTable reports={currentReports} onEdit={handleEditReport} onDelete={handleDeleteReport} />
+              </TabsContent>
 
-            <TabsContent value="discipulado">
-              <DiscipuladoCoordView coordId={selectedCoordenacao} redeId={selectedCoordData?.rede_id} />
-            </TabsContent>
-          </Tabs>
+              <TabsContent value="fotos">
+                <CelulaPhotoGallery reports={currentReports} />
+              </TabsContent>
+
+              <TabsContent value="supervisoes">
+                <div className="space-y-4">
+                  <div className="flex justify-end">
+                    <Button onClick={() => setShowSupervisorForm(true)} size="sm">
+                      <Plus className="h-4 w-4 mr-2" />Adicionar Supervisor
+                    </Button>
+                  </div>
+                  {supervisoes && supervisoes.length > 0 ? (
+                    <SupervisoesList supervisoes={supervisoes} />
+                  ) : (
+                    <EmptyState icon={ClipboardCheck} title="Nenhuma supervisão" description="Adicione supervisores para começar" />
+                  )}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="recomeco">
+                <RecomecoCoordTab coordenacaoId={selectedCoordenacao} />
+              </TabsContent>
+
+              <TabsContent value="discipulado">
+                <DiscipuladoCoordView coordId={selectedCoordenacao} redeId={selectedCoordData?.rede_id} />
+              </TabsContent>
+            </Tabs>
+          </InitialViewGate>
         </div>
       )}
 
