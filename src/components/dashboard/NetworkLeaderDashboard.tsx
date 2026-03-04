@@ -258,24 +258,24 @@ export function NetworkLeaderDashboard({ initialRedeId, overrideCampoId, onBack,
           <Tabs defaultValue={urlTab === 'pulso' ? 'atencao' : 'atencao'} className="space-y-4">
             <TabsList className="flex flex-wrap h-auto gap-1">
               <TabsTrigger value="atencao" className="gap-1.5"><Activity className="h-4 w-4" />Atenção</TabsTrigger>
-              <TabsTrigger value="saude" className="gap-1.5"><Heart className="h-4 w-4" />Saúde</TabsTrigger>
-              <TabsTrigger value="supervisoes-historico" className="gap-1.5"><ClipboardCheck className="h-4 w-4" />Supervisões</TabsTrigger>
+              <TabsTrigger value="saude" className="gap-1.5"><Heart className="h-4 w-4" />Saúde da Rede</TabsTrigger>
+              <TabsTrigger value="supervisoes-historico" className="gap-1.5"><ClipboardCheck className="h-4 w-4" />Cuidado e Supervisão</TabsTrigger>
               <TabsTrigger value="planejamento" className="gap-1.5"><Calendar className="h-4 w-4" />Planejamento</TabsTrigger>
               <TabsTrigger value="coordenacoes" className="gap-1.5"><Network className="h-4 w-4" />Coordenações</TabsTrigger>
               <TabsTrigger value="movimento" className="gap-1.5"><GitBranch className="h-4 w-4" />Movimento</TabsTrigger>
-              <TabsTrigger value="recomeco" className="gap-1.5"><DoorOpen className="h-4 w-4" />Recomeço</TabsTrigger>
-              <TabsTrigger value="discipulado" className="gap-1.5"><BookOpen className="h-4 w-4" />Discipulado</TabsTrigger>
+              <TabsTrigger value="recomeco" className="gap-1.5"><DoorOpen className="h-4 w-4" />Porta de Entrada</TabsTrigger>
+              <TabsTrigger value="discipulado" className="gap-1.5"><BookOpen className="h-4 w-4" />Caminho do Discipulado</TabsTrigger>
               <TabsTrigger value="historico" className="gap-1.5"><History className="h-4 w-4" />Histórico</TabsTrigger>
               <TabsTrigger value="insights" className="gap-1.5"><Sparkles className="h-4 w-4" />IA</TabsTrigger>
               <TabsTrigger value="fotos" className="gap-1.5"><Image className="h-4 w-4" />Fotos</TabsTrigger>
             </TabsList>
 
             <TabsContent value="atencao">
-              <PulsoRedeSection scopeType="rede" scopeId={selectedRede} title="Pulso da Rede" />
+              <PulsoRedeSection scopeType="rede" scopeId={selectedRede} title="Visão Pastoral da Rede" />
             </TabsContent>
 
             <TabsContent value="saude">
-              <RadarSaudePanel scopeType="rede" scopeId={selectedRede} title="Radar de Saúde da Rede" />
+              <RadarSaudePanel scopeType="rede" scopeId={selectedRede} title="Saúde da Rede" />
             </TabsContent>
 
             <TabsContent value="planejamento">

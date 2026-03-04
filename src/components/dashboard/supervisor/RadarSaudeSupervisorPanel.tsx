@@ -187,7 +187,7 @@ export function RadarSaudeSupervisorPanel({ supervisorId, coordenacaoId, compact
     <div className="space-y-4">
       <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
         <Activity className="h-4 w-4" />
-        Radar de Saúde — Minhas Células
+        Saúde da Rede — Minhas Células
       </h2>
 
       {/* Mini KPIs */}

@@ -355,12 +355,12 @@ function CampoPastorDashboard() {
           <DiscipuladoPastorView />
         </div>
 
-        {/* Radar de Saúde */}
+        {/* Saúde da Rede */}
         <div className="mt-4">
-          <RadarSaudePanel scopeType="all" campoId={campoId} title="Radar de Saúde da Rede" />
+          <RadarSaudePanel scopeType="all" campoId={campoId} title="Saúde da Rede" />
         </div>
 
-        {/* Visão de Governo */}
+        {/* Panorama Estratégico */}
         {redeGrowth && redeGrowth.length > 0 && (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mt-4">
             {redeGrowth.map((rede) => (

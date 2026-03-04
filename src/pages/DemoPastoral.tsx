@@ -145,7 +145,7 @@ function StepRecomeco() {
           <Heart className="h-5 w-5 text-[#1A2F4B]" />
         </div>
         <div>
-          <h2 className="text-lg font-bold" style={{ color: gold, fontFamily: headingFont }}>Recomeço — Porta de Entrada</h2>
+          <h2 className="text-lg font-bold" style={{ color: gold, fontFamily: headingFont }}>Porta de Entrada</h2>
           <p className="text-xs" style={{ color: textMuted }}>Onde começa o cuidado com cada nova vida</p>
         </div>
       </div>

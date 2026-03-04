@@ -217,15 +217,15 @@ export function CoordinatorDashboard() {
           <Tabs defaultValue={urlTab === 'pulso' ? 'pulso' : urlTab === 'planejamento' ? 'planejamento' : 'relatorios'} className="space-y-4">
             <TabsList className="flex flex-wrap h-auto gap-1">
               <TabsTrigger value="planejamento" className="gap-1.5"><Calendar className="h-4 w-4" />Planejamento</TabsTrigger>
-              <TabsTrigger value="pulso" className="gap-1.5"><Activity className="h-4 w-4" />Pulso</TabsTrigger>
-              <TabsTrigger value="saude" className="gap-1.5"><Heart className="h-4 w-4" />Saúde</TabsTrigger>
+              <TabsTrigger value="pulso" className="gap-1.5"><Activity className="h-4 w-4" />Visão Pastoral</TabsTrigger>
+              <TabsTrigger value="saude" className="gap-1.5"><Heart className="h-4 w-4" />Saúde da Rede</TabsTrigger>
               <TabsTrigger value="relatorios" className="gap-1.5"><LayoutGrid className="h-4 w-4" />Relatórios</TabsTrigger>
               <TabsTrigger value="historico" className="gap-1.5"><History className="h-4 w-4" />Histórico</TabsTrigger>
               <TabsTrigger value="insights" className="gap-1.5"><Sparkles className="h-4 w-4" />Insights IA</TabsTrigger>
               <TabsTrigger value="fotos" className="gap-1.5"><Image className="h-4 w-4" />Fotos</TabsTrigger>
-              <TabsTrigger value="supervisoes" className="gap-1.5"><ClipboardCheck className="h-4 w-4" />Supervisões</TabsTrigger>
-              <TabsTrigger value="recomeco" className="gap-1.5"><DoorOpen className="h-4 w-4" />Recomeço</TabsTrigger>
-              <TabsTrigger value="discipulado" className="gap-1.5"><BookOpen className="h-4 w-4" />Discipulado</TabsTrigger>
+              <TabsTrigger value="supervisoes" className="gap-1.5"><ClipboardCheck className="h-4 w-4" />Cuidado e Supervisão</TabsTrigger>
+              <TabsTrigger value="recomeco" className="gap-1.5"><DoorOpen className="h-4 w-4" />Porta de Entrada</TabsTrigger>
+              <TabsTrigger value="discipulado" className="gap-1.5"><BookOpen className="h-4 w-4" />Caminho do Discipulado</TabsTrigger>
             </TabsList>
 
             <TabsContent value="planejamento">
@@ -233,11 +233,11 @@ export function CoordinatorDashboard() {
             </TabsContent>
 
             <TabsContent value="pulso">
-              <PulsoRedeSection scopeType="coordenacao" scopeId={selectedCoordenacao} title="Pulso da Coordenação" />
+              <PulsoRedeSection scopeType="coordenacao" scopeId={selectedCoordenacao} title="Visão Pastoral da Coordenação" />
             </TabsContent>
 
             <TabsContent value="saude">
-              <RadarSaudePanel scopeType="coordenacao" scopeId={selectedCoordenacao} title="Radar de Saúde" />
+              <RadarSaudePanel scopeType="coordenacao" scopeId={selectedCoordenacao} title="Saúde da Rede" />
             </TabsContent>
 
             <TabsContent value="insights">

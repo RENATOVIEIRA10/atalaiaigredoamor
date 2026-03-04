@@ -27,7 +27,7 @@ export default function FerramentasTeste() {
               <FlaskConical className="h-4 w-4 text-primary" />
               <AlertDescription className="text-sm">
                 Todas as simulações agora são gerenciadas em{' '}
-                <strong>Configurações → Seed Run / Simulações</strong>, com isolamento por campus,
+                <strong>Configurações → Simulação de Cenários</strong>, com isolamento por campus,
                 rastreabilidade completa e configuração avançada.
               </AlertDescription>
             </Alert>

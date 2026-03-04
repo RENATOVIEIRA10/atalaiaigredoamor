@@ -67,7 +67,7 @@ export function SupervisorDashboard() {
       <DashboardScopeBanner />
       <PageHeader
         title="Dashboard do Supervisor"
-        subtitle="Registre e acompanhe suas supervisões de células"
+        subtitle="Registre e acompanhe o cuidado e supervisão das células"
         icon={ClipboardCheck}
       />
 
@@ -159,7 +159,7 @@ export function SupervisorDashboard() {
                   <CardHeader>
                     <CardTitle className="text-base flex items-center gap-2">
                       <ClipboardCheck className="h-5 w-5 text-primary" />
-                      Histórico de Supervisões
+                      Histórico de Cuidado e Supervisão
                     </CardTitle>
                     <CardDescription>{supervisoes?.length || 0} supervisão(ões)</CardDescription>
                   </CardHeader>
@@ -215,7 +215,7 @@ export function SupervisorDashboard() {
       )}
 
       {!selectedSupervisor && selectedCoordenacao && filteredSupervisores.length > 0 && (
-        <EmptyState icon={ClipboardCheck} title="Selecione seu perfil" description="Identifique-se como supervisor para registrar supervisões" />
+        <EmptyState icon={ClipboardCheck} title="Selecione seu perfil" description="Identifique-se como supervisor para registrar cuidado e supervisão" />
       )}
 
       {!selectedCoordenacao && (

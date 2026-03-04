@@ -18,7 +18,7 @@ interface TourStep {
 }
 
 const TOUR_STEPS: TourStep[] = [
-  { id: 'pastor', label: 'Pastor Global', description: 'Visão geral de todos os campus, KPIs e Pulso pastoral', role: 'pastor', route: '/dashboard', icon: '👨‍💼' },
+  { id: 'pastor', label: 'Pastor Global', description: 'Visão geral de todos os campus, KPIs e Visão Pastoral', role: 'pastor', route: '/dashboard', icon: '👨‍💼' },
   { id: 'rede', label: 'Líder de Rede', description: 'Dashboard da rede com coordenações, supervisões e relatórios', role: 'rede', route: '/dashboard', icon: '🌐' },
   { id: 'coordenacao', label: 'Coordenador', description: 'Visão de coordenação com células e supervisores', role: 'coordenacao', route: '/dashboard', icon: '📋' },
   { id: 'supervisor', label: 'Supervisor', description: 'Supervisões bimestrais e planejamento', role: 'supervisor', route: '/dashboard', icon: '🔍' },
