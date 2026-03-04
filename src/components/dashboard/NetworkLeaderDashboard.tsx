@@ -43,6 +43,7 @@ import { DiscipuladoRedeView } from './discipulado/DiscipuladoRedeView';
 import { RevelaShortcut } from './RevelaShortcut';
 import { DashboardScopeBanner } from './DashboardScopeBanner';
 import { SectionLabel } from './SectionLabel';
+import { PotenciaisServirCard } from './PotenciaisServirCard';
 
 interface NetworkLeaderDashboardProps {
   initialRedeId?: string;
@@ -216,6 +217,10 @@ export function NetworkLeaderDashboard({ initialRedeId, overrideCampoId, onBack,
             <StatCard icon={Network} label="Coordenações" value={redeCoordenacoes.length} />
             <StatCard icon={ClipboardCheck} label="Supervisões" value={supervisoes?.length || 0} subtitle="registradas" />
           </div>
+
+          {/* ═══ POTENCIAIS PARA SERVIR ═══ */}
+          <SectionLabel title="Potenciais para Servir" subtitle="Membros prontos para novos desafios" />
+          <PotenciaisServirCard redeId={selectedRede} />
 
           {/* ═══ ABAS OPERACIONAIS ═══ */}
           <Tabs defaultValue="semanal" className="space-y-4">
