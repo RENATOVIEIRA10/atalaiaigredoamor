@@ -31,6 +31,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { StatCard } from '@/components/ui/stat-card';
 import { MissionVerse } from './MissionVerse';
 import { MissionBlock } from './MissionBlock';
+import { InitialViewGate } from './InitialViewGate';
 import { EmptyState } from '@/components/ui/empty-state';
 import { useRole } from '@/contexts/RoleContext';
 import { PulsoRedeSection } from './PulsoRedeSection';
@@ -255,6 +256,7 @@ export function NetworkLeaderDashboard({ initialRedeId, overrideCampoId, onBack,
             </div>
           </MissionBlock>
 
+          <InitialViewGate>
           <Tabs defaultValue={urlTab === 'pulso' ? 'atencao' : 'atencao'} className="space-y-4">
             <TabsList className="flex flex-wrap h-auto gap-1">
               <TabsTrigger value="atencao" className="gap-1.5"><Activity className="h-4 w-4" />Atenção</TabsTrigger>
@@ -405,6 +407,7 @@ export function NetworkLeaderDashboard({ initialRedeId, overrideCampoId, onBack,
               <DiscipuladoRedeView redeId={selectedRede} />
             </TabsContent>
           </Tabs>
+          </InitialViewGate>
         </>
       )}
 

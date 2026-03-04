@@ -28,6 +28,7 @@ import ReactMarkdown from 'react-markdown';
 import { PastoralGrowthCharts } from './PastoralGrowthCharts';
 import { MissionVerse } from './MissionVerse';
 import { MissionBlock } from './MissionBlock';
+import { InitialViewGate } from './InitialViewGate';
 import { RadarSaudePanel } from './RadarSaudePanel';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { RecomecoPastorTab } from './recomeco/RecomecoPastorTab';
@@ -223,9 +224,21 @@ function CampoPastorDashboard() {
           <StatCard icon={Users} label="Membros" value={stats?.totalMembers || 0} />
           <StatCard icon={GitBranch} label="Multiplicações" value={stats?.multiplicacoes90dias || 0} subtitle="últimos 90 dias" />
         </div>
+      </MissionBlock>
 
+      {/* ═══ BLOCO 3 — Saúde e Cuidado ═══ */}
+      <MissionBlock icon={Heart} title="Saúde e Cuidado">
+        <div className="grid gap-4 md:grid-cols-3">
+          <StatCard icon={Activity} label="Engajamento" value={`${pulso?.percentualEngajamento || 0}%`} subtitle={`${pulso?.celulasComRelatorio || 0} de ${pulso?.totalCelulas || 0} células`} />
+          <StatCard icon={BookOpen} label="Discipulados" value={pulso?.totalDiscipulados || 0} />
+          <StatCard icon={GraduationCap} label="Líderes em Formação" value={pulso?.lideresEmTreinamento || 0} />
+        </div>
+      </MissionBlock>
+
+      {/* Conteúdo detalhado */}
+      <InitialViewGate>
         {/* Marcos Espirituais */}
-        <Card className="mt-4">
+        <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2"><Church className="h-4 w-4 text-primary" />Marcos Espirituais</CardTitle>
             <CardDescription>Crescimento espiritual real do rebanho</CardDescription>
@@ -244,7 +257,7 @@ function CampoPastorDashboard() {
 
         {/* Frutos e Celebrações */}
         {celebrations && celebrations.length > 0 && (
-          <div className="grid gap-3 md:grid-cols-2 mt-4">
+          <div className="grid gap-3 md:grid-cols-2">
             {celebrations.map((c, i) => (
               <Card key={i} className="border-primary/10 bg-primary/5">
                 <CardContent className="p-4 flex items-start gap-3">
@@ -260,19 +273,12 @@ function CampoPastorDashboard() {
         )}
 
         {/* Recomeço */}
-        <div className="mt-4">
-          <RecomecoPastorTab />
-        </div>
+        <RecomecoPastorTab />
 
         {/* Evolução Temporal */}
-        <div className="mt-4">
-          <PastoralGrowthCharts campoId={campoId} />
-        </div>
-      </MissionBlock>
+        <PastoralGrowthCharts campoId={campoId} />
 
-      {/* ═══ BLOCO 3 — Saúde e Cuidado ═══ */}
-      <MissionBlock icon={Heart} title="Saúde e Cuidado">
-        {/* Engajamento */}
+        {/* Engajamento detalhado */}
         <div className="grid gap-4 md:grid-cols-2">
           <Card>
             <CardHeader className="pb-3">
@@ -323,7 +329,7 @@ function CampoPastorDashboard() {
         </div>
 
         {/* Aniversários */}
-        <Card className="mt-4">
+        <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2"><Cake className="h-4 w-4 text-primary" />Aniversários da Semana</CardTitle>
           </CardHeader>
@@ -351,18 +357,14 @@ function CampoPastorDashboard() {
         </Card>
 
         {/* Discipulado Anual */}
-        <div className="mt-4">
-          <DiscipuladoPastorView />
-        </div>
+        <DiscipuladoPastorView />
 
         {/* Saúde da Rede */}
-        <div className="mt-4">
-          <RadarSaudePanel scopeType="all" campoId={campoId} title="Saúde da Rede" />
-        </div>
+        <RadarSaudePanel scopeType="all" campoId={campoId} title="Saúde da Rede" />
 
         {/* Panorama Estratégico */}
         {redeGrowth && redeGrowth.length > 0 && (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mt-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {redeGrowth.map((rede) => (
               <Card key={rede.rede_name}>
                 <CardHeader className="pb-2"><CardTitle className="text-base">{rede.rede_name}</CardTitle></CardHeader>
@@ -376,7 +378,7 @@ function CampoPastorDashboard() {
             ))}
           </div>
         )}
-      </MissionBlock>
+      </InitialViewGate>
 
       {/* Resumo Pastoral com IA */}
       <section>

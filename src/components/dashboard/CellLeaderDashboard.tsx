@@ -22,6 +22,7 @@ import { Badge } from '@/components/ui/badge';
 import { RevelaShortcut } from './RevelaShortcut';
 import { DashboardScopeBanner } from './DashboardScopeBanner';
 import { MissionBlock } from './MissionBlock';
+import { InitialViewGate } from './InitialViewGate';
 
 export function CellLeaderDashboard() {
   const { data: celulas, isLoading } = useCelulas();
@@ -79,101 +80,99 @@ export function CellLeaderDashboard() {
 
       {singleCell ? (
         <>
-          <Tabs defaultValue={defaultTab} className="space-y-4">
-            <TabsList className="grid w-full grid-cols-6 h-auto p-1">
-              <TabsTrigger value="visao-geral" className="gap-1.5 py-2.5 text-xs sm:text-sm">
-                <LayoutDashboard className="h-4 w-4" />
-                <span className="hidden sm:inline">Visão Geral</span>
-              </TabsTrigger>
-              <TabsTrigger value="celula" className="gap-1.5 py-2.5 text-xs sm:text-sm">
-                <FileText className="h-4 w-4" />
-                <span className="hidden sm:inline">Relatórios</span>
-              </TabsTrigger>
-              <TabsTrigger value="membros" className="gap-1.5 py-2.5 text-xs sm:text-sm">
-                <Users className="h-4 w-4" />
-                <span className="hidden sm:inline">Membros</span>
-              </TabsTrigger>
-              <TabsTrigger value="discipulado" className="gap-1.5 py-2.5 text-xs sm:text-sm">
-                <BookOpen className="h-4 w-4" />
-                <span className="hidden sm:inline">Discipulado</span>
-              </TabsTrigger>
-              <TabsTrigger value="roteiro" className="gap-1.5 py-2.5 text-xs sm:text-sm">
-                <ClipboardList className="h-4 w-4" />
-                <span className="hidden sm:inline">Roteiro</span>
-              </TabsTrigger>
-              <TabsTrigger value="novas-vidas" className="gap-1.5 py-2.5 text-xs sm:text-sm relative">
-                <DoorOpen className="h-4 w-4" />
-                <span className="hidden sm:inline">Vidas</span>
-                {pendingNovasVidas > 0 && (
-                  <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-[10px] bg-primary">
-                    {pendingNovasVidas}
-                  </Badge>
-                )}
-              </TabsTrigger>
-            </TabsList>
+          {/* 3 blocos missionais — sempre visíveis */}
+          <div className="space-y-6">
+            {/* BLOCO 1 — O que precisa da minha atenção */}
+            <MissionBlock icon={AlertTriangle} title="O que precisa da minha atenção">
+              {cellEncaminhamentos.length > 0 ? (
+                <StatCard
+                  icon={DoorOpen}
+                  label="Vidas Encaminhadas"
+                  value={cellEncaminhamentos.length}
+                  subtitle={pendingNovasVidas > 0 ? `${pendingNovasVidas} aguardando contato` : 'Todas contatadas ✓'}
+                />
+              ) : (
+                <Card>
+                  <CardContent className="p-4 text-sm text-muted-foreground text-center">
+                    Nenhuma pendência no momento 🙏
+                  </CardContent>
+                </Card>
+              )}
+            </MissionBlock>
 
-            <TabsContent value="visao-geral">
-              <div className="space-y-6">
-                {/* BLOCO 1 — O que precisa da minha atenção */}
-                <MissionBlock icon={AlertTriangle} title="O que precisa da minha atenção">
-                  {cellEncaminhamentos.length > 0 ? (
-                    <StatCard
-                      icon={DoorOpen}
-                      label="Vidas Encaminhadas"
-                      value={cellEncaminhamentos.length}
-                      subtitle={pendingNovasVidas > 0 ? `${pendingNovasVidas} aguardando contato` : 'Todas contatadas ✓'}
-                    />
-                  ) : (
-                    <Card>
-                      <CardContent className="p-4 text-sm text-muted-foreground text-center">
-                        Nenhuma pendência no momento 🙏
-                      </CardContent>
-                    </Card>
+            {/* BLOCO 2 — Movimento do Reino */}
+            <MissionBlock icon={Sprout} title="Movimento do Reino">
+              <CellProfileSection celulaId={singleCell.id} />
+            </MissionBlock>
+
+            {/* BLOCO 3 — Saúde e Cuidado */}
+            <MissionBlock icon={HeartPulse} title="Saúde e Cuidado">
+              <CellLeaderPulsoTab celulaId={singleCell.id} />
+            </MissionBlock>
+          </div>
+
+          {/* Conteúdo detalhado — oculto por padrão */}
+          <InitialViewGate>
+            <Tabs defaultValue={defaultTab} className="space-y-4">
+              <TabsList className="grid w-full grid-cols-5 h-auto p-1">
+                <TabsTrigger value="celula" className="gap-1.5 py-2.5 text-xs sm:text-sm">
+                  <FileText className="h-4 w-4" />
+                  <span className="hidden sm:inline">Relatórios</span>
+                </TabsTrigger>
+                <TabsTrigger value="membros" className="gap-1.5 py-2.5 text-xs sm:text-sm">
+                  <Users className="h-4 w-4" />
+                  <span className="hidden sm:inline">Membros</span>
+                </TabsTrigger>
+                <TabsTrigger value="discipulado" className="gap-1.5 py-2.5 text-xs sm:text-sm">
+                  <BookOpen className="h-4 w-4" />
+                  <span className="hidden sm:inline">Discipulado</span>
+                </TabsTrigger>
+                <TabsTrigger value="roteiro" className="gap-1.5 py-2.5 text-xs sm:text-sm">
+                  <ClipboardList className="h-4 w-4" />
+                  <span className="hidden sm:inline">Roteiro</span>
+                </TabsTrigger>
+                <TabsTrigger value="novas-vidas" className="gap-1.5 py-2.5 text-xs sm:text-sm relative">
+                  <DoorOpen className="h-4 w-4" />
+                  <span className="hidden sm:inline">Vidas</span>
+                  {pendingNovasVidas > 0 && (
+                    <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-[10px] bg-primary">
+                      {pendingNovasVidas}
+                    </Badge>
                   )}
-                </MissionBlock>
+                </TabsTrigger>
+              </TabsList>
 
-                {/* BLOCO 2 — Movimento do Reino */}
-                <MissionBlock icon={Sprout} title="Movimento do Reino">
-                  <CellProfileSection celulaId={singleCell.id} />
-                </MissionBlock>
+              <TabsContent value="celula">
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {userCelulas.map(celula => (
+                    <CelulaCard key={celula.id} celula={celula} onClick={() => setSelectedCelula({ id: celula.id, name: celula.name })} />
+                  ))}
+                </div>
+              </TabsContent>
 
-                {/* BLOCO 3 — Saúde e Cuidado */}
-                <MissionBlock icon={HeartPulse} title="Saúde e Cuidado">
-                  <CellLeaderPulsoTab celulaId={singleCell.id} />
-                </MissionBlock>
-              </div>
-            </TabsContent>
+              <TabsContent value="membros">
+                <CellLeaderMembrosTab celulaId={singleCell.id} celulaName={singleCell.name} />
+              </TabsContent>
 
-            <TabsContent value="celula">
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {userCelulas.map(celula => (
-                  <CelulaCard key={celula.id} celula={celula} onClick={() => setSelectedCelula({ id: celula.id, name: celula.name })} />
-                ))}
-              </div>
-            </TabsContent>
+              <TabsContent value="discipulado">
+                <DiscipuladoCellLeaderTab celulaId={singleCell.id} celulaName={singleCell.name} redeId={singleCell.rede_id} />
+              </TabsContent>
 
-            <TabsContent value="membros">
-              <CellLeaderMembrosTab celulaId={singleCell.id} celulaName={singleCell.name} />
-            </TabsContent>
+              <TabsContent value="roteiro">
+                <CellLeaderRoteiroTab
+                  celulaId={singleCell.id}
+                  celulaName={singleCell.name}
+                  meetingDay={singleCell.meeting_day}
+                  redeId={singleCell.rede_id}
+                  coupleNames={coupleNames}
+                />
+              </TabsContent>
 
-            <TabsContent value="discipulado">
-              <DiscipuladoCellLeaderTab celulaId={singleCell.id} celulaName={singleCell.name} redeId={singleCell.rede_id} />
-            </TabsContent>
-
-            <TabsContent value="roteiro">
-              <CellLeaderRoteiroTab
-                celulaId={singleCell.id}
-                celulaName={singleCell.name}
-                meetingDay={singleCell.meeting_day}
-                redeId={singleCell.rede_id}
-                coupleNames={coupleNames}
-              />
-            </TabsContent>
-
-            <TabsContent value="novas-vidas">
-              <CellLeaderNovasVidasTab celulaId={singleCell.id} celulaName={singleCell.name} coupleNames={coupleNames} />
-            </TabsContent>
-          </Tabs>
+              <TabsContent value="novas-vidas">
+                <CellLeaderNovasVidasTab celulaId={singleCell.id} celulaName={singleCell.name} coupleNames={coupleNames} />
+              </TabsContent>
+            </Tabs>
+          </InitialViewGate>
         </>
       ) : (
         <>

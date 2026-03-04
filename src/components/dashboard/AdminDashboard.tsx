@@ -19,6 +19,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { StatCard } from '@/components/ui/stat-card';
 import { MissionVerse } from './MissionVerse';
 import { MissionBlock } from './MissionBlock';
+import { InitialViewGate } from './InitialViewGate';
 import { useDemoScope } from '@/hooks/useDemoScope';
 import { RevelaShortcut } from './RevelaShortcut';
 import { DashboardScopeBanner } from './DashboardScopeBanner';
@@ -155,6 +156,7 @@ export function AdminDashboard() {
         </div>
       </MissionBlock>
 
+      <InitialViewGate>
       <Tabs defaultValue="redes" className="space-y-4">
         <TabsList>
           <TabsTrigger value="redes" className="gap-1.5"><Network className="h-4 w-4" />Dados por Rede</TabsTrigger>
@@ -241,6 +243,7 @@ export function AdminDashboard() {
           <MultiplicacoesTab />
         </TabsContent>
       </Tabs>
+      </InitialViewGate>
     </div>
   );
 }

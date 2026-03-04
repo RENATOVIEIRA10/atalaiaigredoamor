@@ -13,6 +13,7 @@ import { CampusDetailView } from './CampusDetailView';
 import { PageHeader } from '@/components/ui/page-header';
 import { MissionVerse } from '../MissionVerse';
 import { MissionBlock } from '../MissionBlock';
+import { InitialViewGate } from '../InitialViewGate';
 import { StatCard } from '@/components/ui/stat-card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -128,44 +129,38 @@ function KingdomView({ campusData, onSelectCampus }: { campusData: CampusKPI[]; 
       {/* ═══ BLOCO 1 — O que precisa da minha atenção ═══ */}
       <MissionBlock icon={AlertTriangle} title="O que precisa da minha atenção">
         <PastoralAlertsSection campusData={campusData} />
-        <div className="mt-4">
-          <SupervisionGovernanceSection />
-        </div>
       </MissionBlock>
 
       {/* ═══ BLOCO 2 — Movimento do Reino ═══ */}
       <MissionBlock icon={GitBranch} title="Movimento do Reino">
         <KingdomMapTable campusData={campusData} onSelect={onSelectCampus} />
-        <div className="mt-4">
-          <TrendsSection />
-        </div>
-        <div className="mt-4">
-          <FunnelSection />
-        </div>
-        <div className="mt-4">
-          <AgendaSection />
-        </div>
       </MissionBlock>
 
       {/* ═══ BLOCO 3 — Saúde e Cuidado ═══ */}
       <MissionBlock icon={Heart} title="Saúde e Cuidado">
         <PastoralRankingSection />
-        <div className="mt-4">
-          <BriefingSection campusData={campusData} />
-        </div>
       </MissionBlock>
 
-      {/* Validação & Auditoria */}
-      <section>
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-1 flex items-center gap-2">
-          <span>🛡️</span> Validação & Auditoria
-        </h2>
-        <p className="text-xs text-muted-foreground mb-4">Consistência de dados entre campus</p>
-        <div className="space-y-6">
-          <GlobalValidationPanel />
-          <IntegrityAuditPanel />
-        </div>
-      </section>
+      {/* Conteúdo detalhado */}
+      <InitialViewGate>
+        <SupervisionGovernanceSection />
+        <TrendsSection />
+        <FunnelSection />
+        <AgendaSection />
+        <BriefingSection campusData={campusData} />
+
+        {/* Validação & Auditoria */}
+        <section>
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-1 flex items-center gap-2">
+            <span>🛡️</span> Validação & Auditoria
+          </h2>
+          <p className="text-xs text-muted-foreground mb-4">Consistência de dados entre campus</p>
+          <div className="space-y-6">
+            <GlobalValidationPanel />
+            <IntegrityAuditPanel />
+          </div>
+        </section>
+      </InitialViewGate>
     </div>
   );
 }
