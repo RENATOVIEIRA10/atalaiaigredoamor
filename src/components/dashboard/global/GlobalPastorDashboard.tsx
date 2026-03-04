@@ -4,6 +4,7 @@ import { IntegrityAuditPanel } from '../IntegrityAuditPanel';
 import { Loader2, Globe, Church, Users, Home, GitBranch, Heart, Network, Sparkles, ShieldAlert, TrendingUp, ArrowRight, MessageSquare, RefreshCw, X, Calendar, BookOpen } from 'lucide-react';
 import { useGlobalKingdomData, CampusKPI } from '@/hooks/useGlobalKingdomData';
 import { useGlobalKingdomFunnel } from '@/hooks/useGlobalKingdomFunnel';
+import { useConversionsMetrics } from '@/hooks/useConversionsMetrics';
 import { useGlobalKingdomAgenda } from '@/hooks/useGlobalKingdomAgenda';
 import { useGlobalPastoralRanking } from '@/hooks/useGlobalPastoralRanking';
 import { useGlobalKingdomTrends } from '@/hooks/useGlobalKingdomTrends';
@@ -103,8 +104,7 @@ function KingdomView({ campusData, onSelectCampus }: { campusData: CampusKPI[]; 
   const totalNV = campusData.reduce((s, c) => s + c.novas_vidas_total, 0);
   const totalConversoes = campusData.reduce((s, c) => s + c.novas_vidas_convertidas, 0);
   const totalBatismo = campusData.reduce((s, c) => s + c.marcos_batismo, 0);
-  // Count total redes across all campuses (use engajamento as proxy if no direct count)
-  // We can approximate total redes from the campus data
+  const { data: conversions } = useConversionsMetrics(null); // global scope
 
   return (
     <div className="space-y-8">
@@ -125,10 +125,10 @@ function KingdomView({ campusData, onSelectCampus }: { campusData: CampusKPI[]; 
       <Card>
         <CardContent className="pt-6">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <MarcoCard label="Novas Vidas" value={totalNV} icon="🌱" />
-            <MarcoCard label="Conversões" value={totalConversoes} icon="🔥" />
-            <MarcoCard label="Batismos" value={totalBatismo} icon="💧" />
-            <MarcoCard label="Multiplicações" value={campusData.reduce((s, c) => s + (c.marcos_curso_lidere || 0), 0)} icon="🌿" />
+            <MarcoCard label="Conversões" value={conversions?.conversoes90dias || 0} icon="🔥" subtitle="Recomeço · 90 dias" />
+            <MarcoCard label="Novos Membros" value={conversions?.novosMembros90dias || 0} icon="🌱" subtitle="integrados · 90 dias" />
+            <MarcoCard label="Batismos" value={totalBatismo} icon="💧" subtitle="acumulado" />
+            <MarcoCard label="Conversões (total)" value={totalNV} icon="✝️" subtitle="acumulado geral" />
           </div>
         </CardContent>
       </Card>
@@ -556,12 +556,13 @@ function PastoralRankingSection() {
 
 // ── Marco Card ──
 
-function MarcoCard({ label, value, icon }: { label: string; value: number; icon: string }) {
+function MarcoCard({ label, value, icon, subtitle }: { label: string; value: number; icon: string; subtitle?: string }) {
   return (
     <div className="rounded-xl border bg-card p-3 text-center">
       <div className="text-2xl mb-1">{icon}</div>
       <div className="text-2xl font-bold text-foreground">{value}</div>
       <div className="text-xs text-muted-foreground mt-0.5">{label}</div>
+      {subtitle && <div className="text-[10px] text-muted-foreground/70 mt-0.5">{subtitle}</div>}
     </div>
   );
 }
