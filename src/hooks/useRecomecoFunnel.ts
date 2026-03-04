@@ -107,10 +107,8 @@ export function useRecomecoFunnel(scopeType: 'coordenacao' | 'rede' | 'all', sco
     const coordCelulaIds = new Set((celulas || []).filter(c => c.coordenacao_id === scopeId).map(c => c.id));
     filtered = filtered.filter(e => coordCelulaIds.has(e.celula_id));
   } else if (scopeType === 'rede' && scopeId) {
-    const redeCelulaIds = new Set((celulas || []).filter(c => {
-      const effectiveRedeId = c.rede_id || coordMap.get(c.coordenacao_id)?.rede_id;
-      return effectiveRedeId === scopeId;
-    }).map(c => c.id));
+    // Use direct rede_id from celulas (set by trigger, single source of truth)
+    const redeCelulaIds = new Set((celulas || []).filter(c => c.rede_id === scopeId).map(c => c.id));
     filtered = filtered.filter(e => redeCelulaIds.has(e.celula_id));
   }
 
