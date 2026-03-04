@@ -28,8 +28,8 @@ export function useGlobalKingdomTrends(campoId?: string | null, weeks = 8) {
         const saturdayStr = format(wEnd, 'yyyy-MM-dd');
         const label = format(wStart, 'dd/MM', { locale: ptBR });
 
-        // Celulas total for engajamento calc
-        let celQ = supabase.from('celulas').select('id', { count: 'exact', head: true });
+        // Celulas total for engajamento calc (exclude test data)
+        let celQ = supabase.from('celulas').select('id', { count: 'exact', head: true }).eq('is_test_data', false);
         if (campoId) celQ = celQ.eq('campo_id', campoId);
         const { count: celTotal } = await celQ;
 

@@ -14,7 +14,7 @@ export interface KingdomFunnelData {
 
 export function useGlobalKingdomFunnel(campoId?: string | null) {
   return useQuery({
-    queryKey: ['global-kingdom-funnel', campoId],
+    queryKey: ['global-kingdom-funnel', campoId ?? 'global'],
     staleTime: 60_000,
     queryFn: async (): Promise<KingdomFunnelData> => {
       // Novas vidas by status
@@ -29,12 +29,30 @@ export function useGlobalKingdomFunnel(campoId?: string | null) {
       const { data: enc } = await encQ;
       const encs = enc || [];
 
-      // Messages sent (boas-vindas)
-      let msgQ = supabase.from('recomeco_messages').select('id', { count: 'exact', head: true });
-      const { count: msgCount } = await msgQ;
+      // Messages sent (boas-vindas) — recomeco_messages has no campo_id,
+      // so we must filter through the vida_ids that belong to this campus
+      let boasVindasCount = 0;
+      if (vidas.length > 0) {
+        const vidaIds = vidas.map(v => v.id);
+        // Batch in chunks of 100 to avoid URL length limits
+        for (let i = 0; i < vidaIds.length; i += 100) {
+          const chunk = vidaIds.slice(i, i + 100);
+          const { count } = await supabase
+            .from('recomeco_messages')
+            .select('id', { count: 'exact', head: true })
+            .in('vida_id', chunk);
+          boasVindasCount += count || 0;
+        }
+      } else if (!campoId) {
+        // Global view without any campus filter — count all messages
+        const { count: msgCount } = await supabase
+          .from('recomeco_messages')
+          .select('id', { count: 'exact', head: true });
+        boasVindasCount = msgCount || 0;
+      }
 
       const cadastradas = vidas.length;
-      const boasVindasEnviadas = msgCount || 0;
+      const boasVindasEnviadas = boasVindasCount;
       const encaminhadas = encs.length;
       const contatadas = encs.filter(e => e.contatado_at || ['contatado', 'integrado'].includes(e.status)).length;
       const agendadas = vidas.filter(v => v.status === 'agendado').length;
