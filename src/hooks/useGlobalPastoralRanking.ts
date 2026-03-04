@@ -8,6 +8,7 @@ export interface PotentialServant {
   celula_name: string;
   anos_igreja: number;
   marcos: string[];
+  whatsapp?: string | null;
 }
 
 export interface StagnantMember {
@@ -18,15 +19,46 @@ export interface StagnantMember {
   missing: string[];
 }
 
-export function useGlobalPastoralRanking(campoId?: string | null) {
+export interface ServingMember {
+  id: string;
+  name: string;
+  celula_name: string;
+  ministerios: string[];
+}
+
+interface RankingOptions {
+  campoId?: string | null;
+  coordenacaoId?: string | null;
+  redeId?: string | null;
+}
+
+export function useGlobalPastoralRanking(options: RankingOptions = {}) {
+  const { campoId, coordenacaoId, redeId } = options;
+
   return useQuery({
-    queryKey: ['global-pastoral-ranking', campoId],
+    queryKey: ['global-pastoral-ranking', campoId, coordenacaoId, redeId],
     staleTime: 120_000,
     queryFn: async () => {
+      // Get celula IDs for scope filtering
+      let celulaIds: string[] | null = null;
+
+      if (coordenacaoId) {
+        const { data: scopeCelulas } = await supabase
+          .from('celulas').select('id').eq('coordenacao_id', coordenacaoId);
+        celulaIds = (scopeCelulas || []).map(c => c.id);
+      } else if (redeId) {
+        const { data: scopeCelulas } = await supabase
+          .from('celulas').select('id').eq('rede_id', redeId);
+        celulaIds = (scopeCelulas || []).map(c => c.id);
+      }
+
       let q = supabase.from('members')
-        .select('id, profile_id, celula_id, joined_at, encontro_com_deus, batismo, curso_lidere, renovo, is_discipulado, is_lider_em_treinamento, celula:celulas!members_celula_id_fkey(name), profile:profiles!members_profile_id_fkey(name)')
+        .select('id, profile_id, celula_id, joined_at, encontro_com_deus, batismo, curso_lidere, renovo, is_discipulado, is_lider_em_treinamento, serve_ministerio, ministerios, disponivel_para_servir, whatsapp, celula:celulas!members_celula_id_fkey(name), profile:profiles!members_profile_id_fkey(name)')
         .eq('is_active', true);
+
       if (campoId) q = q.eq('campo_id', campoId);
+      if (celulaIds !== null) q = q.in('celula_id', celulaIds.length > 0 ? celulaIds : ['__none__']);
+
       const { data } = await q;
       const members = data || [];
 
@@ -37,6 +69,7 @@ export function useGlobalPastoralRanking(campoId?: string | null) {
       const now = new Date();
       const potentials: PotentialServant[] = [];
       const stagnant: StagnantMember[] = [];
+      const serving: ServingMember[] = [];
 
       for (const m of members) {
         const joined = m.joined_at ? new Date(m.joined_at) : null;
@@ -53,9 +86,26 @@ export function useGlobalPastoralRanking(campoId?: string | null) {
 
         const hasLeadership = activeLeaderIds.has(m.profile_id);
 
-        // Potentials: 2+ years, 3+ marcos, no active function
-        if (anos >= 2 && marcos.length >= 3 && !hasLeadership && !m.is_lider_em_treinamento) {
-          potentials.push({ id: m.id, name, celula_name: celName, anos_igreja: anos, marcos });
+        // Already serving in ministry
+        if (m.serve_ministerio && (m.ministerios as string[] | null)?.length) {
+          serving.push({
+            id: m.id,
+            name,
+            celula_name: celName,
+            ministerios: (m.ministerios as string[]) || [],
+          });
+        }
+
+        // Potentials: available, not serving, 2+ years, 3+ marcos, no active function
+        if (
+          m.disponivel_para_servir !== false &&
+          !m.serve_ministerio &&
+          anos >= 2 &&
+          marcos.length >= 3 &&
+          !hasLeadership &&
+          !m.is_lider_em_treinamento
+        ) {
+          potentials.push({ id: m.id, name, celula_name: celName, anos_igreja: anos, marcos, whatsapp: m.whatsapp });
         }
 
         // Stagnant: 2+ years, missing key marcos
@@ -72,6 +122,9 @@ export function useGlobalPastoralRanking(campoId?: string | null) {
       return {
         potentials: potentials.sort((a, b) => b.marcos.length - a.marcos.length || b.anos_igreja - a.anos_igreja).slice(0, 20),
         stagnant: stagnant.sort((a, b) => b.anos_igreja - a.anos_igreja || b.missing.length - a.missing.length).slice(0, 20),
+        serving: serving.slice(0, 20),
+        potentialsCount: potentials.length,
+        servingCount: serving.length,
       };
     },
   });

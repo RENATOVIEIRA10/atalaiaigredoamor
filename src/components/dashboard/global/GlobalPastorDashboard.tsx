@@ -8,6 +8,7 @@ import { useGlobalKingdomData, CampusKPI } from '@/hooks/useGlobalKingdomData';
 import { useConversionsMetrics } from '@/hooks/useConversionsMetrics';
 import { useGlobalKingdomAgenda } from '@/hooks/useGlobalKingdomAgenda';
 import { useGlobalPastoralRanking } from '@/hooks/useGlobalPastoralRanking';
+import { PotenciaisServirCard } from '../PotenciaisServirCard';
 import { useGlobalKingdomTrends } from '@/hooks/useGlobalKingdomTrends';
 import { CampusDetailView } from './CampusDetailView';
 import { PageHeader } from '@/components/ui/page-header';
@@ -456,70 +457,7 @@ function AgendaSection() {
 // ── Pastoral Ranking ──
 
 function PastoralRankingSection() {
-  const { data, isLoading } = useGlobalPastoralRanking();
-
-  if (isLoading) return <Loader2 className="h-5 w-5 animate-spin text-primary mx-auto" />;
-  if (!data) return null;
-
-  return (
-    <div className="grid gap-4 md:grid-cols-2">
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm flex items-center gap-2">⭐ Potenciais para Servir</CardTitle>
-          <CardDescription className="text-xs">Membros com marcos avançados e sem função ativa</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {data.potentials.length === 0 ? (
-            <p className="text-xs text-muted-foreground text-center py-4">Nenhum potencial identificado</p>
-          ) : (
-            <ScrollArea className="max-h-64">
-              <div className="space-y-2">
-                {data.potentials.map(m => (
-                  <div key={m.id} className="flex items-center justify-between p-2 rounded-lg bg-muted/30">
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium truncate">{m.name}</p>
-                      <p className="text-xs text-muted-foreground">{m.celula_name} · {m.anos_igreja}a</p>
-                    </div>
-                    <div className="flex gap-1 flex-wrap justify-end ml-2">
-                      {m.marcos.map(marco => (<Badge key={marco} variant="secondary" className="text-[10px]">{marco}</Badge>))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
-          )}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm flex items-center gap-2"><Heart className="h-4 w-4 text-amber-600" />Cuidado Pastoral Necessário</CardTitle>
-          <CardDescription className="text-xs">Membros com tempo de igreja alto e marcos pendentes</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {data.stagnant.length === 0 ? (
-            <p className="text-xs text-muted-foreground text-center py-4">Nenhum membro identificado</p>
-          ) : (
-            <ScrollArea className="max-h-64">
-              <div className="space-y-2">
-                {data.stagnant.map(m => (
-                  <div key={m.id} className="flex items-center justify-between p-2 rounded-lg bg-amber-500/5 border border-amber-500/10">
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium truncate">{m.name}</p>
-                      <p className="text-xs text-muted-foreground">{m.celula_name} · {m.anos_igreja}a</p>
-                    </div>
-                    <div className="flex gap-1 flex-wrap justify-end ml-2">
-                      {m.missing.map(marco => (<Badge key={marco} variant="outline" className="text-[10px] border-amber-500/30 text-amber-700">Sem {marco}</Badge>))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
-          )}
-        </CardContent>
-      </Card>
-    </div>
-  );
+  return <PotenciaisServirCard />;
 }
 
 // ── Marco Card ──

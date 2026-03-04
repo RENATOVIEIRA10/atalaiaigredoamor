@@ -1014,6 +1014,7 @@ export type Database = {
           campo_id: string
           celula_id: string
           curso_lidere: boolean | null
+          disponivel_para_servir: boolean
           encontro_com_deus: boolean | null
           encontro_de_casais: boolean | null
           id: string
@@ -1022,10 +1023,13 @@ export type Database = {
           is_lider_em_treinamento: boolean | null
           is_test_data: boolean | null
           joined_at: string
+          ministerios: string[] | null
+          observacao_servico: string | null
           profile_id: string
           rede_id: string
           renovo: boolean | null
           seed_run_id: string | null
+          serve_ministerio: boolean
           whatsapp: string | null
         }
         Insert: {
@@ -1033,6 +1037,7 @@ export type Database = {
           campo_id: string
           celula_id: string
           curso_lidere?: boolean | null
+          disponivel_para_servir?: boolean
           encontro_com_deus?: boolean | null
           encontro_de_casais?: boolean | null
           id?: string
@@ -1041,10 +1046,13 @@ export type Database = {
           is_lider_em_treinamento?: boolean | null
           is_test_data?: boolean | null
           joined_at?: string
+          ministerios?: string[] | null
+          observacao_servico?: string | null
           profile_id: string
           rede_id: string
           renovo?: boolean | null
           seed_run_id?: string | null
+          serve_ministerio?: boolean
           whatsapp?: string | null
         }
         Update: {
@@ -1052,6 +1060,7 @@ export type Database = {
           campo_id?: string
           celula_id?: string
           curso_lidere?: boolean | null
+          disponivel_para_servir?: boolean
           encontro_com_deus?: boolean | null
           encontro_de_casais?: boolean | null
           id?: string
@@ -1060,10 +1069,13 @@ export type Database = {
           is_lider_em_treinamento?: boolean | null
           is_test_data?: boolean | null
           joined_at?: string
+          ministerios?: string[] | null
+          observacao_servico?: string | null
           profile_id?: string
           rede_id?: string
           renovo?: boolean | null
           seed_run_id?: string | null
+          serve_ministerio?: boolean
           whatsapp?: string | null
         }
         Relationships: [

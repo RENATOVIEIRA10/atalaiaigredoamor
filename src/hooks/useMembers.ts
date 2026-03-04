@@ -35,6 +35,8 @@ export function useMembers(celulaId?: string) {
           id, profile_id, celula_id, is_active, joined_at,
           batismo, encontro_com_deus, renovo, encontro_de_casais, curso_lidere,
           is_discipulado, is_lider_em_treinamento,
+          serve_ministerio, ministerios, disponivel_para_servir, observacao_servico,
+          whatsapp,
           profile:profiles!members_profile_id_fkey(id, name, avatar_url, email, birth_date, joined_church_at),
           celula:celulas!members_celula_id_fkey(id, name)
         `)

@@ -6,7 +6,9 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Users, Plus, Loader2, Trash2, ChevronDown, ChevronUp, Cake, Church, Calendar, Save, Smartphone } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
+import { Users, Plus, Loader2, Trash2, ChevronDown, ChevronUp, Cake, Church, Calendar, Save, Smartphone, HandHeart } from 'lucide-react';
 import { Member, useMembers, useUpdateMember, useRemoveMember } from '@/hooks/useMembers';
 import { useCasais } from '@/hooks/useCasais';
 import { MemberFormDialogSimple } from './MemberFormDialogSimple';
@@ -384,7 +386,10 @@ export function MembersList({ celulaId }: MembersListProps) {
                             </div>
                           ))}
                         </div>
-                      </div>
+                        </div>
+
+                      {/* Ministério Section */}
+                      <MinistrySection member={member} />
 
                       <div className="flex justify-end pt-2">
                         <Button
@@ -423,5 +428,116 @@ export function MembersList({ celulaId }: MembersListProps) {
         />
       )}
     </>
+  );
+}
+
+const MINISTERIOS_OPTIONS = ['Louvor', 'Recepção', 'Kids', 'Mídia', 'Intercessão', 'Recomeço', 'Diaconia', 'Teatro', 'Dança'];
+
+function MinistrySection({ member }: { member: Member }) {
+  const updateMember = useUpdateMember();
+  const [serveMinisterio, setServeMinisterio] = useState(!!member.serve_ministerio);
+  const [ministerios, setMinisterios] = useState<string[]>((member as any).ministerios || []);
+  const [disponivel, setDisponivel] = useState(member.disponivel_para_servir !== false);
+  const [observacao, setObservacao] = useState((member as any).observacao_servico || '');
+  const [customMin, setCustomMin] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const toggleMinisterio = (min: string) => {
+    setMinisterios(prev => prev.includes(min) ? prev.filter(m => m !== min) : [...prev, min]);
+  };
+
+  const addCustom = () => {
+    const trimmed = customMin.trim();
+    if (trimmed && !ministerios.includes(trimmed)) {
+      setMinisterios(prev => [...prev, trimmed]);
+      setCustomMin('');
+    }
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await updateMember.mutateAsync({
+        id: member.id,
+        serve_ministerio: serveMinisterio,
+        ministerios: serveMinisterio ? ministerios : [],
+        disponivel_para_servir: disponivel,
+        observacao_servico: observacao || null,
+      } as any);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="p-3 bg-muted/50 rounded-lg space-y-3">
+      <p className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+        <HandHeart className="h-4 w-4" />
+        Serviço e Ministério
+      </p>
+
+      <div className="flex items-center justify-between">
+        <Label htmlFor={`serve-${member.id}`} className="text-sm cursor-pointer">Serve em algum ministério?</Label>
+        <Switch id={`serve-${member.id}`} checked={serveMinisterio} onCheckedChange={setServeMinisterio} />
+      </div>
+
+      {serveMinisterio && (
+        <div className="space-y-2">
+          <Label className="text-xs">Em quais?</Label>
+          <div className="flex flex-wrap gap-1.5">
+            {MINISTERIOS_OPTIONS.map(min => (
+              <Badge
+                key={min}
+                variant={ministerios.includes(min) ? 'default' : 'outline'}
+                className="cursor-pointer text-xs"
+                onClick={() => toggleMinisterio(min)}
+              >
+                {min}
+              </Badge>
+            ))}
+            {ministerios.filter(m => !MINISTERIOS_OPTIONS.includes(m)).map(min => (
+              <Badge
+                key={min}
+                variant="default"
+                className="cursor-pointer text-xs"
+                onClick={() => toggleMinisterio(min)}
+              >
+                {min} ✕
+              </Badge>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <Input
+              placeholder="Outro ministério..."
+              value={customMin}
+              onChange={e => setCustomMin(e.target.value)}
+              className="h-8 text-sm flex-1"
+              onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addCustom())}
+            />
+            <Button size="sm" variant="outline" onClick={addCustom} disabled={!customMin.trim()} className="h-8">+</Button>
+          </div>
+        </div>
+      )}
+
+      <div className="flex items-center justify-between">
+        <Label htmlFor={`disp-${member.id}`} className="text-sm cursor-pointer">Disponível para servir?</Label>
+        <Switch id={`disp-${member.id}`} checked={disponivel} onCheckedChange={setDisponivel} />
+      </div>
+
+      <div className="space-y-1">
+        <Label className="text-xs">Observação (opcional)</Label>
+        <Textarea
+          value={observacao}
+          onChange={e => setObservacao(e.target.value)}
+          placeholder="Ex.: interesse em liderar célula jovem"
+          className="min-h-[60px] text-sm"
+        />
+      </div>
+
+      <Button size="sm" variant="outline" onClick={handleSave} disabled={saving} className="w-full">
+        {saving ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Save className="h-3 w-3 mr-1" />}
+        Salvar Ministério
+      </Button>
+    </div>
   );
 }

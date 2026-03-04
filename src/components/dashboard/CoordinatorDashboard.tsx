@@ -39,6 +39,7 @@ import { DashboardScopeBanner } from './DashboardScopeBanner';
 import { InitialViewGate } from './InitialViewGate';
 import { SectionLabel } from './SectionLabel';
 import { useMembers } from '@/hooks/useMembers';
+import { PotenciaisServirCard } from './PotenciaisServirCard';
 
 export function CoordinatorDashboard() {
   const [searchParams] = useSearchParams();
@@ -175,6 +176,10 @@ export function CoordinatorDashboard() {
             <StatCard icon={Users} label="Membros Ativos" value={coordMembersCount} />
             <StatCard icon={ClipboardCheck} label="Supervisões" value={supervisoes?.length || 0} subtitle="registradas" />
           </div>
+
+          {/* ═══ POTENCIAIS PARA SERVIR ═══ */}
+          <SectionLabel title="Potenciais para Servir" subtitle="Membros prontos para novos desafios" />
+          <PotenciaisServirCard coordenacaoId={selectedCoordenacao} />
 
           {/* ═══ ABAS OPERACIONAIS ═══ */}
           <Tabs defaultValue="semanal" className="space-y-4">
