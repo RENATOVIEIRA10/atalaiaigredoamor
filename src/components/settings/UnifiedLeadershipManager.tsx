@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Loader2, UserPlus, Users, Search, Filter, MoreVertical, Pencil, Trash2, Plus, Copy, KeyRound, Network, FolderTree, ClipboardCheck, Home, Church, Shield, Crown, Heart, BookOpen, User, Zap, MapPin } from 'lucide-react';
+import { Loader2, UserPlus, Users, Search, Filter, MoreVertical, Pencil, Trash2, Plus, Copy, KeyRound, Network, FolderTree, ClipboardCheck, Home, Church, Shield, Crown, Heart, BookOpen, User, Zap, MapPin, Award } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -12,6 +12,7 @@ import { useCampos } from '@/hooks/useCampos';
 import { CreateLeadershipDialog } from './CreateLeadershipDialog';
 import { EditLeadershipFunctionDialog } from './EditLeadershipFunctionDialog';
 import { RemoveLeadershipFunctionDialog } from './RemoveLeadershipFunctionDialog';
+import { LeaderMemberDataDialog } from './LeaderMemberDataDialog';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
@@ -70,6 +71,7 @@ export function UnifiedLeadershipManager() {
   const [editingFn, setEditingFn] = useState<{ leader: UnifiedLeader; fn: UnifiedFunction } | null>(null);
   const [removingFn, setRemovingFn] = useState<{ leader: UnifiedLeader; fn: UnifiedFunction } | null>(null);
   const [addingFnLeader, setAddingFnLeader] = useState<UnifiedLeader | null>(null);
+  const [memberDataLeader, setMemberDataLeader] = useState<UnifiedLeader | null>(null);
   const [bulkGenerating, setBulkGenerating] = useState(false);
 
   const filtered = useMemo(() => {
@@ -296,16 +298,17 @@ export function UnifiedLeadershipManager() {
             </div>
           ) : (
             <div className="space-y-3">
-              {filtered.map(leader => (
-                <LeaderCard
-                  key={leader.key}
-                  leader={leader}
-                  onAddFunction={() => setAddingFnLeader(leader)}
-                  onEditFunction={(fn) => setEditingFn({ leader, fn })}
-                  onRemoveFunction={(fn) => setRemovingFn({ leader, fn })}
-                  onGenerateCode={handleGenerateCode}
-                />
-              ))}
+                {filtered.map(leader => (
+                  <LeaderCard
+                    key={leader.key}
+                    leader={leader}
+                    onAddFunction={() => setAddingFnLeader(leader)}
+                    onEditFunction={(fn) => setEditingFn({ leader, fn })}
+                    onRemoveFunction={(fn) => setRemovingFn({ leader, fn })}
+                    onGenerateCode={handleGenerateCode}
+                    onEditMemberData={() => setMemberDataLeader(leader)}
+                  />
+                ))}
             </div>
           )}
         </CardContent>
@@ -341,6 +344,14 @@ export function UnifiedLeadershipManager() {
           fn={removingFn.fn}
         />
       )}
+
+      {memberDataLeader && (
+        <LeaderMemberDataDialog
+          open={!!memberDataLeader}
+          onOpenChange={(open) => !open && setMemberDataLeader(null)}
+          leader={memberDataLeader}
+        />
+      )}
     </div>
   );
 }
@@ -351,12 +362,14 @@ function LeaderCard({
   onEditFunction,
   onRemoveFunction,
   onGenerateCode,
+  onEditMemberData,
 }: {
   leader: UnifiedLeader;
   onAddFunction: () => void;
   onEditFunction: (fn: UnifiedFunction) => void;
   onRemoveFunction: (fn: UnifiedFunction) => void;
   onGenerateCode: (fn: UnifiedFunction) => void;
+  onEditMemberData: () => void;
 }) {
   const displayName = leader.isCouple
     ? [leader.person1?.name, leader.person2?.name].filter(Boolean).join(' & ')
@@ -493,6 +506,9 @@ function LeaderCard({
               {leader.functions.length} funções
             </Badge>
           )}
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onEditMemberData} title="Dados de membro">
+            <Award className="h-4 w-4" />
+          </Button>
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onAddFunction} title="Adicionar função">
             <Plus className="h-4 w-4" />
           </Button>
