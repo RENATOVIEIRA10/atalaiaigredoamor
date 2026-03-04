@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { moduleIcons, roleIcons, actionIcons, themeIcons, roleLabels } from '@/lib/icons';
-import { ShieldCheck, LogOut, PlayCircle, RefreshCw } from 'lucide-react';
+import { ShieldCheck, LogOut, PlayCircle, RefreshCw, HelpCircle } from 'lucide-react';
 import logoIgreja from '@/assets/logo-igreja-do-amor-new.png';
 import logoRedeAmor from '@/assets/logo-amor-a-dois-new.png';
 import { AtalaiaIcon } from '@/components/institutional/AtalaiaLogoHeader';
@@ -13,6 +13,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { DemoModeDialog } from '@/components/demo/DemoModeDialog';
 import { CampoSelector } from '@/components/campo/CampoSelector';
+import { usePastoralTour } from '@/hooks/usePastoralTour';
 import {
   Sidebar, SidebarContent, SidebarFooter, SidebarGroup,
   SidebarGroupContent, SidebarGroupLabel, SidebarHeader,
@@ -56,6 +57,7 @@ export function AppSidebar() {
   const { isDemoActive, deactivateDemo } = useDemoMode();
   const { theme, toggleTheme } = useTheme();
   const [demoDialogOpen, setDemoDialogOpen] = useState(false);
+  const { openTour } = usePastoralTour();
 
   // When demo is active, the role context already reflects the impersonated role
   // but we still need to show admin nav items if the original user was admin
@@ -175,6 +177,12 @@ export function AppSidebar() {
                       <PlayCircle className="h-4 w-4" />
                       <span className="font-medium">Manual do Usuário</span>
                     </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton onClick={openTour} className="h-11 rounded-xl">
+                    <HelpCircle className="h-4 w-4" />
+                    <span className="font-medium">Tour de Ajuda</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               </SidebarMenu>
