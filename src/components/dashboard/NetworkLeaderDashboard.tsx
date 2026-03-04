@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, UserCheck, Heart, UserPlus, Baby, Loader2, Network, FileSpreadsheet, ChevronDown, ChevronUp, Eye, ClipboardCheck, Image, Sparkles, History, GitBranch, User, Activity, Mail, Calendar, DoorOpen, BookOpen, ArrowLeft, AlertTriangle } from 'lucide-react';
+import { Users, UserCheck, Heart, UserPlus, Baby, Loader2, Network, FileSpreadsheet, ChevronDown, ChevronUp, Eye, ClipboardCheck, Image, Sparkles, History, GitBranch, User, Activity, Mail, Calendar, DoorOpen, BookOpen, ArrowLeft, AlertTriangle, Home, Sprout } from 'lucide-react';
 import { useRedes } from '@/hooks/useRedes';
 import { useCoordenacoes } from '@/hooks/useCoordenacoes';
 import { useCelulas } from '@/hooks/useCelulas';
@@ -30,7 +30,6 @@ import { ptBR } from 'date-fns/locale';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatCard } from '@/components/ui/stat-card';
 import { MissionVerse } from './MissionVerse';
-import { MissionBlock } from './MissionBlock';
 import { InitialViewGate } from './InitialViewGate';
 import { EmptyState } from '@/components/ui/empty-state';
 import { useRole } from '@/contexts/RoleContext';
@@ -142,42 +141,21 @@ export function NetworkLeaderDashboard({ initialRedeId, overrideCampoId, onBack,
   });
 
   const selectedRedeData = userRedes.find(r => r.id === selectedRede);
-
-  // Calculate pending cells
   const totalRedeCelulas = redeCelulas.length;
-  const celulasComRelatorio = currentReports.length;
-  const celulasPendentes = totalRedeCelulas - celulasComRelatorio;
+  const celulasPendentes = totalRedeCelulas - currentReports.length;
 
   return (
     <div className="space-y-6">
       <DashboardScopeBanner />
       {onBack && (
         <Button variant="ghost" size="sm" onClick={onBack} className="gap-2 -ml-2">
-          <ArrowLeft className="h-4 w-4" />
-          Voltar
+          <ArrowLeft className="h-4 w-4" />Voltar
         </Button>
       )}
       <PageHeader
         title={breadcrumbLabel ? `Rede: ${selectedRedeData?.name || ''}` : "Gestão da Rede"}
-        subtitle="Acompanhe o desempenho das coordenações"
+        subtitle="Visão estrutural da rede"
         icon={Network}
-        actions={
-          <div className="flex items-center gap-2 flex-wrap">
-            <DateRangeSelector dateRange={dateRange} onDateRangeChange={setDateRange} />
-            {selectedRede && (
-              <>
-                <Button variant="outline" size="icon" onClick={handleExportExcel} title="Exportar Excel">
-                  <FileSpreadsheet className="h-4 w-4" />
-                </Button>
-                <Button variant="default" size="sm" onClick={() => setEmailDialogOpen(true)} className="gap-2">
-                  <Mail className="h-4 w-4" />
-                  <span className="hidden sm:inline">Enviar Relatório</span>
-                  <span className="sm:hidden">E-mail</span>
-                </Button>
-              </>
-            )}
-          </div>
-        }
       />
 
       <div className="flex items-center justify-between gap-4 flex-wrap">
@@ -230,183 +208,169 @@ export function NetworkLeaderDashboard({ initialRedeId, overrideCampoId, onBack,
         <>
           <LeaderBirthdayAlert redeId={selectedRede} />
 
-          {/* BLOCO 1 — O que precisa da minha atenção */}
-          <MissionBlock icon={AlertTriangle} title="O que precisa da minha atenção">
-            <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
-              <StatCard icon={FileSpreadsheet} label="Relatórios pendentes" value={celulasPendentes > 0 ? celulasPendentes : 0} subtitle="células sem relatório" className={celulasPendentes > 0 ? 'border-amber-500/30' : ''} />
-              <StatCard icon={ClipboardCheck} label="Supervisões" value={supervisoes?.length || 0} subtitle="registradas" />
-              <StatCard icon={FileSpreadsheet} label="Células ativas" value={totalRedeCelulas} />
-            </div>
-          </MissionBlock>
+          {/* ═══ PRIMEIRA TELA — Métricas Estruturais ═══ */}
+          <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
+            <StatCard icon={Home} label="Células Ativas" value={totalRedeCelulas} />
+            <StatCard icon={Network} label="Coordenações" value={redeCoordenacoes.length} />
+            <StatCard icon={ClipboardCheck} label="Supervisões" value={supervisoes?.length || 0} subtitle="registradas" />
+          </div>
 
-          {/* BLOCO 2 — Movimento do Reino */}
-          <MissionBlock icon={GitBranch} title="Movimento do Reino">
-            <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
-              <StatCard icon={Users} label="Membros" value={totals.members_present} />
-              <StatCard icon={UserPlus} label="Visitantes" value={totals.visitors} />
-              <StatCard icon={UserCheck} label="Líd. Treino" value={totals.leaders_in_training} />
-              <StatCard icon={Baby} label="Crianças" value={totals.children} />
-            </div>
-          </MissionBlock>
-
-          {/* BLOCO 3 — Saúde e Cuidado */}
-          <MissionBlock icon={Heart} title="Saúde e Cuidado">
-            <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
-              <StatCard icon={Heart} label="Discipulados" value={totals.discipleships} />
-            </div>
-          </MissionBlock>
-
-          <InitialViewGate>
-          <Tabs defaultValue={urlTab === 'pulso' ? 'atencao' : 'atencao'} className="space-y-4">
+          {/* ═══ ABAS OPERACIONAIS ═══ */}
+          <Tabs defaultValue="semanal" className="space-y-4">
             <TabsList className="flex flex-wrap h-auto gap-1">
-              <TabsTrigger value="atencao" className="gap-1.5"><Activity className="h-4 w-4" />Atenção</TabsTrigger>
-              <TabsTrigger value="saude" className="gap-1.5"><Heart className="h-4 w-4" />Saúde da Rede</TabsTrigger>
-              <TabsTrigger value="supervisoes-historico" className="gap-1.5"><ClipboardCheck className="h-4 w-4" />Cuidado e Supervisão</TabsTrigger>
-              <TabsTrigger value="planejamento" className="gap-1.5"><Calendar className="h-4 w-4" />Planejamento</TabsTrigger>
-              <TabsTrigger value="coordenacoes" className="gap-1.5"><Network className="h-4 w-4" />Coordenações</TabsTrigger>
-              <TabsTrigger value="movimento" className="gap-1.5"><GitBranch className="h-4 w-4" />Movimento</TabsTrigger>
-              <TabsTrigger value="recomeco" className="gap-1.5"><DoorOpen className="h-4 w-4" />Porta de Entrada</TabsTrigger>
-              <TabsTrigger value="discipulado" className="gap-1.5"><BookOpen className="h-4 w-4" />Caminho do Discipulado</TabsTrigger>
-              <TabsTrigger value="historico" className="gap-1.5"><History className="h-4 w-4" />Histórico</TabsTrigger>
-              <TabsTrigger value="insights" className="gap-1.5"><Sparkles className="h-4 w-4" />IA</TabsTrigger>
-              <TabsTrigger value="fotos" className="gap-1.5"><Image className="h-4 w-4" />Fotos</TabsTrigger>
+              <TabsTrigger value="semanal" className="gap-1.5"><Calendar className="h-4 w-4" />Acompanhamento Semanal</TabsTrigger>
+              <TabsTrigger value="movimento" className="gap-1.5"><Sprout className="h-4 w-4" />Movimento do Reino</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="atencao">
-              <PulsoRedeSection scopeType="rede" scopeId={selectedRede} title="Visão Pastoral da Rede" />
-            </TabsContent>
+            <TabsContent value="semanal">
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <DateRangeSelector dateRange={dateRange} onDateRangeChange={setDateRange} />
+                  <Button variant="outline" size="icon" onClick={handleExportExcel} title="Exportar Excel">
+                    <FileSpreadsheet className="h-4 w-4" />
+                  </Button>
+                  <Button variant="default" size="sm" onClick={() => setEmailDialogOpen(true)} className="gap-2">
+                    <Mail className="h-4 w-4" />
+                    <span className="hidden sm:inline">Enviar Relatório</span>
+                    <span className="sm:hidden">E-mail</span>
+                  </Button>
+                </div>
 
-            <TabsContent value="saude">
-              <RadarSaudePanel scopeType="rede" scopeId={selectedRede} title="Saúde da Rede" />
-            </TabsContent>
+                <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+                  <StatCard icon={AlertTriangle} label="Pendentes" value={celulasPendentes > 0 ? celulasPendentes : 0} subtitle="sem relatório" className={celulasPendentes > 0 ? 'border-amber-500/30' : ''} />
+                  <StatCard icon={Users} label="Membros (semana)" value={totals.members_present} />
+                  <StatCard icon={UserPlus} label="Visitantes" value={totals.visitors} />
+                  <StatCard icon={Heart} label="Discipulados" value={totals.discipleships} />
+                </div>
 
-            <TabsContent value="planejamento">
-              <PlanejamentoRedePanel redeId={selectedRede} />
-            </TabsContent>
-
-            <TabsContent value="supervisoes-historico">
-              <SupervisoesRedeHistoryPanel redeId={selectedRede} />
+                {/* Coordenações com dados */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base flex items-center gap-2"><Network className="h-5 w-5 text-primary" />Dados por Coordenação</CardTitle>
+                    <CardDescription>{Object.keys(reportsByCoordenacao).length} coordenação(ões) com relatórios</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {reportsLoading ? (
+                      <div className="flex items-center justify-center py-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
+                    ) : Object.keys(reportsByCoordenacao).length > 0 ? (
+                      <div className="space-y-3">
+                        {Object.entries(reportsByCoordenacao).map(([coordId, coord]) => {
+                          const total = coord.totals.members_present + coord.totals.leaders_in_training + coord.totals.discipleships + coord.totals.visitors + coord.totals.children;
+                          const isExpanded = expandedCoords.has(coordId);
+                          
+                          return (
+                            <Collapsible key={coordId} open={isExpanded} onOpenChange={() => toggleCoord(coordId)}>
+                              <Card className="border-l-4 border-l-primary/40">
+                                <CollapsibleTrigger asChild>
+                                  <CardHeader className="cursor-pointer hover:bg-muted/30 transition-colors py-4">
+                                    <div className="flex items-center justify-between">
+                                      <div className="space-y-0.5">
+                                        <CardTitle className="text-sm font-semibold">{coord.name}</CardTitle>
+                                        {(() => {
+                                          const coordObj = coordenacoes?.find(c => c.id === coordId);
+                                          const couple = coordObj?.leadership_couple;
+                                          const coupleName = couple?.spouse1?.name && couple?.spouse2?.name
+                                            ? `${couple.spouse1.name} & ${couple.spouse2.name}`
+                                            : couple?.spouse1?.name || couple?.spouse2?.name || null;
+                                          return coupleName ? (
+                                            <p className="text-xs text-muted-foreground flex items-center gap-1">
+                                              <User className="h-3 w-3" />Coordenadores: {coupleName}
+                                            </p>
+                                          ) : null;
+                                        })()}
+                                        <CardDescription className="text-xs">{coord.reports.length} célula(s) • Total: {total}</CardDescription>
+                                      </div>
+                                      <div className="flex items-center gap-3">
+                                        <div className="hidden md:flex items-center gap-2 text-xs text-muted-foreground">
+                                          <span>Membros: {coord.totals.members_present}</span>
+                                          <span>•</span>
+                                          <span>Visitantes: {coord.totals.visitors}</span>
+                                        </div>
+                                        {isExpanded ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+                                      </div>
+                                    </div>
+                                  </CardHeader>
+                                </CollapsibleTrigger>
+                                <CollapsibleContent>
+                                  <CardContent className="pt-0">
+                                    <div className="rounded-lg border overflow-hidden">
+                                      <Table>
+                                        <TableHeader>
+                                          <TableRow className="bg-muted/50">
+                                            <TableHead>Célula</TableHead>
+                                            <TableHead className="text-center">Membros</TableHead>
+                                            <TableHead className="text-center">Líderes</TableHead>
+                                            <TableHead className="text-center">Disc.</TableHead>
+                                            <TableHead className="text-center">Vis.</TableHead>
+                                            <TableHead className="text-center">Crianças</TableHead>
+                                            <TableHead className="text-center">Ações</TableHead>
+                                          </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                          {coord.reports.map(report => (
+                                            <TableRow key={report.id} className="hover:bg-muted/30">
+                                              <TableCell className="font-medium text-sm">{report.celula?.name}</TableCell>
+                                              <TableCell className="text-center">{report.members_present}</TableCell>
+                                              <TableCell className="text-center">{report.leaders_in_training}</TableCell>
+                                              <TableCell className="text-center">{report.discipleships}</TableCell>
+                                              <TableCell className="text-center">{report.visitors}</TableCell>
+                                              <TableCell className="text-center">{report.children}</TableCell>
+                                              <TableCell className="text-center">
+                                                <Button variant="ghost" size="sm" onClick={() => setSelectedCelula({ id: report.celula_id, name: report.celula?.name || '' })}>
+                                                  <Eye className="h-4 w-4" />
+                                                </Button>
+                                              </TableCell>
+                                            </TableRow>
+                                          ))}
+                                        </TableBody>
+                                      </Table>
+                                    </div>
+                                  </CardContent>
+                                </CollapsibleContent>
+                              </Card>
+                            </Collapsible>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <EmptyState icon={Network} title="Nenhum relatório" description="Nenhum relatório encontrado para este período." />
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
             </TabsContent>
 
             <TabsContent value="movimento">
               <div className="space-y-6">
+                <RecomecoRedeTab redeId={selectedRede} />
                 <MultiplicacoesTab />
                 <MultiplicacoesVisual celulas={celulas || []} />
+                <DiscipuladoRedeView redeId={selectedRede} />
               </div>
             </TabsContent>
-
-            <TabsContent value="insights"><AIInsightsPanel reports={currentReports} periodLabel={formatDateRangeDisplay()} context="rede" /></TabsContent>
-
-            <TabsContent value="coordenacoes">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base flex items-center gap-2"><Network className="h-5 w-5 text-primary" />Dados por Coordenação</CardTitle>
-                  <CardDescription>{Object.keys(reportsByCoordenacao).length} coordenação(ões) com relatórios</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {reportsLoading ? (
-                    <div className="flex items-center justify-center py-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
-                  ) : Object.keys(reportsByCoordenacao).length > 0 ? (
-                    <div className="space-y-3">
-                      {Object.entries(reportsByCoordenacao).map(([coordId, coord]) => {
-                        const total = coord.totals.members_present + coord.totals.leaders_in_training + coord.totals.discipleships + coord.totals.visitors + coord.totals.children;
-                        const isExpanded = expandedCoords.has(coordId);
-                        
-                        return (
-                          <Collapsible key={coordId} open={isExpanded} onOpenChange={() => toggleCoord(coordId)}>
-                            <Card className="border-l-4 border-l-primary/40">
-                              <CollapsibleTrigger asChild>
-                                <CardHeader className="cursor-pointer hover:bg-muted/30 transition-colors py-4">
-                                  <div className="flex items-center justify-between">
-                                    <div className="space-y-0.5">
-                                      <CardTitle className="text-sm font-semibold">{coord.name}</CardTitle>
-                                      {(() => {
-                                        const coordObj = coordenacoes?.find(c => c.id === coordId);
-                                        const couple = coordObj?.leadership_couple;
-                                        const coupleName = couple?.spouse1?.name && couple?.spouse2?.name
-                                          ? `${couple.spouse1.name} & ${couple.spouse2.name}`
-                                          : couple?.spouse1?.name || couple?.spouse2?.name || null;
-                                        return coupleName ? (
-                                          <p className="text-xs text-muted-foreground flex items-center gap-1">
-                                            <User className="h-3 w-3" />Coordenadores: {coupleName}
-                                          </p>
-                                        ) : null;
-                                      })()}
-                                      <CardDescription className="text-xs">{coord.reports.length} célula(s) • Total: {total}</CardDescription>
-                                    </div>
-                                    <div className="flex items-center gap-3">
-                                      <div className="hidden md:flex items-center gap-2 text-xs text-muted-foreground">
-                                        <span>Membros: {coord.totals.members_present}</span>
-                                        <span>•</span>
-                                        <span>Visitantes: {coord.totals.visitors}</span>
-                                      </div>
-                                      {isExpanded ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
-                                    </div>
-                                  </div>
-                                </CardHeader>
-                              </CollapsibleTrigger>
-                              <CollapsibleContent>
-                                <CardContent className="pt-0">
-                                  <div className="rounded-lg border overflow-hidden">
-                                    <Table>
-                                      <TableHeader>
-                                        <TableRow className="bg-muted/50">
-                                          <TableHead>Célula</TableHead>
-                                          <TableHead className="text-center">Membros</TableHead>
-                                          <TableHead className="text-center">Líderes</TableHead>
-                                          <TableHead className="text-center">Disc.</TableHead>
-                                          <TableHead className="text-center">Vis.</TableHead>
-                                          <TableHead className="text-center">Crianças</TableHead>
-                                          <TableHead className="text-center">Ações</TableHead>
-                                        </TableRow>
-                                      </TableHeader>
-                                      <TableBody>
-                                        {coord.reports.map(report => (
-                                          <TableRow key={report.id} className="hover:bg-muted/30">
-                                            <TableCell className="font-medium text-sm">{report.celula?.name}</TableCell>
-                                            <TableCell className="text-center">{report.members_present}</TableCell>
-                                            <TableCell className="text-center">{report.leaders_in_training}</TableCell>
-                                            <TableCell className="text-center">{report.discipleships}</TableCell>
-                                            <TableCell className="text-center">{report.visitors}</TableCell>
-                                            <TableCell className="text-center">{report.children}</TableCell>
-                                            <TableCell className="text-center">
-                                              <Button variant="ghost" size="sm" onClick={() => setSelectedCelula({ id: report.celula_id, name: report.celula?.name || '' })}>
-                                                <Eye className="h-4 w-4" />
-                                              </Button>
-                                            </TableCell>
-                                          </TableRow>
-                                        ))}
-                                      </TableBody>
-                                    </Table>
-                                  </div>
-                                </CardContent>
-                              </CollapsibleContent>
-                            </Card>
-                          </Collapsible>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <EmptyState icon={Network} title="Nenhum relatório" description="Nenhum relatório encontrado para esta semana." />
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="historico">
-              <ReportsHistoryTable reports={currentReports} onEdit={handleEditReport} onDelete={handleDeleteReport} />
-            </TabsContent>
-
-            <TabsContent value="fotos"><CelulaPhotoGallery reports={currentReports} /></TabsContent>
-
-            <TabsContent value="recomeco">
-              <RecomecoRedeTab redeId={selectedRede} />
-            </TabsContent>
-
-            <TabsContent value="discipulado">
-              <DiscipuladoRedeView redeId={selectedRede} />
-            </TabsContent>
           </Tabs>
+
+          {/* Conteúdo detalhado */}
+          <InitialViewGate>
+            <Tabs defaultValue="atencao" className="space-y-4">
+              <TabsList className="flex flex-wrap h-auto gap-1">
+                <TabsTrigger value="atencao" className="gap-1.5"><Activity className="h-4 w-4" />Visão Pastoral</TabsTrigger>
+                <TabsTrigger value="saude" className="gap-1.5"><Heart className="h-4 w-4" />Saúde da Rede</TabsTrigger>
+                <TabsTrigger value="supervisoes-historico" className="gap-1.5"><ClipboardCheck className="h-4 w-4" />Cuidado e Supervisão</TabsTrigger>
+                <TabsTrigger value="planejamento" className="gap-1.5"><Calendar className="h-4 w-4" />Planejamento</TabsTrigger>
+                <TabsTrigger value="historico" className="gap-1.5"><History className="h-4 w-4" />Histórico</TabsTrigger>
+                <TabsTrigger value="insights" className="gap-1.5"><Sparkles className="h-4 w-4" />IA</TabsTrigger>
+                <TabsTrigger value="fotos" className="gap-1.5"><Image className="h-4 w-4" />Fotos</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="atencao"><PulsoRedeSection scopeType="rede" scopeId={selectedRede} title="Visão Pastoral da Rede" /></TabsContent>
+              <TabsContent value="saude"><RadarSaudePanel scopeType="rede" scopeId={selectedRede} title="Saúde da Rede" /></TabsContent>
+              <TabsContent value="planejamento"><PlanejamentoRedePanel redeId={selectedRede} /></TabsContent>
+              <TabsContent value="supervisoes-historico"><SupervisoesRedeHistoryPanel redeId={selectedRede} /></TabsContent>
+              <TabsContent value="historico"><ReportsHistoryTable reports={currentReports} onEdit={handleEditReport} onDelete={handleDeleteReport} /></TabsContent>
+              <TabsContent value="insights"><AIInsightsPanel reports={currentReports} periodLabel={formatDateRangeDisplay()} context="rede" /></TabsContent>
+              <TabsContent value="fotos"><CelulaPhotoGallery reports={currentReports} /></TabsContent>
+            </Tabs>
           </InitialViewGate>
         </>
       )}

@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, UserCheck, Heart, UserPlus, Baby, Loader2, LayoutGrid, Eye, ClipboardCheck, Image, FileSpreadsheet, Sparkles, History, Plus, Activity, Calendar, DoorOpen, BookOpen, AlertTriangle, Sprout, HeartPulse } from 'lucide-react';
+import { Users, UserCheck, Heart, UserPlus, Baby, Loader2, LayoutGrid, Eye, ClipboardCheck, Image, FileSpreadsheet, Sparkles, History, Plus, Activity, Calendar, DoorOpen, BookOpen, AlertTriangle, Sprout, Home, TrendingUp } from 'lucide-react';
 import { useCoordenacoes } from '@/hooks/useCoordenacoes';
 import { useCelulas } from '@/hooks/useCelulas';
 import { useWeeklyReportsByCoordenacao, useUpdateWeeklyReport, useDeleteWeeklyReport } from '@/hooks/useWeeklyReports';
@@ -36,8 +36,8 @@ import { RecomecoCoordTab } from './recomeco/RecomecoCoordTab';
 import { DiscipuladoCoordView } from './discipulado/DiscipuladoCoordView';
 import { RevelaShortcut } from './RevelaShortcut';
 import { DashboardScopeBanner } from './DashboardScopeBanner';
-import { MissionBlock } from './MissionBlock';
 import { InitialViewGate } from './InitialViewGate';
+import { useMembers } from '@/hooks/useMembers';
 
 export function CoordinatorDashboard() {
   const [searchParams] = useSearchParams();
@@ -45,6 +45,7 @@ export function CoordinatorDashboard() {
   const { toast } = useToast();
   const { data: coordenacoes, isLoading: coordenacoesLoading } = useCoordenacoes();
   const { data: celulas } = useCelulas();
+  const { data: members } = useMembers();
   
   const [selectedCoordenacao, setSelectedCoordenacao] = useState<string>('');
   const { scopeId, scopeType } = useRole();
@@ -101,10 +102,12 @@ export function CoordinatorDashboard() {
     children: acc.children + report.children,
   }), { members_present: 0, leaders_in_training: 0, discipleships: 0, visitors: 0, children: 0 });
 
-  // Cells without report this period
   const coordCelulas = celulas?.filter(c => c.coordenacao_id === selectedCoordenacao) || [];
   const celulasComRelatorio = new Set(currentReports.map(r => r.celula_id));
   const celulasPendentes = coordCelulas.filter(c => !celulasComRelatorio.has(c.id));
+
+  // Structural member count for this coordination
+  const coordMembersCount = members?.filter(m => coordCelulas.some(c => c.id === m.celula_id) && m.is_active)?.length || 0;
 
   if (coordenacoesLoading) {
     return <div className="flex items-center justify-center h-64"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
@@ -113,21 +116,7 @@ export function CoordinatorDashboard() {
   return (
     <div className="space-y-6">
       <DashboardScopeBanner />
-      <PageHeader
-        title="Dashboard do Coordenador"
-        subtitle={`Período: ${formatDateRangeDisplay()}`}
-        icon={LayoutGrid}
-        actions={
-          <div className="flex flex-wrap items-center gap-2">
-            <DateRangeSelector dateRange={dateRange} onDateRangeChange={setDateRange} />
-            {selectedCoordenacao && currentReports.length > 0 && (
-              <Button onClick={handleExportExcel} variant="outline" size="sm">
-                <FileSpreadsheet className="h-4 w-4 mr-2" />Exportar
-              </Button>
-            )}
-          </div>
-        }
-      />
+      <PageHeader title="Dashboard do Coordenador" subtitle="Visão estrutural da coordenação" icon={LayoutGrid} />
 
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <MissionVerse role="coordenador" />
@@ -139,13 +128,9 @@ export function CoordinatorDashboard() {
           <div className="flex flex-col sm:flex-row sm:items-center gap-3">
             <p className="text-sm font-medium text-muted-foreground whitespace-nowrap">Coordenação:</p>
             <Select value={selectedCoordenacao} onValueChange={setSelectedCoordenacao}>
-              <SelectTrigger className="w-full sm:w-[300px]">
-                <SelectValue placeholder="Selecione uma coordenação" />
-              </SelectTrigger>
+              <SelectTrigger className="w-full sm:w-[300px]"><SelectValue placeholder="Selecione uma coordenação" /></SelectTrigger>
               <SelectContent>
-                {userCoordenacoes.map((coord) => (
-                  <SelectItem key={coord.id} value={coord.id}>{coord.name}</SelectItem>
-                ))}
+                {userCoordenacoes.map((coord) => (<SelectItem key={coord.id} value={coord.id}>{coord.name}</SelectItem>))}
               </SelectContent>
             </Select>
           </div>
@@ -171,9 +156,7 @@ export function CoordinatorDashboard() {
                 )}
               </div>
               <div>
-                <p className="font-semibold">
-                  {selectedCoordData.leadership_couple.spouse1?.name} & {selectedCoordData.leadership_couple.spouse2?.name}
-                </p>
+                <p className="font-semibold">{selectedCoordData.leadership_couple.spouse1?.name} & {selectedCoordData.leadership_couple.spouse2?.name}</p>
                 <p className="text-xs text-muted-foreground">Coordenadores</p>
               </div>
             </div>
@@ -183,70 +166,49 @@ export function CoordinatorDashboard() {
 
       {selectedCoordenacao && (
         <div className="space-y-6">
-          {/* BLOCO 1 — O que precisa da minha atenção */}
-          <MissionBlock icon={AlertTriangle} title="O que precisa da minha atenção">
-            <LeaderBirthdayAlert coordenacaoId={selectedCoordenacao} />
-            {celulasPendentes.length > 0 && (
-              <Card className="border-l-4 border-l-amber-500/50">
-                <CardContent className="py-3 px-5">
-                  <p className="text-sm font-medium">{celulasPendentes.length} célula(s) sem relatório no período</p>
-                  <p className="text-xs text-muted-foreground">{celulasPendentes.map(c => c.name).join(', ')}</p>
-                </CardContent>
-              </Card>
-            )}
-            <StatCard icon={ClipboardCheck} label="Supervisões registradas" value={supervisoes?.length || 0} />
-          </MissionBlock>
+          {/* ═══ PRIMEIRA TELA — Métricas Estruturais ═══ */}
+          <LeaderBirthdayAlert coordenacaoId={selectedCoordenacao} />
+          <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
+            <StatCard icon={Home} label="Células" value={coordCelulas.length} />
+            <StatCard icon={Users} label="Membros Ativos" value={coordMembersCount} />
+            <StatCard icon={ClipboardCheck} label="Supervisões" value={supervisoes?.length || 0} subtitle="registradas" />
+          </div>
 
-          {/* BLOCO 2 — Movimento do Reino */}
-          <MissionBlock icon={Sprout} title="Movimento do Reino">
-            <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
-              <StatCard icon={Users} label="Membros" value={totals.members_present} />
-              <StatCard icon={UserCheck} label="Líd. Treinamento" value={totals.leaders_in_training} />
-              <StatCard icon={UserPlus} label="Visitantes" value={totals.visitors} />
-              <StatCard icon={Baby} label="Crianças" value={totals.children} />
-            </div>
-          </MissionBlock>
+          {/* ═══ ABAS OPERACIONAIS ═══ */}
+          <Tabs defaultValue="semanal" className="space-y-4">
+            <TabsList className="flex flex-wrap h-auto gap-1">
+              <TabsTrigger value="semanal" className="gap-1.5"><Calendar className="h-4 w-4" />Acompanhamento Semanal</TabsTrigger>
+              <TabsTrigger value="movimento" className="gap-1.5"><Sprout className="h-4 w-4" />Movimento do Reino</TabsTrigger>
+            </TabsList>
 
-          {/* BLOCO 3 — Saúde e Cuidado */}
-          <MissionBlock icon={HeartPulse} title="Saúde e Cuidado">
-            <div className="grid gap-4 grid-cols-2">
-              <StatCard icon={Heart} label="Discipulados" value={totals.discipleships} />
-            </div>
-          </MissionBlock>
+            <TabsContent value="semanal">
+              <div className="space-y-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  <DateRangeSelector dateRange={dateRange} onDateRangeChange={setDateRange} />
+                  {selectedCoordenacao && currentReports.length > 0 && (
+                    <Button onClick={handleExportExcel} variant="outline" size="sm">
+                      <FileSpreadsheet className="h-4 w-4 mr-2" />Exportar
+                    </Button>
+                  )}
+                </div>
 
-          {/* Conteúdo detalhado */}
-          <InitialViewGate>
-            <Tabs defaultValue={urlTab === 'pulso' ? 'pulso' : urlTab === 'planejamento' ? 'planejamento' : 'relatorios'} className="space-y-4">
-              <TabsList className="flex flex-wrap h-auto gap-1">
-                <TabsTrigger value="planejamento" className="gap-1.5"><Calendar className="h-4 w-4" />Planejamento</TabsTrigger>
-                <TabsTrigger value="pulso" className="gap-1.5"><Activity className="h-4 w-4" />Visão Pastoral</TabsTrigger>
-                <TabsTrigger value="saude" className="gap-1.5"><Heart className="h-4 w-4" />Saúde da Rede</TabsTrigger>
-                <TabsTrigger value="relatorios" className="gap-1.5"><LayoutGrid className="h-4 w-4" />Relatórios</TabsTrigger>
-                <TabsTrigger value="historico" className="gap-1.5"><History className="h-4 w-4" />Histórico</TabsTrigger>
-                <TabsTrigger value="insights" className="gap-1.5"><Sparkles className="h-4 w-4" />Insights IA</TabsTrigger>
-                <TabsTrigger value="fotos" className="gap-1.5"><Image className="h-4 w-4" />Fotos</TabsTrigger>
-                <TabsTrigger value="supervisoes" className="gap-1.5"><ClipboardCheck className="h-4 w-4" />Cuidado e Supervisão</TabsTrigger>
-                <TabsTrigger value="recomeco" className="gap-1.5"><DoorOpen className="h-4 w-4" />Porta de Entrada</TabsTrigger>
-                <TabsTrigger value="discipulado" className="gap-1.5"><BookOpen className="h-4 w-4" />Caminho do Discipulado</TabsTrigger>
-              </TabsList>
+                <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+                  <StatCard icon={AlertTriangle} label="Pendentes" value={celulasPendentes.length} subtitle="sem relatório" className={celulasPendentes.length > 0 ? 'border-amber-500/30' : ''} />
+                  <StatCard icon={Users} label="Membros (semana)" value={totals.members_present} />
+                  <StatCard icon={UserPlus} label="Visitantes" value={totals.visitors} />
+                  <StatCard icon={Heart} label="Discipulados" value={totals.discipleships} />
+                </div>
 
-              <TabsContent value="planejamento">
-                <PlanejamentoCoordenadorPanel coordenacaoId={selectedCoordenacao} />
-              </TabsContent>
+                {celulasPendentes.length > 0 && (
+                  <Card className="border-l-4 border-l-amber-500/50">
+                    <CardContent className="py-3 px-5">
+                      <p className="text-sm font-medium">{celulasPendentes.length} célula(s) sem relatório no período</p>
+                      <p className="text-xs text-muted-foreground">{celulasPendentes.map(c => c.name).join(', ')}</p>
+                    </CardContent>
+                  </Card>
+                )}
 
-              <TabsContent value="pulso">
-                <PulsoRedeSection scopeType="coordenacao" scopeId={selectedCoordenacao} title="Visão Pastoral da Coordenação" />
-              </TabsContent>
-
-              <TabsContent value="saude">
-                <RadarSaudePanel scopeType="coordenacao" scopeId={selectedCoordenacao} title="Saúde da Rede" />
-              </TabsContent>
-
-              <TabsContent value="insights">
-                <AIInsightsPanel reports={currentReports} periodLabel={formatDateRangeDisplay()} context="coordenacao" />
-              </TabsContent>
-
-              <TabsContent value="relatorios">
+                {/* Tabela de relatórios por célula */}
                 <div className="rounded-lg border bg-card overflow-hidden">
                   <Table>
                     <TableHeader>
@@ -262,7 +224,7 @@ export function CoordinatorDashboard() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {celulas?.filter(c => c.coordenacao_id === selectedCoordenacao).map((celula) => {
+                      {coordCelulas.map((celula) => {
                         const cellReports = currentReports.filter(r => r.celula_id === celula.id);
                         const cellTotals = cellReports.reduce((acc, r) => ({
                           members_present: acc.members_present + r.members_present,
@@ -298,22 +260,40 @@ export function CoordinatorDashboard() {
                     </TableBody>
                   </Table>
                 </div>
-              </TabsContent>
+              </div>
+            </TabsContent>
 
-              <TabsContent value="historico">
-                <ReportsHistoryTable reports={currentReports} onEdit={handleEditReport} onDelete={handleDeleteReport} />
-              </TabsContent>
+            <TabsContent value="movimento">
+              <div className="space-y-6">
+                <RecomecoCoordTab coordenacaoId={selectedCoordenacao} />
+                <DiscipuladoCoordView coordId={selectedCoordenacao} redeId={selectedCoordData?.rede_id} />
+              </div>
+            </TabsContent>
+          </Tabs>
 
-              <TabsContent value="fotos">
-                <CelulaPhotoGallery reports={currentReports} />
-              </TabsContent>
+          {/* Conteúdo detalhado */}
+          <InitialViewGate>
+            <Tabs defaultValue={urlTab === 'pulso' ? 'pulso' : 'planejamento'} className="space-y-4">
+              <TabsList className="flex flex-wrap h-auto gap-1">
+                <TabsTrigger value="planejamento" className="gap-1.5"><Calendar className="h-4 w-4" />Planejamento</TabsTrigger>
+                <TabsTrigger value="pulso" className="gap-1.5"><Activity className="h-4 w-4" />Visão Pastoral</TabsTrigger>
+                <TabsTrigger value="saude" className="gap-1.5"><Heart className="h-4 w-4" />Saúde da Rede</TabsTrigger>
+                <TabsTrigger value="historico" className="gap-1.5"><History className="h-4 w-4" />Histórico</TabsTrigger>
+                <TabsTrigger value="insights" className="gap-1.5"><Sparkles className="h-4 w-4" />Insights IA</TabsTrigger>
+                <TabsTrigger value="fotos" className="gap-1.5"><Image className="h-4 w-4" />Fotos</TabsTrigger>
+                <TabsTrigger value="supervisoes" className="gap-1.5"><ClipboardCheck className="h-4 w-4" />Cuidado e Supervisão</TabsTrigger>
+              </TabsList>
 
+              <TabsContent value="planejamento"><PlanejamentoCoordenadorPanel coordenacaoId={selectedCoordenacao} /></TabsContent>
+              <TabsContent value="pulso"><PulsoRedeSection scopeType="coordenacao" scopeId={selectedCoordenacao} title="Visão Pastoral da Coordenação" /></TabsContent>
+              <TabsContent value="saude"><RadarSaudePanel scopeType="coordenacao" scopeId={selectedCoordenacao} title="Saúde da Rede" /></TabsContent>
+              <TabsContent value="historico"><ReportsHistoryTable reports={currentReports} onEdit={handleEditReport} onDelete={handleDeleteReport} /></TabsContent>
+              <TabsContent value="insights"><AIInsightsPanel reports={currentReports} periodLabel={formatDateRangeDisplay()} context="coordenacao" /></TabsContent>
+              <TabsContent value="fotos"><CelulaPhotoGallery reports={currentReports} /></TabsContent>
               <TabsContent value="supervisoes">
                 <div className="space-y-4">
                   <div className="flex justify-end">
-                    <Button onClick={() => setShowSupervisorForm(true)} size="sm">
-                      <Plus className="h-4 w-4 mr-2" />Adicionar Supervisor
-                    </Button>
+                    <Button onClick={() => setShowSupervisorForm(true)} size="sm"><Plus className="h-4 w-4 mr-2" />Adicionar Supervisor</Button>
                   </div>
                   {supervisoes && supervisoes.length > 0 ? (
                     <SupervisoesList supervisoes={supervisoes} />
@@ -321,14 +301,6 @@ export function CoordinatorDashboard() {
                     <EmptyState icon={ClipboardCheck} title="Nenhuma supervisão" description="Adicione supervisores para começar" />
                   )}
                 </div>
-              </TabsContent>
-
-              <TabsContent value="recomeco">
-                <RecomecoCoordTab coordenacaoId={selectedCoordenacao} />
-              </TabsContent>
-
-              <TabsContent value="discipulado">
-                <DiscipuladoCoordView coordId={selectedCoordenacao} redeId={selectedCoordData?.rede_id} />
               </TabsContent>
             </Tabs>
           </InitialViewGate>
@@ -343,12 +315,7 @@ export function CoordinatorDashboard() {
         <CelulaDetailsDialog open={!!selectedCelula} onOpenChange={(open) => !open && setSelectedCelula(null)} celulaId={selectedCelula.id} celulaName={selectedCelula.name} />
       )}
 
-      <SupervisorFormDialog 
-        open={showSupervisorForm} 
-        onOpenChange={setShowSupervisorForm} 
-        defaultCoordenacaoId={selectedCoordenacao} 
-        lockCoordenacao 
-      />
+      <SupervisorFormDialog open={showSupervisorForm} onOpenChange={setShowSupervisorForm} defaultCoordenacaoId={selectedCoordenacao} lockCoordenacao />
     </div>
   );
 }
