@@ -1,3 +1,4 @@
+import { AltarCelulaPanel } from '../AltarCelulaPanel';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -85,6 +86,9 @@ export function CampusDetailView({ campoId, campoNome, onBack, onSelectRede, inc
           </Card>
         )}
       </section>
+
+      {/* Funil Do Altar à Célula — campus */}
+      <AltarCelulaPanel campoId={campoId} title={`Do Altar à Célula — ${campoNome}`} />
     </div>
   );
 }

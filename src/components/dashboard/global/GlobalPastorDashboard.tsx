@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { GlobalValidationPanel } from '../GlobalValidationPanel';
 import { IntegrityAuditPanel } from '../IntegrityAuditPanel';
-import { Loader2, Globe, Church, Users, Home, GitBranch, Heart, Network, Sparkles, ShieldAlert, TrendingUp, ArrowRight, MessageSquare, RefreshCw, X, Calendar, BookOpen } from 'lucide-react';
+import { Loader2, Globe, Church, Users, Home, GitBranch, Heart, Network, Sparkles, ShieldAlert, TrendingUp, ArrowRight, MessageSquare, RefreshCw, X, Calendar, BookOpen, Footprints } from 'lucide-react';
+import { AltarCelulaPanel } from '../AltarCelulaPanel';
 import { useGlobalKingdomData, CampusKPI } from '@/hooks/useGlobalKingdomData';
-import { useGlobalKingdomFunnel } from '@/hooks/useGlobalKingdomFunnel';
+
 import { useConversionsMetrics } from '@/hooks/useConversionsMetrics';
 import { useGlobalKingdomAgenda } from '@/hooks/useGlobalKingdomAgenda';
 import { useGlobalPastoralRanking } from '@/hooks/useGlobalPastoralRanking';
@@ -133,7 +134,8 @@ function KingdomView({ campusData, onSelectCampus }: { campusData: CampusKPI[]; 
         </CardContent>
       </Card>
 
-      <FunnelSection />
+      {/* ═══ MAPA DO ALTAR À CÉLULA ═══ */}
+      <AltarCelulaPanel campoId={null} title="Do Altar à Célula — Global" />
 
       {/* ═══ 3. SAÚDE DOS CAMPOS ═══ */}
       <SectionLabel title="Saúde dos Campos" subtitle="Visão consolidada por campo" />
@@ -407,40 +409,6 @@ function TrendsSection() {
   );
 }
 
-// ── Funnel ──
-
-function FunnelSection() {
-  const { data, isLoading } = useGlobalKingdomFunnel();
-
-  if (isLoading) return <Loader2 className="h-5 w-5 animate-spin text-primary mx-auto" />;
-  if (!data) return null;
-
-  const steps = [
-    { label: 'Cadastradas', value: data.cadastradas },
-    { label: 'Boas-vindas', value: data.boasVindasEnviadas },
-    { label: 'Encaminhadas', value: data.encaminhadas },
-    { label: 'Integradas', value: data.integradas },
-    { label: 'Membros', value: data.membros },
-  ];
-
-  return (
-    <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-      {steps.map((step, i) => (
-        <Card key={step.label} className="text-center">
-          <CardContent className="p-4">
-            <p className="text-2xl font-bold tabular-nums">{step.value}</p>
-            <p className="text-xs text-muted-foreground mt-1">{step.label}</p>
-            {i > 0 && data.cadastradas > 0 && (
-              <Badge variant="secondary" className="text-[10px] mt-2">
-                {Math.round((step.value / data.cadastradas) * 100)}%
-              </Badge>
-            )}
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  );
-}
 
 // ── Agenda ──
 

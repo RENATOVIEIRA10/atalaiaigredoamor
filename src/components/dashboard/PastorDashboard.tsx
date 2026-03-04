@@ -9,8 +9,9 @@ import {
   Loader2, Home, Users, Heart, Sparkles, PartyPopper,
   GitBranch, Cake, ShieldAlert, TrendingUp, RefreshCw, X,
   BookOpen, GraduationCap, Droplets, Church, Sprout, Globe,
-  AlertTriangle, MessageSquare, Network
+  AlertTriangle, MessageSquare, Network, Footprints
 } from 'lucide-react';
+import { AltarCelulaPanel } from './AltarCelulaPanel';
 import {
   usePastoralStats,
   useWeeklyBirthdays,
@@ -208,11 +209,16 @@ function CampoPastorDashboard() {
       />
 
       {/* ═══ 5. ABA: REUNIÃO COM LÍDERES DE REDE ═══ */}
-      <Tabs defaultValue="reuniao" className="space-y-4">
+      <Tabs defaultValue="altar" className="space-y-4">
         <TabsList className="flex flex-wrap h-auto gap-1">
+          <TabsTrigger value="altar" className="gap-1.5"><Footprints className="h-4 w-4" />Do Altar à Célula</TabsTrigger>
           <TabsTrigger value="reuniao" className="gap-1.5"><MessageSquare className="h-4 w-4" />Reunião com Líderes de Rede</TabsTrigger>
           <TabsTrigger value="detalhes" className="gap-1.5"><BookOpen className="h-4 w-4" />Detalhes</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="altar">
+          <AltarCelulaPanel campoId={campoId} />
+        </TabsContent>
 
         <TabsContent value="reuniao">
           <Card className="border-primary/20 bg-gradient-to-br from-background to-primary/5">
