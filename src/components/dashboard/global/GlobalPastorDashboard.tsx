@@ -1,7 +1,7 @@
 import { useState, lazy, Suspense } from 'react';
 import { GlobalValidationPanel } from '../GlobalValidationPanel';
 import { IntegrityAuditPanel } from '../IntegrityAuditPanel';
-import { Loader2, Globe, Church, Users, Home, GitBranch, Heart, FlaskConical, Eye, BookOpen, Calendar, Sparkles, ShieldAlert, TrendingUp, UserCheck, ArrowRight, Award, AlertTriangle } from 'lucide-react';
+import { Loader2, Globe, Church, Users, Home, GitBranch, Heart, FlaskConical, Eye, BookOpen, Calendar, Sparkles, ShieldAlert, TrendingUp, UserCheck, ArrowRight, Award, AlertTriangle, Sprout } from 'lucide-react';
 import { useGlobalKingdomData, CampusKPI } from '@/hooks/useGlobalKingdomData';
 import { useGlobalKingdomFunnel } from '@/hooks/useGlobalKingdomFunnel';
 import { useGlobalKingdomAgenda } from '@/hooks/useGlobalKingdomAgenda';
@@ -12,13 +12,13 @@ import { KingdomCampusCard } from './KingdomCampusCard';
 import { CampusDetailView } from './CampusDetailView';
 import { PageHeader } from '@/components/ui/page-header';
 import { MissionVerse } from '../MissionVerse';
-import { MissionBlock } from '../MissionBlock';
 import { InitialViewGate } from '../InitialViewGate';
 import { StatCard } from '@/components/ui/stat-card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
@@ -100,7 +100,7 @@ export function GlobalPastorDashboard() {
 }
 
 // ============================================================
-// KINGDOM VIEW — Reorganized into 3 mission blocks
+// KINGDOM VIEW — Structural first, tabs for weekly & movement
 // ============================================================
 
 function KingdomView({ campusData, onSelectCampus }: { campusData: CampusKPI[]; onSelectCampus: (id: string, nome: string) => void }) {
@@ -108,48 +108,49 @@ function KingdomView({ campusData, onSelectCampus }: { campusData: CampusKPI[]; 
   const totalCelulas = campusData.reduce((s, c) => s + c.celulas_ativas, 0);
   const totalMembros = campusData.reduce((s, c) => s + c.membros_total, 0);
   const totalNV = campusData.reduce((s, c) => s + c.novas_vidas_total, 0);
-  const avgEngajamento = activeCampus.length > 0
-    ? Math.round(activeCampus.reduce((s, c) => s + c.engajamento_pct, 0) / activeCampus.length)
-    : 0;
 
   return (
     <div className="space-y-10">
       <PageHeader title="Visão do Reino" subtitle="Panorama executivo de todos os campos" icon={Globe} />
       <MissionVerse role="pastor" />
 
-      {/* Global KPIs */}
-      <div className="grid gap-4 grid-cols-2 lg:grid-cols-5">
+      {/* ═══ PRIMEIRA TELA — Métricas Estruturais ═══ */}
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
         <StatCard icon={Church} label="Campus Ativos" value={activeCampus.length} subtitle={`de ${campusData.length} total`} />
         <StatCard icon={Home} label="Células" value={totalCelulas} />
         <StatCard icon={Users} label="Membros" value={totalMembros} />
         <StatCard icon={Heart} label="Novas Vidas" value={totalNV} />
-        <StatCard icon={GitBranch} label="Engajamento" value={`${avgEngajamento}%`} subtitle="relatórios na semana" />
       </div>
 
-      {/* ═══ BLOCO 1 — O que precisa da minha atenção ═══ */}
-      <MissionBlock icon={AlertTriangle} title="O que precisa da minha atenção">
-        <PastoralAlertsSection campusData={campusData} />
-      </MissionBlock>
+      {/* ═══ ABAS OPERACIONAIS ═══ */}
+      <Tabs defaultValue="semanal" className="space-y-4">
+        <TabsList className="flex flex-wrap h-auto gap-1">
+          <TabsTrigger value="semanal" className="gap-1.5"><Calendar className="h-4 w-4" />Acompanhamento Semanal</TabsTrigger>
+          <TabsTrigger value="movimento" className="gap-1.5"><Sprout className="h-4 w-4" />Movimento do Reino</TabsTrigger>
+        </TabsList>
 
-      {/* ═══ BLOCO 2 — Movimento do Reino ═══ */}
-      <MissionBlock icon={GitBranch} title="Movimento do Reino">
-        <KingdomMapTable campusData={campusData} onSelect={onSelectCampus} />
-      </MissionBlock>
+        <TabsContent value="semanal">
+          <div className="space-y-6">
+            <PastoralAlertsSection campusData={campusData} />
+            <SupervisionGovernanceSection />
+            <TrendsSection />
+          </div>
+        </TabsContent>
 
-      {/* ═══ BLOCO 3 — Saúde e Cuidado ═══ */}
-      <MissionBlock icon={Heart} title="Saúde e Cuidado">
-        <PastoralRankingSection />
-      </MissionBlock>
+        <TabsContent value="movimento">
+          <div className="space-y-6">
+            <KingdomMapTable campusData={campusData} onSelect={onSelectCampus} />
+            <FunnelSection />
+            <AgendaSection />
+          </div>
+        </TabsContent>
+      </Tabs>
 
       {/* Conteúdo detalhado */}
       <InitialViewGate>
-        <SupervisionGovernanceSection />
-        <TrendsSection />
-        <FunnelSection />
-        <AgendaSection />
+        <PastoralRankingSection />
         <BriefingSection campusData={campusData} />
 
-        {/* Validação & Auditoria */}
         <section>
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-1 flex items-center gap-2">
             <span>🛡️</span> Validação & Auditoria
@@ -166,7 +167,7 @@ function KingdomView({ campusData, onSelectCampus }: { campusData: CampusKPI[]; 
 }
 
 // ============================================================
-// 1. MAPA DO REINO — TABELA CLICÁVEL
+// MAPA DO REINO
 // ============================================================
 
 function KingdomMapTable({ campusData, onSelect }: { campusData: CampusKPI[]; onSelect: (id: string, nome: string) => void }) {
