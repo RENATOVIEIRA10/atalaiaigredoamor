@@ -640,11 +640,13 @@ export type Database = {
           encaminhado_por: string | null
           id: string
           integrado_at: string | null
+          is_test_data: boolean | null
           membro_id: string | null
           notas: string | null
           nova_vida_id: string
           promovido_membro_at: string | null
           rede_id: string | null
+          seed_run_id: string | null
           status: string
           updated_at: string
         }
@@ -658,11 +660,13 @@ export type Database = {
           encaminhado_por?: string | null
           id?: string
           integrado_at?: string | null
+          is_test_data?: boolean | null
           membro_id?: string | null
           notas?: string | null
           nova_vida_id: string
           promovido_membro_at?: string | null
           rede_id?: string | null
+          seed_run_id?: string | null
           status?: string
           updated_at?: string
         }
@@ -676,11 +680,13 @@ export type Database = {
           encaminhado_por?: string | null
           id?: string
           integrado_at?: string | null
+          is_test_data?: boolean | null
           membro_id?: string | null
           notas?: string | null
           nova_vida_id?: string
           promovido_membro_at?: string | null
           rede_id?: string | null
+          seed_run_id?: string | null
           status?: string
           updated_at?: string
         }
@@ -711,6 +717,13 @@ export type Database = {
             columns: ["rede_id"]
             isOneToOne: false
             referencedRelation: "redes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "encaminhamentos_recomeco_seed_run_id_fkey"
+            columns: ["seed_run_id"]
+            isOneToOne: false
+            referencedRelation: "seed_runs"
             referencedColumns: ["id"]
           },
         ]
@@ -1209,11 +1222,13 @@ export type Database = {
           horario_preferido: string | null
           id: string
           idade: number | null
+          is_test_data: boolean | null
           ja_participou_celula: boolean | null
           nome: string
           observacao: string | null
           primeira_vez_igreja: boolean | null
           rua: string | null
+          seed_run_id: string | null
           status: string
           tem_filhos: boolean | null
           updated_at: string
@@ -1233,11 +1248,13 @@ export type Database = {
           horario_preferido?: string | null
           id?: string
           idade?: number | null
+          is_test_data?: boolean | null
           ja_participou_celula?: boolean | null
           nome: string
           observacao?: string | null
           primeira_vez_igreja?: boolean | null
           rua?: string | null
+          seed_run_id?: string | null
           status?: string
           tem_filhos?: boolean | null
           updated_at?: string
@@ -1257,11 +1274,13 @@ export type Database = {
           horario_preferido?: string | null
           id?: string
           idade?: number | null
+          is_test_data?: boolean | null
           ja_participou_celula?: boolean | null
           nome?: string
           observacao?: string | null
           primeira_vez_igreja?: boolean | null
           rua?: string | null
+          seed_run_id?: string | null
           status?: string
           tem_filhos?: boolean | null
           updated_at?: string
@@ -1280,6 +1299,13 @@ export type Database = {
             columns: ["campo_id"]
             isOneToOne: false
             referencedRelation: "campos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "novas_vidas_seed_run_id_fkey"
+            columns: ["seed_run_id"]
+            isOneToOne: false
+            referencedRelation: "seed_runs"
             referencedColumns: ["id"]
           },
         ]
