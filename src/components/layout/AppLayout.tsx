@@ -33,9 +33,9 @@ export function AppLayout({ children, title }: AppLayoutProps) {
       <div className="flex flex-col h-[100dvh] bg-background" style={{ height: '-webkit-fill-available' }}>
         {/* PWA Top App Bar */}
         <header
-          className="flex shrink-0 items-center gap-2 border-b border-border/30 px-4 bg-background/95 backdrop-blur-md z-30"
+          className="flex shrink-0 items-center gap-2 border-b border-border/40 px-4 bg-background/90 backdrop-blur-xl z-30"
           style={{
-            boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+            boxShadow: '0 1px 2px rgba(0,0,0,0.2)',
             minHeight: 'calc(48px + env(safe-area-inset-top, 0px))',
             paddingTop: 'env(safe-area-inset-top, 0px)',
           }}
@@ -84,8 +84,8 @@ export function AppLayout({ children, title }: AppLayoutProps) {
       <AppSidebar />
       <SidebarInset className={isDemoActive ? 'pt-10' : ''}>
         <header
-          className="flex shrink-0 items-center gap-2 border-b border-border/30 px-4 bg-background/95 backdrop-blur-md sticky top-0 z-10"
-          style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.2)', height: '56px' }}
+          className="flex shrink-0 items-center gap-2 border-b border-border/40 px-4 bg-background/90 backdrop-blur-xl sticky top-0 z-10"
+          style={{ boxShadow: '0 1px 2px rgba(0,0,0,0.15)', height: '56px' }}
         >
           <SidebarTrigger className="-ml-1" />
           {title && (
