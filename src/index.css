@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,105 +6,105 @@
 
 @layer base {
   :root {
-    --background: 210 47% 15%;
-    --foreground: 34 47% 93%;
+    --background: 222 40% 7%;
+    --foreground: 220 14% 91%;
 
-    --card: 210 40% 18%;
-    --card-foreground: 34 47% 93%;
+    --card: 222 47% 11%;
+    --card-foreground: 220 14% 91%;
 
-    --popover: 210 42% 16%;
-    --popover-foreground: 34 47% 93%;
+    --popover: 222 44% 9%;
+    --popover-foreground: 220 14% 91%;
 
-    --primary: 39 47% 56%;
-    --primary-foreground: 210 47% 12%;
+    --primary: 239 84% 67%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 30% 22%;
-    --secondary-foreground: 34 20% 72%;
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 218 11% 65%;
 
-    --muted: 210 30% 22%;
-    --muted-foreground: 34 12% 62%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 218 11% 65%;
 
-    --accent: 39 22% 22%;
-    --accent-foreground: 39 47% 58%;
+    --accent: 239 30% 18%;
+    --accent-foreground: 239 84% 75%;
 
-    --destructive: 0 45% 42%;
-    --destructive-foreground: 34 47% 93%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --success: 158 40% 38%;
-    --success-foreground: 34 47% 93%;
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
 
-    --warning: 40 65% 52%;
-    --warning-foreground: 210 47% 12%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 222 40% 7%;
 
-    --border: 210 25% 24%;
-    --input: 210 25% 24%;
-    --ring: 39 47% 56%;
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 239 84% 67%;
 
     --radius: 0.75rem;
 
-    --sidebar-background: 210 47% 16%;
-    --sidebar-foreground: 34 47% 93%;
-    --sidebar-primary: 39 47% 56%;
-    --sidebar-primary-foreground: 210 47% 12%;
-    --sidebar-accent: 210 35% 20%;
-    --sidebar-accent-foreground: 34 47% 93%;
-    --sidebar-border: 210 25% 21%;
-    --sidebar-ring: 39 47% 56%;
+    --sidebar-background: 222 40% 7%;
+    --sidebar-foreground: 220 14% 91%;
+    --sidebar-primary: 239 84% 67%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 217 33% 14%;
+    --sidebar-accent-foreground: 220 14% 91%;
+    --sidebar-border: 217 33% 14%;
+    --sidebar-ring: 239 84% 67%;
   }
 
   .theme-amor {
-    --background: 34 47% 93%;
-    --foreground: 210 47% 20%;
+    --background: 220 14% 95%;
+    --foreground: 222 47% 15%;
 
-    --card: 34 30% 97%;
-    --card-foreground: 210 47% 20%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 210 47% 20%;
+    --popover-foreground: 222 47% 15%;
 
-    --primary: 39 47% 56%;
+    --primary: 239 84% 67%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 34 20% 88%;
-    --secondary-foreground: 210 30% 32%;
+    --secondary: 220 14% 90%;
+    --secondary-foreground: 222 30% 35%;
 
-    --muted: 34 14% 88%;
-    --muted-foreground: 210 15% 42%;
+    --muted: 220 14% 92%;
+    --muted-foreground: 218 11% 46%;
 
-    --accent: 39 20% 90%;
-    --accent-foreground: 39 47% 42%;
+    --accent: 239 40% 94%;
+    --accent-foreground: 239 84% 55%;
 
-    --destructive: 0 48% 45%;
+    --destructive: 0 84% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 158 36% 40%;
+    --success: 142 71% 40%;
     --success-foreground: 0 0% 100%;
 
-    --warning: 36 60% 52%;
-    --warning-foreground: 210 47% 20%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 222 47% 15%;
 
-    --border: 34 18% 85%;
-    --input: 34 18% 85%;
-    --ring: 39 47% 56%;
+    --border: 220 14% 88%;
+    --input: 220 14% 88%;
+    --ring: 239 84% 67%;
 
-    --sidebar-background: 34 25% 92%;
-    --sidebar-foreground: 210 47% 20%;
-    --sidebar-primary: 39 47% 56%;
+    --sidebar-background: 220 14% 97%;
+    --sidebar-foreground: 222 47% 15%;
+    --sidebar-primary: 239 84% 67%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 39 20% 87%;
-    --sidebar-accent-foreground: 210 47% 20%;
-    --sidebar-border: 34 18% 85%;
-    --sidebar-ring: 39 47% 56%;
+    --sidebar-accent: 239 40% 94%;
+    --sidebar-accent-foreground: 222 47% 15%;
+    --sidebar-border: 220 14% 90%;
+    --sidebar-ring: 239 84% 67%;
   }
 
   /* Fix input visibility on Home page for Tema Amor */
   .theme-amor .theme-amor-input {
-    background: hsl(34 20% 90%) !important;
-    color: hsl(210 47% 20%) !important;
-    border-color: hsl(34 18% 80%) !important;
+    background: hsl(220 14% 93%) !important;
+    color: hsl(222 47% 15%) !important;
+    border-color: hsl(220 14% 85%) !important;
   }
   .theme-amor .theme-amor-input::placeholder {
-    color: hsl(210 15% 55%) !important;
+    color: hsl(218 11% 50%) !important;
   }
 }
 
@@ -121,9 +121,9 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Outfit', 'Inter', sans-serif;
+    font-family: 'Inter', system-ui, sans-serif;
     line-height: 1.2;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.025em;
     font-weight: 600;
   }
 }
@@ -134,20 +134,20 @@
   }
   .card-hover:hover {
     @apply -translate-y-0.5;
-    box-shadow: 0 12px 32px -8px hsl(var(--primary) / 0.08), 0 4px 12px -4px hsl(0 0% 0% / 0.2);
+    box-shadow: 0 8px 24px -8px hsl(0 0% 0% / 0.4), 0 0 0 1px hsl(var(--border) / 0.5);
   }
 
   .glass-card {
-    @apply bg-card/85 backdrop-blur-md border border-border/40;
-    box-shadow: inset 0 1px 0 0 hsl(var(--primary) / 0.04);
+    @apply bg-card/80 backdrop-blur-xl border border-border/50;
+    box-shadow: inset 0 1px 0 0 hsl(0 0% 100% / 0.03);
   }
 
-  .glow-gold {
-    box-shadow: 0 0 20px hsl(var(--primary) / 0.12), 0 0 40px hsl(var(--primary) / 0.04);
+  .glow-primary {
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.15), 0 0 40px hsl(var(--primary) / 0.05);
   }
 
-  .gold-gradient {
-    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.8));
+  .gradient-text {
+    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.7));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -155,20 +155,20 @@
 
   /* Staggered card animations */
   .stagger-1 { animation-delay: 0ms; }
-  .stagger-2 { animation-delay: 40ms; }
-  .stagger-3 { animation-delay: 80ms; }
-  .stagger-4 { animation-delay: 120ms; }
-  .stagger-5 { animation-delay: 160ms; }
-  .stagger-6 { animation-delay: 200ms; }
+  .stagger-2 { animation-delay: 50ms; }
+  .stagger-3 { animation-delay: 100ms; }
+  .stagger-4 { animation-delay: 150ms; }
+  .stagger-5 { animation-delay: 200ms; }
+  .stagger-6 { animation-delay: 250ms; }
 
   /* Button tap feedback */
   .btn-tap:active {
-    transform: scale(0.98);
+    transform: scale(0.97);
     transition: transform 80ms ease-out;
   }
 
   .fade-in {
-    animation: fadeIn 0.22s ease-out;
+    animation: fadeIn 0.2s ease-out;
   }
 
   /* Internal pages background depth */
@@ -188,42 +188,36 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
+  from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 /* ===== PWA STANDALONE POLISH ===== */
 @media all and (display-mode: standalone) {
-  /* Full viewport height using dynamic viewport units */
   html, body, #root {
     height: 100dvh;
     height: -webkit-fill-available;
     overflow: hidden;
   }
 
-  /* Prevent overscroll bounce on the body */
   body {
     overscroll-behavior-y: none;
     -webkit-overflow-scrolling: touch;
   }
 
-  /* Prevent iOS zoom on inputs (must be >= 16px) */
   input, select, textarea {
     font-size: 16px !important;
   }
 
-  /* Smooth momentum scroll for content areas */
   .pwa-scroll-area {
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-y: contain;
   }
 
-  /* Page transition */
   .pwa-page-enter {
     animation: pwaSlideIn 0.18s ease-out;
   }
 
-  /* Sticky action bars above safe area */
   .pwa-sticky-bottom {
     position: sticky;
     bottom: 0;
@@ -232,7 +226,6 @@
     z-index: 20;
   }
 
-  /* Hide scrollbar but keep scroll functional (cleaner native feel) */
   *::-webkit-scrollbar {
     display: none;
   }
@@ -240,13 +233,11 @@
     scrollbar-width: none;
   }
 
-  /* Disable text selection for UI elements (app-like) */
   button, nav, header {
     -webkit-user-select: none;
     user-select: none;
   }
 
-  /* Prevent pull-to-refresh on the main container */
   #root {
     overscroll-behavior-y: none;
   }
@@ -257,7 +248,6 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* iOS standalone status bar spacing helper */
 @supports (-webkit-touch-callout: none) {
   @media all and (display-mode: standalone) {
     .pwa-safe-top {
