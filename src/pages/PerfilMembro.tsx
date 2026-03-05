@@ -10,6 +10,7 @@ import { useQuery } from '@tanstack/react-query';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { SpiritualTimeline } from '@/components/members/SpiritualTimeline';
+import { MinistryEditBlock } from '@/components/members/MinistryEditBlock';
 
 const MARCOS_ESPIRITUAIS = [
   { key: 'batismo', label: 'Batismo' },
@@ -35,7 +36,7 @@ export default function PerfilMembro() {
           id, celula_id, is_active,
           batismo, encontro_com_deus, renovo, encontro_de_casais,
           curso_lidere, is_discipulado, is_lider_em_treinamento,
-          serve_ministerio, ministerios, whatsapp,
+          serve_ministerio, ministerios, observacao_servico, whatsapp,
           profile:profiles!members_profile_id_fkey(id, name, avatar_url, email, birth_date, joined_church_at),
           celula:celulas!members_celula_id_fkey(id, name)
         `)
@@ -186,30 +187,13 @@ export default function PerfilMembro() {
         </Card>
 
         {/* Ministério */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <HandHeart className="h-5 w-5 text-primary" />
-              Ministério
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {member.serve_ministerio ? (
-              <div className="space-y-2">
-                <Badge variant="default" className="bg-green-600">Serve em ministério</Badge>
-                {ministerios.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {ministerios.map(min => (
-                      <Badge key={min} variant="secondary">{min}</Badge>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">Ainda não serve em ministério.</p>
-            )}
-          </CardContent>
-        </Card>
+        <MinistryEditBlock
+          memberId={member.id}
+          serveMinisterio={!!member.serve_ministerio}
+          ministerios={ministerios}
+          observacaoServico={(member as any).observacao_servico || null}
+          canEdit={canEdit}
+        />
 
         {/* Jornada Espiritual (Timeline) */}
         <Card>
