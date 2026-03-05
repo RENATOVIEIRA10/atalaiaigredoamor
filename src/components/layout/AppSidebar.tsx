@@ -122,7 +122,7 @@ export function AppSidebar() {
   return (
     <>
       <Sidebar>
-        <SidebarHeader className="border-b border-sidebar-border/50 p-5">
+        <SidebarHeader className="border-b border-sidebar-border/30 p-5">
           <div className="flex items-center gap-2 flex-wrap">
             <AtalaiaIcon className="h-8 w-auto" />
             <div className="h-6 w-px bg-sidebar-border/30" />
@@ -194,7 +194,7 @@ export function AppSidebar() {
           </SidebarGroup>
         </SidebarContent>
 
-        <SidebarFooter className="border-t border-sidebar-border/50 p-4 space-y-3">
+        <SidebarFooter className="border-t border-sidebar-border/30 p-4 space-y-3">
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
