@@ -46,6 +46,8 @@ const TrocarFuncao = lazy(() => import("./pages/TrocarFuncao"));
 const RecomecoCadastro = lazy(() => import("./pages/RecomecoCadastro"));
 const CentralCelulas = lazy(() => import("./pages/CentralCelulas"));
 const DemoPastoral = lazy(() => import("./pages/DemoPastoral"));
+const HomeConcierge = lazy(() => import("./pages/HomeConcierge"));
+const Radar = lazy(() => import("./pages/Radar"));
 
 const queryClient = new QueryClient();
 
@@ -73,6 +75,8 @@ function AppInner() {
           <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
 
           {/* Internal routes (require Supabase Auth + access code role) */}
+          <Route path="/home" element={<RoleProtectedRoute><HomeConcierge /></RoleProtectedRoute>} />
+          <Route path="/radar" element={<RoleProtectedRoute><Radar /></RoleProtectedRoute>} />
           <Route path="/dashboard" element={<RoleProtectedRoute><Dashboard /></RoleProtectedRoute>} />
           <Route path="/celulas" element={<RoleProtectedRoute><Celulas /></RoleProtectedRoute>} />
           <Route path="/membros" element={<RoleProtectedRoute><Membros /></RoleProtectedRoute>} />

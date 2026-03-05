@@ -2,13 +2,14 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, User, Loader2, ShieldAlert, Cake, Church, Award, HandHeart } from 'lucide-react';
+import { ArrowLeft, User, Loader2, ShieldAlert, Cake, Church, Award, HandHeart, Clock } from 'lucide-react';
 import { useRole } from '@/contexts/RoleContext';
 import { AvatarEditable } from '@/components/profile/AvatarEditable';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { SpiritualTimeline } from '@/components/members/SpiritualTimeline';
 
 const MARCOS_ESPIRITUAIS = [
   { key: 'batismo', label: 'Batismo' },
@@ -207,6 +208,30 @@ export default function PerfilMembro() {
             ) : (
               <p className="text-sm text-muted-foreground">Ainda não serve em ministério.</p>
             )}
+          </CardContent>
+        </Card>
+
+        {/* Jornada Espiritual (Timeline) */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Clock className="h-5 w-5 text-primary" />
+              Jornada Espiritual
+            </CardTitle>
+            <CardDescription>Linha do tempo de crescimento</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <SpiritualTimeline events={[
+              { label: 'Conversão / Nova Vida', completed: true, date: profile?.joined_church_at ? format(parseISO(profile.joined_church_at), 'dd/MM/yyyy') : null },
+              { label: 'Encaminhada para célula', completed: !!celula?.name },
+              { label: 'Encontro com Deus', completed: !!(member as any).encontro_com_deus },
+              { label: 'Batismo', completed: !!(member as any).batismo },
+              { label: 'Renovo', completed: !!(member as any).renovo },
+              { label: 'Discipulado', completed: !!(member as any).is_discipulado },
+              { label: 'Curso Lidere', completed: !!(member as any).curso_lidere },
+              { label: 'Líder em Treinamento', completed: !!(member as any).is_lider_em_treinamento },
+              { label: 'Servindo em Ministério', completed: !!member.serve_ministerio },
+            ]} />
           </CardContent>
         </Card>
 

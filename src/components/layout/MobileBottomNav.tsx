@@ -65,38 +65,36 @@ export function MobileBottomNav() {
     ];
   } else if (isDemoInstitucional) {
     navItems = [
-      { label: 'Início', icon: LayoutDashboard, path: '/dashboard' },
+      { label: 'Início', icon: LayoutDashboard, path: '/home' },
     ];
   } else if (isPastorSeniorGlobal || isPastorDeCampo || isPastor) {
     navItems = [
-      { label: 'Início', icon: LayoutDashboard, path: '/dashboard' },
-      { label: 'Visão', icon: Heart, path: '/dashboard?tab=pulso' },
-      { label: 'Ações', icon: Zap, path: '/dashboard?tab=acoes' },
+      { label: 'Início', icon: LayoutDashboard, path: '/home' },
+      { label: 'Visão', icon: Heart, path: '/dashboard' },
+      { label: 'Radar', icon: ClipboardCheck, path: '/radar' },
     ];
   } else if (isCellLeaderOnly) {
     navItems = [
-      { label: 'Início', icon: LayoutDashboard, path: '/dashboard' },
+      { label: 'Início', icon: LayoutDashboard, path: '/home' },
       { label: 'Ações', icon: Zap, path: '/dashboard?tab=acoes' },
       { label: 'Histórico', icon: History, path: '/dashboard?tab=historico' },
     ];
   } else if (isSupervisor) {
     navItems = [
-      { label: 'Início', icon: LayoutDashboard, path: '/dashboard' },
+      { label: 'Início', icon: LayoutDashboard, path: '/home' },
       { label: 'Plano', icon: Calendar, path: '/dashboard?tab=plano' },
       { label: 'Ações', icon: Zap, path: '/dashboard?tab=acoes' },
-      { label: 'Histórico', icon: History, path: '/dashboard?tab=historico' },
     ];
   } else if (isCoordenador || isRedeLeader) {
     navItems = [
-      { label: 'Início', icon: LayoutDashboard, path: '/dashboard' },
-      { label: 'Visão', icon: Heart, path: '/dashboard?tab=pulso' },
-      { label: 'Ações', icon: Zap, path: '/dashboard?tab=acoes' },
+      { label: 'Início', icon: LayoutDashboard, path: '/home' },
+      { label: 'Visão', icon: Heart, path: '/dashboard' },
+      { label: 'Radar', icon: ClipboardCheck, path: '/radar' },
     ];
   } else {
     navItems = [
-      { label: 'Início', icon: LayoutDashboard, path: '/dashboard' },
-      { label: 'Visão', icon: Heart, path: '/dashboard?tab=pulso' },
-      { label: 'Relatórios', icon: FileText, path: '/presenca' },
+      { label: 'Início', icon: LayoutDashboard, path: '/home' },
+      { label: 'Visão', icon: Heart, path: '/dashboard' },
       { label: 'Pessoas', icon: Users, path: '/membros' },
     ];
   }
