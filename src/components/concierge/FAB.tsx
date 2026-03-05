@@ -25,7 +25,7 @@ export function FAB() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
+            className="fixed inset-0 bg-background/60 backdrop-blur-md z-40"
             onClick={() => setOpen(false)}
           />
         )}
@@ -41,14 +41,14 @@ export function FAB() {
                 initial={{ opacity: 0, y: 20, scale: 0.8 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 10, scale: 0.8 }}
-                transition={{ delay: i * 0.05 }}
+                transition={{ delay: i * 0.04, duration: 0.15 }}
                 onClick={() => { setOpen(false); navigate(action.path); }}
                 className="flex items-center gap-3 touch-manipulation"
               >
-                <span className="text-xs font-medium text-white bg-black/60 px-3 py-1.5 rounded-lg">
+                <span className="text-xs font-medium text-foreground bg-card/90 backdrop-blur-xl px-3 py-1.5 rounded-lg border border-border/40 shadow-lg">
                   {action.label}
                 </span>
-                <div className={cn('p-3 rounded-full shadow-lg', action.color)}>
+                <div className={cn('p-3 rounded-full shadow-lg shadow-black/30', action.color)}>
                   <action.icon className="h-5 w-5 text-white" />
                 </div>
               </motion.button>
@@ -61,10 +61,11 @@ export function FAB() {
       <button
         onClick={() => setOpen(!open)}
         className={cn(
-          'fixed bottom-20 right-5 z-50 p-4 rounded-full shadow-xl',
+          'fixed bottom-20 right-5 z-50 p-4 rounded-full',
           'bg-primary text-primary-foreground',
-          'active:scale-95 transition-transform touch-manipulation',
-          'hover:shadow-2xl'
+          'active:scale-95 transition-all duration-200 touch-manipulation',
+          'shadow-[0_4px_24px_hsl(var(--primary)/0.35)]',
+          'hover:shadow-[0_4px_32px_hsl(var(--primary)/0.45)]'
         )}
         style={{ paddingBottom: 'calc(16px + env(safe-area-inset-bottom, 0px))' }}
       >
