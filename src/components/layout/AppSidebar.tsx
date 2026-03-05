@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Heart, Users, Home, ClipboardCheck,
   GitBranch, Activity, Droplets, BookOpen, Network,
   Layers, Settings, Key, Database, PlayCircle, Moon,
-  ChevronDown
+  ChevronDown, Map, MessageCircle
 } from 'lucide-react';
 import logoIgreja from '@/assets/logo-igreja-do-amor-new.png';
 import logoRedeAmor from '@/assets/logo-amor-a-dois-new.png';
@@ -176,6 +176,14 @@ export function AppSidebar() {
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={location.pathname === '/glossario'} className="h-11 rounded-xl">
+                    <NavLink to="/glossario">
+                      <BookOpen className="h-4 w-4" />
+                      <span className="font-medium">Glossário</span>
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={location.pathname === '/manual-usuario'} className="h-11 rounded-xl">
                     <NavLink to="/manual-usuario">
                       <PlayCircle className="h-4 w-4" />
@@ -183,6 +191,16 @@ export function AppSidebar() {
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
+                {isOriginalAdmin && (
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={location.pathname === '/guia-admin'} className="h-11 rounded-xl">
+                      <NavLink to="/guia-admin">
+                        <Map className="h-4 w-4" />
+                        <span className="font-medium">Guia do Admin</span>
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )}
                 <SidebarMenuItem>
                   <SidebarMenuButton onClick={openTour} className="h-11 rounded-xl">
                     <HelpCircle className="h-4 w-4" />

@@ -2130,6 +2130,42 @@ export type Database = {
           },
         ]
       }
+      user_onboarding_state: {
+        Row: {
+          completed_steps: Json
+          created_at: string
+          dismissed: boolean
+          id: string
+          last_seen_at: string
+          scope_type: string
+          updated_at: string
+          user_id: string
+          visits_count: number
+        }
+        Insert: {
+          completed_steps?: Json
+          created_at?: string
+          dismissed?: boolean
+          id?: string
+          last_seen_at?: string
+          scope_type: string
+          updated_at?: string
+          user_id: string
+          visits_count?: number
+        }
+        Update: {
+          completed_steps?: Json
+          created_at?: string
+          dismissed?: boolean
+          id?: string
+          last_seen_at?: string
+          scope_type?: string
+          updated_at?: string
+          user_id?: string
+          visits_count?: number
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
