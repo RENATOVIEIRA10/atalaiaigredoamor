@@ -5,7 +5,6 @@ import { ConciergeCards } from '@/components/concierge/ConciergeCards';
 import { QuickActions } from '@/components/concierge/QuickActions';
 import { SummaryMetricsPanel, getSectionLabel } from '@/components/concierge/SummaryMetrics';
 import { RecentActivity } from '@/components/concierge/RecentActivity';
-import { FAB } from '@/components/concierge/FAB';
 import { OnboardingBanner } from '@/components/guide/OnboardingBanner';
 import { AskGuideDialog } from '@/components/guide/AskGuideDialog';
 import { useConciergeCards } from '@/hooks/useConciergeCards';
@@ -82,8 +81,6 @@ export default function HomeConcierge() {
             <RecentActivity items={activity} isLoading={activityLoading} />
           </section>
         </div>
-
-        <FAB />
       </ScopeMissingGate>
     </AppLayout>
   );
