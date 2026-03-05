@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { ScopeMissingGate } from '@/components/ScopeMissingGate';
 import { ConciergeCards } from '@/components/concierge/ConciergeCards';
@@ -5,7 +6,10 @@ import { QuickActions } from '@/components/concierge/QuickActions';
 import { SummaryMetricsPanel, getSectionLabel } from '@/components/concierge/SummaryMetrics';
 import { RecentActivity } from '@/components/concierge/RecentActivity';
 import { FAB } from '@/components/concierge/FAB';
+import { OnboardingBanner } from '@/components/guide/OnboardingBanner';
+import { AskGuideDialog } from '@/components/guide/AskGuideDialog';
 import { useConciergeCards } from '@/hooks/useConciergeCards';
+import { useOnboarding } from '@/hooks/useOnboarding';
 import { useRecentActivity } from '@/hooks/useRecentActivity';
 import { useSummaryMetrics, getScopeLevel } from '@/hooks/useSummaryMetrics';
 import { useRole } from '@/contexts/RoleContext';
@@ -19,11 +23,17 @@ export default function HomeConcierge() {
   const { selectedRole, scopeType } = useRole();
   const { activeCampo } = useCampo();
   const level = getScopeLevel(scopeType);
+  const { incrementVisit } = useOnboarding();
+
+  useEffect(() => { incrementVisit(); }, []);
 
   return (
     <AppLayout title="Início">
       <ScopeMissingGate>
         <div className="max-w-2xl mx-auto space-y-8">
+          {/* Onboarding Banner */}
+          <OnboardingBanner />
+
           {/* Header */}
           <div className="relative">
             <div className="absolute -top-8 -left-8 w-32 h-32 rounded-full bg-primary/5 blur-3xl pointer-events-none" />
@@ -35,7 +45,7 @@ export default function HomeConcierge() {
                   <circle cx="50" cy="15" r="5" fill="hsl(239 84% 67%)" />
                 </svg>
               </div>
-              <div>
+              <div className="flex-1">
                 <h1 className="text-lg font-bold text-foreground tracking-tight">
                   O que precisa da sua atenção
                 </h1>
@@ -44,6 +54,7 @@ export default function HomeConcierge() {
                   {activeCampo ? ` · ${activeCampo.nome}` : ''}
                 </p>
               </div>
+              <AskGuideDialog />
             </div>
           </div>
 

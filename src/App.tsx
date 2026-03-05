@@ -48,6 +48,8 @@ const CentralCelulas = lazy(() => import("./pages/CentralCelulas"));
 const DemoPastoral = lazy(() => import("./pages/DemoPastoral"));
 const HomeConcierge = lazy(() => import("./pages/HomeConcierge"));
 const Radar = lazy(() => import("./pages/Radar"));
+const Glossario = lazy(() => import("./pages/Glossario"));
+const GuiaAdmin = lazy(() => import("./pages/GuiaAdmin"));
 
 const queryClient = new QueryClient();
 
@@ -100,6 +102,8 @@ function AppInner() {
           <Route path="/manual-usuario" element={<ManualUsuario />} />
           <Route path="/testemunho" element={<TestemunhoAtalaia />} />
           <Route path="/demo-pastoral" element={<DemoPastoral />} />
+          <Route path="/glossario" element={<RoleProtectedRoute><Glossario /></RoleProtectedRoute>} />
+          <Route path="/guia-admin" element={<RoleProtectedRoute><GuiaAdmin /></RoleProtectedRoute>} />
 
           <Route path="*" element={<NotFound />} />
         </Routes>
