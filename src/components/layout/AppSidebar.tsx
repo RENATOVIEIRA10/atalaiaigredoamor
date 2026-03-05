@@ -1,76 +1,112 @@
 import { useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { moduleIcons, roleIcons, actionIcons, themeIcons, roleLabels } from '@/lib/icons';
-import { ShieldCheck, LogOut, PlayCircle, RefreshCw, HelpCircle } from 'lucide-react';
+import { roleLabels } from '@/lib/icons';
+import {
+  ShieldCheck, LogOut, RefreshCw, HelpCircle,
+  LayoutDashboard, Heart, Users, Home, ClipboardCheck,
+  GitBranch, Activity, Droplets, BookOpen, Network,
+  Layers, Settings, Key, Database, PlayCircle, Moon,
+  ChevronDown
+} from 'lucide-react';
 import logoIgreja from '@/assets/logo-igreja-do-amor-new.png';
 import logoRedeAmor from '@/assets/logo-amor-a-dois-new.png';
 import { AtalaiaIcon } from '@/components/institutional/AtalaiaLogoHeader';
 import { useRole } from '@/contexts/RoleContext';
 import { useDemoMode } from '@/contexts/DemoModeContext';
 import { useTheme } from '@/contexts/ThemeContext';
-import { useCampo } from '@/contexts/CampoContext';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { DemoModeDialog } from '@/components/demo/DemoModeDialog';
 import { CampoSelector } from '@/components/campo/CampoSelector';
 import { usePastoralTour } from '@/hooks/usePastoralTour';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { cn } from '@/lib/utils';
 import {
   Sidebar, SidebarContent, SidebarFooter, SidebarGroup,
   SidebarGroupContent, SidebarGroupLabel, SidebarHeader,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem
 } from '@/components/ui/sidebar';
 
-const pastorNavItems = [
-  { title: 'Dashboard', href: '/dashboard', icon: moduleIcons.dashboard },
-  { title: 'Organograma', href: '/organograma', icon: moduleIcons.organograma },
-];
-
-const cellLeaderNavItems = [
-  { title: 'Dashboard', href: '/dashboard', icon: moduleIcons.dashboard },
-  { title: 'Organograma', href: '/organograma', icon: moduleIcons.organograma },
-];
-
-const demoInstitucionalNavItems = [
-  { title: 'Dashboard', href: '/dashboard', icon: moduleIcons.dashboard },
-  { title: 'Organograma', href: '/organograma', icon: moduleIcons.organograma },
-];
-
-const fullNavItems = [
-  { title: 'Dashboard', href: '/dashboard', icon: moduleIcons.dashboard },
-  { title: 'Dados', href: '/dados', icon: moduleIcons.dados },
-  { title: 'Células', href: '/celulas', icon: moduleIcons.celulas },
-  { title: 'Membros', href: '/membros', icon: moduleIcons.membros },
-  { title: 'Presença', href: '/presenca', icon: moduleIcons.presenca },
-  { title: 'Organograma', href: '/organograma', icon: moduleIcons.organograma },
-];
-
-const adminNavItems = [
-  { title: 'Redes', href: '/redes', icon: moduleIcons.redes },
-  { title: 'Coordenações', href: '/coordenacoes', icon: moduleIcons.coordenacoes },
-  { title: 'Configurações', href: '/configuracoes', icon: moduleIcons.configuracoes },
-];
+interface NavGroup {
+  label: string;
+  items: { title: string; href: string; icon: React.ElementType }[];
+  defaultOpen?: boolean;
+}
 
 export function AppSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { selectedRole, clearAccess, isAdmin, isRedeLeader, isCoordenador, isSupervisor, isCelulaLeader, isPastor, isDemoInstitucional, isPastorSeniorGlobal, isPastorDeCampo } = useRole();
+  const {
+    selectedRole, clearAccess, isAdmin, isRedeLeader, isCoordenador,
+    isSupervisor, isCelulaLeader, isPastor, isDemoInstitucional,
+    isPastorSeniorGlobal, isPastorDeCampo
+  } = useRole();
   const { isDemoActive, deactivateDemo } = useDemoMode();
   const { theme, toggleTheme } = useTheme();
   const [demoDialogOpen, setDemoDialogOpen] = useState(false);
   const { openTour } = usePastoralTour();
 
-  // When demo is active, the role context already reflects the impersonated role
-  // but we still need to show admin nav items if the original user was admin
   const isOriginalAdmin = (isAdmin || isDemoActive) && !isDemoInstitucional;
   const showAdminItems = (isOriginalAdmin || isRedeLeader) && !isDemoInstitucional;
+  const isCellLeaderOnly = isCelulaLeader && !isSupervisor && !isCoordenador && !isRedeLeader && !isAdmin && !isPastor;
 
-  const mainNavItems = isDemoInstitucional
-    ? demoInstitucionalNavItems
-    : isPastor
-    ? pastorNavItems
-    : (isCelulaLeader || isSupervisor) && !isCoordenador && !isRedeLeader && !isAdmin
-    ? cellLeaderNavItems
-    : fullNavItems;
+  // Build nav groups based on role
+  const navGroups: NavGroup[] = [];
+
+  // Home is always first
+  navGroups.push({
+    label: '',
+    items: [
+      { title: 'Início', href: '/home', icon: LayoutDashboard },
+    ],
+    defaultOpen: true,
+  });
+
+  // Pessoas group
+  if (!isDemoInstitucional) {
+    const pessoasItems: NavGroup['items'] = [];
+    pessoasItems.push({ title: 'Novas Vidas', href: '/recomeco', icon: Heart });
+    if (!isCellLeaderOnly) {
+      pessoasItems.push({ title: 'Membros', href: '/membros', icon: Users });
+    }
+    pessoasItems.push({ title: 'Discipulado', href: '/dashboard?tab=acoes', icon: BookOpen });
+    navGroups.push({ label: 'Pessoas', items: pessoasItems });
+  }
+
+  // Células group
+  if (!isDemoInstitucional) {
+    const celulasItems: NavGroup['items'] = [
+      { title: 'Relatórios', href: '/dashboard', icon: ClipboardCheck },
+    ];
+    if (!isCellLeaderOnly) {
+      celulasItems.unshift({ title: 'Lista de Células', href: '/celulas', icon: Home });
+    }
+    navGroups.push({ label: 'Células', items: celulasItems });
+  }
+
+  // Radar
+  if (!isDemoInstitucional && !isCellLeaderOnly) {
+    navGroups.push({
+      label: 'Radar',
+      items: [
+        { title: 'Saúde das Células', href: '/radar', icon: Activity },
+        { title: 'Organograma', href: '/organograma', icon: GitBranch },
+      ],
+    });
+  }
+
+  // Admin group
+  if (showAdminItems && !isDemoActive) {
+    navGroups.push({
+      label: 'Admin',
+      items: [
+        { title: 'Redes', href: '/redes', icon: Network },
+        { title: 'Coordenações', href: '/coordenacoes', icon: Layers },
+        { title: 'Dados', href: '/dados', icon: Database },
+        { title: 'Configurações', href: '/configuracoes', icon: Settings },
+      ],
+    });
+  }
 
   const handleLogout = () => {
     if (isDemoActive) deactivateDemo();
@@ -97,7 +133,7 @@ export function AppSidebar() {
         </SidebarHeader>
 
         <SidebarContent className="px-2">
-          {/* Campo Selector - for pastor_senior_global, admin, pastor_de_campo */}
+          {/* Campo Selector */}
           {(isPastorSeniorGlobal || isAdmin || isPastorDeCampo) && (
             <SidebarGroup>
               <SidebarGroupContent>
@@ -108,7 +144,7 @@ export function AppSidebar() {
             </SidebarGroup>
           )}
 
-          {/* Demo Mode Button - only for admin */}
+          {/* Demo Mode Button */}
           {isOriginalAdmin && (
             <SidebarGroup>
               <SidebarGroupContent>
@@ -129,44 +165,12 @@ export function AppSidebar() {
             </SidebarGroup>
           )}
 
-          <SidebarGroup>
-            <SidebarGroupLabel className="text-sidebar-foreground/50 text-[10px] uppercase tracking-widest px-3">Menu</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {mainNavItems.map((item) => (
-                  <SidebarMenuItem key={item.href}>
-                    <SidebarMenuButton asChild isActive={location.pathname === item.href} className="h-11 rounded-xl">
-                      <NavLink to={item.href}>
-                        <item.icon className="h-4 w-4" />
-                        <span className="font-medium">{item.title}</span>
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
+          {/* Nav Groups */}
+          {navGroups.map((group, gi) => (
+            <NavGroupSection key={gi} group={group} location={location} />
+          ))}
 
-          {showAdminItems && !isDemoActive && (
-            <SidebarGroup>
-              <SidebarGroupLabel className="text-sidebar-foreground/50 text-[10px] uppercase tracking-widest px-3">Admin</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {adminNavItems.map((item) => (
-                    <SidebarMenuItem key={item.href}>
-                      <SidebarMenuButton asChild isActive={location.pathname === item.href} className="h-11 rounded-xl">
-                        <NavLink to={item.href}>
-                          <item.icon className="h-4 w-4" />
-                          <span className="font-medium">{item.title}</span>
-                        </NavLink>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          )}
-
+          {/* Support */}
           <SidebarGroup>
             <SidebarGroupLabel className="text-sidebar-foreground/50 text-[10px] uppercase tracking-widest px-3">Apoio</SidebarGroupLabel>
             <SidebarGroupContent>
@@ -198,7 +202,7 @@ export function AppSidebar() {
               onClick={toggleTheme}
               className="flex-1 h-9 text-xs font-medium text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent gap-2"
             >
-              {theme === 'padrao' ? <themeIcons.amor className="h-4 w-4" /> : <themeIcons.padrao className="h-4 w-4" />}
+              <Moon className="h-4 w-4" />
               {theme === 'padrao' ? 'Tema Amor' : 'Tema Padrão'}
             </Button>
           </div>
@@ -222,7 +226,7 @@ export function AppSidebar() {
                 {selectedRole ? roleLabels[selectedRole] : 'Usuário'}
               </span>
               {isDemoActive && (
-              <span className="truncate text-[10px] text-emerald-500 font-medium">Validação ativa</span>
+                <span className="truncate text-[10px] text-emerald-500 font-medium">Validação ativa</span>
               )}
             </div>
             <Button
@@ -240,5 +244,61 @@ export function AppSidebar() {
 
       <DemoModeDialog open={demoDialogOpen} onOpenChange={setDemoDialogOpen} />
     </>
+  );
+}
+
+function NavGroupSection({ group, location }: { group: NavGroup; location: ReturnType<typeof useLocation> }) {
+  const hasActive = group.items.some(i => location.pathname === i.href);
+  const [open, setOpen] = useState(group.defaultOpen ?? hasActive);
+
+  if (!group.label) {
+    // Flat items (no collapsible)
+    return (
+      <SidebarGroup>
+        <SidebarGroupContent>
+          <SidebarMenu>
+            {group.items.map((item) => (
+              <SidebarMenuItem key={item.href}>
+                <SidebarMenuButton asChild isActive={location.pathname === item.href} className="h-11 rounded-xl">
+                  <NavLink to={item.href}>
+                    <item.icon className="h-4 w-4" />
+                    <span className="font-medium">{item.title}</span>
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenu>
+        </SidebarGroupContent>
+      </SidebarGroup>
+    );
+  }
+
+  return (
+    <SidebarGroup>
+      <Collapsible open={open} onOpenChange={setOpen}>
+        <CollapsibleTrigger className="w-full">
+          <SidebarGroupLabel className="text-sidebar-foreground/50 text-[10px] uppercase tracking-widest px-3 flex items-center justify-between cursor-pointer hover:text-sidebar-foreground/70 transition-colors">
+            {group.label}
+            <ChevronDown className={cn('h-3 w-3 transition-transform', open && 'rotate-180')} />
+          </SidebarGroupLabel>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {group.items.map((item) => (
+                <SidebarMenuItem key={item.href}>
+                  <SidebarMenuButton asChild isActive={location.pathname === item.href} className="h-11 rounded-xl">
+                    <NavLink to={item.href}>
+                      <item.icon className="h-4 w-4" />
+                      <span className="font-medium">{item.title}</span>
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </CollapsibleContent>
+      </Collapsible>
+    </SidebarGroup>
   );
 }

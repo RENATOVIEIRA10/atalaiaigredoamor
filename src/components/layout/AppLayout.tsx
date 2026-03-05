@@ -24,7 +24,7 @@ export function AppLayout({ children, title }: AppLayoutProps) {
   const location = useLocation();
 
   // In PWA mobile, show back button on non-root pages
-  const isRootPage = location.pathname === '/dashboard';
+  const isRootPage = location.pathname === '/home' || location.pathname === '/dashboard';
   const showBackButton = isPWAMobile && !isRootPage;
 
   // --- PWA App Shell ---

@@ -19,13 +19,13 @@ const COORD_REDE_PWA_BLOCKED = ['/membros', '/dados', '/redes', '/coordenacoes',
 const CELULA_PWA_BLOCKED = ['/dados', '/redes', '/coordenacoes', '/configuracoes', '/ferramentas-teste'];
 
 // Routes allowed for Demo Institucional (read-only)
-const DEMO_INSTITUCIONAL_ALLOWED = ['/dashboard', '/organograma', '/material', '/manual-usuario', '/manual-lider', '/faq'];
+const DEMO_INSTITUCIONAL_ALLOWED = ['/home', '/dashboard', '/organograma', '/material', '/manual-usuario', '/manual-lider', '/faq', '/radar'];
 
 // Routes allowed for Recomeço scopes
-const RECOMECO_ALLOWED = ['/recomeco'];
+const RECOMECO_ALLOWED = ['/home', '/recomeco'];
 
 // Routes allowed for Líder Recomeço+Central
-const LIDER_RC_ALLOWED = ['/dashboard'];
+const LIDER_RC_ALLOWED = ['/home', '/dashboard'];
 
 interface RoleProtectedRouteProps {
   children: React.ReactNode;
