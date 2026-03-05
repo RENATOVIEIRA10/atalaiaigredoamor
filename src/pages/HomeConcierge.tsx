@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { ScopeMissingGate } from '@/components/ScopeMissingGate';
 import { ConciergeCards } from '@/components/concierge/ConciergeCards';
-import { QuickActions } from '@/components/concierge/QuickActions';
+import { QuickActionsBar } from '@/components/home/QuickActionsBar';
 import { SummaryMetricsPanel, getSectionLabel } from '@/components/concierge/SummaryMetrics';
 import { RecentActivity } from '@/components/concierge/RecentActivity';
 import { OnboardingBanner } from '@/components/guide/OnboardingBanner';
@@ -66,7 +66,7 @@ export default function HomeConcierge() {
           {/* 2. Quick actions */}
           <section>
             <SectionLabel label="Ações rápidas" />
-            <QuickActions />
+            <QuickActionsBar />
           </section>
 
           {/* 3. Summary metrics (label adapts to scope) */}
