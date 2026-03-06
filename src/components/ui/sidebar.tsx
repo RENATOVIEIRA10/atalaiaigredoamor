@@ -14,8 +14,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 
 const SIDEBAR_COOKIE_NAME = "sidebar:state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
-const SIDEBAR_WIDTH = "16rem";
-const SIDEBAR_WIDTH_MOBILE = "18rem";
+const SIDEBAR_WIDTH = "17.5rem";
+const SIDEBAR_WIDTH_MOBILE = "19rem";
 const SIDEBAR_WIDTH_ICON = "3rem";
 const SIDEBAR_KEYBOARD_SHORTCUT = "b";
 
@@ -226,7 +226,7 @@ const SidebarTrigger = React.forwardRef<React.ElementRef<typeof Button>, React.C
         data-sidebar="trigger"
         variant="ghost"
         size="icon"
-        className={cn("h-8 w-8 rounded-lg border border-border/60 bg-card/70", className)}
+        className={cn("h-9 w-9 rounded-xl border border-border/70 bg-card shadow-sm", className)}
         onClick={(event) => {
           onClick?.(event);
           toggleSidebar();
@@ -274,8 +274,8 @@ const SidebarInset = React.forwardRef<HTMLDivElement, React.ComponentProps<"main
     <main
       ref={ref}
       className={cn(
-        "relative flex min-h-svh flex-1 flex-col bg-background",
-        "peer-data-[variant=inset]:min-h-[calc(100svh-theme(spacing.4))] md:peer-data-[variant=inset]:m-2 md:peer-data-[state=collapsed]:peer-data-[variant=inset]:ml-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow",
+        "relative flex min-h-svh flex-1 flex-col bg-background/90",
+        "peer-data-[variant=inset]:min-h-[calc(100svh-theme(spacing.4))] md:peer-data-[variant=inset]:m-2 md:peer-data-[state=collapsed]:peer-data-[variant=inset]:ml-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-2xl md:peer-data-[variant=inset]:shadow-[0_24px_45px_-38px_hsl(222_47%_12%/0.6)]",
         className,
       )}
       {...props}
@@ -412,7 +412,7 @@ const SidebarMenuItem = React.forwardRef<HTMLLIElement, React.ComponentProps<"li
 SidebarMenuItem.displayName = "SidebarMenuItem";
 
 const sidebarMenuButtonVariants = cva(
-  "peer/menu-button flex w-full items-center gap-2.5 overflow-hidden rounded-xl border border-transparent p-2.5 text-left text-sm outline-none ring-sidebar-ring transition-[width,height,padding,background-color,border-color,box-shadow,transform] duration-200 hover:border-sidebar-border/60 hover:bg-sidebar-accent/65 hover:text-sidebar-accent-foreground hover:-translate-y-0.5 focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:border-sidebar-primary/35 data-[active=true]:bg-[linear-gradient(135deg,hsl(var(--sidebar-primary)/0.18),hsl(var(--sidebar-accent)/0.6))] data-[active=true]:font-semibold data-[active=true]:text-sidebar-foreground data-[active=true]:shadow-[0_14px_24px_-20px_hsl(var(--sidebar-primary)/0.95)] data-[state=open]:hover:bg-sidebar-accent group-data-[collapsible=icon]:!size-8 group-data-[collapsible=icon]:!p-2 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0",
+  "peer/menu-button flex w-full items-center gap-2.5 overflow-hidden rounded-xl border border-transparent px-3 py-2.5 text-left text-sm outline-none ring-sidebar-ring transition-[width,height,padding,background-color,border-color,box-shadow,transform,color] duration-200 hover:border-sidebar-border/70 hover:bg-sidebar-accent/85 hover:text-sidebar-accent-foreground hover:-translate-y-0.5 focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:border-sidebar-primary/45 data-[active=true]:bg-[linear-gradient(130deg,hsl(var(--sidebar-primary)/0.28),hsl(var(--sidebar-accent)/0.85))] data-[active=true]:font-semibold data-[active=true]:text-sidebar-foreground data-[active=true]:shadow-[0_16px_28px_-22px_hsl(var(--sidebar-primary)/0.9)] data-[active=true]:before:absolute data-[active=true]:before:left-0 data-[active=true]:before:top-2 data-[active=true]:before:h-6 data-[active=true]:before:w-1 data-[active=true]:before:rounded-r-full data-[active=true]:before:bg-sidebar-primary data-[state=open]:hover:bg-sidebar-accent group-data-[collapsible=icon]:!size-8 group-data-[collapsible=icon]:!p-2 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0",
   {
     variants: {
       variant: {

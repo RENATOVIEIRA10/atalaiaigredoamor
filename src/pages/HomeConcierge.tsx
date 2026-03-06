@@ -29,7 +29,7 @@ export default function HomeConcierge() {
   return (
     <AppLayout title="Início">
       <ScopeMissingGate>
-        <div className="max-w-3xl mx-auto space-y-9">
+        <div className="mx-auto w-full max-w-7xl space-y-7">
           {/* Onboarding Banner */}
           <OnboardingBanner />
 
@@ -63,23 +63,25 @@ export default function HomeConcierge() {
             <ConciergeCards cards={cards} isLoading={cardsLoading} />
           </section>
 
-          {/* 2. Quick actions */}
-          <section>
-            <SectionLabel label="Ações rápidas" />
-            <QuickActionsBar />
-          </section>
+          <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
+            {/* 2. Quick actions */}
+            <section className="xl:col-span-6">
+              <SectionLabel label="Ações rápidas" />
+              <QuickActionsBar />
+            </section>
 
-          {/* 3. Summary metrics (label adapts to scope) */}
-          <section>
-            <SectionLabel label={getSectionLabel(level)} />
-            <SummaryMetricsPanel metrics={metrics} isLoading={metricsLoading} />
-          </section>
+            {/* 3. Summary metrics (label adapts to scope) */}
+            <section className="xl:col-span-6">
+              <SectionLabel label={getSectionLabel(level)} />
+              <SummaryMetricsPanel metrics={metrics} isLoading={metricsLoading} />
+            </section>
 
-          {/* 4. Recent activity */}
-          <section>
-            <SectionLabel label="Atividade recente" />
-            <RecentActivity items={activity} isLoading={activityLoading} />
-          </section>
+            {/* 4. Recent activity */}
+            <section className="xl:col-span-12">
+              <SectionLabel label="Atividade recente" />
+              <RecentActivity items={activity} isLoading={activityLoading} />
+            </section>
+          </div>
         </div>
       </ScopeMissingGate>
     </AppLayout>

@@ -4,9 +4,9 @@ import { roleLabels } from '@/lib/icons';
 import {
   ShieldCheck, LogOut, RefreshCw, HelpCircle,
   LayoutDashboard, Heart, Users, Home, ClipboardCheck,
-  GitBranch, Activity, Droplets, BookOpen, Network,
-  Layers, Settings, Key, Database, PlayCircle, Moon,
-  ChevronDown, Map, MessageCircle
+  GitBranch, Activity, BookOpen, Network,
+  Layers, Settings, Database, PlayCircle, Moon,
+  ChevronDown, Map, Church
 } from 'lucide-react';
 import logoIgreja from '@/assets/logo-igreja-do-amor-new.png';
 import logoRedeAmor from '@/assets/logo-amor-a-dois-new.png';
@@ -57,7 +57,7 @@ export function AppSidebar() {
   navGroups.push({
     label: '',
     items: [
-      { title: 'Início', href: '/home', icon: LayoutDashboard },
+      { title: 'HOME', href: '/home', icon: LayoutDashboard },
     ],
     defaultOpen: true,
   });
@@ -84,24 +84,43 @@ export function AppSidebar() {
     navGroups.push({ label: 'Células', items: celulasItems });
   }
 
+  // Liderança
+  if (!isDemoInstitucional && !isCellLeaderOnly) {
+    const liderancaItems: NavGroup['items'] = [
+      { title: 'Organograma', href: '/organograma', icon: GitBranch },
+    ];
+    if (showAdminItems && !isDemoActive) {
+      liderancaItems.push({ title: 'Redes', href: '/redes', icon: Network });
+      liderancaItems.push({ title: 'Coordenações', href: '/coordenacoes', icon: Layers });
+    }
+    navGroups.push({ label: 'Liderança', items: liderancaItems });
+  }
+
+  // Sacramentos
+  if (!isDemoInstitucional) {
+    navGroups.push({
+      label: 'Sacramentos',
+      items: [
+        { title: 'Batismo e Aclamação', href: '/dashboard?tab=multiplicacoes', icon: Church },
+      ],
+    });
+  }
+
   // Radar
   if (!isDemoInstitucional && !isCellLeaderOnly) {
     navGroups.push({
       label: 'Radar',
       items: [
         { title: 'Saúde das Células', href: '/radar', icon: Activity },
-        { title: 'Organograma', href: '/organograma', icon: GitBranch },
       ],
     });
   }
 
-  // Admin group
+  // Configurações
   if (showAdminItems && !isDemoActive) {
     navGroups.push({
-      label: 'Admin',
+      label: 'Configurações',
       items: [
-        { title: 'Redes', href: '/redes', icon: Network },
-        { title: 'Coordenações', href: '/coordenacoes', icon: Layers },
         { title: 'Dados', href: '/dados', icon: Database },
         { title: 'Configurações', href: '/configuracoes', icon: Settings },
       ],
@@ -121,8 +140,8 @@ export function AppSidebar() {
 
   return (
     <>
-      <Sidebar>
-        <SidebarHeader className="border-b border-sidebar-border/50 p-5 backdrop-blur-xl">
+      <Sidebar className="border-r border-sidebar-border/70">
+        <SidebarHeader className="border-b border-sidebar-border/60 p-5 backdrop-blur-xl">
           <div className="flex items-center gap-2 flex-wrap">
             <AtalaiaIcon className="h-8 w-auto" />
             <div className="h-6 w-px bg-sidebar-border/30" />
@@ -132,7 +151,7 @@ export function AppSidebar() {
           </div>
         </SidebarHeader>
 
-        <SidebarContent className="px-2 py-2">
+        <SidebarContent className="px-2.5 py-3">
           {/* Campo Selector */}
           {(isPastorSeniorGlobal || isAdmin || isPastorDeCampo) && (
             <SidebarGroup>
@@ -212,7 +231,7 @@ export function AppSidebar() {
           </SidebarGroup>
         </SidebarContent>
 
-        <SidebarFooter className="border-t border-sidebar-border/50 p-4 space-y-3 backdrop-blur-xl">
+        <SidebarFooter className="border-t border-sidebar-border/60 p-4 space-y-3 backdrop-blur-xl">
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
@@ -266,7 +285,7 @@ export function AppSidebar() {
 }
 
 function NavGroupSection({ group, location }: { group: NavGroup; location: ReturnType<typeof useLocation> }) {
-  const hasActive = group.items.some(i => location.pathname === i.href);
+  const hasActive = group.items.some((i) => location.pathname + location.search === i.href || location.pathname === i.href);
   const [open, setOpen] = useState(group.defaultOpen ?? hasActive);
 
   if (!group.label) {
@@ -277,7 +296,7 @@ function NavGroupSection({ group, location }: { group: NavGroup; location: Retur
           <SidebarMenu>
             {group.items.map((item) => (
               <SidebarMenuItem key={item.href}>
-                <SidebarMenuButton asChild isActive={location.pathname === item.href} className="h-11 rounded-xl">
+                <SidebarMenuButton asChild isActive={location.pathname + location.search === item.href || location.pathname === item.href} className="h-11 rounded-xl">
                   <NavLink to={item.href}>
                     <item.icon className="h-4 w-4" />
                     <span className="font-medium">{item.title}</span>
@@ -305,7 +324,7 @@ function NavGroupSection({ group, location }: { group: NavGroup; location: Retur
             <SidebarMenu>
               {group.items.map((item) => (
                 <SidebarMenuItem key={item.href}>
-                  <SidebarMenuButton asChild isActive={location.pathname === item.href} className="h-11 rounded-xl">
+                  <SidebarMenuButton asChild isActive={location.pathname + location.search === item.href || location.pathname === item.href} className="h-11 rounded-xl">
                     <NavLink to={item.href}>
                       <item.icon className="h-4 w-4" />
                       <span className="font-medium">{item.title}</span>
