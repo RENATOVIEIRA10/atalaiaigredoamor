@@ -14,8 +14,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 
 const SIDEBAR_COOKIE_NAME = "sidebar:state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
-const SIDEBAR_WIDTH = "17.5rem";
-const SIDEBAR_WIDTH_MOBILE = "19rem";
+const SIDEBAR_WIDTH = "18.5rem";
+const SIDEBAR_WIDTH_MOBILE = "20rem";
 const SIDEBAR_WIDTH_ICON = "3rem";
 const SIDEBAR_KEYBOARD_SHORTCUT = "b";
 
@@ -116,7 +116,7 @@ const SidebarProvider = React.forwardRef<
               ...style,
             } as React.CSSProperties
           }
-          className={cn("group/sidebar-wrapper flex min-h-svh w-full has-[[data-variant=inset]]:bg-sidebar", className)}
+          className={cn("group/sidebar-wrapper flex min-h-svh w-full has-[[data-variant=inset]]:bg-transparent", className)}
           ref={ref}
           {...props}
         >
@@ -206,7 +206,7 @@ const Sidebar = React.forwardRef<
       >
         <div
           data-sidebar="sidebar"
-          className="relative flex h-full w-full flex-col bg-[linear-gradient(180deg,hsl(var(--sidebar-background)),hsl(var(--sidebar-background)/0.95))] before:pointer-events-none before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_top,hsl(var(--sidebar-primary)/0.15),transparent_55%)] group-data-[variant=floating]:rounded-2xl group-data-[variant=floating]:border group-data-[variant=floating]:border-sidebar-border/70 group-data-[variant=floating]:shadow-[0_24px_45px_-34px_hsl(0_0%_0%/0.9)]"
+          className="relative flex h-full w-full flex-col bg-[linear-gradient(180deg,hsl(var(--sidebar-background)),hsl(var(--sidebar-background)/0.95))] before:pointer-events-none before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_top,hsl(var(--sidebar-primary)/0.12),transparent_56%)] before:opacity-80 group-data-[variant=floating]:rounded-[1.6rem] group-data-[variant=floating]:border group-data-[variant=floating]:border-sidebar-border/60 group-data-[variant=floating]:shadow-[0_20px_40px_-34px_hsl(218_35%_20%/0.35)]"
         >
           {children}
         </div>
@@ -412,7 +412,7 @@ const SidebarMenuItem = React.forwardRef<HTMLLIElement, React.ComponentProps<"li
 SidebarMenuItem.displayName = "SidebarMenuItem";
 
 const sidebarMenuButtonVariants = cva(
-  "peer/menu-button flex w-full items-center gap-2.5 overflow-hidden rounded-xl border border-transparent px-3 py-2.5 text-left text-sm outline-none ring-sidebar-ring transition-[width,height,padding,background-color,border-color,box-shadow,transform,color] duration-200 hover:border-sidebar-border/70 hover:bg-sidebar-accent/85 hover:text-sidebar-accent-foreground hover:-translate-y-0.5 focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:border-sidebar-primary/45 data-[active=true]:bg-[linear-gradient(130deg,hsl(var(--sidebar-primary)/0.28),hsl(var(--sidebar-accent)/0.85))] data-[active=true]:font-semibold data-[active=true]:text-sidebar-foreground data-[active=true]:shadow-[0_16px_28px_-22px_hsl(var(--sidebar-primary)/0.9)] data-[active=true]:before:absolute data-[active=true]:before:left-0 data-[active=true]:before:top-2 data-[active=true]:before:h-6 data-[active=true]:before:w-1 data-[active=true]:before:rounded-r-full data-[active=true]:before:bg-sidebar-primary data-[state=open]:hover:bg-sidebar-accent group-data-[collapsible=icon]:!size-8 group-data-[collapsible=icon]:!p-2 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0",
+  "peer/menu-button flex w-full items-center gap-2.5 overflow-hidden rounded-2xl border border-transparent px-3 py-2.5 text-left text-sm outline-none ring-sidebar-ring transition-[width,height,padding,background-color,border-color,box-shadow,transform,color] duration-200 hover:border-sidebar-border/55 hover:bg-sidebar-accent/80 hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:border-sidebar-primary/30 data-[active=true]:bg-[linear-gradient(130deg,hsl(var(--sidebar-primary)/0.14),hsl(var(--sidebar-accent)/0.92))] data-[active=true]:font-semibold data-[active=true]:text-sidebar-foreground data-[active=true]:shadow-[0_14px_24px_-22px_hsl(var(--sidebar-primary)/0.6)] data-[state=open]:hover:bg-sidebar-accent group-data-[collapsible=icon]:!size-8 group-data-[collapsible=icon]:!p-2 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0",
   {
     variants: {
       variant: {

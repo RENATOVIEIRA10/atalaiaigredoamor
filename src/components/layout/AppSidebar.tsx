@@ -140,8 +140,8 @@ export function AppSidebar() {
 
   return (
     <>
-      <Sidebar className="border-r border-sidebar-border/70">
-        <SidebarHeader className="border-b border-sidebar-border/60 p-5 backdrop-blur-xl">
+      <Sidebar className="border-r border-sidebar-border/45">
+        <SidebarHeader className="border-b border-sidebar-border/45 px-5 pb-5 pt-6 backdrop-blur-xl">
           <div className="flex items-center gap-2 flex-wrap">
             <AtalaiaIcon className="h-8 w-auto" />
             <div className="h-6 w-px bg-sidebar-border/30" />
@@ -151,7 +151,7 @@ export function AppSidebar() {
           </div>
         </SidebarHeader>
 
-        <SidebarContent className="px-2.5 py-3">
+        <SidebarContent className="px-3 py-4">
           {/* Campo Selector */}
           {(isPastorSeniorGlobal || isAdmin || isPastorDeCampo) && (
             <SidebarGroup>
@@ -171,7 +171,7 @@ export function AppSidebar() {
                   <SidebarMenuItem>
                     <SidebarMenuButton
                       onClick={() => setDemoDialogOpen(true)}
-                      className="h-11 rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-600 shadow-[0_10px_26px_-18px_hsl(142_70%_45%)] hover:bg-emerald-500/18 dark:text-emerald-400"
+                      className="h-11 rounded-2xl border border-emerald-500/25 bg-emerald-500/10 text-emerald-600 shadow-[0_12px_28px_-22px_hsl(142_70%_45%)] hover:bg-emerald-500/16 dark:text-emerald-400"
                     >
                       <ShieldCheck className="h-4 w-4" />
                       <span className="font-medium">
@@ -191,11 +191,11 @@ export function AppSidebar() {
 
           {/* Support */}
           <SidebarGroup>
-            <SidebarGroupLabel className="text-sidebar-foreground/50 text-[10px] uppercase tracking-widest px-3">Apoio</SidebarGroupLabel>
+            <SidebarGroupLabel className="px-3 text-[10px] uppercase tracking-[0.18em] text-sidebar-foreground/45">Apoio</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={location.pathname === '/glossario'} className="h-11 rounded-xl">
+                  <SidebarMenuButton asChild isActive={location.pathname === '/glossario'} className="h-11 rounded-2xl">
                     <NavLink to="/glossario">
                       <BookOpen className="h-4 w-4" />
                       <span className="font-medium">Glossário</span>
@@ -203,7 +203,7 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={location.pathname === '/manual-usuario'} className="h-11 rounded-xl">
+                  <SidebarMenuButton asChild isActive={location.pathname === '/manual-usuario'} className="h-11 rounded-2xl">
                     <NavLink to="/manual-usuario">
                       <PlayCircle className="h-4 w-4" />
                       <span className="font-medium">Manual do Usuário</span>
@@ -212,7 +212,7 @@ export function AppSidebar() {
                 </SidebarMenuItem>
                 {isOriginalAdmin && (
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={location.pathname === '/guia-admin'} className="h-11 rounded-xl">
+                    <SidebarMenuButton asChild isActive={location.pathname === '/guia-admin'} className="h-11 rounded-2xl">
                       <NavLink to="/guia-admin">
                         <Map className="h-4 w-4" />
                         <span className="font-medium">Guia do Admin</span>
@@ -221,7 +221,7 @@ export function AppSidebar() {
                   </SidebarMenuItem>
                 )}
                 <SidebarMenuItem>
-                  <SidebarMenuButton onClick={openTour} className="h-11 rounded-xl">
+                  <SidebarMenuButton onClick={openTour} className="h-11 rounded-2xl">
                     <HelpCircle className="h-4 w-4" />
                     <span className="font-medium">Tour de Ajuda</span>
                   </SidebarMenuButton>
@@ -231,7 +231,7 @@ export function AppSidebar() {
           </SidebarGroup>
         </SidebarContent>
 
-        <SidebarFooter className="border-t border-sidebar-border/60 p-4 space-y-3 backdrop-blur-xl">
+        <SidebarFooter className="space-y-3 border-t border-sidebar-border/50 p-4 backdrop-blur-xl">
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
@@ -296,7 +296,7 @@ function NavGroupSection({ group, location }: { group: NavGroup; location: Retur
           <SidebarMenu>
             {group.items.map((item) => (
               <SidebarMenuItem key={item.href}>
-                <SidebarMenuButton asChild isActive={location.pathname + location.search === item.href || location.pathname === item.href} className="h-11 rounded-xl">
+                <SidebarMenuButton asChild isActive={location.pathname + location.search === item.href || location.pathname === item.href} className="h-11 rounded-2xl">
                   <NavLink to={item.href}>
                     <item.icon className="h-4 w-4" />
                     <span className="font-medium">{item.title}</span>
@@ -314,7 +314,7 @@ function NavGroupSection({ group, location }: { group: NavGroup; location: Retur
     <SidebarGroup>
       <Collapsible open={open} onOpenChange={setOpen}>
         <CollapsibleTrigger className="w-full">
-          <SidebarGroupLabel className="text-sidebar-foreground/55 text-[10px] uppercase tracking-[0.14em] px-3 pt-2 flex items-center justify-between cursor-pointer hover:text-sidebar-foreground/80 transition-colors">
+          <SidebarGroupLabel className="flex cursor-pointer items-center justify-between px-3 pt-2 text-[10px] uppercase tracking-[0.16em] text-sidebar-foreground/55 transition-colors hover:text-sidebar-foreground/80">
             {group.label}
             <ChevronDown className={cn('h-3 w-3 transition-transform', open && 'rotate-180')} />
           </SidebarGroupLabel>
@@ -324,7 +324,7 @@ function NavGroupSection({ group, location }: { group: NavGroup; location: Retur
             <SidebarMenu>
               {group.items.map((item) => (
                 <SidebarMenuItem key={item.href}>
-                  <SidebarMenuButton asChild isActive={location.pathname + location.search === item.href || location.pathname === item.href} className="h-11 rounded-xl">
+                  <SidebarMenuButton asChild isActive={location.pathname + location.search === item.href || location.pathname === item.href} className="h-11 rounded-2xl">
                     <NavLink to={item.href}>
                       <item.icon className="h-4 w-4" />
                       <span className="font-medium">{item.title}</span>

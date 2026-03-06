@@ -96,17 +96,17 @@ export function QuickActionsBar() {
   if (!actions.length) return null;
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+    <div className="mt-4 flex flex-wrap gap-2.5">
       {actions.map((action) => (
         <button
           key={action.id}
           onClick={() => navigate(action.path)}
-          className="flex items-center justify-start gap-3 rounded-xl border border-border/60 bg-card px-4 py-4 min-h-14 text-left hover:bg-accent/30 transition-colors touch-manipulation"
+          className="inline-flex items-center gap-2.5 rounded-full border border-border/55 bg-background/80 px-4 py-2.5 text-sm font-medium text-foreground transition-all duration-200 hover:border-border/80 hover:bg-background hover:shadow-[0_14px_24px_-22px_hsl(var(--primary)/0.75)]"
         >
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-            <action.icon className="h-4 w-4" />
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/12 text-primary">
+            <action.icon className="h-3.5 w-3.5" />
           </span>
-          <span className="text-sm font-medium text-foreground leading-tight">{action.label}</span>
+          <span className="leading-tight">{action.label}</span>
         </button>
       ))}
     </div>
