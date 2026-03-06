@@ -40,6 +40,29 @@ export interface CoupleJourneySummary {
   leader_time_months: number | null;
 }
 
+export interface RecommendationJourneySnapshot {
+  couple_name?: string;
+  current_role?: string;
+  celula?: string;
+  coordenacao?: string;
+  rede?: string;
+  campo?: string;
+  tempo_igreja?: string;
+  entry_date?: string | null;
+  birth_date?: string | null;
+  serve_ministry?: boolean;
+  ministries?: string[];
+  marcos?: string[];
+  members_in_celula?: number | null;
+  leader_since?: string | null;
+  leader_time_months?: number | null;
+}
+
+export function readRecommendationSnapshot(input: unknown): RecommendationJourneySnapshot {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) return {};
+  return input as RecommendationJourneySnapshot;
+}
+
 export function useLeadershipRecommendations() {
   const { scopeId, scopeType } = useRole();
 

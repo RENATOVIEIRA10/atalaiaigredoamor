@@ -70,6 +70,7 @@ export function LeadershipRecommendationDialog({ open, onOpenChange, recommendat
     : 'Por que você está indicando este casal para Coordenador?';
 
   const targetReviewerScopeType = recommendationType === 'supervisor' ? 'rede' : 'pastor_campo';
+  const noAutoPromotionText = 'Indicar para análise. Essa indicação não altera automaticamente a função da pessoa.';
 
   const handleSubmit = async () => {
     if (!selectedCoupleId || !justification.trim() || !user || !accessLink || !journeyData || !selectedCell) return;
@@ -101,7 +102,7 @@ export function LeadershipRecommendationDialog({ open, onOpenChange, recommendat
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
-            Indicar para análise. Essa indicação não altera automaticamente a função da pessoa.
+            {noAutoPromotionText}
           </DialogDescription>
         </DialogHeader>
 
