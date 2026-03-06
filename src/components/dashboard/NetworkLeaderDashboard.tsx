@@ -44,6 +44,8 @@ import { RevelaShortcut } from './RevelaShortcut';
 import { DashboardScopeBanner } from './DashboardScopeBanner';
 import { SectionLabel } from './SectionLabel';
 import { PotenciaisServirCard } from './PotenciaisServirCard';
+import { LeadershipRecommendationDialog } from './LeadershipRecommendationDialog';
+import { LeadershipRecommendationsSection } from './LeadershipRecommendationsSection';
 
 interface NetworkLeaderDashboardProps {
   initialRedeId?: string;
@@ -70,6 +72,7 @@ export function NetworkLeaderDashboard({ initialRedeId, overrideCampoId, onBack,
   const [expandedCoords, setExpandedCoords] = useState<Set<string>>(new Set());
   const [selectedCelula, setSelectedCelula] = useState<{ id: string; name: string } | null>(null);
   const [emailDialogOpen, setEmailDialogOpen] = useState(false);
+  const [showRecommendationDialog, setShowRecommendationDialog] = useState(false);
   
   const dateRangeFilter = { from: getDateString(dateRange.from), to: getDateString(dateRange.to) };
   const { data: redeData, isLoading: reportsLoading } = useWeeklyReportsByRede(selectedRede, dateRangeFilter);
@@ -221,6 +224,16 @@ export function NetworkLeaderDashboard({ initialRedeId, overrideCampoId, onBack,
           {/* ═══ POTENCIAIS PARA SERVIR ═══ */}
           <SectionLabel title="Potenciais para Servir" subtitle="Membros prontos para novos desafios" />
           <PotenciaisServirCard redeId={selectedRede} />
+          <div className="flex justify-end">
+            <Button variant="outline" onClick={() => setShowRecommendationDialog(true)}>
+              Indicar para Coordenador
+            </Button>
+          </div>
+
+          <LeadershipRecommendationsSection
+            title="Indicações recebidas"
+            description="Indicações para Supervisor enviadas por Coordenadores da sua rede."
+          />
 
           {/* ═══ ABAS OPERACIONAIS ═══ */}
           <Tabs defaultValue="semanal" className="space-y-4">
@@ -386,6 +399,13 @@ export function NetworkLeaderDashboard({ initialRedeId, overrideCampoId, onBack,
       {!selectedRede && (
         <EmptyState icon={Network} title="Selecione uma rede" description="Escolha a rede para visualizar os relatórios" />
       )}
+
+      <LeadershipRecommendationDialog
+        open={showRecommendationDialog}
+        onOpenChange={setShowRecommendationDialog}
+        recommendationType="coordenador"
+        title="Indicar para análise: Coordenador"
+      />
 
       {selectedCelula && (
         <CelulaDetailsDialog open={!!selectedCelula} onOpenChange={(open) => { if (!open) setSelectedCelula(null); }} celulaId={selectedCelula.id} celulaName={selectedCelula.name} />
