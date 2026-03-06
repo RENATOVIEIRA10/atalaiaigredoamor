@@ -113,41 +113,47 @@ function KingdomView({ campusData, onSelectCampus }: { campusData: CampusKPI[]; 
       <PageHeader title="Visão do Reino" subtitle="Governo espiritual de todos os campos" icon={Globe} />
       <MissionVerse role="pastor" />
 
-      {/* ═══ 1. PANORAMA GLOBAL ═══ */}
-      <SectionLabel title="Panorama Global" subtitle="Dados estruturais consolidados de todos os campos" />
-      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-        <StatCard icon={Church} label="Campos Ativos" value={activeCampus.length} subtitle={`de ${campusData.length} total`} />
-        <StatCard icon={Home} label="Células" value={totalCelulas} />
-        <StatCard icon={Users} label="Membros" value={totalMembros} />
-        <StatCard icon={GitBranch} label="Batismos" value={totalBatismo} subtitle="acumulado" />
-      </div>
+      <Tabs defaultValue="visao-geral" className="space-y-4">
+        <TabsList className="w-full h-auto justify-start gap-1 overflow-x-auto whitespace-nowrap">
+          <TabsTrigger value="visao-geral">Visão Geral</TabsTrigger>
+          <TabsTrigger value="movimento-global">Movimento Global</TabsTrigger>
+          <TabsTrigger value="visao-pastoral">Visão Pastoral</TabsTrigger>
+        </TabsList>
 
-      {/* ═══ 2. MOVIMENTO GLOBAL ═══ */}
-      <SectionLabel title="Movimento Global" subtitle="Crescimento espiritual do Reino" />
-      <Card>
-        <CardContent className="pt-6">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <MarcoCard label="Conversões" value={conversions?.conversoes90dias || 0} icon="🔥" subtitle="Recomeço · 90 dias" />
-            <MarcoCard label="Novos Membros" value={conversions?.novosMembros90dias || 0} icon="🌱" subtitle="integrados · 90 dias" />
-            <MarcoCard label="Batismos" value={totalBatismo} icon="💧" subtitle="acumulado" />
-            <MarcoCard label="Conversões (total)" value={totalNV} icon="✝️" subtitle="acumulado geral" />
+        <TabsContent value="visao-geral" className="space-y-6">
+          <SectionLabel title="Panorama Global" subtitle="Dados estruturais consolidados de todos os campos" />
+          <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+            <StatCard icon={Church} label="Campos Ativos" value={activeCampus.length} subtitle={`de ${campusData.length} total`} />
+            <StatCard icon={Home} label="Células" value={totalCelulas} />
+            <StatCard icon={Users} label="Membros" value={totalMembros} />
+            <StatCard icon={GitBranch} label="Batismos" value={totalBatismo} subtitle="acumulado" />
           </div>
-        </CardContent>
-      </Card>
 
-      {/* ═══ MAPA DO ALTAR À CÉLULA ═══ */}
-      <AltarCelulaPanel campoId={null} title="Do Altar à Célula — Global" />
+          <SectionLabel title="Saúde dos Campos" subtitle="Visão consolidada por campo" />
+          <CampusHealthTable campusData={campusData} onSelect={onSelectCampus} />
+        </TabsContent>
 
-      {/* ═══ 3. SAÚDE DOS CAMPOS ═══ */}
-      <SectionLabel title="Saúde dos Campos" subtitle="Visão consolidada por campo" />
-      <CampusHealthTable campusData={campusData} onSelect={onSelectCampus} />
+        <TabsContent value="movimento-global" className="space-y-6">
+          <SectionLabel title="Movimento Global" subtitle="Crescimento espiritual do Reino" />
+          <Card>
+            <CardContent className="pt-6">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <MarcoCard label="Conversões" value={conversions?.conversoes90dias || 0} icon="🔥" subtitle="Recomeço · 90 dias" />
+                <MarcoCard label="Novos Membros" value={conversions?.novosMembros90dias || 0} icon="🌱" subtitle="integrados · 90 dias" />
+                <MarcoCard label="Batismos" value={totalBatismo} icon="💧" subtitle="acumulado" />
+                <MarcoCard label="Conversões (total)" value={totalNV} icon="✝️" subtitle="acumulado geral" />
+              </div>
+            </CardContent>
+          </Card>
 
-      {/* ═══ 4. PONTOS DE ATENÇÃO ═══ */}
-      <SectionLabel title="Pontos de Atenção" subtitle="Alertas estratégicos gerados automaticamente" />
-      <GlobalStrategicAlerts campusData={campusData} />
+          <AltarCelulaPanel campoId={null} title="Do Altar à Célula — Global" />
+        </TabsContent>
 
-      {/* ═══ 5. ABA: REUNIÃO COM PASTORES DE CAMPO ═══ */}
-      <Tabs defaultValue="reuniao" className="space-y-4">
+        <TabsContent value="visao-pastoral" className="space-y-6">
+          <SectionLabel title="Pontos de Atenção" subtitle="Alertas estratégicos gerados automaticamente" />
+          <GlobalStrategicAlerts campusData={campusData} />
+
+          <Tabs defaultValue="reuniao" className="space-y-4">
         <TabsList className="flex flex-wrap h-auto gap-1">
           <TabsTrigger value="reuniao" className="gap-1.5"><MessageSquare className="h-4 w-4" />Reunião com Pastores de Campo</TabsTrigger>
           <TabsTrigger value="detalhes" className="gap-1.5"><BookOpen className="h-4 w-4" />Detalhes</TabsTrigger>
@@ -174,6 +180,8 @@ function KingdomView({ campusData, onSelectCampus }: { campusData: CampusKPI[]; 
               </div>
             </section>
           </div>
+        </TabsContent>
+          </Tabs>
         </TabsContent>
       </Tabs>
     </div>
