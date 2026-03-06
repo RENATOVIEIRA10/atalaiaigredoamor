@@ -211,32 +211,39 @@ export function NetworkLeaderDashboard({ initialRedeId, overrideCampoId, onBack,
 
       {selectedRede && (
         <>
-          <LeaderBirthdayAlert redeId={selectedRede} />
+          <Tabs defaultValue="visao-geral" className="space-y-4">
+            <TabsList className="w-full h-auto justify-start gap-1 overflow-x-auto whitespace-nowrap">
+              <TabsTrigger value="visao-geral">Visão Geral</TabsTrigger>
+              <TabsTrigger value="acompanhamento">Acompanhamento</TabsTrigger>
+              <TabsTrigger value="analises">Movimento, Saúde e Cuidado</TabsTrigger>
+            </TabsList>
 
-          {/* ═══ PRIMEIRA TELA — Métricas Estruturais ═══ */}
-          <SectionLabel title="Dados Estruturais" subtitle="Visão consolidada da rede" />
-          <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
-            <StatCard icon={Home} label="Células Ativas" value={totalRedeCelulas} />
-            <StatCard icon={Network} label="Coordenações" value={redeCoordenacoes.length} />
-            <StatCard icon={ClipboardCheck} label="Supervisões" value={supervisoes?.length || 0} subtitle="registradas" />
-          </div>
+            <TabsContent value="visao-geral" className="space-y-6">
+              <LeaderBirthdayAlert redeId={selectedRede} />
 
-          {/* ═══ POTENCIAIS PARA SERVIR ═══ */}
-          <SectionLabel title="Potenciais para Servir" subtitle="Membros prontos para novos desafios" />
-          <PotenciaisServirCard redeId={selectedRede} />
-          <div className="flex justify-end">
-            <Button variant="outline" onClick={() => setShowRecommendationDialog(true)}>
-              Indicar para Coordenador
-            </Button>
-          </div>
+              <SectionLabel title="Dados Estruturais" subtitle="Visão consolidada da rede" />
+              <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
+                <StatCard icon={Home} label="Células Ativas" value={totalRedeCelulas} />
+                <StatCard icon={Network} label="Coordenações" value={redeCoordenacoes.length} />
+                <StatCard icon={ClipboardCheck} label="Supervisões" value={supervisoes?.length || 0} subtitle="registradas" />
+              </div>
 
-          <LeadershipRecommendationsSection
-            title="Indicações recebidas"
-            description="Indicações para Supervisor enviadas por Coordenadores da sua rede."
-          />
+              <SectionLabel title="Potenciais para Servir" subtitle="Membros prontos para novos desafios" />
+              <PotenciaisServirCard redeId={selectedRede} />
+              <div className="flex justify-end">
+                <Button variant="outline" onClick={() => setShowRecommendationDialog(true)}>
+                  Indicar para Coordenador
+                </Button>
+              </div>
 
-          {/* ═══ ABAS OPERACIONAIS ═══ */}
-          <Tabs defaultValue="semanal" className="space-y-4">
+              <LeadershipRecommendationsSection
+                title="Indicações recebidas"
+                description="Indicações para Supervisor enviadas por Coordenadores da sua rede."
+              />
+            </TabsContent>
+
+            <TabsContent value="acompanhamento" className="space-y-4">
+              <Tabs defaultValue="semanal" className="space-y-4">
             <TabsList className="flex flex-wrap h-auto gap-1">
               <TabsTrigger value="semanal" className="gap-1.5"><Calendar className="h-4 w-4" />Acompanhamento Semanal</TabsTrigger>
               <TabsTrigger value="movimento" className="gap-1.5"><Sprout className="h-4 w-4" />Movimento do Reino</TabsTrigger>
@@ -370,10 +377,11 @@ export function NetworkLeaderDashboard({ initialRedeId, overrideCampoId, onBack,
               </div>
             </TabsContent>
           </Tabs>
+            </TabsContent>
 
-          {/* Conteúdo detalhado */}
-          <InitialViewGate>
-            <Tabs defaultValue="atencao" className="space-y-4">
+            <TabsContent value="analises" className="space-y-4">
+              <InitialViewGate>
+                <Tabs defaultValue="atencao" className="space-y-4">
               <TabsList className="flex flex-wrap h-auto gap-1">
                 <TabsTrigger value="atencao" className="gap-1.5"><Activity className="h-4 w-4" />Visão Pastoral</TabsTrigger>
                 <TabsTrigger value="saude" className="gap-1.5"><Heart className="h-4 w-4" />Saúde da Rede</TabsTrigger>
@@ -391,8 +399,10 @@ export function NetworkLeaderDashboard({ initialRedeId, overrideCampoId, onBack,
               <TabsContent value="historico"><ReportsHistoryTable reports={currentReports} onEdit={handleEditReport} onDelete={handleDeleteReport} /></TabsContent>
               <TabsContent value="insights"><AIInsightsPanel reports={currentReports} periodLabel={formatDateRangeDisplay()} context="rede" /></TabsContent>
               <TabsContent value="fotos"><CelulaPhotoGallery reports={currentReports} /></TabsContent>
-            </Tabs>
-          </InitialViewGate>
+                </Tabs>
+              </InitialViewGate>
+            </TabsContent>
+          </Tabs>
         </>
       )}
 

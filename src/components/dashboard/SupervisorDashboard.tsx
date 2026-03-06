@@ -110,39 +110,44 @@ export function SupervisorDashboard() {
 
       {selectedSupervisor && (
         <div className="space-y-6">
-          {/* ═══ PRIMEIRA TELA — Métricas Estruturais ═══ */}
-          <SectionLabel title="Dados Estruturais" subtitle="Visão consolidada do supervisor" />
-          <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
-            <StatCard icon={Home} label="Células" value={filteredCelulas.length} />
-            <StatCard icon={ClipboardCheck} label="Supervisões" value={supervisoes?.length || 0} subtitle="registradas" />
-            <StatCard icon={AlertTriangle} label="Pendentes" value={pendingSupervisoes.length} subtitle="sem supervisão" className={pendingSupervisoes.length > 0 ? 'border-amber-500/30' : ''} />
-          </div>
+          <Tabs defaultValue="visao-geral" className="space-y-4">
+            <TabsList className="w-full h-auto justify-start gap-1 overflow-x-auto whitespace-nowrap">
+              <TabsTrigger value="visao-geral">Visão Geral</TabsTrigger>
+              <TabsTrigger value="cuidado">Cuidado e Supervisão</TabsTrigger>
+            </TabsList>
 
-          {/* Ação rápida */}
-          <Card className="border-l-4 border-l-primary">
-            <CardContent className="py-4 px-5">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold">Registrar Supervisão</h3>
-                  <p className="text-xs text-muted-foreground">
-                    {pendingSupervisoes.length > 0
-                      ? `${pendingSupervisoes.length} célula(s) ainda sem supervisão`
-                      : 'Todas as células supervisionadas ✓'}
-                  </p>
-                </div>
-                <Button onClick={() => setIsFormOpen(true)} size="sm">
-                  <Plus className="h-4 w-4 mr-2" />Registrar
-                </Button>
+            <TabsContent value="visao-geral" className="space-y-6">
+              <SectionLabel title="Dados Estruturais" subtitle="Visão consolidada do supervisor" />
+              <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
+                <StatCard icon={Home} label="Células" value={filteredCelulas.length} />
+                <StatCard icon={ClipboardCheck} label="Supervisões" value={supervisoes?.length || 0} subtitle="registradas" />
+                <StatCard icon={AlertTriangle} label="Pendentes" value={pendingSupervisoes.length} subtitle="sem supervisão" className={pendingSupervisoes.length > 0 ? 'border-amber-500/30' : ''} />
               </div>
-            </CardContent>
-          </Card>
 
-          {/* Saúde */}
-          <RadarSaudeSupervisorPanel supervisorId={selectedSupervisor} coordenacaoId={selectedCoordenacao} />
+              <Card className="border-l-4 border-l-primary">
+                <CardContent className="py-4 px-5">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="font-semibold">Registrar Supervisão</h3>
+                      <p className="text-xs text-muted-foreground">
+                        {pendingSupervisoes.length > 0
+                          ? `${pendingSupervisoes.length} célula(s) ainda sem supervisão`
+                          : 'Todas as células supervisionadas ✓'}
+                      </p>
+                    </div>
+                    <Button onClick={() => setIsFormOpen(true)} size="sm">
+                      <Plus className="h-4 w-4 mr-2" />Registrar
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
 
-          {/* Conteúdo detalhado */}
-          <InitialViewGate>
-            <Tabs defaultValue="planejamento" className="space-y-4">
+              <RadarSaudeSupervisorPanel supervisorId={selectedSupervisor} coordenacaoId={selectedCoordenacao} />
+            </TabsContent>
+
+            <TabsContent value="cuidado" className="space-y-4">
+              <InitialViewGate>
+                <Tabs defaultValue="planejamento" className="space-y-4">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="planejamento" className="text-xs gap-1"><Calendar className="h-3.5 w-3.5" />Planejamento</TabsTrigger>
                 <TabsTrigger value="historico" className="text-xs gap-1"><ClipboardCheck className="h-3.5 w-3.5" />Histórico</TabsTrigger>
@@ -196,8 +201,10 @@ export function SupervisorDashboard() {
                   </CardContent>
                 </Card>
               </TabsContent>
-            </Tabs>
-          </InitialViewGate>
+                </Tabs>
+              </InitialViewGate>
+            </TabsContent>
+          </Tabs>
         </div>
       )}
 

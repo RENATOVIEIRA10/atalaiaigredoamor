@@ -170,27 +170,34 @@ export function CoordinatorDashboard() {
 
       {selectedCoordenacao && (
         <div className="space-y-6">
-          {/* ═══ PRIMEIRA TELA — Métricas Estruturais ═══ */}
-          <LeaderBirthdayAlert coordenacaoId={selectedCoordenacao} />
-          <SectionLabel title="Dados Estruturais" subtitle="Visão consolidada da coordenação" />
-          <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
-            <StatCard icon={Home} label="Células" value={coordCelulas.length} />
-            <StatCard icon={Users} label="Membros Ativos" value={coordMembersCount} />
-            <StatCard icon={ClipboardCheck} label="Supervisões" value={supervisoes?.length || 0} subtitle="registradas" />
-          </div>
+          <Tabs defaultValue="visao-geral" className="space-y-4">
+            <TabsList className="w-full h-auto justify-start gap-1 overflow-x-auto whitespace-nowrap">
+              <TabsTrigger value="visao-geral">Visão Geral</TabsTrigger>
+              <TabsTrigger value="acompanhamento">Acompanhamento</TabsTrigger>
+              <TabsTrigger value="analises">Movimento, Saúde e Cuidado</TabsTrigger>
+            </TabsList>
 
-          {/* ═══ POTENCIAIS PARA SERVIR ═══ */}
-          <SectionLabel title="Potenciais para Servir" subtitle="Membros prontos para novos desafios" />
-          <PotenciaisServirCard coordenacaoId={selectedCoordenacao} />
+            <TabsContent value="visao-geral" className="space-y-6">
+              <LeaderBirthdayAlert coordenacaoId={selectedCoordenacao} />
+              <SectionLabel title="Dados Estruturais" subtitle="Visão consolidada da coordenação" />
+              <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
+                <StatCard icon={Home} label="Células" value={coordCelulas.length} />
+                <StatCard icon={Users} label="Membros Ativos" value={coordMembersCount} />
+                <StatCard icon={ClipboardCheck} label="Supervisões" value={supervisoes?.length || 0} subtitle="registradas" />
+              </div>
 
-          <div className="flex justify-end">
-            <Button variant="outline" onClick={() => setShowRecommendationDialog(true)}>
-              Indicar para Supervisor
-            </Button>
-          </div>
+              <SectionLabel title="Potenciais para Servir" subtitle="Membros prontos para novos desafios" />
+              <PotenciaisServirCard coordenacaoId={selectedCoordenacao} />
 
-          {/* ═══ ABAS OPERACIONAIS ═══ */}
-          <Tabs defaultValue="semanal" className="space-y-4">
+              <div className="flex justify-end">
+                <Button variant="outline" onClick={() => setShowRecommendationDialog(true)}>
+                  Indicar para Supervisor
+                </Button>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="acompanhamento" className="space-y-4">
+              <Tabs defaultValue="semanal" className="space-y-4">
             <TabsList className="flex flex-wrap h-auto gap-1">
               <TabsTrigger value="semanal" className="gap-1.5"><Calendar className="h-4 w-4" />Acompanhamento Semanal</TabsTrigger>
               <TabsTrigger value="movimento" className="gap-1.5"><Sprout className="h-4 w-4" />Movimento do Reino</TabsTrigger>
@@ -286,10 +293,11 @@ export function CoordinatorDashboard() {
               </div>
             </TabsContent>
           </Tabs>
+            </TabsContent>
 
-          {/* Conteúdo detalhado */}
-          <InitialViewGate>
-            <Tabs defaultValue={urlTab === 'pulso' ? 'pulso' : 'planejamento'} className="space-y-4">
+            <TabsContent value="analises" className="space-y-4">
+              <InitialViewGate>
+                <Tabs defaultValue={urlTab === 'pulso' ? 'pulso' : 'planejamento'} className="space-y-4">
               <TabsList className="flex flex-wrap h-auto gap-1">
                 <TabsTrigger value="planejamento" className="gap-1.5"><Calendar className="h-4 w-4" />Planejamento</TabsTrigger>
                 <TabsTrigger value="pulso" className="gap-1.5"><Activity className="h-4 w-4" />Visão Pastoral</TabsTrigger>
@@ -318,8 +326,10 @@ export function CoordinatorDashboard() {
                   )}
                 </div>
               </TabsContent>
-            </Tabs>
-          </InitialViewGate>
+                </Tabs>
+              </InitialViewGate>
+            </TabsContent>
+          </Tabs>
         </div>
       )}
 

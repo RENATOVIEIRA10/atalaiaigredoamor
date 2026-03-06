@@ -105,117 +105,124 @@ function CampoPastorDashboard() {
         <RevelaShortcut />
       </div>
 
-      {/* ═══ 1. PANORAMA DA IGREJA — Dados Estruturais ═══ */}
-      <SectionLabel title="Panorama da Igreja" subtitle="Dados estruturais consolidados" />
-      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-        <StatCard icon={Network} label="Redes" value={redeGrowth?.length || 0} />
-        <StatCard icon={Home} label="Células Ativas" value={pulso?.totalCelulas || 0} />
-        <StatCard icon={Users} label="Membros Ativos" value={stats?.totalMembers || 0} />
-        <StatCard icon={GitBranch} label="Multiplicações" value={stats?.multiplicacoes90dias || 0} subtitle="últimos 90 dias" />
-      </div>
+      <Tabs defaultValue="visao-geral" className="space-y-4">
+        <TabsList className="w-full h-auto justify-start gap-1 overflow-x-auto whitespace-nowrap">
+          <TabsTrigger value="visao-geral">Visão Geral</TabsTrigger>
+          <TabsTrigger value="movimento">Movimento do Reino</TabsTrigger>
+          <TabsTrigger value="pastoral">Visão Pastoral e Cuidado</TabsTrigger>
+        </TabsList>
 
-      {/* ═══ 2. MOVIMENTO DO REINO ═══ */}
-      <SectionLabel title="Movimento do Reino" subtitle="Crescimento espiritual do rebanho" />
-      <Card>
-        <CardContent className="pt-6">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <MarcoCard label="Conversões" value={conversions?.conversoes90dias || 0} icon="🔥" subtitle="Recomeço · 90 dias" />
-            <MarcoCard label="Novos Membros" value={conversions?.novosMembros90dias || 0} icon="🌱" subtitle="integrados · 90 dias" />
-            <MarcoCard label="Batismos" value={pulso?.marcosBatismo || 0} icon="💧" subtitle="acumulado" />
-            <MarcoCard label="Multiplicações" value={stats?.multiplicacoes90dias || 0} icon="🌿" subtitle="últimos 90 dias" />
+        <TabsContent value="visao-geral" className="space-y-6">
+          <SectionLabel title="Panorama da Igreja" subtitle="Dados estruturais consolidados" />
+          <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+            <StatCard icon={Network} label="Redes" value={redeGrowth?.length || 0} />
+            <StatCard icon={Home} label="Células Ativas" value={pulso?.totalCelulas || 0} />
+            <StatCard icon={Users} label="Membros Ativos" value={stats?.totalMembers || 0} />
+            <StatCard icon={GitBranch} label="Multiplicações" value={stats?.multiplicacoes90dias || 0} subtitle="últimos 90 dias" />
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3">
-            <MarcoCard label="Encontro c/ Deus" value={pulso?.marcosEncontro || 0} icon="⛰️" />
-            <MarcoCard label="Discipulado" value={pulso?.marcosDiscipulado || 0} icon="📖" />
-            <MarcoCard label="Curso Lidere" value={pulso?.marcosCursoLidere || 0} icon="🎓" />
-            <MarcoCard label="Conversões (total)" value={conversions?.conversoes || 0} icon="✝️" subtitle="acumulado geral" />
-          </div>
-        </CardContent>
-      </Card>
 
-      {celebrations && celebrations.length > 0 && (
-        <div className="grid gap-3 md:grid-cols-2">
-          {celebrations.map((c, i) => (
-            <Card key={i} className="border-primary/10 bg-primary/5">
-              <CardContent className="p-4 flex items-start gap-3">
-                <PartyPopper className="h-5 w-5 text-primary mt-0.5 shrink-0" />
-                <div>
-                  <p className="text-sm font-medium">{c.title}</p>
-                  <p className="text-sm text-muted-foreground mt-1">{c.description}</p>
+          <SectionLabel title="Saúde das Redes" subtitle="Visão consolidada por rede" />
+          {redeGrowth && redeGrowth.length > 0 ? (
+            <Card>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-muted/50">
+                        <TableHead>Rede</TableHead>
+                        <TableHead className="text-center">Células</TableHead>
+                        <TableHead className="text-center">Membros</TableHead>
+                        <TableHead className="text-center">Média Presença</TableHead>
+                        <TableHead className="text-center">Relatórios (6m)</TableHead>
+                        <TableHead className="text-center">Indicador</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {redeGrowth.map((rede) => {
+                        const healthScore = rede.celulas_count > 0 ? Math.min(100, Math.round((rede.reports_count / (rede.celulas_count * 4)) * 100)) : 0;
+                        const healthColor = healthScore >= 70 ? 'bg-green-500/10 text-green-600' : healthScore >= 40 ? 'bg-amber-500/10 text-amber-600' : 'bg-destructive/10 text-destructive';
+                        const healthLabel = healthScore >= 70 ? 'Saudável' : healthScore >= 40 ? 'Atenção' : 'Crítica';
+                        return (
+                          <TableRow key={rede.rede_name}>
+                            <TableCell className="font-medium">
+                              <div className="flex items-center gap-2"><Network className="h-3.5 w-3.5 text-primary" />{rede.rede_name}</div>
+                            </TableCell>
+                            <TableCell className="text-center tabular-nums">{rede.celulas_count}</TableCell>
+                            <TableCell className="text-center tabular-nums">{rede.members_count}</TableCell>
+                            <TableCell className="text-center tabular-nums">{rede.avg_attendance}</TableCell>
+                            <TableCell className="text-center tabular-nums">{rede.reports_count}</TableCell>
+                            <TableCell className="text-center">
+                              <Badge variant="secondary" className={`text-xs ${healthColor}`}>{healthLabel}</Badge>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
                 </div>
               </CardContent>
             </Card>
-          ))}
-        </div>
-      )}
+          ) : (
+            <Card className="border-dashed">
+              <CardContent className="p-6 text-center text-muted-foreground">
+                <Network className="h-8 w-8 mx-auto mb-2 opacity-30" />
+                <p className="text-sm">Nenhuma rede cadastrada</p>
+              </CardContent>
+            </Card>
+          )}
 
-      {/* ═══ 3. SAÚDE DAS REDES ═══ */}
-      <SectionLabel title="Saúde das Redes" subtitle="Visão consolidada por rede" />
-      {redeGrowth && redeGrowth.length > 0 ? (
-        <Card>
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted/50">
-                    <TableHead>Rede</TableHead>
-                    <TableHead className="text-center">Células</TableHead>
-                    <TableHead className="text-center">Membros</TableHead>
-                    <TableHead className="text-center">Média Presença</TableHead>
-                    <TableHead className="text-center">Relatórios (6m)</TableHead>
-                    <TableHead className="text-center">Indicador</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {redeGrowth.map((rede) => {
-                    const healthScore = rede.celulas_count > 0 ? Math.min(100, Math.round((rede.reports_count / (rede.celulas_count * 4)) * 100)) : 0;
-                    const healthColor = healthScore >= 70 ? 'bg-green-500/10 text-green-600' : healthScore >= 40 ? 'bg-amber-500/10 text-amber-600' : 'bg-destructive/10 text-destructive';
-                    const healthLabel = healthScore >= 70 ? 'Saudável' : healthScore >= 40 ? 'Atenção' : 'Crítica';
-                    return (
-                      <TableRow key={rede.rede_name}>
-                        <TableCell className="font-medium">
-                          <div className="flex items-center gap-2"><Network className="h-3.5 w-3.5 text-primary" />{rede.rede_name}</div>
-                        </TableCell>
-                        <TableCell className="text-center tabular-nums">{rede.celulas_count}</TableCell>
-                        <TableCell className="text-center tabular-nums">{rede.members_count}</TableCell>
-                        <TableCell className="text-center tabular-nums">{rede.avg_attendance}</TableCell>
-                        <TableCell className="text-center tabular-nums">{rede.reports_count}</TableCell>
-                        <TableCell className="text-center">
-                          <Badge variant="secondary" className={`text-xs ${healthColor}`}>{healthLabel}</Badge>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
+          <LeadershipRecommendationsSection
+            title="Indicações recebidas"
+            description="Indicações para Coordenador enviadas por Líderes de Rede do seu campo."
+          />
+        </TabsContent>
+
+        <TabsContent value="movimento" className="space-y-6">
+          <SectionLabel title="Movimento do Reino" subtitle="Crescimento espiritual do rebanho" />
+          <Card>
+            <CardContent className="pt-6">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <MarcoCard label="Conversões" value={conversions?.conversoes90dias || 0} icon="🔥" subtitle="Recomeço · 90 dias" />
+                <MarcoCard label="Novos Membros" value={conversions?.novosMembros90dias || 0} icon="🌱" subtitle="integrados · 90 dias" />
+                <MarcoCard label="Batismos" value={pulso?.marcosBatismo || 0} icon="💧" subtitle="acumulado" />
+                <MarcoCard label="Multiplicações" value={stats?.multiplicacoes90dias || 0} icon="🌿" subtitle="últimos 90 dias" />
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3">
+                <MarcoCard label="Encontro c/ Deus" value={pulso?.marcosEncontro || 0} icon="⛰️" />
+                <MarcoCard label="Discipulado" value={pulso?.marcosDiscipulado || 0} icon="📖" />
+                <MarcoCard label="Curso Lidere" value={pulso?.marcosCursoLidere || 0} icon="🎓" />
+                <MarcoCard label="Conversões (total)" value={conversions?.conversoes || 0} icon="✝️" subtitle="acumulado geral" />
+              </div>
+            </CardContent>
+          </Card>
+
+          {celebrations && celebrations.length > 0 && (
+            <div className="grid gap-3 md:grid-cols-2">
+              {celebrations.map((c, i) => (
+                <Card key={i} className="border-primary/10 bg-primary/5">
+                  <CardContent className="p-4 flex items-start gap-3">
+                    <PartyPopper className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium">{c.title}</p>
+                      <p className="text-sm text-muted-foreground mt-1">{c.description}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
-          </CardContent>
-        </Card>
-      ) : (
-        <Card className="border-dashed">
-          <CardContent className="p-6 text-center text-muted-foreground">
-            <Network className="h-8 w-8 mx-auto mb-2 opacity-30" />
-            <p className="text-sm">Nenhuma rede cadastrada</p>
-          </CardContent>
-        </Card>
-      )}
+          )}
+        </TabsContent>
 
-      <LeadershipRecommendationsSection
-        title="Indicações recebidas"
-        description="Indicações para Coordenador enviadas por Líderes de Rede do seu campo."
-      />
+        <TabsContent value="pastoral" className="space-y-6">
+          <SectionLabel title="Pontos de Atenção" subtitle="Alertas estratégicos gerados automaticamente" />
+          <PastorStrategicAlerts
+            alerts={alerts || []}
+            redeGrowth={redeGrowth || []}
+            stagnation={stagnation}
+            stats={stats}
+          />
 
-      {/* ═══ 4. PONTOS DE ATENÇÃO ═══ */}
-      <SectionLabel title="Pontos de Atenção" subtitle="Alertas estratégicos gerados automaticamente" />
-      <PastorStrategicAlerts
-        alerts={alerts || []}
-        redeGrowth={redeGrowth || []}
-        stagnation={stagnation}
-        stats={stats}
-      />
-
-      {/* ═══ 5. ABA: REUNIÃO COM LÍDERES DE REDE ═══ */}
-      <Tabs defaultValue="altar" className="space-y-4">
+          <Tabs defaultValue="altar" className="space-y-4">
         <TabsList className="flex flex-wrap h-auto gap-1">
           <TabsTrigger value="altar" className="gap-1.5"><Footprints className="h-4 w-4" />Do Altar à Célula</TabsTrigger>
           <TabsTrigger value="reuniao" className="gap-1.5"><MessageSquare className="h-4 w-4" />Reunião com Líderes de Rede</TabsTrigger>
@@ -299,6 +306,8 @@ function CampoPastorDashboard() {
             <RadarSaudePanel scopeType="all" campoId={campoId} title="Saúde da Rede" />
             <RecomecoPastorTab />
           </div>
+        </TabsContent>
+          </Tabs>
         </TabsContent>
       </Tabs>
     </div>
