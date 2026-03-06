@@ -43,8 +43,15 @@ interface JourneySnapshot {
   leader_time_months?: number;
 }
 
+
+function getSnapshot(recommendation: LeadershipRecommendation): JourneySnapshot {
+  const raw = recommendation.highlights_json;
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {};
+  return raw as JourneySnapshot;
+}
+
 function RecommendationJourneySnapshot({ recommendation }: { recommendation: LeadershipRecommendation }) {
-  const snapshot = (recommendation.highlights_json || {}) as JourneySnapshot;
+  const snapshot = getSnapshot(recommendation);
   const marcos = snapshot.marcos?.length ? snapshot.marcos : ['Não informado'];
   const ministries = snapshot.ministries?.length ? snapshot.ministries.join(', ') : 'Não informado';
 
@@ -130,7 +137,7 @@ export function LeadershipRecommendationsSection({
               <TableBody>
                 {recommendations.map((r) => (
                   <TableRow key={r.id}>
-                    <TableCell className="font-medium">{((r.highlights_json as any)?.couple_name as string) || r.recommended_profile?.name || '—'}</TableCell>
+                    <TableCell className="font-medium">{getSnapshot(r).couple_name || r.recommended_profile?.name || '—'}</TableCell>
                     <TableCell>{r.requested_by_profile?.name || '—'}</TableCell>
                     <TableCell>{r.recommendation_type === 'supervisor' ? 'Supervisor' : 'Coordenador'}</TableCell>
                     <TableCell>{new Date(r.created_at).toLocaleDateString('pt-BR')}</TableCell>
@@ -156,7 +163,7 @@ export function LeadershipRecommendationsSection({
 
             {selected && (
               <div className="space-y-4 text-sm">
-                <p><strong>Indicado:</strong> {((selected.highlights_json as any)?.couple_name as string) || selected.recommended_profile?.name || '-'}</p>
+                <p><strong>Indicado:</strong> {getSnapshot(selected).couple_name || selected.recommended_profile?.name || '-'}</p>
                 <p><strong>Função sugerida:</strong> {selected.recommendation_type === 'supervisor' ? 'Supervisor' : 'Coordenador'}</p>
                 <p><strong>Justificativa da indicação:</strong></p>
                 <div className="rounded-md border bg-muted/30 p-3 whitespace-pre-wrap">{selected.justification_text}</div>
