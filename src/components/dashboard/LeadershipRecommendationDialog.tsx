@@ -89,7 +89,7 @@ export function LeadershipRecommendationDialog({ open, onOpenChange, recommendat
       requested_by_scope_type: scopeType || 'unknown',
       target_reviewer_scope_type: targetReviewerScopeType,
       justification_text: justification.trim(),
-      highlights_json: journeyData.snapshot,
+      highlights_json: JSON.parse(JSON.stringify(journeyData.snapshot)),
       status: 'pending',
     });
 

@@ -998,10 +998,10 @@ export type Database = {
           justification_text: string
           recommendation_type: string
           recommended_celula_id: string | null
-          recommended_current_role: string | null
+          recommended_current_role: string
           recommended_member_id: string | null
-          recommended_profile_id: string
-          rede_id: string | null
+          recommended_profile_id: string | null
+          rede_id: string
           requested_by_profile_id: string | null
           requested_by_scope_type: string
           requested_by_user_id: string
@@ -1016,20 +1016,20 @@ export type Database = {
           created_at?: string
           highlights_json?: Json | null
           id?: string
-          justification_text: string
+          justification_text?: string
           recommendation_type: string
           recommended_celula_id?: string | null
-          recommended_current_role?: string | null
+          recommended_current_role?: string
           recommended_member_id?: string | null
-          recommended_profile_id: string
-          rede_id?: string | null
+          recommended_profile_id?: string | null
+          rede_id: string
           requested_by_profile_id?: string | null
-          requested_by_scope_type: string
+          requested_by_scope_type?: string
           requested_by_user_id: string
           reviewer_notes?: string | null
           reviewer_user_id?: string | null
           status?: string
-          target_reviewer_scope_type: string
+          target_reviewer_scope_type?: string
           updated_at?: string
         }
         Update: {
@@ -1040,10 +1040,10 @@ export type Database = {
           justification_text?: string
           recommendation_type?: string
           recommended_celula_id?: string | null
-          recommended_current_role?: string | null
+          recommended_current_role?: string
           recommended_member_id?: string | null
-          recommended_profile_id?: string
-          rede_id?: string | null
+          recommended_profile_id?: string | null
+          rede_id?: string
           requested_by_profile_id?: string | null
           requested_by_scope_type?: string
           requested_by_user_id?: string
