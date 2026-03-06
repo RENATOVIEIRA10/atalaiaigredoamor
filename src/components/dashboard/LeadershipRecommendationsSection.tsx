@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { useLeadershipRecommendations, useUpdateLeadershipRecommendationStatus, LeadershipRecommendation } from '@/hooks/useLeadershipRecommendations';
+import { LeadershipRecommendation, readRecommendationSnapshot, useLeadershipRecommendations, useUpdateLeadershipRecommendationStatus } from '@/hooks/useLeadershipRecommendations';
 
 const statusLabel: Record<string, string> = {
   pending: 'Pendente',
@@ -18,6 +18,55 @@ const statusLabel: Record<string, string> = {
 interface LeadershipRecommendationsSectionProps {
   title?: string;
   description?: string;
+}
+
+function renderSnapshotValue(value: unknown, fallback = 'Não informado') {
+  if (value === null || value === undefined || value === '') return fallback;
+  return String(value);
+}
+
+function RecommendationJourneySnapshot({ recommendation }: { recommendation: LeadershipRecommendation }) {
+  const snapshot = readRecommendationSnapshot(recommendation.highlights_json);
+  const marcos = snapshot.marcos?.length ? snapshot.marcos : ['Não informado'];
+  const ministries = snapshot.ministries?.length ? snapshot.ministries.join(', ') : 'Não informado';
+
+  return (
+    <div className="space-y-3 text-sm">
+      <p className="font-semibold">Resumo da jornada</p>
+
+      <div className="grid gap-3 md:grid-cols-2">
+        <div className="rounded-md border p-3 space-y-1">
+          <p className="font-semibold text-xs text-muted-foreground uppercase">Resumo da jornada</p>
+          <p><strong>Nome do casal:</strong> {renderSnapshotValue(snapshot.couple_name)}</p>
+          <p><strong>Célula:</strong> {renderSnapshotValue(snapshot.celula)}</p>
+          <p><strong>Coordenação:</strong> {renderSnapshotValue(snapshot.coordenacao)}</p>
+          <p><strong>Rede:</strong> {renderSnapshotValue(snapshot.rede)}</p>
+          <p><strong>Campus:</strong> {renderSnapshotValue(snapshot.campo)}</p>
+          <p><strong>Função atual:</strong> {renderSnapshotValue(snapshot.current_role)}</p>
+          <p><strong>Membros na célula:</strong> {renderSnapshotValue(snapshot.members_in_celula)}</p>
+          <p><strong>Tempo como líder de célula:</strong> {renderSnapshotValue(snapshot.leader_time_months)} meses</p>
+        </div>
+
+        <div className="rounded-md border p-3 space-y-1">
+          <p className="font-semibold text-xs text-muted-foreground uppercase">Dados pessoais</p>
+          <p><strong>Tempo de igreja:</strong> {renderSnapshotValue(snapshot.tempo_igreja)}</p>
+          <p><strong>Entrada na igreja:</strong> {renderSnapshotValue(snapshot.entry_date)}</p>
+          <p><strong>Aniversário:</strong> {renderSnapshotValue(snapshot.birth_date)}</p>
+          <p><strong>Serve em ministério:</strong> {snapshot.serve_ministry ? 'Sim' : 'Não'}</p>
+          <p><strong>Ministérios:</strong> {ministries}</p>
+        </div>
+      </div>
+
+      <div className="rounded-md border p-3">
+        <p className="font-semibold text-xs text-muted-foreground uppercase mb-2">Formação espiritual</p>
+        <div className="flex gap-2 flex-wrap">
+          {marcos.map((m) => (
+            <Badge key={m} variant="secondary">{m}</Badge>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export function LeadershipRecommendationsSection({
@@ -63,7 +112,7 @@ export function LeadershipRecommendationsSection({
               <TableBody>
                 {recommendations.map((r) => (
                   <TableRow key={r.id}>
-                    <TableCell className="font-medium">{r.recommended_profile?.name || '—'}</TableCell>
+                    <TableCell className="font-medium">{readRecommendationSnapshot(r.highlights_json).couple_name || r.recommended_profile?.name || '—'}</TableCell>
                     <TableCell>{r.requested_by_profile?.name || '—'}</TableCell>
                     <TableCell>{r.recommendation_type === 'supervisor' ? 'Supervisor' : 'Coordenador'}</TableCell>
                     <TableCell>{new Date(r.created_at).toLocaleDateString('pt-BR')}</TableCell>
@@ -81,7 +130,7 @@ export function LeadershipRecommendationsSection({
         )}
 
         <Dialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Indicação para análise</DialogTitle>
               <DialogDescription>Essa indicação não altera automaticamente a função da pessoa.</DialogDescription>
@@ -89,15 +138,12 @@ export function LeadershipRecommendationsSection({
 
             {selected && (
               <div className="space-y-4 text-sm">
-                <p><strong>Indicado:</strong> {selected.recommended_profile?.name || '-'}</p>
+                <p><strong>Indicado:</strong> {readRecommendationSnapshot(selected.highlights_json).couple_name || selected.recommended_profile?.name || '-'}</p>
                 <p><strong>Função sugerida:</strong> {selected.recommendation_type === 'supervisor' ? 'Supervisor' : 'Coordenador'}</p>
                 <p><strong>Justificativa da indicação:</strong></p>
                 <div className="rounded-md border bg-muted/30 p-3 whitespace-pre-wrap">{selected.justification_text}</div>
 
-                <div className="rounded-md border p-3 space-y-1">
-                  <p><strong>Dados da jornada:</strong></p>
-                  <pre className="text-xs whitespace-pre-wrap">{JSON.stringify(selected.highlights_json, null, 2)}</pre>
-                </div>
+                <RecommendationJourneySnapshot recommendation={selected} />
 
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Observações do revisor</label>

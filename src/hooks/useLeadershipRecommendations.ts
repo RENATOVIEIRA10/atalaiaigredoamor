@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { differenceInMonths } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables, TablesInsert } from '@/integrations/supabase/types';
 import { useToast } from '@/hooks/use-toast';
@@ -9,7 +10,8 @@ import { useMembers } from '@/hooks/useMembers';
 import { useCelulas } from '@/hooks/useCelulas';
 import { useCoordenacoes } from '@/hooks/useCoordenacoes';
 import { useRedes } from '@/hooks/useRedes';
-import { differenceInMonths } from 'date-fns';
+import { useCampos } from '@/hooks/useCampos';
+import { useLeadershipCouples, getCoupleDisplayName } from '@/hooks/useLeadershipCouples';
 
 export type LeadershipRecommendation = Tables<'leadership_recommendations'> & {
   recommended_profile?: { id: string; name: string; avatar_url: string | null; joined_church_at: string | null } | null;
@@ -17,6 +19,49 @@ export type LeadershipRecommendation = Tables<'leadership_recommendations'> & {
   recommended_celula?: { id: string; name: string } | null;
   requested_by_profile?: { id: string; name: string } | null;
 };
+
+export interface CoupleJourneySummary {
+  couple_id: string;
+  couple_name: string;
+  current_role: 'lider_celula';
+  celula: string;
+  coordenacao: string;
+  rede: string;
+  campo: string;
+  tempo_igreja: string;
+  tempo_igreja_meses: number | null;
+  entry_date: string | null;
+  birth_date: string | null;
+  serve_ministry: boolean;
+  ministries: string[];
+  marcos: string[];
+  members_in_celula: number | null;
+  leader_since: string | null;
+  leader_time_months: number | null;
+}
+
+export interface RecommendationJourneySnapshot {
+  couple_name?: string;
+  current_role?: string;
+  celula?: string;
+  coordenacao?: string;
+  rede?: string;
+  campo?: string;
+  tempo_igreja?: string;
+  entry_date?: string | null;
+  birth_date?: string | null;
+  serve_ministry?: boolean;
+  ministries?: string[];
+  marcos?: string[];
+  members_in_celula?: number | null;
+  leader_since?: string | null;
+  leader_time_months?: number | null;
+}
+
+export function readRecommendationSnapshot(input: unknown): RecommendationJourneySnapshot {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) return {};
+  return input as RecommendationJourneySnapshot;
+}
 
 export function useLeadershipRecommendations() {
   const { scopeId, scopeType } = useRole();
@@ -114,49 +159,157 @@ export function useUpdateLeadershipRecommendationStatus() {
   });
 }
 
-export function useRecommendationJourneyData(profileId: string | null) {
+function normalizeDate(date?: string | null) {
+  return date || null;
+}
+
+function formatDateBr(date?: string | null) {
+  if (!date) return 'Não informado';
+  const parsed = new Date(date);
+  if (Number.isNaN(parsed.getTime())) return 'Não informado';
+  return parsed.toLocaleDateString('pt-BR');
+}
+
+function formatTimeInChurch(months: number | null) {
+  if (months === null) return 'Não informado';
+  if (months < 12) return `${months} meses`;
+  const years = Math.floor(months / 12);
+  const rem = months % 12;
+  if (rem === 0) return `${years} ${years === 1 ? 'ano' : 'anos'}`;
+  return `${years} ${years === 1 ? 'ano' : 'anos'} e ${rem} meses`;
+}
+
+function getEarliestDate(values: Array<string | null | undefined>) {
+  const valid = values
+    .filter(Boolean)
+    .map((d) => new Date(d as string))
+    .filter((d) => !Number.isNaN(d.getTime()))
+    .sort((a, b) => a.getTime() - b.getTime());
+  return valid.length ? valid[0].toISOString().slice(0, 10) : null;
+}
+
+function getLatestBirthDate(values: Array<string | null | undefined>) {
+  const valid = values.filter(Boolean) as string[];
+  if (!valid.length) return null;
+  return valid[0];
+}
+
+export function useRecommendationJourneyData(coupleId: string | null) {
   const { data: members } = useMembers();
   const { data: celulas } = useCelulas();
   const { data: coordenacoes } = useCoordenacoes();
   const { data: redes } = useRedes();
+  const { data: campos } = useCampos();
+  const { data: couples } = useLeadershipCouples();
+
+  const { data: leaderFunctions } = useQuery({
+    queryKey: ['leadership_functions', 'celula_leader_start'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('leadership_functions')
+        .select('id, leadership_couple_id, created_at, function_type, active')
+        .eq('function_type', 'celula_leader')
+        .eq('active', true);
+      if (error) throw error;
+      return data || [];
+    },
+  });
 
   return useMemo(() => {
-    if (!profileId || !members || !celulas || !coordenacoes || !redes) return null;
+    if (!coupleId || !members || !celulas || !coordenacoes || !redes || !campos || !couples) return null;
 
-    const member = members.find((m) => m.profile_id === profileId);
-    if (!member) return null;
+    const couple = couples.find((c) => c.id === coupleId);
+    if (!couple) return null;
 
-    const celula = celulas.find((c) => c.id === member.celula_id) || null;
-    const coordenacao = celula ? coordenacoes.find((c) => c.id === celula.coordenacao_id) : null;
-    const rede = celula ? redes.find((r) => r.id === celula.rede_id) : null;
+    const celula = celulas.find((c) => c.leadership_couple_id === coupleId) || null;
+    if (!celula) return null;
 
-    const joinedAt = member.profile?.joined_church_at ?? null;
-    const joinedAtMember = member.joined_at ?? null;
-    const referenceDate = joinedAt || joinedAtMember;
-    const tempoIgrejaMeses = referenceDate ? Math.max(0, differenceInMonths(new Date(), new Date(referenceDate))) : null;
+    const coordenacao = coordenacoes.find((c) => c.id === celula.coordenacao_id) || null;
+    const rede = redes.find((r) => r.id === celula.rede_id) || null;
+    const campo = campos.find((c) => c.id === celula.campo_id) || null;
 
-    const marcos = [
-      member.batismo ? 'batizado' : null,
-      member.encontro_com_deus ? 'encontro_com_deus' : null,
-      member.renovo ? 'renovo' : null,
-      member.curso_lidere ? 'curso_lidere' : null,
-      member.is_discipulado ? 'discipulado' : null,
-      member.is_lider_em_treinamento ? 'lider_em_treinamento' : null,
-    ].filter(Boolean) as string[];
+    const spouseMembers = members.filter((m) => m.profile_id === couple.spouse1_id || m.profile_id === couple.spouse2_id);
+    const spouse1Member = spouseMembers.find((m) => m.profile_id === couple.spouse1_id) || null;
+    const spouse2Member = spouseMembers.find((m) => m.profile_id === couple.spouse2_id) || null;
+
+    const entryDate = getEarliestDate([
+      couple.spouse1?.joined_church_at,
+      couple.spouse2?.joined_church_at,
+      spouse1Member?.joined_at,
+      spouse2Member?.joined_at,
+    ]);
+
+    const tempoIgrejaMeses = entryDate ? Math.max(0, differenceInMonths(new Date(), new Date(entryDate))) : null;
+
+    const ministries = Array.from(new Set([
+      ...(spouse1Member?.ministerios || []),
+      ...(spouse2Member?.ministerios || []),
+    ])).filter(Boolean);
+
+    const marcos = Array.from(new Set([
+      spouse1Member?.batismo || spouse2Member?.batismo ? 'Batizado' : null,
+      spouse1Member?.encontro_com_deus || spouse2Member?.encontro_com_deus ? 'Encontro com Deus' : null,
+      spouse1Member?.renovo || spouse2Member?.renovo ? 'Renovo' : null,
+      spouse1Member?.curso_lidere || spouse2Member?.curso_lidere ? 'Curso Lidere' : null,
+      spouse1Member?.is_discipulado || spouse2Member?.is_discipulado ? 'Discipulado concluído' : null,
+      'Líder de célula ativo',
+    ])).filter(Boolean) as string[];
+
+    const activeMembersInCell = members.filter((m) => m.celula_id === celula.id && m.is_active).length;
+
+    const leaderStarts = (leaderFunctions || [])
+      .filter((f) => f.leadership_couple_id === coupleId)
+      .map((f) => f.created_at)
+      .sort();
+    const leaderSince = leaderStarts.length > 0 ? leaderStarts[0] : null;
+    const leaderTimeMonths = leaderSince ? Math.max(0, differenceInMonths(new Date(), new Date(leaderSince))) : null;
+
+    const snapshot: CoupleJourneySummary = {
+      couple_id: coupleId,
+      couple_name: getCoupleDisplayName(couple) || 'Não informado',
+      current_role: 'lider_celula',
+      celula: celula.name || 'Não informado',
+      coordenacao: coordenacao?.name || 'Não informado',
+      rede: rede?.name || 'Não informado',
+      campo: campo?.nome || 'Não informado',
+      tempo_igreja: formatTimeInChurch(tempoIgrejaMeses),
+      tempo_igreja_meses: tempoIgrejaMeses,
+      entry_date: normalizeDate(entryDate),
+      birth_date: normalizeDate(getLatestBirthDate([couple.spouse1?.birth_date, couple.spouse2?.birth_date])),
+      serve_ministry: !!(spouse1Member?.serve_ministerio || spouse2Member?.serve_ministerio),
+      ministries,
+      marcos,
+      members_in_celula: activeMembersInCell,
+      leader_since: normalizeDate(leaderSince),
+      leader_time_months: leaderTimeMonths,
+    };
 
     return {
-      member,
+      couple,
       celula,
       coordenacao,
       rede,
-      snapshot: {
-        tempo_igreja_meses: tempoIgrejaMeses,
-        marcos,
-        serve_hoje: !!member.serve_ministerio,
-        funcao_atual: member.observacao_servico || (member.is_lider_em_treinamento ? 'lider_em_treinamento' : 'membro'),
-        celula: celula?.name || null,
-        rede: rede?.name || null,
+      campo,
+      spouse1Member,
+      spouse2Member,
+      snapshot,
+      ui: {
+        coupleName: snapshot.couple_name,
+        celula: snapshot.celula,
+        coordenacao: snapshot.coordenacao,
+        rede: snapshot.rede,
+        campo: snapshot.campo,
+        tempoIgreja: snapshot.tempo_igreja,
+        entryDate: formatDateBr(snapshot.entry_date),
+        birthDate: formatDateBr(snapshot.birth_date),
+        serveMinistry: snapshot.serve_ministry ? 'Sim' : 'Não',
+        ministries: snapshot.ministries.length ? snapshot.ministries.join(', ') : 'Não informado',
+        marcos: snapshot.marcos.length ? snapshot.marcos : ['Não informado'],
+        membersInCelula: snapshot.members_in_celula ?? 'Não informado',
+        role: 'Líder de célula',
+        leaderSince: formatDateBr(snapshot.leader_since),
+        leaderTime: snapshot.leader_time_months === null ? 'Não informado' : formatTimeInChurch(snapshot.leader_time_months),
       },
     };
-  }, [profileId, members, celulas, coordenacoes, redes]);
+  }, [coupleId, members, celulas, coordenacoes, redes, campos, couples, leaderFunctions]);
 }

@@ -6,13 +6,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useMembers } from '@/hooks/useMembers';
 import { useRole } from '@/contexts/RoleContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCreateLeadershipRecommendation, useRecommendationJourneyData } from '@/hooks/useLeadershipRecommendations';
-import { useCoordenacoes } from '@/hooks/useCoordenacoes';
 import { useRedes } from '@/hooks/useRedes';
 import { useUserAccessLinks } from '@/hooks/useUserAccessLinks';
+import { useCelulas } from '@/hooks/useCelulas';
+import { getCoupleDisplayName } from '@/hooks/useLeadershipCouples';
 
 interface LeadershipRecommendationDialogProps {
   open: boolean;
@@ -22,13 +22,12 @@ interface LeadershipRecommendationDialogProps {
 }
 
 export function LeadershipRecommendationDialog({ open, onOpenChange, recommendationType, title }: LeadershipRecommendationDialogProps) {
-  const [selectedProfileId, setSelectedProfileId] = useState<string>('');
+  const [selectedCoupleId, setSelectedCoupleId] = useState<string>('');
   const [justification, setJustification] = useState('');
   const { scopeType, scopeId } = useRole();
   const { user } = useAuth();
-  const { data: members } = useMembers();
-  const { data: coordenacoes } = useCoordenacoes();
   const { data: redes } = useRedes();
+  const { data: celulas } = useCelulas();
   const { links: accessLinks } = useUserAccessLinks();
   const createRecommendation = useCreateLeadershipRecommendation();
 
@@ -36,49 +35,55 @@ export function LeadershipRecommendationDialog({ open, onOpenChange, recommendat
     return (accessLinks || []).find((l) => l.active && l.scope_type === scopeType && l.scope_id === scopeId) || null;
   }, [accessLinks, scopeType, scopeId]);
 
-  const scopedMembers = useMemo(() => {
-    if (!members) return [];
+  const scopedLeaderCells = useMemo(() => {
+    const all = (celulas || []).filter((c) => !!c.leadership_couple_id);
+
     if (scopeType === 'coordenacao' && scopeId) {
-      const coord = coordenacoes?.find((c) => c.id === scopeId);
-      if (!coord) return [];
-      return members.filter((m) => m.campo_id === coord.campo_id && m.rede_id === coord.rede_id);
+      return all.filter((c) => c.coordenacao_id === scopeId);
     }
 
     if (scopeType === 'rede' && scopeId) {
       const rede = redes?.find((r) => r.id === scopeId);
       if (!rede) return [];
-      return members.filter((m) => m.campo_id === rede.campo_id && m.rede_id === rede.id);
+      return all.filter((c) => c.rede_id === scopeId && c.campo_id === rede.campo_id);
     }
 
     return [];
-  }, [members, scopeType, scopeId, coordenacoes, redes]);
+  }, [celulas, scopeType, scopeId, redes]);
 
-  const journeyData = useRecommendationJourneyData(selectedProfileId || null);
+  const selectedCell = useMemo(
+    () => scopedLeaderCells.find((c) => c.leadership_couple_id === selectedCoupleId) || null,
+    [scopedLeaderCells, selectedCoupleId],
+  );
+
+  const journeyData = useRecommendationJourneyData(selectedCoupleId || null);
 
   useEffect(() => {
     if (!open) {
-      setSelectedProfileId('');
+      setSelectedCoupleId('');
       setJustification('');
     }
   }, [open]);
 
   const question = recommendationType === 'supervisor'
-    ? 'Por que você está indicando esta pessoa para Supervisor?'
-    : 'Por que você está indicando esta pessoa para Coordenador?';
+    ? 'Por que você está indicando este casal para Supervisor?'
+    : 'Por que você está indicando este casal para Coordenador?';
 
   const targetReviewerScopeType = recommendationType === 'supervisor' ? 'rede' : 'pastor_campo';
+  const noAutoPromotionText = 'Indicar para análise. Essa indicação não altera automaticamente a função da pessoa.';
 
   const handleSubmit = async () => {
-    if (!selectedProfileId || !justification.trim() || !user || !accessLink || !journeyData) return;
+    if (!selectedCoupleId || !justification.trim() || !user || !accessLink || !journeyData || !selectedCell) return;
 
     await createRecommendation.mutateAsync({
-      campo_id: journeyData.member.campo_id,
-      rede_id: journeyData.member.rede_id,
+      campo_id: selectedCell.campo_id,
+      rede_id: selectedCell.rede_id,
       recommendation_type: recommendationType,
-      recommended_profile_id: selectedProfileId,
-      recommended_member_id: journeyData.member.id,
-      recommended_celula_id: journeyData.member.celula_id,
-      recommended_current_role: journeyData.snapshot.funcao_atual,
+      // Mantemos um profile/membro de referência para compatibilidade do schema atual
+      recommended_profile_id: journeyData.couple.spouse1_id,
+      recommended_member_id: journeyData.spouse1Member?.id ?? null,
+      recommended_celula_id: selectedCell.id,
+      recommended_current_role: 'lider_celula',
       requested_by_user_id: user.id,
       requested_by_profile_id: null,
       requested_by_scope_type: scopeType || 'unknown',
@@ -93,25 +98,25 @@ export function LeadershipRecommendationDialog({ open, onOpenChange, recommendat
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
-            Indicar para análise. Essa indicação não altera automaticamente a função da pessoa.
+            {noAutoPromotionText}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label>Pessoa indicada</Label>
-            <Select value={selectedProfileId} onValueChange={setSelectedProfileId}>
+            <Label>Casal de líderes de célula</Label>
+            <Select value={selectedCoupleId} onValueChange={setSelectedCoupleId}>
               <SelectTrigger>
-                <SelectValue placeholder="Selecione uma pessoa do seu escopo" />
+                <SelectValue placeholder="Selecione um casal do seu escopo" />
               </SelectTrigger>
               <SelectContent>
-                {scopedMembers.map((member) => (
-                  <SelectItem key={member.profile_id} value={member.profile_id}>
-                    {member.profile?.name || 'Sem nome'}
+                {scopedLeaderCells.map((cell) => (
+                  <SelectItem key={cell.leadership_couple_id!} value={cell.leadership_couple_id!}>
+                    {getCoupleDisplayName(cell.leadership_couple)} · {cell.name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -121,21 +126,39 @@ export function LeadershipRecommendationDialog({ open, onOpenChange, recommendat
           {journeyData && (
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm">Dados de apoio da jornada (somente leitura)</CardTitle>
+                <CardTitle className="text-base">Resumo da jornada</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-2 text-sm">
-                <p><strong>Nome:</strong> {journeyData.member.profile?.name}</p>
-                <p><strong>Célula atual:</strong> {journeyData.celula?.name || '-'}</p>
-                <p><strong>Rede / Coordenação:</strong> {journeyData.rede?.name || '-'} / {journeyData.coordenacao?.name || '-'}</p>
-                <p><strong>Tempo de igreja:</strong> {journeyData.snapshot.tempo_igreja_meses ?? '-'} meses</p>
-                <p><strong>Data de entrada na igreja:</strong> {journeyData.member.profile?.joined_church_at || '-'}</p>
-                <p><strong>Função atual:</strong> {journeyData.snapshot.funcao_atual || '-'}</p>
-                <p><strong>Status atual:</strong> {journeyData.member.is_active ? 'Ativo' : 'Inativo'}</p>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span><strong>Marcos:</strong></span>
-                  {journeyData.snapshot.marcos.length > 0 ? journeyData.snapshot.marcos.map((m) => (
-                    <Badge key={m} variant="secondary">{m}</Badge>
-                  )) : <span>-</span>}
+              <CardContent className="space-y-4 text-sm">
+                <div className="grid gap-3 md:grid-cols-2">
+                  <div className="rounded-md border p-3 space-y-1">
+                    <p className="font-semibold text-xs text-muted-foreground uppercase">Resumo da jornada</p>
+                    <p><strong>Nome do casal:</strong> {journeyData.ui.coupleName}</p>
+                    <p><strong>Célula:</strong> {journeyData.ui.celula}</p>
+                    <p><strong>Coordenação:</strong> {journeyData.ui.coordenacao}</p>
+                    <p><strong>Rede:</strong> {journeyData.ui.rede}</p>
+                    <p><strong>Campus:</strong> {journeyData.ui.campo}</p>
+                    <p><strong>Função atual:</strong> {journeyData.ui.role}</p>
+                    <p><strong>Membros na célula:</strong> {journeyData.ui.membersInCelula}</p>
+                    <p><strong>Tempo como líder de célula:</strong> {journeyData.ui.leaderTime}</p>
+                  </div>
+
+                  <div className="rounded-md border p-3 space-y-1">
+                    <p className="font-semibold text-xs text-muted-foreground uppercase">Dados pessoais</p>
+                    <p><strong>Tempo de igreja:</strong> {journeyData.ui.tempoIgreja}</p>
+                    <p><strong>Entrada na igreja:</strong> {journeyData.ui.entryDate}</p>
+                    <p><strong>Aniversário:</strong> {journeyData.ui.birthDate}</p>
+                    <p><strong>Serve em ministério:</strong> {journeyData.ui.serveMinistry}</p>
+                    <p><strong>Ministérios:</strong> {journeyData.ui.ministries}</p>
+                  </div>
+                </div>
+
+                <div className="rounded-md border p-3">
+                  <p className="font-semibold text-xs text-muted-foreground uppercase mb-2">Formação espiritual</p>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {journeyData.ui.marcos.map((m) => (
+                      <Badge key={m} variant="secondary">{m}</Badge>
+                    ))}
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -154,7 +177,7 @@ export function LeadershipRecommendationDialog({ open, onOpenChange, recommendat
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button onClick={handleSubmit} disabled={!selectedProfileId || !justification.trim() || createRecommendation.isPending}>
+          <Button onClick={handleSubmit} disabled={!selectedCoupleId || !justification.trim() || createRecommendation.isPending}>
             Enviar indicação
           </Button>
         </DialogFooter>
