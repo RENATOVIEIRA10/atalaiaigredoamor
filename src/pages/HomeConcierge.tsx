@@ -29,15 +29,15 @@ export default function HomeConcierge() {
   return (
     <AppLayout title="Início">
       <ScopeMissingGate>
-        <div className="max-w-2xl mx-auto space-y-8">
+        <div className="max-w-3xl mx-auto space-y-9">
           {/* Onboarding Banner */}
           <OnboardingBanner />
 
           {/* Header */}
-          <div className="relative">
-            <div className="absolute -top-8 -left-8 w-32 h-32 rounded-full bg-primary/5 blur-3xl pointer-events-none" />
+          <div className="relative premium-surface rounded-2xl px-5 py-4">
+            <div className="absolute -top-8 -left-8 w-32 h-32 rounded-full bg-primary/15 blur-3xl pointer-events-none" />
             <div className="relative flex items-center gap-4">
-              <div className="p-2.5 rounded-xl bg-primary/10 border border-primary/20">
+              <div className="p-2.5 rounded-xl bg-primary/15 border border-primary/30 shadow-[0_14px_24px_-18px_hsl(var(--primary)/0.9)]">
                 <svg width="24" height="24" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M30 80C30 80 35 45 50 20C65 45 70 80 70 80" stroke="hsl(239 84% 67%)" strokeWidth="6" strokeLinecap="round"/>
                   <path d="M40 65C45 62 55 62 60 65" stroke="hsl(239 84% 67%)" strokeWidth="4" strokeLinecap="round"/>
@@ -88,8 +88,8 @@ export default function HomeConcierge() {
 
 function SectionLabel({ label }: { label: string }) {
   return (
-    <h2 className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground/70 font-semibold mb-3 flex items-center gap-2">
-      <span className="h-px w-3 bg-primary/30" />
+    <h2 className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground/80 font-semibold mb-3 flex items-center gap-2">
+      <span className="h-px w-4 bg-primary/45" />
       {label}
     </h2>
   );

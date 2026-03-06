@@ -31,9 +31,9 @@ export function AppLayout({ children, title }: AppLayoutProps) {
     return (
       <div className="flex flex-col h-[100dvh] bg-background" style={{ height: '-webkit-fill-available' }}>
         <header
-          className="flex shrink-0 items-center gap-2 border-b border-border/30 px-4 bg-background/80 backdrop-blur-2xl z-30"
+          className="flex shrink-0 items-center gap-2 border-b border-border/50 px-4 bg-background/75 backdrop-blur-2xl z-30"
           style={{
-            boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+            boxShadow: '0 12px 30px -26px rgba(0,0,0,0.85)',
             minHeight: 'calc(48px + env(safe-area-inset-top, 0px))',
             paddingTop: 'env(safe-area-inset-top, 0px)',
           }}
@@ -61,7 +61,7 @@ export function AppLayout({ children, title }: AppLayoutProps) {
         </header>
 
         <main
-          className="flex-1 overflow-y-auto overscroll-y-contain p-4 internal-page-bg pwa-scroll-area"
+          className="flex-1 overflow-y-auto overscroll-y-contain p-4 md:p-5 internal-page-bg pwa-scroll-area"
           style={{ paddingBottom: 'calc(72px + env(safe-area-inset-bottom, 0px))' }}
         >
           <div className="pwa-page-enter" key={location.pathname + location.search}>
@@ -80,8 +80,8 @@ export function AppLayout({ children, title }: AppLayoutProps) {
       <AppSidebar />
       <SidebarInset className={isDemoActive ? 'pt-10' : ''}>
         <header
-          className="flex shrink-0 items-center gap-2 border-b border-border/30 px-4 bg-background/80 backdrop-blur-2xl sticky top-0 z-10"
-          style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.3)', height: '56px' }}
+          className="flex shrink-0 items-center gap-2 border-b border-border/50 px-4 bg-background/75 backdrop-blur-2xl sticky top-0 z-10"
+          style={{ boxShadow: '0 12px 30px -26px rgba(0,0,0,0.85)', height: '56px' }}
         >
           <SidebarTrigger className="-ml-1" />
           {title && (
@@ -100,7 +100,7 @@ export function AppLayout({ children, title }: AppLayoutProps) {
             <CampoSelector />
           </div>
         </header>
-        <main className="flex-1 overflow-auto p-4 md:p-6 lg:p-8 internal-page-bg">
+        <main className="flex-1 overflow-auto p-4 md:p-7 lg:p-9 internal-page-bg">
           <div className="animate-fade-in">
             {children}
           </div>
