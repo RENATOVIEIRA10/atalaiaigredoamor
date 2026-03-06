@@ -80,15 +80,15 @@ export function AppLayout({ children, title }: AppLayoutProps) {
       <AppSidebar />
       <SidebarInset className={isDemoActive ? 'pt-10' : ''}>
         <header
-          className="flex shrink-0 items-center gap-3 border-b border-border/70 px-4 md:px-6 bg-background/85 backdrop-blur-2xl sticky top-0 z-10"
-          style={{ boxShadow: '0 16px 30px -28px rgba(15, 23, 42, 0.45)', height: '64px' }}
+          className="sticky top-0 z-10 flex h-[72px] shrink-0 items-center gap-3 border-b border-border/50 bg-background/80 px-5 backdrop-blur-2xl md:px-8"
+          style={{ boxShadow: '0 20px 40px -34px rgba(15, 23, 42, 0.35)' }}
         >
-          <SidebarTrigger className="-ml-1 h-9 w-9 rounded-xl" />
+          <SidebarTrigger className="-ml-1 h-10 w-10 rounded-2xl" />
           {title && (
             <>
-              <Separator orientation="vertical" className="mr-2 h-4 bg-border/30" />
+              <Separator orientation="vertical" className="mr-2 h-5 bg-border/35" />
               <h1
-                className="text-base font-semibold text-foreground tracking-tight truncate"
+                className="truncate text-lg font-medium tracking-tight text-foreground"
                 style={{ fontFamily: "'Inter', sans-serif" }}
               >
                 {title}
@@ -100,7 +100,7 @@ export function AppLayout({ children, title }: AppLayoutProps) {
             <CampoSelector />
           </div>
         </header>
-        <main className="flex-1 overflow-auto p-4 md:p-7 lg:p-10 internal-page-bg">
+        <main className="internal-page-bg flex-1 overflow-auto p-4 md:p-8 lg:p-10">
           <div className="animate-fade-in">
             {children}
           </div>

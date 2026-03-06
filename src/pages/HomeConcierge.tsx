@@ -14,6 +14,7 @@ import { useSummaryMetrics, getScopeLevel } from '@/hooks/useSummaryMetrics';
 import { useRole } from '@/contexts/RoleContext';
 import { useCampo } from '@/contexts/CampoContext';
 import { roleLabels } from '@/lib/icons';
+import { Sparkles } from 'lucide-react';
 
 export default function HomeConcierge() {
   const { data: cards, isLoading: cardsLoading } = useConciergeCards();
@@ -24,64 +25,56 @@ export default function HomeConcierge() {
   const level = getScopeLevel(scopeType);
   const { incrementVisit } = useOnboarding();
 
-  useEffect(() => { incrementVisit(); }, []);
+  useEffect(() => {
+    incrementVisit();
+  }, []);
 
   return (
     <AppLayout title="Início">
       <ScopeMissingGate>
-        <div className="mx-auto w-full max-w-7xl space-y-7">
-          {/* Onboarding Banner */}
+        <div className="mx-auto w-full max-w-[1360px] space-y-8">
           <OnboardingBanner />
 
-          {/* Header */}
-          <div className="relative premium-surface rounded-2xl px-5 py-4">
-            <div className="absolute -top-8 -left-8 w-32 h-32 rounded-full bg-primary/15 blur-3xl pointer-events-none" />
-            <div className="relative flex items-center gap-4">
-              <div className="p-2.5 rounded-xl bg-primary/15 border border-primary/30 shadow-[0_14px_24px_-18px_hsl(var(--primary)/0.9)]">
-                <svg width="24" height="24" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M30 80C30 80 35 45 50 20C65 45 70 80 70 80" stroke="hsl(239 84% 67%)" strokeWidth="6" strokeLinecap="round"/>
-                  <path d="M40 65C45 62 55 62 60 65" stroke="hsl(239 84% 67%)" strokeWidth="4" strokeLinecap="round"/>
-                  <circle cx="50" cy="15" r="5" fill="hsl(239 84% 67%)" />
-                </svg>
-              </div>
-              <div className="flex-1">
-                <h1 className="text-lg font-bold text-foreground tracking-tight">
-                  O que precisa da sua atenção
-                </h1>
-                <p className="text-xs text-muted-foreground">
-                  {selectedRole ? roleLabels[selectedRole] : ''} 
-                  {activeCampo ? ` · ${activeCampo.nome}` : ''}
-                </p>
-              </div>
-              <AskGuideDialog />
-            </div>
-          </div>
+          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.85fr)]">
+            <section className="premium-surface relative overflow-hidden rounded-[2rem] px-6 py-7 md:px-8 md:py-8">
+              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,hsl(var(--primary)/0.18),transparent_52%)]" />
+              <div className="relative space-y-6">
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div className="space-y-2">
+                    <span className="inline-flex items-center gap-2 rounded-full border border-border/65 bg-background/65 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+                      <Sparkles className="h-3.5 w-3.5 text-primary" />
+                      Painel Concierge
+                    </span>
+                    <h1 className="text-2xl font-semibold tracking-tight text-foreground md:text-[2rem]">
+                      O que precisa da sua atenção hoje
+                    </h1>
+                    <p className="text-sm text-muted-foreground md:text-base">
+                      {selectedRole ? roleLabels[selectedRole] : ''}
+                      {activeCampo ? ` · ${activeCampo.nome}` : ''}
+                    </p>
+                  </div>
+                  <AskGuideDialog />
+                </div>
 
-          {/* 1. Concierge cards */}
-          <section>
-            <SectionLabel label="Ações prioritárias" />
-            <ConciergeCards cards={cards} isLoading={cardsLoading} />
-          </section>
-
-          <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
-            {/* 2. Quick actions */}
-            <section className="xl:col-span-6">
-              <SectionLabel label="Ações rápidas" />
-              <QuickActionsBar />
+                <SectionLabel label="Prioridades" />
+                <ConciergeCards cards={cards} isLoading={cardsLoading} />
+              </div>
             </section>
 
-            {/* 3. Summary metrics (label adapts to scope) */}
-            <section className="xl:col-span-6">
+            <aside className="space-y-5">
               <SectionLabel label={getSectionLabel(level)} />
               <SummaryMetricsPanel metrics={metrics} isLoading={metricsLoading} />
-            </section>
-
-            {/* 4. Recent activity */}
-            <section className="xl:col-span-12">
-              <SectionLabel label="Atividade recente" />
-              <RecentActivity items={activity} isLoading={activityLoading} />
-            </section>
+              <div className="premium-surface rounded-3xl p-5">
+                <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground/80">Ações essenciais</p>
+                <QuickActionsBar />
+              </div>
+            </aside>
           </div>
+
+          <section className="space-y-3">
+            <SectionLabel label="Atividade recente" />
+            <RecentActivity items={activity} isLoading={activityLoading} />
+          </section>
         </div>
       </ScopeMissingGate>
     </AppLayout>
@@ -90,8 +83,8 @@ export default function HomeConcierge() {
 
 function SectionLabel({ label }: { label: string }) {
   return (
-    <h2 className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground/80 font-semibold mb-3 flex items-center gap-2">
-      <span className="h-px w-4 bg-primary/45" />
+    <h2 className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground/80 font-medium flex items-center gap-2.5">
+      <span className="h-px w-6 bg-primary/40" />
       {label}
     </h2>
   );
