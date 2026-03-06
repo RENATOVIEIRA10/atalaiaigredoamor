@@ -122,7 +122,7 @@ export function AppSidebar() {
   return (
     <>
       <Sidebar>
-        <SidebarHeader className="border-b border-sidebar-border/30 p-5">
+        <SidebarHeader className="border-b border-sidebar-border/50 p-5 backdrop-blur-xl">
           <div className="flex items-center gap-2 flex-wrap">
             <AtalaiaIcon className="h-8 w-auto" />
             <div className="h-6 w-px bg-sidebar-border/30" />
@@ -132,7 +132,7 @@ export function AppSidebar() {
           </div>
         </SidebarHeader>
 
-        <SidebarContent className="px-2">
+        <SidebarContent className="px-2 py-2">
           {/* Campo Selector */}
           {(isPastorSeniorGlobal || isAdmin || isPastorDeCampo) && (
             <SidebarGroup>
@@ -152,7 +152,7 @@ export function AppSidebar() {
                   <SidebarMenuItem>
                     <SidebarMenuButton
                       onClick={() => setDemoDialogOpen(true)}
-                      className="h-11 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400"
+                      className="h-11 rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-600 shadow-[0_10px_26px_-18px_hsl(142_70%_45%)] hover:bg-emerald-500/18 dark:text-emerald-400"
                     >
                       <ShieldCheck className="h-4 w-4" />
                       <span className="font-medium">
@@ -212,13 +212,13 @@ export function AppSidebar() {
           </SidebarGroup>
         </SidebarContent>
 
-        <SidebarFooter className="border-t border-sidebar-border/30 p-4 space-y-3">
+        <SidebarFooter className="border-t border-sidebar-border/50 p-4 space-y-3 backdrop-blur-xl">
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
               size="sm"
               onClick={toggleTheme}
-              className="flex-1 h-9 text-xs font-medium text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent gap-2"
+              className="flex-1 h-9 rounded-lg border border-sidebar-border/40 text-xs font-medium text-sidebar-foreground/75 hover:text-sidebar-foreground hover:bg-sidebar-accent/75 gap-2"
             >
               <Moon className="h-4 w-4" />
               {theme === 'padrao' ? 'Tema Amor' : 'Tema Padrão'}
@@ -228,14 +228,14 @@ export function AppSidebar() {
             variant="ghost"
             size="sm"
             onClick={handleSwitchRole}
-            className="w-full h-9 text-xs font-medium text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent gap-2 justify-start"
+            className="w-full h-9 rounded-lg border border-sidebar-border/40 text-xs font-medium text-sidebar-foreground/75 hover:text-sidebar-foreground hover:bg-sidebar-accent/75 gap-2 justify-start"
           >
             <RefreshCw className="h-4 w-4" />
             Trocar Função
           </Button>
           <div className="flex items-center gap-3">
-            <Avatar className="h-9 w-9 border-2 border-sidebar-foreground/20">
-              <AvatarFallback className="bg-sidebar-primary/15 text-sidebar-foreground text-xs font-semibold">
+            <Avatar className="h-9 w-9 border border-sidebar-primary/35 shadow-sm">
+              <AvatarFallback className="bg-sidebar-primary/20 text-sidebar-foreground text-xs font-semibold">
                 {selectedRole?.charAt(0).toUpperCase() || 'U'}
               </AvatarFallback>
             </Avatar>
@@ -251,7 +251,7 @@ export function AppSidebar() {
               variant="ghost"
               size="icon"
               onClick={handleLogout}
-              className="h-9 w-9 shrink-0 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+              className="h-9 w-9 shrink-0 rounded-lg border border-sidebar-border/40 text-sidebar-foreground/75 hover:text-sidebar-foreground hover:bg-sidebar-accent/75"
               title="Sair"
             >
               <LogOut className="h-4 w-4" />
@@ -295,7 +295,7 @@ function NavGroupSection({ group, location }: { group: NavGroup; location: Retur
     <SidebarGroup>
       <Collapsible open={open} onOpenChange={setOpen}>
         <CollapsibleTrigger className="w-full">
-          <SidebarGroupLabel className="text-sidebar-foreground/50 text-[10px] uppercase tracking-widest px-3 flex items-center justify-between cursor-pointer hover:text-sidebar-foreground/70 transition-colors">
+          <SidebarGroupLabel className="text-sidebar-foreground/55 text-[10px] uppercase tracking-[0.14em] px-3 pt-2 flex items-center justify-between cursor-pointer hover:text-sidebar-foreground/80 transition-colors">
             {group.label}
             <ChevronDown className={cn('h-3 w-3 transition-transform', open && 'rotate-180')} />
           </SidebarGroupLabel>
