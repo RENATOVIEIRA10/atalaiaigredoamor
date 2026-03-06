@@ -80,27 +80,27 @@ export function AppLayout({ children, title }: AppLayoutProps) {
       <AppSidebar />
       <SidebarInset className={isDemoActive ? 'pt-10' : ''}>
         <header
-          className="flex shrink-0 items-center gap-2 border-b border-border/50 px-4 bg-background/75 backdrop-blur-2xl sticky top-0 z-10"
-          style={{ boxShadow: '0 12px 30px -26px rgba(0,0,0,0.85)', height: '56px' }}
+          className="flex shrink-0 items-center gap-3 border-b border-border/70 px-4 md:px-6 bg-background/85 backdrop-blur-2xl sticky top-0 z-10"
+          style={{ boxShadow: '0 16px 30px -28px rgba(15, 23, 42, 0.45)', height: '64px' }}
         >
-          <SidebarTrigger className="-ml-1" />
+          <SidebarTrigger className="-ml-1 h-9 w-9 rounded-xl" />
           {title && (
             <>
               <Separator orientation="vertical" className="mr-2 h-4 bg-border/30" />
               <h1
-                className="text-sm font-semibold text-foreground tracking-wide truncate"
+                className="text-base font-semibold text-foreground tracking-tight truncate"
                 style={{ fontFamily: "'Inter', sans-serif" }}
               >
                 {title}
               </h1>
             </>
           )}
-          <div className="ml-auto flex items-center gap-2">
+          <div className="ml-auto flex items-center gap-2 md:gap-3">
             <CampusBadge />
             <CampoSelector />
           </div>
         </header>
-        <main className="flex-1 overflow-auto p-4 md:p-7 lg:p-9 internal-page-bg">
+        <main className="flex-1 overflow-auto p-4 md:p-7 lg:p-10 internal-page-bg">
           <div className="animate-fade-in">
             {children}
           </div>
