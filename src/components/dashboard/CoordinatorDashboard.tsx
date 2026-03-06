@@ -40,6 +40,7 @@ import { InitialViewGate } from './InitialViewGate';
 import { SectionLabel } from './SectionLabel';
 import { useMembers } from '@/hooks/useMembers';
 import { PotenciaisServirCard } from './PotenciaisServirCard';
+import { LeadershipRecommendationDialog } from './LeadershipRecommendationDialog';
 
 export function CoordinatorDashboard() {
   const [searchParams] = useSearchParams();
@@ -54,6 +55,7 @@ export function CoordinatorDashboard() {
   const [dateRange, setDateRange] = useState<DateRangeValue>({ from: subDays(new Date(), 6), to: new Date() });
   const [selectedCelula, setSelectedCelula] = useState<{ id: string; name: string } | null>(null);
   const [showSupervisorForm, setShowSupervisorForm] = useState(false);
+  const [showRecommendationDialog, setShowRecommendationDialog] = useState(false);
   
   const dateRangeFilter = { from: getDateString(dateRange.from), to: getDateString(dateRange.to) };
   const { data: reports, isLoading: reportsLoading } = useWeeklyReportsByCoordenacao(selectedCoordenacao, dateRangeFilter);
@@ -180,6 +182,12 @@ export function CoordinatorDashboard() {
           {/* ═══ POTENCIAIS PARA SERVIR ═══ */}
           <SectionLabel title="Potenciais para Servir" subtitle="Membros prontos para novos desafios" />
           <PotenciaisServirCard coordenacaoId={selectedCoordenacao} />
+
+          <div className="flex justify-end">
+            <Button variant="outline" onClick={() => setShowRecommendationDialog(true)}>
+              Indicar para Supervisor
+            </Button>
+          </div>
 
           {/* ═══ ABAS OPERACIONAIS ═══ */}
           <Tabs defaultValue="semanal" className="space-y-4">
@@ -322,6 +330,13 @@ export function CoordinatorDashboard() {
       {selectedCelula && (
         <CelulaDetailsDialog open={!!selectedCelula} onOpenChange={(open) => !open && setSelectedCelula(null)} celulaId={selectedCelula.id} celulaName={selectedCelula.name} />
       )}
+
+      <LeadershipRecommendationDialog
+        open={showRecommendationDialog}
+        onOpenChange={setShowRecommendationDialog}
+        recommendationType="supervisor"
+        title="Indicar para análise: Supervisor"
+      />
 
       <SupervisorFormDialog open={showSupervisorForm} onOpenChange={setShowSupervisorForm} defaultCoordenacaoId={selectedCoordenacao} lockCoordenacao />
     </div>
