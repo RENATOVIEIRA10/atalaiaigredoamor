@@ -41,6 +41,7 @@ import { useCampo } from '@/contexts/CampoContext';
 import { RevelaShortcut } from './RevelaShortcut';
 import { DashboardScopeBanner } from './DashboardScopeBanner';
 import { SectionLabel } from './SectionLabel';
+import { LeadershipRecommendationsSection } from './LeadershipRecommendationsSection';
 
 export function PastorDashboard() {
   const { isPastorSeniorGlobal } = useRole();
@@ -198,6 +199,11 @@ function CampoPastorDashboard() {
           </CardContent>
         </Card>
       )}
+
+      <LeadershipRecommendationsSection
+        title="Indicações recebidas"
+        description="Indicações para Coordenador enviadas por Líderes de Rede do seu campo."
+      />
 
       {/* ═══ 4. PONTOS DE ATENÇÃO ═══ */}
       <SectionLabel title="Pontos de Atenção" subtitle="Alertas estratégicos gerados automaticamente" />

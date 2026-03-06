@@ -989,6 +989,115 @@ export type Database = {
           },
         ]
       }
+      leadership_recommendations: {
+        Row: {
+          campo_id: string
+          created_at: string
+          highlights_json: Json | null
+          id: string
+          justification_text: string
+          recommendation_type: string
+          recommended_celula_id: string | null
+          recommended_current_role: string | null
+          recommended_member_id: string | null
+          recommended_profile_id: string
+          rede_id: string | null
+          requested_by_profile_id: string | null
+          requested_by_scope_type: string
+          requested_by_user_id: string
+          reviewer_notes: string | null
+          reviewer_user_id: string | null
+          status: string
+          target_reviewer_scope_type: string
+          updated_at: string
+        }
+        Insert: {
+          campo_id: string
+          created_at?: string
+          highlights_json?: Json | null
+          id?: string
+          justification_text: string
+          recommendation_type: string
+          recommended_celula_id?: string | null
+          recommended_current_role?: string | null
+          recommended_member_id?: string | null
+          recommended_profile_id: string
+          rede_id?: string | null
+          requested_by_profile_id?: string | null
+          requested_by_scope_type: string
+          requested_by_user_id: string
+          reviewer_notes?: string | null
+          reviewer_user_id?: string | null
+          status?: string
+          target_reviewer_scope_type: string
+          updated_at?: string
+        }
+        Update: {
+          campo_id?: string
+          created_at?: string
+          highlights_json?: Json | null
+          id?: string
+          justification_text?: string
+          recommendation_type?: string
+          recommended_celula_id?: string | null
+          recommended_current_role?: string | null
+          recommended_member_id?: string | null
+          recommended_profile_id?: string
+          rede_id?: string | null
+          requested_by_profile_id?: string | null
+          requested_by_scope_type?: string
+          requested_by_user_id?: string
+          reviewer_notes?: string | null
+          reviewer_user_id?: string | null
+          status?: string
+          target_reviewer_scope_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leadership_recommendations_campo_id_fkey"
+            columns: ["campo_id"]
+            isOneToOne: false
+            referencedRelation: "campos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leadership_recommendations_recommended_celula_id_fkey"
+            columns: ["recommended_celula_id"]
+            isOneToOne: false
+            referencedRelation: "celulas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leadership_recommendations_recommended_member_id_fkey"
+            columns: ["recommended_member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leadership_recommendations_recommended_profile_id_fkey"
+            columns: ["recommended_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leadership_recommendations_rede_id_fkey"
+            columns: ["rede_id"]
+            isOneToOne: false
+            referencedRelation: "redes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leadership_recommendations_requested_by_profile_id_fkey"
+            columns: ["requested_by_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meetings: {
         Row: {
           celula_id: string
