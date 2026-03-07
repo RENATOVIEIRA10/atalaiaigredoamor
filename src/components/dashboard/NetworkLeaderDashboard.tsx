@@ -57,6 +57,12 @@ interface NetworkLeaderDashboardProps {
 export function NetworkLeaderDashboard({ initialRedeId, overrideCampoId, onBack, breadcrumbLabel }: NetworkLeaderDashboardProps = {}) {
   const [searchParams] = useSearchParams();
   const urlTab = searchParams.get('tab');
+  const defaultMainTab = urlTab === 'acompanhamento' || urlTab === 'movimento'
+    ? 'acompanhamento'
+    : urlTab === 'analises'
+      ? 'analises'
+      : 'visao-geral';
+  const defaultAcompanhamentoTab = urlTab === 'movimento' ? 'movimento' : 'semanal';
   const { toast } = useToast();
   const { data: allRedes, isLoading: redesLoading } = useRedes();
   const { data: coordenacoes } = useCoordenacoes();
@@ -211,7 +217,7 @@ export function NetworkLeaderDashboard({ initialRedeId, overrideCampoId, onBack,
 
       {selectedRede && (
         <>
-          <Tabs defaultValue="visao-geral" className="space-y-4">
+          <Tabs defaultValue={defaultMainTab} className="space-y-4">
             <TabsList className="w-full h-auto justify-start gap-1 overflow-x-auto whitespace-nowrap">
               <TabsTrigger value="visao-geral">Visão Geral</TabsTrigger>
               <TabsTrigger value="acompanhamento">Acompanhamento</TabsTrigger>
@@ -243,7 +249,7 @@ export function NetworkLeaderDashboard({ initialRedeId, overrideCampoId, onBack,
             </TabsContent>
 
             <TabsContent value="acompanhamento" className="space-y-4">
-              <Tabs defaultValue="semanal" className="space-y-4">
+              <Tabs defaultValue={defaultAcompanhamentoTab} className="space-y-4">
             <TabsList className="flex flex-wrap h-auto gap-1">
               <TabsTrigger value="semanal" className="gap-1.5"><Calendar className="h-4 w-4" />Acompanhamento Semanal</TabsTrigger>
               <TabsTrigger value="movimento" className="gap-1.5"><Sprout className="h-4 w-4" />Movimento do Reino</TabsTrigger>

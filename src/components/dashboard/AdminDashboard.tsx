@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -26,6 +27,9 @@ import { DashboardScopeBanner } from './DashboardScopeBanner';
 import { SectionLabel } from './SectionLabel';
 
 export function AdminDashboard() {
+  const [searchParams] = useSearchParams();
+  const urlTab = searchParams.get('tab');
+  const defaultMainTab = urlTab === 'movimento' ? 'movimento' : 'semanal';
   const { toast } = useToast();
   const { campoId } = useDemoScope();
   const { data: redes, isLoading: redesLoading } = useRedes();
@@ -130,7 +134,7 @@ export function AdminDashboard() {
       </div>
 
       {/* ═══ ABAS OPERACIONAIS ═══ */}
-      <Tabs defaultValue="semanal" className="space-y-4">
+      <Tabs defaultValue={defaultMainTab} className="space-y-4">
         <TabsList className="flex flex-wrap h-auto gap-1">
           <TabsTrigger value="semanal" className="gap-1.5"><Calendar className="h-4 w-4" />Acompanhamento Semanal</TabsTrigger>
           <TabsTrigger value="movimento" className="gap-1.5"><Sprout className="h-4 w-4" />Movimento do Reino</TabsTrigger>

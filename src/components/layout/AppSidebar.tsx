@@ -2,11 +2,32 @@ import { useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { roleLabels } from '@/lib/icons';
 import {
-  ShieldCheck, LogOut, RefreshCw, HelpCircle,
-  LayoutDashboard, Heart, Users, Home, ClipboardCheck,
-  GitBranch, Activity, BookOpen, Network,
-  Layers, Settings, Database, PlayCircle, Moon,
-  ChevronDown, Map, Church
+  ShieldCheck,
+  LogOut,
+  RefreshCw,
+  HelpCircle,
+  LayoutDashboard,
+  Heart,
+  Users,
+  Home,
+  ClipboardCheck,
+  GitBranch,
+  Activity,
+  BookOpen,
+  Network,
+  Layers,
+  Settings,
+  PlayCircle,
+  Moon,
+  Map,
+  Church,
+  UserCheck,
+  TrendingUp,
+  Eye,
+  Calendar,
+  BarChart3,
+  MessageSquare,
+  KeyRound,
 } from 'lucide-react';
 import logoIgreja from '@/assets/logo-igreja-do-amor-new.png';
 import logoRedeAmor from '@/assets/logo-amor-a-dois-new.png';
@@ -19,27 +40,38 @@ import { Button } from '@/components/ui/button';
 import { DemoModeDialog } from '@/components/demo/DemoModeDialog';
 import { CampoSelector } from '@/components/campo/CampoSelector';
 import { usePastoralTour } from '@/hooks/usePastoralTour';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { cn } from '@/lib/utils';
 import {
-  Sidebar, SidebarContent, SidebarFooter, SidebarGroup,
-  SidebarGroupContent, SidebarGroupLabel, SidebarHeader,
-  SidebarMenu, SidebarMenuButton, SidebarMenuItem
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
 } from '@/components/ui/sidebar';
 
 interface NavGroup {
-  label: string;
   items: { title: string; href: string; icon: React.ElementType }[];
-  defaultOpen?: boolean;
 }
 
 export function AppSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const {
-    selectedRole, clearAccess, isAdmin, isRedeLeader, isCoordenador,
-    isSupervisor, isCelulaLeader, isPastor, isDemoInstitucional,
-    isPastorSeniorGlobal, isPastorDeCampo
+    selectedRole,
+    clearAccess,
+    isAdmin,
+    isRedeLeader,
+    isCoordenador,
+    isSupervisor,
+    isCelulaLeader,
+    isPastor,
+    isDemoInstitucional,
+    isPastorSeniorGlobal,
+    isPastorDeCampo,
   } = useRole();
   const { isDemoActive, deactivateDemo } = useDemoMode();
   const { theme, toggleTheme } = useTheme();
@@ -47,85 +79,91 @@ export function AppSidebar() {
   const { openTour } = usePastoralTour();
 
   const isOriginalAdmin = (isAdmin || isDemoActive) && !isDemoInstitucional;
-  const showAdminItems = (isOriginalAdmin || isRedeLeader) && !isDemoInstitucional;
   const isCellLeaderOnly = isCelulaLeader && !isSupervisor && !isCoordenador && !isRedeLeader && !isAdmin && !isPastor;
 
-  // Build nav groups based on role
-  const navGroups: NavGroup[] = [];
-
-  // Home is always first
-  navGroups.push({
-    label: '',
-    items: [
-      { title: 'HOME', href: '/home', icon: LayoutDashboard },
+  const roleNavItems: Record<string, NavGroup['items']> = {
+    celula_leader: [
+      { title: 'Início', href: '/home', icon: LayoutDashboard },
+      { title: 'Membros', href: '/dashboard?tab=membros', icon: Users },
+      { title: 'Discipulado', href: '/dashboard?tab=discipulado', icon: BookOpen },
+      { title: 'Relatório da Semana', href: '/dashboard?tab=celula', icon: ClipboardCheck },
+      { title: 'Novas Vidas', href: '/dashboard?tab=novas-vidas', icon: Heart },
+      { title: 'Reuniões', href: '/dashboard?tab=roteiro', icon: Calendar },
+      { title: 'Fotos & Momentos', href: '/dashboard', icon: Church },
     ],
-    defaultOpen: true,
-  });
-
-  // Pessoas group
-  if (!isDemoInstitucional) {
-    const pessoasItems: NavGroup['items'] = [];
-    pessoasItems.push({ title: 'Novas Vidas', href: '/recomeco', icon: Heart });
-    if (!isCellLeaderOnly) {
-      pessoasItems.push({ title: 'Membros', href: '/membros', icon: Users });
-    }
-    pessoasItems.push({ title: 'Discipulado', href: '/dashboard?tab=acoes', icon: BookOpen });
-    navGroups.push({ label: 'Pessoas', items: pessoasItems });
-  }
-
-  // Células group
-  if (!isDemoInstitucional) {
-    const celulasItems: NavGroup['items'] = [
-      { title: 'Relatórios', href: '/dashboard', icon: ClipboardCheck },
-    ];
-    if (!isCellLeaderOnly) {
-      celulasItems.unshift({ title: 'Lista de Células', href: '/celulas', icon: Home });
-    }
-    navGroups.push({ label: 'Células', items: celulasItems });
-  }
-
-  // Liderança
-  if (!isDemoInstitucional && !isCellLeaderOnly) {
-    const liderancaItems: NavGroup['items'] = [
+    coordenador: [
+      { title: 'Início', href: '/home', icon: LayoutDashboard },
+      { title: 'Células da Coordenação', href: '/dashboard?tab=visao-geral', icon: Home },
+      { title: 'Líderes de Célula', href: '/organograma', icon: UserCheck },
+      { title: 'Novas Vidas (triagem)', href: '/dashboard?tab=movimento', icon: Heart },
+      { title: 'Discipulado', href: '/dashboard?tab=movimento', icon: BookOpen },
+      { title: 'Acompanhamentos', href: '/dashboard?tab=acompanhamento', icon: ClipboardCheck },
+      { title: 'Crescimento & Multiplicação', href: '/dashboard?tab=analises', icon: TrendingUp },
+    ],
+    rede_leader: [
+      { title: 'Início', href: '/home', icon: LayoutDashboard },
+      { title: 'Coordenações', href: '/dashboard?tab=visao-geral', icon: Layers },
+      { title: 'Líderes', href: '/organograma', icon: UserCheck },
+      { title: 'Células', href: '/dashboard?tab=visao-geral', icon: Home },
+      { title: 'Novas Vidas da Rede', href: '/dashboard?tab=movimento', icon: Heart },
+      { title: 'Discipulado da Rede', href: '/dashboard?tab=movimento', icon: BookOpen },
+      { title: 'Crescimento & Multiplicações', href: '/dashboard?tab=analises', icon: TrendingUp },
+      { title: 'Supervisões', href: '/dashboard?tab=analises', icon: ClipboardCheck },
+    ],
+    pastor_de_campo: [
+      { title: 'Início', href: '/home', icon: LayoutDashboard },
+      { title: 'Visão do Campus', href: '/dashboard?tab=visao-geral', icon: Eye },
+      { title: 'Redes do Campus', href: '/dashboard?tab=visao-geral', icon: Network },
+      { title: 'Novas Vidas', href: '/dashboard?tab=movimento', icon: Heart },
+      { title: 'Discipulado', href: '/dashboard?tab=movimento', icon: BookOpen },
+      { title: 'Crescimento do Reino', href: '/dashboard?tab=movimento', icon: TrendingUp },
+      { title: 'Radar Pastoral', href: '/dashboard?tab=pastoral', icon: Activity },
+      { title: 'Reuniões com Líderes', href: '/dashboard?tab=pastoral&view=reuniao', icon: MessageSquare },
+    ],
+    pastor_senior_global: [
+      { title: 'Início', href: '/home', icon: LayoutDashboard },
+      { title: 'Visão Global', href: '/dashboard?tab=visao-geral', icon: Eye },
+      { title: 'Campos', href: '/dashboard?tab=visao-geral', icon: Map },
+      { title: 'Redes por Campo', href: '/dashboard?tab=visao-geral', icon: Network },
+      { title: 'Novas Vidas (Reino)', href: '/dashboard?tab=movimento', icon: Heart },
+      { title: 'Discipulado (Reino)', href: '/dashboard?tab=movimento', icon: BookOpen },
+      { title: 'Expansão do Reino', href: '/dashboard?tab=movimento', icon: TrendingUp },
+      { title: 'Radar Estratégico', href: '/dashboard?tab=pastoral', icon: BarChart3 },
+    ],
+    admin: [
+      { title: 'Início', href: '/home', icon: LayoutDashboard },
+      { title: 'Gestão de Lideranças', href: '/organograma', icon: GitBranch },
+      { title: 'Códigos de Acesso', href: '/dados', icon: KeyRound },
+      { title: 'Campos', href: '/dashboard?tab=semanal', icon: Map },
+      { title: 'Redes', href: '/redes', icon: Network },
+      { title: 'Coordenações', href: '/coordenacoes', icon: Layers },
+      { title: 'Células', href: '/celulas', icon: Home },
+      { title: 'Seed Run', href: '/configuracoes?tab=seedrun', icon: PlayCircle },
+    ],
+    default: [
+      { title: 'Início', href: '/home', icon: LayoutDashboard },
+      { title: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+      { title: 'Novas Vidas', href: '/recomeco', icon: Heart },
+      { title: 'Radar', href: '/radar', icon: Activity },
       { title: 'Organograma', href: '/organograma', icon: GitBranch },
-    ];
-    if (showAdminItems && !isDemoActive) {
-      liderancaItems.push({ title: 'Redes', href: '/redes', icon: Network });
-      liderancaItems.push({ title: 'Coordenações', href: '/coordenacoes', icon: Layers });
-    }
-    navGroups.push({ label: 'Liderança', items: liderancaItems });
-  }
+    ],
+  };
 
-  // Sacramentos
-  if (!isDemoInstitucional) {
-    navGroups.push({
-      label: 'Sacramentos',
-      items: [
-        { title: 'Batismo e Aclamação', href: '/dashboard?tab=multiplicacoes', icon: Church },
-      ],
-    });
-  }
-
-  // Radar
-  if (!isDemoInstitucional && !isCellLeaderOnly) {
-    navGroups.push({
-      label: 'Radar',
-      items: [
-        { title: 'Saúde das Células', href: '/radar', icon: Activity },
-      ],
-    });
-  }
-
-  // Configurações
-  if (showAdminItems && !isDemoActive) {
-    navGroups.push({
-      label: 'Configurações',
-      items: [
-        { title: 'Dados', href: '/dados', icon: Database },
-        { title: 'Configurações', href: '/configuracoes', icon: Settings },
-      ],
-    });
-  }
+  const navGroups: NavGroup[] = [
+    {
+      items: (() => {
+        if (isDemoInstitucional) return [{ title: 'Início', href: '/home', icon: LayoutDashboard }];
+        if (isPastorSeniorGlobal) return roleNavItems.pastor_senior_global;
+        if (isPastorDeCampo) return roleNavItems.pastor_de_campo;
+        if (isAdmin && !isDemoActive) return roleNavItems.admin;
+        if (isRedeLeader) return roleNavItems.rede_leader;
+        if (isCoordenador) return roleNavItems.coordenador;
+        if (isCellLeaderOnly) return roleNavItems.celula_leader;
+        if (isPastor) return roleNavItems.pastor_de_campo;
+        return roleNavItems.default;
+      })().slice(0, 8),
+    },
+  ];
 
   const handleLogout = () => {
     if (isDemoActive) deactivateDemo();
@@ -152,7 +190,6 @@ export function AppSidebar() {
         </SidebarHeader>
 
         <SidebarContent className="px-3 py-4">
-          {/* Campo Selector */}
           {(isPastorSeniorGlobal || isAdmin || isPastorDeCampo) && (
             <SidebarGroup>
               <SidebarGroupContent>
@@ -163,7 +200,6 @@ export function AppSidebar() {
             </SidebarGroup>
           )}
 
-          {/* Demo Mode Button */}
           {isOriginalAdmin && (
             <SidebarGroup>
               <SidebarGroupContent>
@@ -184,12 +220,10 @@ export function AppSidebar() {
             </SidebarGroup>
           )}
 
-          {/* Nav Groups */}
           {navGroups.map((group, gi) => (
             <NavGroupSection key={gi} group={group} location={location} />
           ))}
 
-          {/* Support */}
           <SidebarGroup>
             <SidebarGroupLabel className="px-3 text-[10px] uppercase tracking-[0.18em] text-sidebar-foreground/45">Apoio</SidebarGroupLabel>
             <SidebarGroupContent>
@@ -210,7 +244,7 @@ export function AppSidebar() {
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-                {isOriginalAdmin && (
+                {isOriginalAdmin && !isDemoActive && (
                   <SidebarMenuItem>
                     <SidebarMenuButton asChild isActive={location.pathname === '/guia-admin'} className="h-11 rounded-2xl">
                       <NavLink to="/guia-admin">
@@ -285,57 +319,22 @@ export function AppSidebar() {
 }
 
 function NavGroupSection({ group, location }: { group: NavGroup; location: ReturnType<typeof useLocation> }) {
-  const hasActive = group.items.some((i) => location.pathname + location.search === i.href || location.pathname === i.href);
-  const [open, setOpen] = useState(group.defaultOpen ?? hasActive);
-
-  if (!group.label) {
-    // Flat items (no collapsible)
-    return (
-      <SidebarGroup>
-        <SidebarGroupContent>
-          <SidebarMenu>
-            {group.items.map((item) => (
-              <SidebarMenuItem key={item.href}>
-                <SidebarMenuButton asChild isActive={location.pathname + location.search === item.href || location.pathname === item.href} className="h-11 rounded-2xl">
-                  <NavLink to={item.href}>
-                    <item.icon className="h-4 w-4" />
-                    <span className="font-medium">{item.title}</span>
-                  </NavLink>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            ))}
-          </SidebarMenu>
-        </SidebarGroupContent>
-      </SidebarGroup>
-    );
-  }
-
   return (
     <SidebarGroup>
-      <Collapsible open={open} onOpenChange={setOpen}>
-        <CollapsibleTrigger className="w-full">
-          <SidebarGroupLabel className="flex cursor-pointer items-center justify-between px-3 pt-2 text-[10px] uppercase tracking-[0.16em] text-sidebar-foreground/55 transition-colors hover:text-sidebar-foreground/80">
-            {group.label}
-            <ChevronDown className={cn('h-3 w-3 transition-transform', open && 'rotate-180')} />
-          </SidebarGroupLabel>
-        </CollapsibleTrigger>
-        <CollapsibleContent>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {group.items.map((item) => (
-                <SidebarMenuItem key={item.href}>
-                  <SidebarMenuButton asChild isActive={location.pathname + location.search === item.href || location.pathname === item.href} className="h-11 rounded-2xl">
-                    <NavLink to={item.href}>
-                      <item.icon className="h-4 w-4" />
-                      <span className="font-medium">{item.title}</span>
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </CollapsibleContent>
-      </Collapsible>
+      <SidebarGroupContent>
+        <SidebarMenu>
+          {group.items.map((item) => (
+            <SidebarMenuItem key={`${item.href}:${item.title}`}>
+              <SidebarMenuButton asChild isActive={location.pathname + location.search === item.href || location.pathname === item.href} className="h-11 rounded-2xl">
+                <NavLink to={item.href}>
+                  <item.icon className="h-4 w-4" />
+                  <span className="font-medium">{item.title}</span>
+                </NavLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ))}
+        </SidebarMenu>
+      </SidebarGroupContent>
     </SidebarGroup>
   );
 }
