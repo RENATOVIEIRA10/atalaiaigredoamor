@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Users, UserCheck, Heart, UserPlus, Baby, Loader2, Network, FileSpreadsheet, ChevronDown, ChevronUp, Eye, ClipboardCheck, Image, Sparkles, History, GitBranch, User, Activity, Mail, Calendar, DoorOpen, BookOpen, ArrowLeft, AlertTriangle, Home, Sprout } from 'lucide-react';
-import { useRedes } from '@/hooks/useRedes';
+import { useRedesScoped } from '@/hooks/useRedes';
 import { useCoordenacoes } from '@/hooks/useCoordenacoes';
 import { useCelulas } from '@/hooks/useCelulas';
 import { useWeeklyReportsByRede, WeeklyReport, useUpdateWeeklyReport, useDeleteWeeklyReport } from '@/hooks/useWeeklyReports';
@@ -32,7 +32,6 @@ import { StatCard } from '@/components/ui/stat-card';
 import { MissionVerse } from './MissionVerse';
 import { InitialViewGate } from './InitialViewGate';
 import { EmptyState } from '@/components/ui/empty-state';
-import { useRole } from '@/contexts/RoleContext';
 import { PulsoRedeSection } from './PulsoRedeSection';
 import { RedeEmailReportDialog } from './RedeEmailReportDialog';
 import { RadarSaudePanel } from './RadarSaudePanel';
@@ -64,21 +63,35 @@ export function NetworkLeaderDashboard({ initialRedeId, overrideCampoId, onBack,
       : 'visao-geral';
   const defaultAcompanhamentoTab = urlTab === 'movimento' ? 'movimento' : 'semanal';
   const { toast } = useToast();
-  const { data: allRedes, isLoading: redesLoading } = useRedes();
+  const { data: allRedes, isLoading: redesLoading } = useRedesScoped(overrideCampoId);
   const { data: coordenacoes } = useCoordenacoes();
   const { data: celulas } = useCelulas();
   
-  const redes = overrideCampoId
-    ? (allRedes || []).filter(r => r.campo_id === overrideCampoId)
-    : allRedes;
+  const redes = allRedes;
   
   const [selectedRede, setSelectedRede] = useState<string>(initialRedeId || '');
-  const { scopeId, scopeType } = useRole();
   const [dateRange, setDateRange] = useState<DateRangeValue>({ from: subDays(new Date(), 6), to: new Date() });
   const [expandedCoords, setExpandedCoords] = useState<Set<string>>(new Set());
   const [selectedCelula, setSelectedCelula] = useState<{ id: string; name: string } | null>(null);
   const [emailDialogOpen, setEmailDialogOpen] = useState(false);
   const [showRecommendationDialog, setShowRecommendationDialog] = useState(false);
+
+  useEffect(() => {
+    if (initialRedeId) {
+      setSelectedRede(initialRedeId);
+      return;
+    }
+
+    if (!redes || redes.length === 0) {
+      setSelectedRede('');
+      return;
+    }
+
+    setSelectedRede((current) => {
+      if (current && redes.some((rede) => rede.id === current)) return current;
+      return redes[0]?.id ?? '';
+    });
+  }, [initialRedeId, redes]);
   
   const dateRangeFilter = { from: getDateString(dateRange.from), to: getDateString(dateRange.to) };
   const { data: redeData, isLoading: reportsLoading } = useWeeklyReportsByRede(selectedRede, dateRangeFilter);
@@ -119,13 +132,6 @@ export function NetworkLeaderDashboard({ initialRedeId, overrideCampoId, onBack,
 
   const userRedes = redes || [];
   
-  if (!selectedRede && userRedes.length > 0) {
-    if (initialRedeId) {
-      setSelectedRede(initialRedeId);
-    } else if (scopeType === 'rede' && scopeId) {
-      setSelectedRede(scopeId);
-    }
-  }
   const currentReports = redeData?.reports || [];
   const redeCelulas = redeData?.celulas || [];
   const redeCoordenacoes = redeData?.coordenacoes || [];

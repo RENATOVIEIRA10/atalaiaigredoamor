@@ -71,10 +71,12 @@ export function getCurrentWeekStart(): string {
 }
 
 export function useWeeklyReports(celulaId?: string, dateRange?: DateRangeFilter, campoId?: string | null) {
-  const { isDemoActive, seedRunId, queryKeyExtra } = useDemoScope();
+  const { campoId: scopeCampoId, isMissingCampo, queryKeyExtra } = useDemoScope();
+  const effectiveCampoId = campoId ?? scopeCampoId;
 
   return useQuery({
-    queryKey: ['weekly-reports', celulaId, dateRange?.from, dateRange?.to, campoId, ...queryKeyExtra],
+    queryKey: ['weekly-reports', celulaId, dateRange?.from, dateRange?.to, effectiveCampoId ?? 'global', isMissingCampo ? 'missing-campo' : 'ok', ...queryKeyExtra],
+    enabled: !isMissingCampo,
     queryFn: async () => {
       let query = supabase
         .from('weekly_reports')
@@ -100,8 +102,8 @@ export function useWeeklyReports(celulaId?: string, dateRange?: DateRangeFilter,
       }
 
 
-      if (campoId) {
-        query = query.eq('campo_id', campoId);
+      if (effectiveCampoId) {
+        query = query.eq('campo_id', effectiveCampoId);
       }
       
       if (dateRange) {
@@ -118,10 +120,11 @@ export function useWeeklyReports(celulaId?: string, dateRange?: DateRangeFilter,
 }
 
 export function useWeeklyReportsByCoordenacao(coordenacaoId?: string, dateRange?: DateRangeFilter) {
-  const { isDemoActive, seedRunId, queryKeyExtra, campoId } = useDemoScope();
+  const { queryKeyExtra, campoId, isMissingCampo } = useDemoScope();
 
   return useQuery({
-    queryKey: ['weekly-reports-coordenacao', coordenacaoId, dateRange?.from, dateRange?.to, ...queryKeyExtra],
+    queryKey: ['weekly-reports-coordenacao', coordenacaoId, dateRange?.from, dateRange?.to, campoId ?? 'global', isMissingCampo ? 'missing-campo' : 'ok', ...queryKeyExtra],
+    enabled: !!coordenacaoId && !isMissingCampo,
     queryFn: async () => {
       let celulasQ = supabase.from('celulas').select('id').eq('coordenacao_id', coordenacaoId);
       if (campoId) celulasQ = celulasQ.eq('campo_id', campoId);
@@ -150,15 +153,15 @@ export function useWeeklyReportsByCoordenacao(coordenacaoId?: string, dateRange?
       if (error) throw error;
       return data as unknown as WeeklyReport[];
     },
-    enabled: !!coordenacaoId,
   });
 }
 
 export function useWeeklyReportsByRede(redeId?: string, dateRange?: DateRangeFilter) {
-  const { isDemoActive, seedRunId, queryKeyExtra, campoId } = useDemoScope();
+  const { queryKeyExtra, campoId, isMissingCampo } = useDemoScope();
 
   return useQuery({
-    queryKey: ['weekly-reports-rede', redeId, dateRange?.from, dateRange?.to, ...queryKeyExtra],
+    queryKey: ['weekly-reports-rede', redeId, dateRange?.from, dateRange?.to, campoId ?? 'global', isMissingCampo ? 'missing-campo' : 'ok', ...queryKeyExtra],
+    enabled: !!redeId && !isMissingCampo,
     queryFn: async () => {
       let coordQ = supabase.from('coordenacoes').select('id, name').eq('rede_id', redeId);
       if (campoId) coordQ = coordQ.eq('campo_id', campoId);
@@ -199,7 +202,6 @@ export function useWeeklyReportsByRede(redeId?: string, dateRange?: DateRangeFil
         celulas 
       };
     },
-    enabled: !!redeId,
   });
 }
 

@@ -24,10 +24,11 @@ export type Member = Tables<'members'> & {
 };
 
 export function useMembers(celulaId?: string) {
-  const { campoId, isDemoActive, seedRunId, queryKeyExtra } = useDemoScope();
+  const { campoId, isMissingCampo, queryKeyExtra } = useDemoScope();
 
   return useQuery({
-    queryKey: ['members', celulaId, ...queryKeyExtra],
+    queryKey: ['members', celulaId, campoId ?? 'global', isMissingCampo ? 'missing-campo' : 'ok', ...queryKeyExtra],
+    enabled: !isMissingCampo,
     queryFn: async () => {
       let query = supabase
         .from('members')

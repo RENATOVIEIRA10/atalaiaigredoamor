@@ -13,10 +13,11 @@ export type Coordenacao = Tables<'coordenacoes'> & {
 };
 
 export function useCoordenacoes() {
-  const { campoId, isDemoActive, seedRunId, queryKeyExtra } = useDemoScope();
+  const { campoId, isMissingCampo, queryKeyExtra } = useDemoScope();
 
   return useQuery({
-    queryKey: ['coordenacoes', ...queryKeyExtra],
+    queryKey: ['coordenacoes', campoId ?? 'global', isMissingCampo ? 'missing-campo' : 'ok', ...queryKeyExtra],
+    enabled: !isMissingCampo,
     queryFn: async () => {
       let query = supabase
         .from('coordenacoes')

@@ -12,10 +12,16 @@ export type Rede = Tables<'redes'> & {
 };
 
 export function useRedes() {
-  const { campoId, isDemoActive, seedRunId, queryKeyExtra } = useDemoScope();
+  return useRedesScoped();
+}
+
+export function useRedesScoped(overrideCampoId?: string | null) {
+  const { campoId, isMissingCampo, queryKeyExtra } = useDemoScope();
+  const effectiveCampoId = overrideCampoId ?? campoId;
 
   return useQuery({
-    queryKey: ['redes', ...queryKeyExtra],
+    queryKey: ['redes', effectiveCampoId ?? 'global', isMissingCampo ? 'missing-campo' : 'ok', ...queryKeyExtra],
+    enabled: !isMissingCampo,
     queryFn: async () => {
       let query = supabase
         .from('redes')
@@ -30,8 +36,8 @@ export function useRedes() {
         `)
         .order('name');
 
-      if (campoId) {
-        query = query.eq('campo_id', campoId);
+      if (effectiveCampoId) {
+        query = query.eq('campo_id', effectiveCampoId);
       }
       
       const { data, error } = await query;
@@ -39,7 +45,7 @@ export function useRedes() {
       
       // Get coordenacao counts
       let coordQuery = supabase.from('coordenacoes').select('rede_id');
-      if (campoId) coordQuery = coordQuery.eq('campo_id', campoId);
+      if (effectiveCampoId) coordQuery = coordQuery.eq('campo_id', effectiveCampoId);
       const { data: coordCounts } = await coordQuery;
       
       const countMap = coordCounts?.reduce((acc, c) => {

@@ -13,10 +13,11 @@ export type Celula = Tables<'celulas'> & {
 };
 
 export function useCelulas() {
-  const { campoId, isDemoActive, seedRunId, queryKeyExtra } = useDemoScope();
+  const { campoId, isMissingCampo, queryKeyExtra } = useDemoScope();
 
   return useQuery({
-    queryKey: ['celulas', ...queryKeyExtra],
+    queryKey: ['celulas', campoId ?? 'global', isMissingCampo ? 'missing-campo' : 'ok', ...queryKeyExtra],
+    enabled: !isMissingCampo,
     queryFn: async () => {
       let query = supabase
         .from('celulas')
