@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -55,6 +56,11 @@ export function PastorDashboard() {
 }
 
 function CampoPastorDashboard() {
+  const [searchParams] = useSearchParams();
+  const urlTab = searchParams.get('tab');
+  const pastoralView = searchParams.get('view');
+  const defaultMainTab = urlTab === 'movimento' || urlTab === 'pastoral' ? urlTab : 'visao-geral';
+  const defaultPastoralTab = pastoralView === 'reuniao' || pastoralView === 'detalhes' ? pastoralView : 'altar';
   const { data: stats, isLoading: statsLoading } = usePastoralStats();
   const { data: pulso, isLoading: pulsoLoading } = usePulsoPastoral();
   const { data: stagnation } = useSpiritualStagnation();
@@ -105,7 +111,7 @@ function CampoPastorDashboard() {
         <RevelaShortcut />
       </div>
 
-      <Tabs defaultValue="visao-geral" className="space-y-4">
+      <Tabs defaultValue={defaultMainTab} className="space-y-4">
         <TabsList className="w-full h-auto justify-start gap-1 overflow-x-auto whitespace-nowrap">
           <TabsTrigger value="visao-geral">Visão Geral</TabsTrigger>
           <TabsTrigger value="movimento">Movimento do Reino</TabsTrigger>
@@ -222,7 +228,7 @@ function CampoPastorDashboard() {
             stats={stats}
           />
 
-          <Tabs defaultValue="altar" className="space-y-4">
+          <Tabs defaultValue={defaultPastoralTab} className="space-y-4">
         <TabsList className="flex flex-wrap h-auto gap-1">
           <TabsTrigger value="altar" className="gap-1.5"><Footprints className="h-4 w-4" />Do Altar à Célula</TabsTrigger>
           <TabsTrigger value="reuniao" className="gap-1.5"><MessageSquare className="h-4 w-4" />Reunião com Líderes de Rede</TabsTrigger>
