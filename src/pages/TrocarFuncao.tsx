@@ -313,9 +313,13 @@ export default function TrocarFuncao() {
       <div className="relative z-10 w-full max-w-md px-5 py-8 flex flex-col items-center" style={{ paddingTop: 'max(env(safe-area-inset-top, 0px), 2rem)', paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 2rem)' }}>
         {/* Header */}
         <div className="mb-5 flex items-center justify-center gap-4">
-          <img src={logoIgrejaDoAmor} alt="Igreja do Amor" className="h-10 w-auto object-contain opacity-90" />
+          <div className="rounded-lg px-2 py-1" style={{ background: 'rgba(244,237,228,0.95)' }}>
+            <img src={logoIgrejaDoAmor} alt="Igreja do Amor" className="h-10 w-auto object-contain" />
+          </div>
           <div className="h-8 w-px" style={{ background: 'rgba(197,160,89,0.25)' }} />
-          <img src={logoRedeAmor} alt="Rede Amor a 2" className="h-10 w-auto object-contain opacity-90" />
+          <div className="rounded-lg px-2 py-1" style={{ background: 'rgba(244,237,228,0.95)' }}>
+            <img src={logoRedeAmor} alt="Rede Amor a 2" className="h-10 w-auto object-contain" />
+          </div>
         </div>
 
         <h1 className="text-xl font-semibold mb-1" style={{ fontFamily: "'Outfit', sans-serif", color: '#F4EDE4' }}>
@@ -326,8 +330,12 @@ export default function TrocarFuncao() {
         </p>
 
         <div
-          className="w-full rounded-2xl p-5 bg-card border border-border"
-          style={{ boxShadow: '0 16px 48px rgba(0,0,0,0.5), 0 0 0 1px rgba(197,160,89,0.06)' }}
+          className="w-full rounded-2xl p-5"
+          style={{
+            background: 'rgba(20,35,56,0.94)',
+            border: '1px solid rgba(197,160,89,0.24)',
+            boxShadow: '0 16px 48px rgba(0,0,0,0.5), 0 0 0 1px rgba(197,160,89,0.06)'
+          }}
         >
           {showRedeSelect ? (
             <>
@@ -349,9 +357,9 @@ export default function TrocarFuncao() {
                     onClick={() => setCampusFilter(null)}
                     className="px-3 py-1 rounded-full text-xs font-medium transition-all"
                     style={{
-                      background: !campusFilter ? 'rgba(197,160,89,0.25)' : 'rgba(255,255,255,0.06)',
-                      color: !campusFilter ? '#C5A059' : '#B8B6B3',
-                      border: `1px solid ${!campusFilter ? 'rgba(197,160,89,0.4)' : 'rgba(255,255,255,0.1)'}`,
+                      background: !campusFilter ? 'rgba(197,160,89,0.26)' : 'rgba(15,26,43,0.65)',
+                      color: !campusFilter ? '#F4EDE4' : '#D8D6D2',
+                      border: `1px solid ${!campusFilter ? 'rgba(197,160,89,0.45)' : 'rgba(197,160,89,0.2)'}`,
                     }}
                   >
                     Todos
@@ -366,9 +374,9 @@ export default function TrocarFuncao() {
                       onClick={() => setCampusFilter(id)}
                       className="px-3 py-1 rounded-full text-xs font-medium transition-all"
                       style={{
-                        background: campusFilter === id ? 'rgba(197,160,89,0.25)' : 'rgba(255,255,255,0.06)',
-                        color: campusFilter === id ? '#C5A059' : '#B8B6B3',
-                        border: `1px solid ${campusFilter === id ? 'rgba(197,160,89,0.4)' : 'rgba(255,255,255,0.1)'}`,
+                        background: campusFilter === id ? 'rgba(197,160,89,0.26)' : 'rgba(15,26,43,0.65)',
+                        color: campusFilter === id ? '#F4EDE4' : '#D8D6D2',
+                        border: `1px solid ${campusFilter === id ? 'rgba(197,160,89,0.45)' : 'rgba(197,160,89,0.2)'}`,
                       }}
                     >
                       {id === '__global__' ? 'Global' : (campoNameMap[id] || 'Campus')}
@@ -400,7 +408,7 @@ export default function TrocarFuncao() {
                         onClick={() => activateLink(link)}
                         className="flex-1 h-12 text-sm font-semibold justify-between gap-2"
                         style={{
-                          background: 'rgba(255,255,255,0.08)',
+                          background: 'rgba(15,26,43,0.72)',
                           color: '#F4EDE4',
                           borderRadius: '12px',
                           border: '1px solid rgba(197,160,89,0.25)',
@@ -420,7 +428,7 @@ export default function TrocarFuncao() {
                       <button
                         onClick={() => removeLink(link.id)}
                         className="p-2 rounded-lg transition-colors hover:bg-red-500/10"
-                        style={{ color: '#B8B6B3' }}
+                        style={{ color: '#D8D6D2' }}
                         title="Desvincular"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -451,7 +459,7 @@ export default function TrocarFuncao() {
                       onChange={(e) => { setCode(e.target.value); setCodeError(''); }}
                       className="pl-10 h-11 text-sm border-0"
                       style={{
-                        background: 'rgba(255,255,255,0.08)',
+                        background: 'rgba(15,26,43,0.72)',
                         color: '#F4EDE4',
                         borderRadius: '10px',
                         border: codeError ? '1px solid #D32F2F' : '1px solid rgba(197,160,89,0.25)',

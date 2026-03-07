@@ -411,9 +411,13 @@ export default function HomePage() {
             </span>
           </div>
           <div className="h-14 w-px" style={{ background: 'rgba(197,160,89,0.25)' }} />
-          <img src={logoIgrejaDoAmor} alt="Igreja do Amor" className="h-14 w-auto object-contain opacity-90" />
+          <div className="rounded-lg px-2 py-1" style={{ background: 'rgba(244,237,228,0.95)' }}>
+            <img src={logoIgrejaDoAmor} alt="Igreja do Amor" className="h-14 w-auto object-contain" />
+          </div>
           <div className="h-14 w-px" style={{ background: 'rgba(197,160,89,0.25)' }} />
-          <img src={logoRedeAmor} alt="Rede Amor a 2" className="h-14 w-auto object-contain opacity-90" />
+          <div className="rounded-lg px-2 py-1" style={{ background: 'rgba(244,237,228,0.95)' }}>
+            <img src={logoRedeAmor} alt="Rede Amor a 2" className="h-14 w-auto object-contain" />
+          </div>
         </div>
 
         {/* Title */}
@@ -428,8 +432,12 @@ export default function HomePage() {
 
         {/* Main card */}
         <div
-          className="w-full rounded-2xl p-6 sm:p-8 opacity-0 animate-slide-up stagger-3 bg-card border border-border"
-          style={{ boxShadow: '0 16px 48px rgba(0,0,0,0.5), 0 0 0 1px rgba(197,160,89,0.06)' }}
+          className="w-full rounded-2xl p-6 sm:p-8 opacity-0 animate-slide-up stagger-3"
+          style={{
+            background: 'rgba(20,35,56,0.94)',
+            border: '1px solid rgba(197,160,89,0.24)',
+            boxShadow: '0 16px 48px rgba(0,0,0,0.5), 0 0 0 1px rgba(197,160,89,0.06)'
+          }}
         >
           {step === 'code' && (
             <>
@@ -454,7 +462,7 @@ export default function HomePage() {
                       onChange={(e) => { setCode(e.target.value); setError(''); }}
                       className="pl-10 h-12 text-base border-0 focus-visible:ring-1 theme-amor-input"
                       style={{
-                        background: 'rgba(255,255,255,0.08)',
+                        background: 'rgba(15,26,43,0.72)',
                         color: '#F4EDE4',
                         borderRadius: '12px',
                         border: error ? '1px solid #D32F2F' : '1px solid rgba(197,160,89,0.25)',
