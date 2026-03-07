@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useRole } from '@/contexts/RoleContext';
-import { useCampo } from '@/contexts/CampoContext';
+import { useCampoFilterDetailed } from '@/hooks/useCampoFilter';
 import { getCurrentWeekStart } from '@/hooks/useWeeklyReports';
 import { getScopeLevel } from '@/hooks/useSummaryMetrics';
 import { AlertTriangle, ClipboardCheck, Heart, Users, BookOpen, Eye, TrendingUp, type LucideIcon } from 'lucide-react';
@@ -19,12 +19,12 @@ export interface ConciergeCard {
 
 export function useConciergeCards() {
   const { scopeId, scopeType } = useRole();
-  const { activeCampoId } = useCampo();
-  const campoId = activeCampoId;
+  const { campoId, isGlobal, isMissingCampo } = useCampoFilterDetailed();
   const level = getScopeLevel(scopeType);
 
   return useQuery({
-    queryKey: ['concierge-cards', level, scopeId, campoId],
+    queryKey: ['concierge-cards', level, scopeId, campoId ?? 'global', isGlobal ? 'global' : 'campus'],
+    enabled: !isMissingCampo,
     queryFn: async () => {
       const cards: ConciergeCard[] = [];
       const weekStart = getCurrentWeekStart();
