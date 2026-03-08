@@ -125,7 +125,7 @@ export function TorreControlePanel() {
           isActive && "bg-accent text-accent-foreground"
         )}
       >
-        <Tower className="h-5 w-5" />
+        <Landmark className="h-5 w-5" />
         <span className="text-sm font-semibold hidden md:inline">Torre de Controle</span>
         {isActive && <Radio className="h-3.5 w-3.5" />}
       </button>
