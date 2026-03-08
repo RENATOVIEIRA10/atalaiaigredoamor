@@ -72,7 +72,6 @@ export default function Dashboard() {
       <ScopeMissingGate>
         {renderDashboard()}
       </ScopeMissingGate>
-      <PastoralTourDialog open={tourOpen} onClose={closeTour} />
     </AppLayout>
   );
 }
