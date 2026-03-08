@@ -121,8 +121,8 @@ export function TorreControlePanel() {
         onClick={() => setIsOpen(true)}
         className={cn(
           "fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-full px-4 py-3 shadow-2xl transition-all duration-300",
-          "bg-primary text-primary-foreground hover:scale-105 hover:shadow-primary/30",
-          isActive && "bg-amber-500 text-white animate-pulse"
+          "bg-primary text-primary-foreground hover:scale-105",
+          isActive && "bg-accent text-accent-foreground"
         )}
       >
         <Tower className="h-5 w-5" />
