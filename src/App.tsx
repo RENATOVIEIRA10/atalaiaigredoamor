@@ -94,7 +94,7 @@ function AppInner() {
           <Route path="/perfil/casal/:coupleId" element={<RoleProtectedRoute><PerfilCasal /></RoleProtectedRoute>} />
           <Route path="/perfil/membro/:memberId" element={<RoleProtectedRoute><PerfilMembro /></RoleProtectedRoute>} />
           <Route path="/ferramentas-teste" element={<RoleProtectedRoute><FerramentasTeste /></RoleProtectedRoute>} />
-          <Route path="/recomeco" element={<RoleProtectedRoute><Recomeco /></RoleProtectedRoute>} />
+          <Route path="/recomeco" element={<Navigate to="/recomeco-cadastro" replace />} />
           <Route path="/recomeco-cadastro" element={<ProtectedRoute><RecomecoCadastro /></ProtectedRoute>} />
           <Route path="/central-celulas" element={<ProtectedRoute><CentralCelulas /></ProtectedRoute>} />
 
