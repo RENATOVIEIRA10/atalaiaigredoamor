@@ -99,7 +99,7 @@ function buildQuickActions(scopeType: string | null): QuickActionItem[] {
       return [
         { id: 'ver-campus', label: 'Campus', icon: Building2, path: '/configuracoes?tab=campos' },
         { id: 'ver-redes', label: 'Redes', icon: Network, path: '/redes' },
-        { id: 'ver-novas-vidas', label: 'Novas Vidas', icon: Eye, path: '/recomeco' },
+        { id: 'ver-novas-vidas', label: 'Novas Vidas', icon: Eye, path: '/recomeco-cadastro' },
       ];
     default:
       return [];

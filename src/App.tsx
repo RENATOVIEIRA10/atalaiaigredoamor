@@ -43,7 +43,7 @@ const FaqInstitucional = lazy(() => import("./pages/FaqInstitucional"));
 const ManualLiderCelula = lazy(() => import("./pages/ManualLiderCelula"));
 const ManualUsuario = lazy(() => import("./pages/ManualUsuario"));
 const TestemunhoAtalaia = lazy(() => import("./pages/TestemunhoAtalaia"));
-const Recomeco = lazy(() => import("./pages/Recomeco"));
+
 const TrocarFuncao = lazy(() => import("./pages/TrocarFuncao"));
 const RecomecoCadastro = lazy(() => import("./pages/RecomecoCadastro"));
 const CentralCelulas = lazy(() => import("./pages/CentralCelulas"));
