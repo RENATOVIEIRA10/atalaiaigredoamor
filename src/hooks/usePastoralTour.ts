@@ -1,15 +1,27 @@
-import { useState, useCallback, useEffect } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect } from 'react';
 
 const TOUR_STORAGE_KEY = 'atalaia-pastoral-tour-done';
 
-export function usePastoralTour() {
+interface PastoralTourContextValue {
+  isOpen: boolean;
+  openTour: () => void;
+  closeTour: () => void;
+  resetTour: () => void;
+}
+
+export const PastoralTourContext = createContext<PastoralTourContextValue>({
+  isOpen: false,
+  openTour: () => {},
+  closeTour: () => {},
+  resetTour: () => {},
+});
+
+export function usePastoralTourProvider() {
   const [isOpen, setIsOpen] = useState(false);
 
-  // On mount, check if tour was completed
   useEffect(() => {
     const done = localStorage.getItem(TOUR_STORAGE_KEY);
     if (!done) {
-      // Small delay so dashboard renders first
       const t = setTimeout(() => setIsOpen(true), 800);
       return () => clearTimeout(t);
     }
@@ -27,4 +39,8 @@ export function usePastoralTour() {
   }, []);
 
   return { isOpen, openTour, closeTour, resetTour };
+}
+
+export function usePastoralTour() {
+  return useContext(PastoralTourContext);
 }
