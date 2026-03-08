@@ -7,9 +7,9 @@ import { MessageCircle, Send, Sparkles, BookOpen, Loader2 } from 'lucide-react';
 import { GLOSSARY, ADMIN_PRODUCT_MAP, SCOPE_DESCRIPTIONS, ONBOARDING_STEPS } from '@/lib/appMap';
 import { useRole } from '@/contexts/RoleContext';
 import { getScopeLevel } from '@/hooks/useSummaryMetrics';
-import { supabase } from '@/integrations/supabase/client';
 import ReactMarkdown from 'react-markdown';
 import { cn } from '@/lib/utils';
+import { requestUnifiedAI } from '@/services/unifiedAI';
 
 interface Message {
   role: 'user' | 'assistant';
