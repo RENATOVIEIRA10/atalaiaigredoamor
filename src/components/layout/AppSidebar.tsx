@@ -199,17 +199,6 @@ export function AppSidebar() {
                       <span className="font-semibold text-xs tracking-wide">Torre de Controle</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                  {!isDemoActive && (
-                    <SidebarMenuItem>
-                      <SidebarMenuButton
-                        onClick={() => setDemoDialogOpen(true)}
-                        className="h-10 rounded-xl border border-sidebar-border/30 text-sidebar-foreground/70 hover:bg-sidebar-accent/50"
-                      >
-                        <ShieldCheck className="h-4 w-4" />
-                        <span className="font-medium text-xs">Modo Validação</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  )}
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
