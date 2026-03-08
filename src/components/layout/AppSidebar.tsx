@@ -178,13 +178,9 @@ export function AppSidebar() {
           <div className="flex items-center justify-center gap-3">
             <AtalaiaIcon className="h-10 w-auto shrink-0" />
             <div className="h-8 w-px bg-sidebar-border/20 shrink-0" />
-            <div className="rounded-lg px-2 py-1 shrink-0" style={{ background: 'rgba(244,237,228,0.92)' }}>
-              <img src={logoIgreja} alt="Igreja do Amor" className="h-8 w-auto object-contain" />
-            </div>
+            <img src={logoIgreja} alt="Igreja do Amor" className="h-8 w-auto object-contain shrink-0 brightness-0 invert opacity-80" />
             <div className="h-8 w-px bg-sidebar-border/20 shrink-0" />
-            <div className="rounded-lg px-2 py-1 shrink-0" style={{ background: 'rgba(244,237,228,0.92)' }}>
-              <img src={logoRedeAmor} alt="Rede Amor a Dois" className="h-8 w-auto object-contain" />
-            </div>
+            <img src={logoRedeAmor} alt="Rede Amor a Dois" className="h-8 w-auto object-contain shrink-0 brightness-0 invert opacity-80" />
           </div>
         </SidebarHeader>
 

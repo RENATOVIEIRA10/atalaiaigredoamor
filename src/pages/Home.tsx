@@ -411,13 +411,9 @@ export default function HomePage() {
             </span>
           </div>
           <div className="h-14 w-px" style={{ background: 'rgba(197,160,89,0.25)' }} />
-          <div className="rounded-lg px-2 py-1" style={{ background: 'rgba(244,237,228,0.95)' }}>
-            <img src={logoIgrejaDoAmor} alt="Igreja do Amor" className="h-14 w-auto object-contain" />
-          </div>
+          <img src={logoIgrejaDoAmor} alt="Igreja do Amor" className="h-14 w-auto object-contain brightness-0 invert opacity-80" />
           <div className="h-14 w-px" style={{ background: 'rgba(197,160,89,0.25)' }} />
-          <div className="rounded-lg px-2 py-1" style={{ background: 'rgba(244,237,228,0.95)' }}>
-            <img src={logoRedeAmor} alt="Rede Amor a 2" className="h-14 w-auto object-contain" />
-          </div>
+          <img src={logoRedeAmor} alt="Rede Amor a 2" className="h-14 w-auto object-contain brightness-0 invert opacity-80" />
         </div>
 
         {/* Title */}
