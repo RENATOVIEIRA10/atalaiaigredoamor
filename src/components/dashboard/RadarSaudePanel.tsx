@@ -142,6 +142,8 @@ export function RadarSaudePanel({ scopeType, scopeId, campoId, title = 'Saúde d
 function CompactRadar({ data, criticalCells, attentionCells }: { data: any; criticalCells: CelulaSaude[]; attentionCells: CelulaSaude[] }) {
   return (
     <div className="space-y-3">
+      <HealthLegend preset="supervisor" compact />
+
       {/* Mini KPIs */}
       <div className="grid grid-cols-4 gap-2">
         <MiniStat emoji="🟢" value={data.saudaveis} label="Saudável" />
