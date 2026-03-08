@@ -21,9 +21,17 @@ export interface Multiplicacao {
   };
 }
 
-export function useMultiplicacoes(campoId?: string | null) {
+/**
+ * useMultiplicacoes — Campus-isolated query.
+ * Uses useDemoScope internally. Optional override campoId.
+ */
+export function useMultiplicacoes(overrideCampoId?: string | null) {
+  const { campoId: scopeCampoId, isMissingCampo, queryKeyExtra } = useDemoScope();
+  const effectiveCampoId = overrideCampoId !== undefined ? overrideCampoId : scopeCampoId;
+
   return useQuery({
-    queryKey: ['multiplicacoes', campoId],
+    queryKey: ['multiplicacoes', effectiveCampoId ?? 'global', ...queryKeyExtra],
+    enabled: !isMissingCampo,
     queryFn: async () => {
       let query = supabase
         .from('multiplicacoes')
@@ -34,7 +42,7 @@ export function useMultiplicacoes(campoId?: string | null) {
         `)
         .order('data_multiplicacao', { ascending: false });
       
-      if (campoId) query = query.eq('campo_id', campoId);
+      if (effectiveCampoId) query = query.eq('campo_id', effectiveCampoId);
       
       const { data, error } = await query;
       if (error) throw error;

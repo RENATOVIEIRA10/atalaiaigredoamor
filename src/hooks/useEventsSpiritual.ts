@@ -61,9 +61,17 @@ export function useSpiritualEvents(type?: 'batismo' | 'aclamacao', overrideCampo
   });
 }
 
-export function useActiveEvents(campoId?: string | null) {
+/**
+ * useActiveEvents — Campus-isolated query for active events.
+ * Uses useDemoScope internally. Optional override campoId.
+ */
+export function useActiveEvents(overrideCampoId?: string | null) {
+  const { campoId: scopeCampoId, isMissingCampo, queryKeyExtra } = useDemoScope();
+  const effectiveCampoId = overrideCampoId !== undefined ? overrideCampoId : scopeCampoId;
+
   return useQuery({
-    queryKey: ['events_spiritual_active', campoId],
+    queryKey: ['events_spiritual_active', effectiveCampoId ?? 'global', ...queryKeyExtra],
+    enabled: !isMissingCampo,
     queryFn: async () => {
       let query = supabase
         .from('events_spiritual')
@@ -71,7 +79,7 @@ export function useActiveEvents(campoId?: string | null) {
         .eq('is_active', true)
         .gte('event_date', new Date().toISOString().split('T')[0])
         .order('event_date', { ascending: true });
-      if (campoId) query = query.eq('campo_id', campoId);
+      if (effectiveCampoId) query = query.eq('campo_id', effectiveCampoId);
       const { data, error } = await query;
       if (error) throw error;
       return (data || []) as SpiritualEvent[];
