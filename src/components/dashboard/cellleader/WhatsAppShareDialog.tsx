@@ -449,7 +449,7 @@ export function WhatsAppShareDialog({ open, onOpenChange, reportData }: WhatsApp
                 <Button
                   size="sm"
                   className="w-full bg-green-600 hover:bg-green-700 text-white"
-                  onClick={() => openWhatsAppFast(waUrlBloco3, 'bloco3', 'done')}
+                  onClick={() => shareTextNative(bloco3, 'bloco3', 'done')}
                   disabled={busyBtn === 'bloco3'}
                 >
                   {busyBtn === 'bloco3' ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <MessageSquare className="h-4 w-4 mr-2" />}
