@@ -63,10 +63,12 @@ export default function Coordenacoes() {
               className="pl-9"
             />
           </div>
-          <Button onClick={() => setFormOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Nova Coordenação
-          </Button>
+          {isAdmin && (
+            <Button onClick={() => setFormOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Nova Coordenação
+            </Button>
+          )}
         </div>
 
         <Card>

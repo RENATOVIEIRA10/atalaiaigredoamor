@@ -89,10 +89,15 @@ export function AppSidebar() {
     coordenador: [
       { title: 'Início', href: '/home', icon: LayoutDashboard },
       { title: 'Dashboard', href: '/dashboard', icon: Activity },
+      { title: 'Células', href: '/celulas', icon: Home },
+      { title: 'Membros', href: '/membros', icon: Users },
     ],
     rede_leader: [
       { title: 'Início', href: '/home', icon: LayoutDashboard },
       { title: 'Dashboard', href: '/dashboard', icon: Activity },
+      { title: 'Coordenações', href: '/coordenacoes', icon: Layers },
+      { title: 'Células', href: '/celulas', icon: Home },
+      { title: 'Membros', href: '/membros', icon: Users },
     ],
     pastor_de_campo: [
       { title: 'Início', href: '/home', icon: LayoutDashboard },

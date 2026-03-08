@@ -32,6 +32,7 @@ export default function Membros() {
     if (scopeType === 'celula' && scopeId) return list.filter(c => c.id === scopeId);
     if (scopeType === 'supervisor' && scopeId) return list.filter(c => (c as any).supervisor_id === scopeId);
     if (scopeType === 'coordenacao' && scopeId) return list.filter(c => c.coordenacao_id === scopeId);
+    if (scopeType === 'rede' && scopeId) return list.filter(c => c.rede_id === scopeId);
     return list;
   }, [allCelulas, scopeType, scopeId]);
   
