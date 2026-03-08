@@ -5,6 +5,7 @@ import { useNovasVidas, STATUS_LABELS, useChangeNovaVidaStatus, PIPELINE_STATUSE
 import { useEncaminhamentos, useCreateEncaminhamento } from '@/hooks/useEncaminhamentos';
 import { useCelulasPublicas } from '@/hooks/useCelulasPublicas';
 import { useRedes } from '@/hooks/useRedes';
+import { useCampo } from '@/contexts/CampoContext';
 import { useRecomecoMessages } from '@/hooks/useRecomecoAgent';
 import { useAuditProfiles, useMyProfileName } from '@/hooks/useAuditProfiles';
 import { useQuery } from '@tanstack/react-query';
@@ -220,10 +221,12 @@ function EncaminharDialog({ vidaId, novasVidas, onClose }: { vidaId: string; nov
   const [filterBairro, setFilterBairro] = useState(nv?.bairro || '');
   const [filterCidade, setFilterCidade] = useState(nv?.cidade || '');
   const [filterRedeId, setFilterRedeId] = useState('');
+  const { activeCampoId } = useCampo();
   const { data: celulas, isLoading } = useCelulasPublicas({
     bairro: filterBairro || undefined,
     cidade: filterCidade || undefined,
     rede_id: filterRedeId || undefined,
+    campo_id: activeCampoId,
   });
   const createEnc = useCreateEncaminhamento();
 

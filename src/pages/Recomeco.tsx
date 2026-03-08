@@ -5,6 +5,7 @@ import { useNovasVidas, useCreateNovaVida, useUpdateNovaVida, NovaVidaInsert } f
 import { useEncaminhamentos, useCreateEncaminhamento, useUpdateEncaminhamento } from '@/hooks/useEncaminhamentos';
 import { useCelulasPublicas } from '@/hooks/useCelulasPublicas';
 import { useRedes } from '@/hooks/useRedes';
+import { useCampo } from '@/contexts/CampoContext';
 import { useAuditProfiles, useMyProfileName } from '@/hooks/useAuditProfiles';
 import { useRecomecoMessages } from '@/hooks/useRecomecoAgent';
 import { Button } from '@/components/ui/button';
@@ -249,10 +250,12 @@ function EncaminharForm({ novaVidaId, novaVidaNome, bairro, cidade, onSuccess }:
   const [filterBairro, setFilterBairro] = useState(bairro || '');
   const [filterCidade, setFilterCidade] = useState(cidade || '');
   const [filterRedeId, setFilterRedeId] = useState('');
+  const { activeCampoId } = useCampo();
   const { data: celulas, isLoading } = useCelulasPublicas({
     bairro: filterBairro || undefined,
     cidade: filterCidade || undefined,
     rede_id: filterRedeId || undefined,
+    campo_id: activeCampoId,
   });
   const createEnc = useCreateEncaminhamento();
 

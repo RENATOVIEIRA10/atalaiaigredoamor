@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useRole } from '@/contexts/RoleContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCampo } from '@/contexts/CampoContext';
 import { useNovasVidas, useUpdateNovaVida, STATUS_LABELS, useChangeNovaVidaStatus } from '@/hooks/useNovasVidas';
 import { useCreateEncaminhamento } from '@/hooks/useEncaminhamentos';
 import { useCelulasPublicas } from '@/hooks/useCelulasPublicas';
@@ -394,10 +395,12 @@ function TriagemDialog({ vidaId, novasVidas, onClose, isPWAMobile }: { vidaId: s
   const [filterCidade, setFilterCidade] = useState(nv?.cidade || '');
   const [filterRedeId, setFilterRedeId] = useState('');
   const [obs, setObs] = useState('');
+  const { activeCampoId } = useCampo();
   const { data: celulas, isLoading } = useCelulasPublicas({
     bairro: filterBairro || undefined,
     cidade: filterCidade || undefined,
     rede_id: filterRedeId || undefined,
+    campo_id: activeCampoId,
   });
   const createEnc = useCreateEncaminhamento();
 
