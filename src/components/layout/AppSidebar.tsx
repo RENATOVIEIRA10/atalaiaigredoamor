@@ -174,16 +174,16 @@ export function AppSidebar() {
   return (
     <>
       <Sidebar className="border-r border-sidebar-border/30">
-        <SidebarHeader className="border-b border-sidebar-border/30 px-5 pb-4 pt-5">
-          <div className="flex items-center gap-2.5">
-            <AtalaiaIcon className="h-7 w-auto" />
-            <div className="h-5 w-px bg-sidebar-border/25" />
-            <div className="rounded-md px-1.5 py-0.5" style={{ background: 'rgba(244,237,228,0.9)' }}>
-              <img src={logoIgreja} alt="Igreja do Amor" className="h-6 w-auto object-contain" />
+        <SidebarHeader className="border-b border-sidebar-border/30 px-4 pb-4 pt-5">
+          <div className="flex items-center justify-center gap-3">
+            <AtalaiaIcon className="h-10 w-auto shrink-0" />
+            <div className="h-8 w-px bg-sidebar-border/20 shrink-0" />
+            <div className="rounded-lg px-2 py-1 shrink-0" style={{ background: 'rgba(244,237,228,0.92)' }}>
+              <img src={logoIgreja} alt="Igreja do Amor" className="h-8 w-auto object-contain" />
             </div>
-            <div className="h-5 w-px bg-sidebar-border/25" />
-            <div className="rounded-md px-1.5 py-0.5" style={{ background: 'rgba(244,237,228,0.9)' }}>
-              <img src={logoRedeAmor} alt="Rede Amor a Dois" className="h-6 w-auto object-contain" />
+            <div className="h-8 w-px bg-sidebar-border/20 shrink-0" />
+            <div className="rounded-lg px-2 py-1 shrink-0" style={{ background: 'rgba(244,237,228,0.92)' }}>
+              <img src={logoRedeAmor} alt="Rede Amor a Dois" className="h-8 w-auto object-contain" />
             </div>
           </div>
         </SidebarHeader>

@@ -7,34 +7,34 @@ import logoAmorADois from '@/assets/logo-amor-a-dois-new.png';
  */
 export function AtalaiaIcon({ className = 'h-14 w-auto' }: { className?: string }) {
   return (
-    <svg
-      className={className}
-      viewBox="0 0 280 100"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path
-        d="M30 80C30 80 35 45 50 20C65 45 70 80 70 80"
-        stroke="#C5A059"
-        strokeWidth="6"
-        strokeLinecap="round"
-      />
-      <path
-        d="M40 65C45 62 55 62 60 65"
-        stroke="#C5A059"
-        strokeWidth="4"
-        strokeLinecap="round"
-      />
-      <circle cx="50" cy="15" r="5" fill="#C5A059" />
-      <text
-        x="90"
-        y="65"
-        fill="#C5A059"
-        style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 'bold', fontSize: '32px', letterSpacing: '0.15em' }}
+    <div className={`flex flex-col items-center gap-0.5 ${className}`}>
+      <svg
+        className="h-full w-auto"
+        viewBox="0 0 100 100"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M30 80C30 80 35 45 50 20C65 45 70 80 70 80"
+          stroke="#C5A059"
+          strokeWidth="6"
+          strokeLinecap="round"
+        />
+        <path
+          d="M40 65C45 62 55 62 60 65"
+          stroke="#C5A059"
+          strokeWidth="4"
+          strokeLinecap="round"
+        />
+        <circle cx="50" cy="15" r="5" fill="#C5A059" />
+      </svg>
+      <span
+        className="text-[8px] font-bold tracking-[0.2em] uppercase leading-none"
+        style={{ color: '#C5A059', fontFamily: "'Manrope', 'Inter', sans-serif" }}
       >
         ATALAIA
-      </text>
-    </svg>
+      </span>
+    </div>
   );
 }
 
