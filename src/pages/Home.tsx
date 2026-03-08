@@ -158,7 +158,14 @@ export default function HomePage() {
           navigate('/dashboard');
           return;
         }
-        if (st === 'pastor' || st === 'admin') {
+        if (st === 'admin') {
+          setScopeAccess(st, link.scope_id, link.access_key_id);
+          clearCampo();
+          setIsGlobalView(true);
+          navigate('/dashboard');
+          return;
+        }
+        if (st === 'pastor') {
           // Can't auto-select rede, go to trocar-funcao
           navigate('/trocar-funcao');
           return;
