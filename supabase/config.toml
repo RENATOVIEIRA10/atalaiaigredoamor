@@ -3,5 +3,8 @@ project_id = "yjwdlsjatqafzofgdyob"
 [functions.ai-insights]
 verify_jwt = false
 
+[functions.guide-ai]
+verify_jwt = false
+
 [functions.seed-demo]
 verify_jwt = false
