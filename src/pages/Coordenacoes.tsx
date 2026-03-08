@@ -14,20 +14,29 @@ import { CoordenacaoFormDialog } from '@/components/coordenacoes/CoordenacaoForm
 import { DeleteCoordenacaoDialog } from '@/components/coordenacoes/DeleteCoordenacaoDialog';
 import { CoupleAvatars } from '@/components/profile/CoupleAvatars';
 import { ProfileViewerDialog } from '@/components/profile/ProfileViewerDialog';
+import { useRole } from '@/contexts/RoleContext';
 
 export default function Coordenacoes() {
   const { data: coordenacoes, isLoading } = useCoordenacoes();
+  const { scopeType, scopeId, isAdmin } = useRole();
   const [search, setSearch] = useState('');
   const [formOpen, setFormOpen] = useState(false);
   const [editingCoordenacao, setEditingCoordenacao] = useState<Coordenacao | null>(null);
   const [deletingCoordenacao, setDeletingCoordenacao] = useState<Coordenacao | null>(null);
   const [viewingCouple, setViewingCouple] = useState<Coordenacao | null>(null);
   
-  const filteredCoordenacoes = coordenacoes?.filter(c => 
+  const scopedCoordenacoes = (() => {
+    const list = coordenacoes || [];
+    if (scopeType === 'rede' && scopeId) return list.filter(c => c.rede_id === scopeId);
+    if (scopeType === 'coordenacao' && scopeId) return list.filter(c => c.id === scopeId);
+    return list;
+  })();
+  
+  const filteredCoordenacoes = scopedCoordenacoes.filter(c => 
     c.name.toLowerCase().includes(search.toLowerCase()) ||
     c.leader?.name.toLowerCase().includes(search.toLowerCase()) ||
     c.rede?.name.toLowerCase().includes(search.toLowerCase())
-  ) || [];
+  );
   
   function handleEdit(coordenacao: Coordenacao) {
     setEditingCoordenacao(coordenacao);
