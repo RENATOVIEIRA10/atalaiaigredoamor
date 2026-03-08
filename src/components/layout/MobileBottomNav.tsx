@@ -26,7 +26,6 @@ export function MobileBottomNav() {
   } = useRole();
   const [menuOpen, setMenuOpen] = useState(false);
 
-  // Only render in PWA + mobile
   if (!isPWA || !isMobile) return null;
 
   let navItems: NavItem[];
@@ -34,39 +33,28 @@ export function MobileBottomNav() {
 
   // ── Ministry scopes ──
   if (isRecomecoCadastro) {
-    // Recomeço Operador: Cadastrar, Minhas, Tracking
     navItems = [
       { label: 'Cadastrar', icon: UserPlus, path: '/dashboard' },
       { label: 'Minhas', icon: ListChecks, path: '/dashboard?tab=minhas' },
       { label: 'Tracking', icon: Eye, path: '/dashboard?tab=acompanhamento' },
     ];
   } else if (isLiderRecomecoCentral) {
-    // Líder Recomeço + Central: Recomeço, Central, Funil, Auditoria
     navItems = [
       { label: 'Recomeço', icon: Heart, path: '/dashboard' },
       { label: 'Central', icon: ArrowRight, path: '/dashboard?tab=central' },
       { label: 'Funil', icon: Eye, path: '/dashboard?tab=acompanhamento' },
     ];
   } else if (isCentralCelulas) {
-    // Central de Células Operador: Fila, Acompanhamento
     navItems = [
       { label: 'Fila', icon: ArrowRight, path: '/dashboard' },
       { label: 'Acompanhar', icon: Eye, path: '/dashboard?tab=acompanhamento' },
     ];
   } else if (isCentralBatismoAclamacao) {
-    // Central Batismo: Inscritos, Inscrever
-    navItems = [
-      { label: 'Inscritos', icon: Droplets, path: '/dashboard' },
-    ];
+    navItems = [{ label: 'Inscritos', icon: Droplets, path: '/dashboard' }];
   } else if (isLiderBatismoAclamacao) {
-    // Líder Batismo: Eventos, Inscritos
-    navItems = [
-      { label: 'Eventos', icon: Droplets, path: '/dashboard' },
-    ];
+    navItems = [{ label: 'Eventos', icon: Droplets, path: '/dashboard' }];
   } else if (isDemoInstitucional) {
-    navItems = [
-      { label: 'Início', icon: LayoutDashboard, path: '/home' },
-    ];
+    navItems = [{ label: 'Início', icon: LayoutDashboard, path: '/home' }];
   } else if (isPastorSeniorGlobal || isPastorDeCampo || isPastor) {
     navItems = [
       { label: 'Início', icon: LayoutDashboard, path: '/home' },
@@ -110,10 +98,13 @@ export function MobileBottomNav() {
   return (
     <>
       <nav
-        className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-t border-border/40 safe-area-bottom"
+        className="fixed bottom-0 left-0 right-0 z-50 border-t border-border/20"
         style={{
           paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-          boxShadow: '0 -1px 8px rgba(0,0,0,0.15)',
+          background: 'linear-gradient(to top, hsl(222 47% 6% / 0.98), hsl(222 47% 8% / 0.92))',
+          backdropFilter: 'blur(20px) saturate(1.3)',
+          WebkitBackdropFilter: 'blur(20px) saturate(1.3)',
+          boxShadow: '0 -1px 20px rgba(0,0,0,0.4)',
         }}
       >
         <div className="flex items-stretch justify-around max-w-lg mx-auto">
@@ -124,30 +115,27 @@ export function MobileBottomNav() {
                 key={item.path}
                 onClick={() => navigate(item.path)}
                 className={cn(
-                  'flex flex-col items-center justify-center gap-0.5 flex-1 py-2 min-h-[56px] transition-colors',
-                  'active:bg-accent/50 touch-manipulation',
-                  active
-                    ? 'text-primary'
-                    : 'text-muted-foreground'
+                  'flex flex-col items-center justify-center gap-0.5 flex-1 py-2.5 min-h-[56px] transition-colors',
+                  'active:bg-accent/30 touch-manipulation',
+                  active ? 'text-primary' : 'text-muted-foreground'
                 )}
               >
                 <item.icon className={cn('h-5 w-5', active && 'stroke-[2.5]')} />
-                <span className={cn(
-                  'text-[10px] leading-tight',
-                  active ? 'font-semibold' : 'font-medium'
-                )}>
+                <span className={cn('text-[10px] leading-tight', active ? 'font-bold' : 'font-medium')}>
                   {item.label}
                 </span>
+                {active && (
+                  <div className="absolute bottom-1 h-0.5 w-5 rounded-full bg-primary" />
+                )}
               </button>
             );
           })}
 
-          {/* Menu button */}
           <button
             onClick={() => setMenuOpen(true)}
             className={cn(
-              'flex flex-col items-center justify-center gap-0.5 flex-1 py-2 min-h-[56px] transition-colors',
-              'active:bg-accent/50 touch-manipulation',
+              'flex flex-col items-center justify-center gap-0.5 flex-1 py-2.5 min-h-[56px] transition-colors',
+              'active:bg-accent/30 touch-manipulation',
               'text-muted-foreground'
             )}
           >

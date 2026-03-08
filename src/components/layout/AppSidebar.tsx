@@ -28,6 +28,8 @@ import {
   BarChart3,
   MessageSquare,
   KeyRound,
+  Radar,
+  Shield,
 } from 'lucide-react';
 import logoIgreja from '@/assets/logo-igreja-do-amor-new.png';
 import logoRedeAmor from '@/assets/logo-amor-a-dois-new.png';
@@ -35,6 +37,7 @@ import { AtalaiaIcon } from '@/components/institutional/AtalaiaLogoHeader';
 import { useRole } from '@/contexts/RoleContext';
 import { useDemoMode } from '@/contexts/DemoModeContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useTorreControle } from '@/contexts/TorreControleContext';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { DemoModeDialog } from '@/components/demo/DemoModeDialog';
@@ -54,6 +57,7 @@ import {
 } from '@/components/ui/sidebar';
 
 interface NavGroup {
+  label?: string;
   items: { title: string; href: string; icon: React.ElementType }[];
 }
 
@@ -75,6 +79,7 @@ export function AppSidebar() {
   } = useRole();
   const { isDemoActive, deactivateDemo } = useDemoMode();
   const { theme, toggleTheme } = useTheme();
+  const { setIsOpen: setTorreOpen } = useTorreControle();
   const [demoDialogOpen, setDemoDialogOpen] = useState(false);
   const { openTour } = usePastoralTour();
 
@@ -86,37 +91,32 @@ export function AppSidebar() {
       { title: 'Início', href: '/home', icon: LayoutDashboard },
       { title: 'Membros', href: '/dashboard?tab=membros', icon: Users },
       { title: 'Discipulado', href: '/dashboard?tab=discipulado', icon: BookOpen },
-      { title: 'Relatório da Semana', href: '/dashboard?tab=celula', icon: ClipboardCheck },
+      { title: 'Relatório', href: '/dashboard?tab=celula', icon: ClipboardCheck },
       { title: 'Novas Vidas', href: '/dashboard?tab=novas-vidas', icon: Heart },
       { title: 'Reuniões', href: '/dashboard?tab=roteiro', icon: Calendar },
-      { title: 'Fotos & Momentos', href: '/dashboard', icon: Church },
     ],
     coordenador: [
       { title: 'Início', href: '/home', icon: LayoutDashboard },
-      { title: 'Células da Coordenação', href: '/dashboard?tab=visao-geral', icon: Home },
-      { title: 'Líderes de Célula', href: '/organograma', icon: UserCheck },
-      { title: 'Novas Vidas (triagem)', href: '/dashboard?tab=movimento', icon: Heart },
+      { title: 'Células', href: '/dashboard?tab=visao-geral', icon: Home },
+      { title: 'Líderes', href: '/organograma', icon: UserCheck },
+      { title: 'Novas Vidas', href: '/dashboard?tab=movimento', icon: Heart },
       { title: 'Discipulado', href: '/dashboard?tab=movimento', icon: BookOpen },
       { title: 'Acompanhamentos', href: '/dashboard?tab=acompanhamento', icon: ClipboardCheck },
-      { title: 'Crescimento & Multiplicação', href: '/dashboard?tab=analises', icon: TrendingUp },
     ],
     rede_leader: [
       { title: 'Início', href: '/home', icon: LayoutDashboard },
       { title: 'Coordenações', href: '/dashboard?tab=visao-geral', icon: Layers },
       { title: 'Líderes', href: '/organograma', icon: UserCheck },
       { title: 'Células', href: '/dashboard?tab=visao-geral', icon: Home },
-      { title: 'Novas Vidas da Rede', href: '/dashboard?tab=movimento', icon: Heart },
-      { title: 'Discipulado da Rede', href: '/dashboard?tab=movimento', icon: BookOpen },
-      { title: 'Crescimento & Multiplicações', href: '/dashboard?tab=analises', icon: TrendingUp },
       { title: 'Supervisões', href: '/dashboard?tab=analises', icon: ClipboardCheck },
+      { title: 'Multiplicação', href: '/dashboard?tab=analises', icon: TrendingUp },
+      { title: 'Radar', href: '/radar', icon: Activity },
     ],
     pastor_de_campo: [
       { title: 'Início', href: '/home', icon: LayoutDashboard },
       { title: 'Visão do Campus', href: '/dashboard?tab=visao-geral', icon: Eye },
-      { title: 'Redes do Campus', href: '/dashboard?tab=visao-geral', icon: Network },
-      { title: 'Novas Vidas', href: '/dashboard?tab=movimento', icon: Heart },
-      { title: 'Discipulado', href: '/dashboard?tab=movimento', icon: BookOpen },
-      { title: 'Crescimento do Reino', href: '/dashboard?tab=movimento', icon: TrendingUp },
+      { title: 'Redes', href: '/dashboard?tab=visao-geral', icon: Network },
+      { title: 'Crescimento', href: '/dashboard?tab=movimento', icon: TrendingUp },
       { title: 'Radar Pastoral', href: '/dashboard?tab=pastoral', icon: Activity },
       { title: 'Reuniões com Líderes', href: '/dashboard?tab=pastoral&view=reuniao', icon: MessageSquare },
     ],
@@ -125,20 +125,19 @@ export function AppSidebar() {
       { title: 'Visão Global', href: '/dashboard?tab=visao-geral', icon: Eye },
       { title: 'Campos', href: '/dashboard?tab=visao-geral', icon: Map },
       { title: 'Redes por Campo', href: '/dashboard?tab=visao-geral', icon: Network },
-      { title: 'Novas Vidas (Reino)', href: '/dashboard?tab=movimento', icon: Heart },
-      { title: 'Discipulado (Reino)', href: '/dashboard?tab=movimento', icon: BookOpen },
-      { title: 'Expansão do Reino', href: '/dashboard?tab=movimento', icon: TrendingUp },
+      { title: 'Expansão', href: '/dashboard?tab=movimento', icon: TrendingUp },
       { title: 'Radar Estratégico', href: '/dashboard?tab=pastoral', icon: BarChart3 },
     ],
     admin: [
       { title: 'Início', href: '/home', icon: LayoutDashboard },
-      { title: 'Gestão de Lideranças', href: '/organograma', icon: GitBranch },
-      { title: 'Códigos de Acesso', href: '/dados', icon: KeyRound },
+      { title: 'Lideranças', href: '/organograma', icon: GitBranch },
+      { title: 'Códigos', href: '/dados', icon: KeyRound },
       { title: 'Campos', href: '/dashboard?tab=semanal', icon: Map },
       { title: 'Redes', href: '/redes', icon: Network },
       { title: 'Coordenações', href: '/coordenacoes', icon: Layers },
       { title: 'Células', href: '/celulas', icon: Home },
       { title: 'Seed Run', href: '/configuracoes?tab=seedrun', icon: PlayCircle },
+      { title: 'Configurações', href: '/configuracoes', icon: Settings },
     ],
     default: [
       { title: 'Início', href: '/home', icon: LayoutDashboard },
@@ -149,21 +148,17 @@ export function AppSidebar() {
     ],
   };
 
-  const navGroups: NavGroup[] = [
-    {
-      items: (() => {
-        if (isDemoInstitucional) return [{ title: 'Início', href: '/home', icon: LayoutDashboard }];
-        if (isPastorSeniorGlobal) return roleNavItems.pastor_senior_global;
-        if (isPastorDeCampo) return roleNavItems.pastor_de_campo;
-        if (isAdmin && !isDemoActive) return roleNavItems.admin;
-        if (isRedeLeader) return roleNavItems.rede_leader;
-        if (isCoordenador) return roleNavItems.coordenador;
-        if (isCellLeaderOnly) return roleNavItems.celula_leader;
-        if (isPastor) return roleNavItems.pastor_de_campo;
-        return roleNavItems.default;
-      })().slice(0, 8),
-    },
-  ];
+  const mainItems = (() => {
+    if (isDemoInstitucional) return [{ title: 'Início', href: '/home', icon: LayoutDashboard }];
+    if (isPastorSeniorGlobal) return roleNavItems.pastor_senior_global;
+    if (isPastorDeCampo) return roleNavItems.pastor_de_campo;
+    if (isAdmin && !isDemoActive) return roleNavItems.admin;
+    if (isRedeLeader) return roleNavItems.rede_leader;
+    if (isCoordenador) return roleNavItems.coordenador;
+    if (isCellLeaderOnly) return roleNavItems.celula_leader;
+    if (isPastor) return roleNavItems.pastor_de_campo;
+    return roleNavItems.default;
+  })();
 
   const handleLogout = () => {
     if (isDemoActive) deactivateDemo();
@@ -178,86 +173,125 @@ export function AppSidebar() {
 
   return (
     <>
-      <Sidebar className="border-r border-sidebar-border/45">
-        <SidebarHeader className="border-b border-sidebar-border/45 px-5 pb-5 pt-6 backdrop-blur-xl">
-          <div className="flex items-center gap-2 flex-wrap">
-            <AtalaiaIcon className="h-8 w-auto" />
-            <div className="h-6 w-px bg-sidebar-border/30" />
-            <img src={logoIgreja} alt="Igreja do Amor" className="h-8 w-auto object-contain" />
-            <div className="h-6 w-px bg-sidebar-border/30" />
-            <img src={logoRedeAmor} alt="Rede Amor a Dois" className="h-8 w-auto object-contain" />
+      <Sidebar className="border-r border-sidebar-border/30">
+        <SidebarHeader className="border-b border-sidebar-border/30 px-5 pb-4 pt-5">
+          <div className="flex items-center gap-2.5">
+            <AtalaiaIcon className="h-7 w-auto" />
+            <div className="h-5 w-px bg-sidebar-border/25" />
+            <div className="rounded-md px-1.5 py-0.5" style={{ background: 'rgba(244,237,228,0.9)' }}>
+              <img src={logoIgreja} alt="Igreja do Amor" className="h-6 w-auto object-contain" />
+            </div>
+            <div className="h-5 w-px bg-sidebar-border/25" />
+            <div className="rounded-md px-1.5 py-0.5" style={{ background: 'rgba(244,237,228,0.9)' }}>
+              <img src={logoRedeAmor} alt="Rede Amor a Dois" className="h-6 w-auto object-contain" />
+            </div>
           </div>
         </SidebarHeader>
 
-        <SidebarContent className="px-3 py-4">
-          {(isPastorSeniorGlobal || isAdmin || isPastorDeCampo) && (
-            <SidebarGroup>
-              <SidebarGroupContent>
-                <div className="px-3 py-2">
-                  <CampoSelector />
-                </div>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          )}
-
+        <SidebarContent className="px-3 py-3">
+          {/* Torre de Controle — Admin only */}
           {isOriginalAdmin && (
             <SidebarGroup>
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
                     <SidebarMenuButton
-                      onClick={() => setDemoDialogOpen(true)}
-                      className="h-11 rounded-2xl border border-emerald-500/25 bg-emerald-500/10 text-emerald-600 shadow-[0_12px_28px_-22px_hsl(142_70%_45%)] hover:bg-emerald-500/16 dark:text-emerald-400"
+                      onClick={() => setTorreOpen(true)}
+                      className="h-10 rounded-xl bg-gold/10 border border-gold/20 text-gold hover:bg-gold/15"
                     >
-                      <ShieldCheck className="h-4 w-4" />
-                      <span className="font-medium">
-                        {isDemoActive ? 'Trocar Visão' : 'Modo Validação'}
-                      </span>
+                      <Radar className="h-4 w-4" />
+                      <span className="font-semibold text-xs tracking-wide">Torre de Controle</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
+                  {!isDemoActive && (
+                    <SidebarMenuItem>
+                      <SidebarMenuButton
+                        onClick={() => setDemoDialogOpen(true)}
+                        className="h-10 rounded-xl border border-sidebar-border/30 text-sidebar-foreground/70 hover:bg-sidebar-accent/50"
+                      >
+                        <ShieldCheck className="h-4 w-4" />
+                        <span className="font-medium text-xs">Modo Validação</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )}
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
           )}
 
-          {navGroups.map((group, gi) => (
-            <NavGroupSection key={gi} group={group} location={location} />
-          ))}
+          {/* Campo Selector for pastors/admin */}
+          {(isPastorSeniorGlobal || isAdmin || isPastorDeCampo) && (
+            <SidebarGroup>
+              <SidebarGroupContent>
+                <div className="px-2 py-1.5">
+                  <CampoSelector />
+                </div>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          )}
 
+          {/* Main Navigation */}
           <SidebarGroup>
-            <SidebarGroupLabel className="px-3 text-[10px] uppercase tracking-[0.18em] text-sidebar-foreground/45">Apoio</SidebarGroupLabel>
+            <SidebarGroupLabel className="px-3 text-[9px] uppercase tracking-[0.2em] text-sidebar-foreground/35 font-semibold">
+              Navegação
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {mainItems.map((item) => (
+                  <SidebarMenuItem key={`${item.href}:${item.title}`}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={location.pathname + location.search === item.href || location.pathname === item.href}
+                      className="h-9 rounded-xl text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-foreground"
+                    >
+                      <NavLink to={item.href}>
+                        <item.icon className="h-4 w-4" />
+                        <span className="text-[13px] font-medium">{item.title}</span>
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+
+          {/* Apoio */}
+          <SidebarGroup>
+            <SidebarGroupLabel className="px-3 text-[9px] uppercase tracking-[0.2em] text-sidebar-foreground/35 font-semibold">
+              Apoio
+            </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={location.pathname === '/glossario'} className="h-11 rounded-2xl">
+                  <SidebarMenuButton asChild isActive={location.pathname === '/glossario'} className="h-9 rounded-xl text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50">
                     <NavLink to="/glossario">
                       <BookOpen className="h-4 w-4" />
-                      <span className="font-medium">Glossário</span>
+                      <span className="text-[13px] font-medium">Glossário</span>
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={location.pathname === '/manual-usuario'} className="h-11 rounded-2xl">
+                  <SidebarMenuButton asChild isActive={location.pathname === '/manual-usuario'} className="h-9 rounded-xl text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50">
                     <NavLink to="/manual-usuario">
                       <PlayCircle className="h-4 w-4" />
-                      <span className="font-medium">Manual do Usuário</span>
+                      <span className="text-[13px] font-medium">Manual</span>
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 {isOriginalAdmin && !isDemoActive && (
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={location.pathname === '/guia-admin'} className="h-11 rounded-2xl">
+                    <SidebarMenuButton asChild isActive={location.pathname === '/guia-admin'} className="h-9 rounded-xl text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50">
                       <NavLink to="/guia-admin">
                         <Map className="h-4 w-4" />
-                        <span className="font-medium">Guia do Admin</span>
+                        <span className="text-[13px] font-medium">Guia Admin</span>
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 )}
                 <SidebarMenuItem>
-                  <SidebarMenuButton onClick={openTour} className="h-11 rounded-2xl">
+                  <SidebarMenuButton onClick={openTour} className="h-9 rounded-xl text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50">
                     <HelpCircle className="h-4 w-4" />
-                    <span className="font-medium">Tour de Ajuda</span>
+                    <span className="text-[13px] font-medium">Tour</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               </SidebarMenu>
@@ -265,49 +299,48 @@ export function AppSidebar() {
           </SidebarGroup>
         </SidebarContent>
 
-        <SidebarFooter className="space-y-3 border-t border-sidebar-border/50 p-4 backdrop-blur-xl">
-          <div className="flex items-center gap-2">
+        <SidebarFooter className="space-y-2 border-t border-sidebar-border/30 p-3">
+          <div className="flex items-center gap-1.5">
             <Button
               variant="ghost"
               size="sm"
               onClick={toggleTheme}
-              className="flex-1 h-9 rounded-lg border border-sidebar-border/40 text-xs font-medium text-sidebar-foreground/75 hover:text-sidebar-foreground hover:bg-sidebar-accent/75 gap-2"
+              className="flex-1 h-8 rounded-lg border border-sidebar-border/25 text-[11px] font-medium text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/40 gap-1.5"
             >
-              <Moon className="h-4 w-4" />
+              <Moon className="h-3.5 w-3.5" />
               {theme === 'padrao' ? 'Tema Amor' : 'Tema Padrão'}
             </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleSwitchRole}
+              className="h-8 rounded-lg border border-sidebar-border/25 text-[11px] font-medium text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/40 gap-1.5 px-2.5"
+            >
+              <RefreshCw className="h-3.5 w-3.5" />
+            </Button>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleSwitchRole}
-            className="w-full h-9 rounded-lg border border-sidebar-border/40 text-xs font-medium text-sidebar-foreground/75 hover:text-sidebar-foreground hover:bg-sidebar-accent/75 gap-2 justify-start"
-          >
-            <RefreshCw className="h-4 w-4" />
-            Trocar Função
-          </Button>
-          <div className="flex items-center gap-3">
-            <Avatar className="h-9 w-9 border border-sidebar-primary/35 shadow-sm">
-              <AvatarFallback className="bg-sidebar-primary/20 text-sidebar-foreground text-xs font-semibold">
+          <div className="flex items-center gap-2.5 rounded-xl bg-sidebar-accent/30 px-3 py-2">
+            <Avatar className="h-8 w-8 border border-sidebar-primary/25">
+              <AvatarFallback className="bg-sidebar-primary/15 text-sidebar-foreground text-[11px] font-semibold">
                 {selectedRole?.charAt(0).toUpperCase() || 'U'}
               </AvatarFallback>
             </Avatar>
             <div className="flex flex-1 flex-col overflow-hidden">
-              <span className="truncate text-sm font-medium text-sidebar-foreground">
+              <span className="truncate text-[13px] font-medium text-sidebar-foreground">
                 {selectedRole ? roleLabels[selectedRole] : 'Usuário'}
               </span>
               {isDemoActive && (
-                <span className="truncate text-[10px] text-emerald-500 font-medium">Validação ativa</span>
+                <span className="truncate text-[10px] text-gold font-medium">Validação ativa</span>
               )}
             </div>
             <Button
               variant="ghost"
               size="icon"
               onClick={handleLogout}
-              className="h-9 w-9 shrink-0 rounded-lg border border-sidebar-border/40 text-sidebar-foreground/75 hover:text-sidebar-foreground hover:bg-sidebar-accent/75"
+              className="h-7 w-7 shrink-0 rounded-lg text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
               title="Sair"
             >
-              <LogOut className="h-4 w-4" />
+              <LogOut className="h-3.5 w-3.5" />
             </Button>
           </div>
         </SidebarFooter>
@@ -315,26 +348,5 @@ export function AppSidebar() {
 
       <DemoModeDialog open={demoDialogOpen} onOpenChange={setDemoDialogOpen} />
     </>
-  );
-}
-
-function NavGroupSection({ group, location }: { group: NavGroup; location: ReturnType<typeof useLocation> }) {
-  return (
-    <SidebarGroup>
-      <SidebarGroupContent>
-        <SidebarMenu>
-          {group.items.map((item) => (
-            <SidebarMenuItem key={`${item.href}:${item.title}`}>
-              <SidebarMenuButton asChild isActive={location.pathname + location.search === item.href || location.pathname === item.href} className="h-11 rounded-2xl">
-                <NavLink to={item.href}>
-                  <item.icon className="h-4 w-4" />
-                  <span className="font-medium">{item.title}</span>
-                </NavLink>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
-      </SidebarGroupContent>
-    </SidebarGroup>
   );
 }
