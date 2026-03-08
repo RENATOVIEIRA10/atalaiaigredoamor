@@ -332,7 +332,150 @@ function SupervisoesView({ coordId, onBack }: { coordId: string; onBack: () => v
   );
 }
 
-// ────────── Shared components ──────────
+// ────────── View: Células da Coordenação ──────────
+function CelulasCoordView({ coordId, onBack }: { coordId: string; onBack: () => void }) {
+  const { data: celulas, isLoading } = useCelulas();
+  const coordCelulas = (celulas || []).filter(c => c.coordenacao_id === coordId);
+
+  if (isLoading) return <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
+
+  return (
+    <DrillDownContainer title="Células da Coordenação" onBack={onBack}>
+      {coordCelulas.length === 0 ? (
+        <EmptyState icon={Home} title="Nenhuma célula" description="Nenhuma célula nesta coordenação" />
+      ) : (
+        coordCelulas.map(cel => (
+          <Card key={cel.id}>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold shrink-0">
+                  {cel.name.charAt(0)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm truncate">{cel.name}</p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {cel.leadership_couple
+                      ? `${cel.leadership_couple.spouse1?.name?.split(' ')[0] || ''} & ${cel.leadership_couple.spouse2?.name?.split(' ')[0] || ''}`
+                      : 'Sem líderes'}
+                  </p>
+                </div>
+                {cel.meeting_day && (
+                  <Badge variant="outline" className="text-[10px] shrink-0">{cel.meeting_day}</Badge>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        ))
+      )}
+    </DrillDownContainer>
+  );
+}
+
+// ────────── View: Novas Vidas da Coordenação ──────────
+function NovasVidasCoordView({ coordId, onBack }: { coordId: string; onBack: () => void }) {
+  const { data: celulas } = useCelulas();
+  const coordCelulaIds = new Set((celulas || []).filter(c => c.coordenacao_id === coordId).map(c => c.id));
+
+  const { data: encaminhamentos, isLoading } = useQuery({
+    queryKey: ['encaminhamentos-coord', coordId],
+    queryFn: async () => {
+      if (coordCelulaIds.size === 0) return [];
+      const { data } = await supabase
+        .from('encaminhamentos_recomeco')
+        .select('id, status, data_encaminhamento, notas, celula_id, nova_vida:novas_vidas(id, nome, whatsapp, bairro)')
+        .in('celula_id', Array.from(coordCelulaIds))
+        .order('data_encaminhamento', { ascending: false })
+        .limit(50);
+      return data || [];
+    },
+    enabled: coordCelulaIds.size > 0,
+  });
+
+  if (isLoading) return <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
+
+  const celulaMap = new Map((celulas || []).filter(c => c.coordenacao_id === coordId).map(c => [c.id, c.name]));
+
+  return (
+    <DrillDownContainer title="Novas Vidas da Coordenação" onBack={onBack}>
+      {(!encaminhamentos || encaminhamentos.length === 0) ? (
+        <EmptyState icon={Heart} title="Nenhuma nova vida" description="Nenhuma vida encaminhada para células desta coordenação" />
+      ) : (
+        encaminhamentos.map((enc: any) => (
+          <Card key={enc.id} className={`border-l-4 ${enc.status === 'pendente' ? 'border-l-amber-500' : enc.status === 'contatado' ? 'border-l-blue-500' : 'border-l-green-500'}`}>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium text-sm truncate">{enc.nova_vida?.nome || 'Vida'}</p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {celulaMap.get(enc.celula_id) || 'Célula'} · {enc.nova_vida?.bairro || ''}
+                  </p>
+                </div>
+                <Badge variant="outline" className="text-xs shrink-0">
+                  {enc.status === 'pendente' ? 'Pendente' : enc.status === 'contatado' ? 'Contatado' : enc.status === 'integrado' ? 'Integrado' : enc.status}
+                </Badge>
+              </div>
+            </CardContent>
+          </Card>
+        ))
+      )}
+    </DrillDownContainer>
+  );
+}
+
+// ────────── View: Líderes da Coordenação ──────────
+function LideresCoordView({ coordId, onBack }: { coordId: string; onBack: () => void }) {
+  const { data: celulas, isLoading } = useCelulas();
+  const coordCelulas = (celulas || []).filter(c => c.coordenacao_id === coordId);
+
+  if (isLoading) return <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
+
+  const leaders = coordCelulas
+    .filter(c => c.leadership_couple)
+    .map(c => ({
+      celulaId: c.id,
+      celulaName: c.name,
+      couple: c.leadership_couple,
+    }));
+
+  return (
+    <DrillDownContainer title="Líderes de Célula" onBack={onBack}>
+      {leaders.length === 0 ? (
+        <EmptyState icon={UserCheck} title="Nenhum líder" description="Nenhum líder vinculado às células desta coordenação" />
+      ) : (
+        leaders.map(l => (
+          <Card key={l.celulaId}>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="flex -space-x-2">
+                  {l.couple?.spouse1 && (
+                    <Avatar className="h-9 w-9 border-2 border-background">
+                      <AvatarImage src={l.couple.spouse1.avatar_url || undefined} />
+                      <AvatarFallback className="text-xs bg-accent text-accent-foreground">{l.couple.spouse1.name?.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                  )}
+                  {l.couple?.spouse2 && (
+                    <Avatar className="h-9 w-9 border-2 border-background">
+                      <AvatarImage src={l.couple.spouse2.avatar_url || undefined} />
+                      <AvatarFallback className="text-xs bg-accent text-accent-foreground">{l.couple.spouse2.name?.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm truncate">
+                    {l.couple?.spouse1?.name?.split(' ')[0] || ''} & {l.couple?.spouse2?.name?.split(' ')[0] || ''}
+                  </p>
+                  <p className="text-xs text-muted-foreground truncate">{l.celulaName}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))
+      )}
+    </DrillDownContainer>
+  );
+}
+
+
 function DrillDownContainer({ title, onBack, children }: { title: string; onBack: () => void; children: React.ReactNode }) {
   return (
     <div className="space-y-3">
