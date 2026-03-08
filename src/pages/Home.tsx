@@ -147,7 +147,7 @@ export default function HomePage() {
           // Always start in global view, never fall into a campus
           clearCampo();
           setIsGlobalView(true);
-          navigate('/dashboard');
+          navigate('/home');
           return;
         }
         if (st === 'pastor_de_campo') {
