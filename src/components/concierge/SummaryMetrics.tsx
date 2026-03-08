@@ -20,35 +20,35 @@ interface MetricItem {
 function getMetricsForScope(level: string): MetricItem[] {
   if (level === 'celula') {
     return [
-      { key: 'membrosCelula', label: 'Membros da célula', icon: Users, color: 'text-violet-500' },
-      { key: 'novasVidasCelula', label: 'Novas vidas (mês)', icon: Heart, color: 'text-rose-500' },
+      { key: 'membrosCelula', label: 'Membros da célula', icon: Users, color: 'text-primary' },
+      { key: 'novasVidasCelula', label: 'Novas vidas (mês)', icon: Heart, color: 'text-destructive' },
     ];
   }
   if (level === 'supervisor') {
-    return [{ key: 'celulasSupervisionadas', label: 'Células supervisionadas', icon: Home, color: 'text-sky-500' }];
+    return [{ key: 'celulasSupervisionadas', label: 'Células supervisionadas', icon: Home, color: 'text-primary' }];
   }
   if (level === 'coordenacao') {
     return [
-      { key: 'celulasCoordenacao', label: 'Células na coordenação', icon: Home, color: 'text-sky-500' },
-      { key: 'membrosCoordenacao', label: 'Membros na coordenação', icon: Users, color: 'text-violet-500' },
+      { key: 'celulasCoordenacao', label: 'Células na coordenação', icon: Home, color: 'text-primary' },
+      { key: 'membrosCoordenacao', label: 'Membros na coordenação', icon: Users, color: 'text-primary' },
     ];
   }
   if (level === 'rede') {
     return [
-      { key: 'celulasAtivas', label: 'Células da rede', icon: Home, color: 'text-sky-500' },
-      { key: 'membrosAtivos', label: 'Membros da rede', icon: Users, color: 'text-violet-500' },
-      { key: 'novasVidasMes', label: 'Novas vidas (mês)', icon: Heart, color: 'text-rose-500' },
+      { key: 'celulasAtivas', label: 'Células da rede', icon: Home, color: 'text-primary' },
+      { key: 'membrosAtivos', label: 'Membros da rede', icon: Users, color: 'text-primary' },
+      { key: 'novasVidasMes', label: 'Novas vidas (mês)', icon: Heart, color: 'text-destructive' },
     ];
   }
   if (level === 'ministerio') {
-    return [{ key: 'novasVidasMes', label: 'Novas vidas (mês)', icon: Heart, color: 'text-rose-500' }];
+    return [{ key: 'novasVidasMes', label: 'Novas vidas (mês)', icon: Heart, color: 'text-destructive' }];
   }
   return [
-    { key: 'celulasAtivas', label: 'Células ativas', icon: Home, color: 'text-sky-500' },
-    { key: 'membrosAtivos', label: 'Membros ativos', icon: Users, color: 'text-violet-500' },
-    { key: 'novasVidasMes', label: 'Novas vidas (mês)', icon: Heart, color: 'text-rose-500' },
-    { key: 'redesAtivas', label: 'Redes ativas', icon: Network, color: 'text-primary' },
-    { key: 'coordenacoesAtivas', label: 'Coordenações', icon: Layers, color: 'text-emerald-500' },
+    { key: 'celulasAtivas', label: 'Células ativas', icon: Home, color: 'text-primary' },
+    { key: 'membrosAtivos', label: 'Membros ativos', icon: Users, color: 'text-primary' },
+    { key: 'novasVidasMes', label: 'Novas vidas (mês)', icon: Heart, color: 'text-destructive' },
+    { key: 'redesAtivas', label: 'Redes ativas', icon: Network, color: 'text-gold' },
+    { key: 'coordenacoesAtivas', label: 'Coordenações', icon: Layers, color: 'text-success' },
   ];
 }
 
@@ -58,7 +58,7 @@ function getSectionLabel(level: string): string {
   if (level === 'coordenacao') return 'Sua coordenação';
   if (level === 'rede') return 'Saúde da rede';
   if (level === 'ministerio') return 'Visão do ministério';
-  return 'Saúde da rede';
+  return 'Panorama do Reino';
 }
 
 export function SummaryMetricsPanel({ metrics, isLoading }: Props) {
@@ -68,12 +68,10 @@ export function SummaryMetricsPanel({ metrics, isLoading }: Props) {
 
   if (isLoading) {
     return (
-      <div className="premium-surface rounded-3xl p-5">
-        <Skeleton className="mb-4 h-16 rounded-2xl" />
-        <div className="space-y-2">
-          <Skeleton className="h-11 rounded-xl" />
-          <Skeleton className="h-11 rounded-xl" />
-        </div>
+      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+        {[1, 2, 3, 4].map((i) => (
+          <Skeleton key={i} className="h-24 rounded-2xl bg-muted/30" />
+        ))}
       </div>
     );
   }
@@ -83,32 +81,27 @@ export function SummaryMetricsPanel({ metrics, isLoading }: Props) {
   const visibleItems = items.filter((item) => metrics[item.key] !== undefined);
   if (!visibleItems.length) return null;
 
-  const [featured, ...secondary] = visibleItems;
-  const FeaturedIcon = featured.icon;
-
   return (
-    <div className="premium-surface rounded-3xl p-5">
-      <div className="rounded-2xl border border-border/55 bg-background/80 p-4">
-        <FeaturedIcon className={cn('mb-2 h-4 w-4', featured.color)} />
-        <p className="text-4xl font-semibold tracking-tight text-foreground tabular-nums">{metrics[featured.key]}</p>
-        <p className="mt-1 text-xs uppercase tracking-[0.12em] text-muted-foreground">{featured.label}</p>
-      </div>
-
-      {!!secondary.length && (
-        <div className="mt-3 space-y-2">
-          {secondary.map(({ key, label, icon: Icon, color }) => (
-            <div key={key} className="flex items-center justify-between rounded-2xl border border-border/45 bg-background/65 px-3.5 py-3">
-              <div className="flex items-center gap-2.5">
-                <div className="rounded-full border border-border/55 p-1.5">
-                  <Icon className={cn('h-3.5 w-3.5', color)} />
-                </div>
-                <p className="text-xs text-muted-foreground">{label}</p>
-              </div>
-              <p className="text-lg font-semibold text-foreground tabular-nums">{metrics[key]}</p>
+    <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+      {visibleItems.map(({ key, label, icon: Icon, color }, idx) => (
+        <div
+          key={key}
+          className={cn(
+            'glass-card rounded-2xl p-5 transition-all duration-300',
+            'hover:-translate-y-0.5 hover:shadow-[0_16px_32px_-16px_hsl(var(--primary)/0.15)]',
+          )}
+        >
+          <div className="flex items-center gap-2 mb-3">
+            <div className="rounded-lg border border-border/30 bg-background/20 p-1.5">
+              <Icon className={cn('h-3.5 w-3.5', color)} />
             </div>
-          ))}
+          </div>
+          <p className="text-3xl font-display font-bold tracking-tight text-foreground tabular-nums">
+            {metrics[key]}
+          </p>
+          <p className="mt-1 text-[11px] uppercase tracking-[0.12em] text-muted-foreground/70">{label}</p>
         </div>
-      )}
+      ))}
     </div>
   );
 }
