@@ -221,6 +221,12 @@ function CelulaHealthRow({ celula, compact = false }: { celula: CelulaSaude; com
             ? `Última: ${format(parseISO(celula.ultima_supervisao), "dd/MM", { locale: ptBR })} (${daysAgo}d atrás)`
             : 'Sem supervisão registrada'}
         </p>
+        <HealthReason reason={
+          celula.status === 'critica' ? 'Pontuação abaixo de 3.0 — cuidado pastoral necessário'
+          : celula.status === 'acompanhamento' ? 'Pontuação entre 3.0 e 3.9 — pontos a acompanhar'
+          : celula.status === 'sem_avaliacao' ? 'Sem supervisões registradas para avaliação'
+          : 'Supervisões em dia com boa pontuação'
+        } />
       </div>
       <div className="flex items-center gap-2 shrink-0">
         {celula.media !== null && (

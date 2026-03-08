@@ -80,6 +80,7 @@ export function PastoralConciergeBlocks({ data, isLoading, level }: Props) {
       {/* ═══ SINAIS DE GOVERNO ═══ */}
       <section className="space-y-3">
         <SectionLabel label={level === 'campo' ? 'Sinais de governo do campus' : 'Panorama do Reino'} />
+        <HealthLegend preset="concierge" compact />
 
         {attention.length > 0 && (
           <div className="glass-card rounded-2xl border-destructive/20 p-4 space-y-1">

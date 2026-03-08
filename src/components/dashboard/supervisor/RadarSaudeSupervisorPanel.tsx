@@ -267,6 +267,12 @@ function CellRow({ cell, compact = false }: { cell: CelulaHealth; compact?: bool
             <span className="ml-2">· {cell.weeks_without_report}sem s/ relatório</span>
           )}
         </p>
+        <HealthReason reason={
+          cell.status === 'prioridade_cuidado' ? 'Nota abaixo de 3.0 — necessita ação pastoral'
+          : cell.status === 'atencao' ? 'Nota entre 3.0 e 3.9 — acompanhar de perto'
+          : cell.status === 'sem_avaliacao' ? 'Sem supervisões para avaliar'
+          : 'Supervisões com boa pontuação'
+        } />
       </div>
       <div className="flex items-center gap-1.5 shrink-0">
         {cell.media !== null && (
