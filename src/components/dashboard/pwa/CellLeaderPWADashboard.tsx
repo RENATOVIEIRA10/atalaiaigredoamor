@@ -197,12 +197,12 @@ function AcoesTab({ celulaId, celulaName, coupleNames, onOpenReport, novasVidasC
 }) {
   const [searchParams] = useSearchParams();
   const initialView = searchParams.get('view');
-  const [showMembers, setShowMembers] = useState(false);
+  const [showMembers, setShowMembers] = useState(initialView === 'membros');
   const [showBirthdays, setShowBirthdays] = useState(false);
   const [showNovasVidas, setShowNovasVidas] = useState(initialView === 'novas-vidas');
   const [showCellProfile, setShowCellProfile] = useState(false);
-  const [showDiscipulado, setShowDiscipulado] = useState(false);
-  const [celulaDialogOpen, setCelulaDialogOpen] = useState(false);
+  const [showDiscipulado, setShowDiscipulado] = useState(initialView === 'discipulado');
+  const [celulaDialogOpen, setCelulaDialogOpen] = useState(initialView === 'relatorio');
 
   if (showCellProfile) {
     return <CellProfilePWA celulaId={celulaId} onBack={() => setShowCellProfile(false)} />;

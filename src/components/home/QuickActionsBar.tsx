@@ -36,10 +36,10 @@ function buildQuickActions(scopeType: string | null): QuickActionItem[] {
   switch (scopeType) {
     case 'celula':
       return [
-        { id: 'relatorio', label: 'Relatório', icon: FileText, path: '/dashboard?tab=celula' },
-        { id: 'membros', label: 'Membros', icon: Users, path: '/dashboard?tab=membros' },
-        { id: 'discipulado', label: 'Discipulado', icon: BookOpen, path: '/dashboard?tab=discipulado' },
-        { id: 'novas-vidas', label: 'Novas Vidas', icon: Heart, path: '/dashboard?tab=novas-vidas' },
+        { id: 'relatorio', label: 'Relatório', icon: FileText, path: '/dashboard?tab=acoes&view=relatorio' },
+        { id: 'membros', label: 'Membros', icon: Users, path: '/dashboard?tab=acoes&view=membros' },
+        { id: 'discipulado', label: 'Discipulado', icon: BookOpen, path: '/dashboard?tab=acoes&view=discipulado' },
+        { id: 'novas-vidas', label: 'Novas Vidas', icon: Heart, path: '/dashboard?tab=acoes&view=novas-vidas' },
       ];
     case 'supervisor':
       return [
