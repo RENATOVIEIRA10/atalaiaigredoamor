@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useDemoScope } from '@/hooks/useDemoScope';
 
 export interface Supervisor {
   id: string;
@@ -127,17 +128,26 @@ export function useSupervisoresByCoordenacao(coordenacaoId: string) {
   });
 }
 
-// Hook para buscar todos os supervisores (com filtro de campus)
-export function useSupervisores(campoId?: string | null) {
+/**
+ * useSupervisores — Campus-isolated query.
+ * Uses useDemoScope internally. Optional override campoId.
+ */
+export function useSupervisores(overrideCampoId?: string | null) {
+  const { campoId: scopeCampoId, isMissingCampo, queryKeyExtra } = useDemoScope();
+  const effectiveCampoId = overrideCampoId !== undefined ? overrideCampoId : scopeCampoId;
+
   return useQuery({
-    queryKey: ['supervisores', campoId],
+    queryKey: ['supervisores', effectiveCampoId ?? 'global', ...queryKeyExtra],
+    enabled: !isMissingCampo,
     queryFn: async () => {
       // supervisores don't have campo_id directly, filter via coordenacao
       let coordQ = supabase.from('coordenacoes').select('id');
-      if (campoId) coordQ = coordQ.eq('campo_id', campoId);
+      if (effectiveCampoId) coordQ = coordQ.eq('campo_id', effectiveCampoId);
       const { data: coords } = await coordQ;
       const coordIds = (coords || []).map(c => c.id);
       
+      if (effectiveCampoId && coordIds.length === 0) return [] as Supervisor[];
+
       let query = supabase
         .from('supervisores')
         .select(`
@@ -152,7 +162,7 @@ export function useSupervisores(campoId?: string | null) {
         `)
         .order('ordem');
       
-      if (campoId && coordIds.length > 0) {
+      if (coordIds.length > 0) {
         query = query.in('coordenacao_id', coordIds);
       }
       
