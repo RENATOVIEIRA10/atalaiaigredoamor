@@ -166,7 +166,7 @@ export function useConciergeCards() {
             title: `${novasVidasPendentes} nova${novasVidasPendentes > 1 ? 's' : ''} vida${novasVidasPendentes > 1 ? 's' : ''} aguardando triagem`,
             description: 'Encaminhe para uma célula',
             actionLabel: 'Encaminhar',
-            actionPath: '/recomeco',
+            actionPath: '/recomeco-cadastro',
             priority: 1,
           });
         }
@@ -189,7 +189,7 @@ export function useConciergeCards() {
             title: `${novasVidasPendentes} nova${novasVidasPendentes > 1 ? 's' : ''} vida${novasVidasPendentes > 1 ? 's' : ''} aguardando célula`,
             description: 'Encaminhe para uma célula próxima',
             actionLabel: 'Encaminhar',
-            actionPath: '/recomeco',
+            actionPath: '/recomeco-cadastro',
             priority: 1,
           });
         }

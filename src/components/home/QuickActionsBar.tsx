@@ -62,7 +62,7 @@ function buildQuickActions(scopeType: string | null): QuickActionItem[] {
         { id: 'radar', label: 'Radar', icon: BarChart3, path: '/radar' },
       ];
     case 'recomeco_cadastro':
-      return [{ id: 'nova-vida', label: 'Nova Vida', icon: Heart, path: '/recomeco' }];
+      return [{ id: 'nova-vida', label: 'Nova Vida', icon: Heart, path: '/recomeco-cadastro' }];
     case 'central_celulas':
       return [
         { id: 'encaminhamentos', label: 'Encaminhamentos', icon: ArrowRightLeft, path: '/central-celulas' },
@@ -99,7 +99,7 @@ function buildQuickActions(scopeType: string | null): QuickActionItem[] {
       return [
         { id: 'ver-campus', label: 'Campus', icon: Building2, path: '/configuracoes?tab=campos' },
         { id: 'ver-redes', label: 'Redes', icon: Network, path: '/redes' },
-        { id: 'ver-novas-vidas', label: 'Novas Vidas', icon: Eye, path: '/recomeco' },
+        { id: 'ver-novas-vidas', label: 'Novas Vidas', icon: Eye, path: '/recomeco-cadastro' },
       ];
     default:
       return [];

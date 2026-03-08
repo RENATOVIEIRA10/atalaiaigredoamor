@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { RoleProvider } from "@/contexts/RoleContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
@@ -43,7 +43,7 @@ const FaqInstitucional = lazy(() => import("./pages/FaqInstitucional"));
 const ManualLiderCelula = lazy(() => import("./pages/ManualLiderCelula"));
 const ManualUsuario = lazy(() => import("./pages/ManualUsuario"));
 const TestemunhoAtalaia = lazy(() => import("./pages/TestemunhoAtalaia"));
-const Recomeco = lazy(() => import("./pages/Recomeco"));
+
 const TrocarFuncao = lazy(() => import("./pages/TrocarFuncao"));
 const RecomecoCadastro = lazy(() => import("./pages/RecomecoCadastro"));
 const CentralCelulas = lazy(() => import("./pages/CentralCelulas"));
@@ -94,7 +94,7 @@ function AppInner() {
           <Route path="/perfil/casal/:coupleId" element={<RoleProtectedRoute><PerfilCasal /></RoleProtectedRoute>} />
           <Route path="/perfil/membro/:memberId" element={<RoleProtectedRoute><PerfilMembro /></RoleProtectedRoute>} />
           <Route path="/ferramentas-teste" element={<RoleProtectedRoute><FerramentasTeste /></RoleProtectedRoute>} />
-          <Route path="/recomeco" element={<RoleProtectedRoute><Recomeco /></RoleProtectedRoute>} />
+          <Route path="/recomeco" element={<Navigate to="/recomeco-cadastro" replace />} />
           <Route path="/recomeco-cadastro" element={<ProtectedRoute><RecomecoCadastro /></ProtectedRoute>} />
           <Route path="/central-celulas" element={<ProtectedRoute><CentralCelulas /></ProtectedRoute>} />
 

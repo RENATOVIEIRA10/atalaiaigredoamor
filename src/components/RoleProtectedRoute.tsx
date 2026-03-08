@@ -92,7 +92,7 @@ export function RoleProtectedRoute({ children }: RoleProtectedRouteProps) {
 
   if (isBlocked) {
     if (isRecomecoOperador || isRecomecoLeitura) {
-      return <Navigate to="/recomeco" replace />;
+      return <Navigate to="/recomeco-cadastro" replace />;
     }
     if (isLiderRecomecoCentral) {
       return <Navigate to="/dashboard" replace />;
