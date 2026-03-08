@@ -3,6 +3,7 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { ScopeMissingGate } from '@/components/ScopeMissingGate';
 import { ConciergeCards } from '@/components/concierge/ConciergeCards';
 import { QuickActionsBar } from '@/components/home/QuickActionsBar';
+import { PastoralConciergeBlocks } from '@/components/home/PastoralConciergeBlocks';
 import { SummaryMetricsPanel, getSectionLabel } from '@/components/concierge/SummaryMetrics';
 import { RecentActivity } from '@/components/concierge/RecentActivity';
 import { OnboardingBanner } from '@/components/guide/OnboardingBanner';
@@ -11,6 +12,7 @@ import { useConciergeCards } from '@/hooks/useConciergeCards';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import { useRecentActivity } from '@/hooks/useRecentActivity';
 import { useSummaryMetrics, getScopeLevel } from '@/hooks/useSummaryMetrics';
+import { usePastorCampoConcierge, usePastorGlobalConcierge } from '@/hooks/usePastoralConcierge';
 import { useRole } from '@/contexts/RoleContext';
 import { useCampo } from '@/contexts/CampoContext';
 import { useIsPWA } from '@/hooks/useIsPWA';
@@ -30,6 +32,16 @@ export default function HomeConcierge() {
   const isPWAMobile = isPWA && isMobile;
   const level = getScopeLevel(scopeType);
   const { incrementVisit } = useOnboarding();
+
+  const isPastorCampo = scopeType === 'pastor_de_campo';
+  const isPastorGlobal = scopeType === 'pastor_senior_global' || scopeType === 'pastor';
+  const isPastoral = isPastorCampo || isPastorGlobal;
+
+  const { data: pastorCampoData, isLoading: pastorCampoLoading } = usePastorCampoConcierge();
+  const { data: pastorGlobalData, isLoading: pastorGlobalLoading } = usePastorGlobalConcierge();
+
+  const pastoralData = isPastorCampo ? pastorCampoData : pastorGlobalData;
+  const pastoralLoading = isPastorCampo ? pastorCampoLoading : pastorGlobalLoading;
 
   useEffect(() => {
     incrementVisit();
@@ -89,35 +101,48 @@ export default function HomeConcierge() {
                 <AskGuideDialog />
               </div>
 
-              {/* Priority Cards inline */}
-              <div className="mt-8">
-                <SectionLabel label="O que precisa da sua atenção" />
-                <div className="mt-3">
-                  <ConciergeCards cards={cards} isLoading={cardsLoading} />
+              {/* Priority Cards inline — only for non-pastoral roles */}
+              {!isPastoral && (
+                <div className="mt-8">
+                  <SectionLabel label="O que precisa da sua atenção" />
+                  <div className="mt-3">
+                    <ConciergeCards cards={cards} isLoading={cardsLoading} />
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </section>
 
-          {/* ═══ PANORAMA + AÇÕES ═══ */}
-          <div className="grid gap-5 lg:grid-cols-[1fr_340px]">
-            <section className="space-y-5">
-              <SectionLabel label={getSectionLabel(level)} />
-              <SummaryMetricsPanel metrics={metrics} isLoading={metricsLoading} />
-            </section>
-            <aside className="space-y-5">
-              <SectionLabel label="Ações essenciais" />
-              <div className="glass-card rounded-2xl p-5">
-                <QuickActionsBar />
+          {/* ═══ PASTORAL VIEW (Pastor de Campo / Pastor Global) ═══ */}
+          {isPastoral ? (
+            <PastoralConciergeBlocks
+              data={pastoralData}
+              isLoading={pastoralLoading}
+              level={isPastorCampo ? 'campo' : 'global'}
+            />
+          ) : (
+            <>
+              {/* ═══ PANORAMA + AÇÕES ═══ */}
+              <div className="grid gap-5 lg:grid-cols-[1fr_340px]">
+                <section className="space-y-5">
+                  <SectionLabel label={getSectionLabel(level)} />
+                  <SummaryMetricsPanel metrics={metrics} isLoading={metricsLoading} />
+                </section>
+                <aside className="space-y-5">
+                  <SectionLabel label="Ações essenciais" />
+                  <div className="glass-card rounded-2xl p-5">
+                    <QuickActionsBar />
+                  </div>
+                </aside>
               </div>
-            </aside>
-          </div>
 
-          {/* ═══ ATIVIDADE RECENTE ═══ */}
-          <section className="space-y-3">
-            <SectionLabel label="Atividade recente" />
-            <RecentActivity items={activity} isLoading={activityLoading} />
-          </section>
+              {/* ═══ ATIVIDADE RECENTE ═══ */}
+              <section className="space-y-3">
+                <SectionLabel label="Atividade recente" />
+                <RecentActivity items={activity} isLoading={activityLoading} />
+              </section>
+            </>
+          )}
         </div>
       </ScopeMissingGate>
     </AppLayout>
