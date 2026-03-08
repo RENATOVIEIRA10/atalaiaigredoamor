@@ -313,13 +313,9 @@ export default function TrocarFuncao() {
       <div className="relative z-10 w-full max-w-md px-5 py-8 flex flex-col items-center" style={{ paddingTop: 'max(env(safe-area-inset-top, 0px), 2rem)', paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 2rem)' }}>
         {/* Header */}
         <div className="mb-5 flex items-center justify-center gap-4">
-          <div className="rounded-lg px-2 py-1" style={{ background: 'rgba(244,237,228,0.95)' }}>
-            <img src={logoIgrejaDoAmor} alt="Igreja do Amor" className="h-10 w-auto object-contain" />
-          </div>
+          <img src={logoIgrejaDoAmor} alt="Igreja do Amor" className="h-10 w-auto object-contain brightness-0 invert opacity-80" />
           <div className="h-8 w-px" style={{ background: 'rgba(197,160,89,0.25)' }} />
-          <div className="rounded-lg px-2 py-1" style={{ background: 'rgba(244,237,228,0.95)' }}>
-            <img src={logoRedeAmor} alt="Rede Amor a 2" className="h-10 w-auto object-contain" />
-          </div>
+          <img src={logoRedeAmor} alt="Rede Amor a 2" className="h-10 w-auto object-contain brightness-0 invert opacity-80" />
         </div>
 
         <h1 className="text-xl font-semibold mb-1" style={{ fontFamily: "'Outfit', sans-serif", color: '#F4EDE4' }}>
