@@ -27,6 +27,7 @@ export function AppLayout({ children, title }: AppLayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const { isOperating, activeState } = useTorreControle();
+  const tourCtx = usePastoralTourProvider();
 
   const isRootPage = location.pathname === '/home' || location.pathname === '/dashboard';
   const showBackButton = isPWAMobile && !isRootPage;
