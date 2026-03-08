@@ -13,6 +13,7 @@ import { CampusBadge } from './CampusBadge';
 import { useTorreControle } from '@/contexts/TorreControleContext';
 import { PastoralTourContext, usePastoralTourProvider } from '@/hooks/usePastoralTour';
 import { PastoralTourDialog } from '@/components/dashboard/PastoralTourDialog';
+import { PastoralAssistant } from '@/components/guide/PastoralAssistant';
 
 interface AppLayoutProps {
   children: React.ReactNode;
