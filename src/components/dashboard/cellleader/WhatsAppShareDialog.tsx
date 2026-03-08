@@ -121,16 +121,6 @@ export function WhatsAppShareDialog({ open, onOpenChange, reportData }: WhatsApp
   const bloco2 = useMemo(() => buildBloco2(reportData), [reportData]);
   const bloco3 = useMemo(() => buildBloco3(reportData), [reportData]);
 
-  // Pre-encode WhatsApp URLs so click is instant
-  const waUrlBloco2 = useMemo(() => {
-    const normalized = bloco2.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-    return `https://wa.me/?text=${encodeURIComponent(normalized)}`;
-  }, [bloco2]);
-
-  const waUrlBloco3 = useMemo(() => {
-    const normalized = bloco3.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-    return `https://wa.me/?text=${encodeURIComponent(normalized)}`;
-  }, [bloco3]);
 
   // Pre-fetch photo when dialog opens
   useEffect(() => {
@@ -196,38 +186,48 @@ export function WhatsAppShareDialog({ open, onOpenChange, reportData }: WhatsApp
     setBusyBtn(null);
   };
 
-  // Fast WhatsApp open — no encoding on click, just navigate
-  const openWhatsAppFast = useCallback((url: string, btnId: string, nextStep: WizardStep) => {
+  // Share text via native share sheet (same UX as photo sharing)
+  const shareTextNative = useCallback(async (text: string, btnId: string, nextStep: WizardStep) => {
     if (busyRef.current) return;
     busyRef.current = true;
     setBusyBtn(btnId);
 
-    const t0 = performance.now();
-    console.log(`[WA perf] ${btnId} click`);
-
-    // Instant navigation
-    if (isPWA) {
-      window.location.href = url;
-    } else {
-      const newTab = window.open(url, '_blank', 'noopener,noreferrer');
-      if (!newTab || newTab.closed) {
-        window.location.href = url;
+    try {
+      if (navigator.share) {
+        await navigator.share({ text });
+        // User completed or dismissed share sheet — advance
+        advanceTo(nextStep);
+      } else {
+        // Fallback: copy to clipboard + open wa.me
+        await navigator.clipboard.writeText(text).catch(() => {});
+        toast({ title: 'Texto copiado!', description: 'Cole no WhatsApp manualmente.' });
+        const normalized = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+        const url = `https://wa.me/?text=${encodeURIComponent(normalized)}`;
+        if (isPWA) {
+          window.location.href = url;
+        } else {
+          window.open(url, '_blank', 'noopener,noreferrer');
+        }
+        setTimeout(() => {
+          if (isPWA) {
+            setConfirmPrompt(true);
+          } else {
+            advanceTo(nextStep);
+          }
+        }, 800);
       }
-    }
-
-    console.log(`[WA perf] ${btnId} dispatched: ${Math.round(performance.now() - t0)}ms`);
-
-    // Release lock after short delay
-    setTimeout(() => {
+    } catch (e: any) {
+      // AbortError = user dismissed share sheet, still advance
+      if (e?.name === 'AbortError') {
+        // User cancelled — stay on same step
+      } else {
+        toast({ title: 'Erro ao compartilhar', variant: 'destructive' });
+      }
+    } finally {
       busyRef.current = false;
       setBusyBtn(null);
-      if (isPWA) {
-        setConfirmPrompt(true);
-      } else {
-        advanceTo(nextStep);
-      }
-    }, 800);
-  }, [isPWA, advanceTo]);
+    }
+  }, [isPWA, advanceTo, toast]);
 
   const copyToClipboard = async (text: string) => {
     try {
@@ -407,7 +407,7 @@ export function WhatsAppShareDialog({ open, onOpenChange, reportData }: WhatsApp
                 <Button
                   size="sm"
                   className="w-full bg-green-600 hover:bg-green-700 text-white"
-                  onClick={() => openWhatsAppFast(waUrlBloco2, 'bloco2', 'bloco3')}
+                  onClick={() => shareTextNative(bloco2, 'bloco2', 'bloco3')}
                   disabled={busyBtn === 'bloco2'}
                 >
                   {busyBtn === 'bloco2' ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <MessageSquare className="h-4 w-4 mr-2" />}
@@ -439,7 +439,7 @@ export function WhatsAppShareDialog({ open, onOpenChange, reportData }: WhatsApp
                 <Button
                   size="sm"
                   className="w-full bg-green-600 hover:bg-green-700 text-white"
-                  onClick={() => openWhatsAppFast(waUrlBloco3, 'bloco3', 'done')}
+                  onClick={() => shareTextNative(bloco3, 'bloco3', 'done')}
                   disabled={busyBtn === 'bloco3'}
                 >
                   {busyBtn === 'bloco3' ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <MessageSquare className="h-4 w-4 mr-2" />}
