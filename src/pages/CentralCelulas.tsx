@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useRole } from '@/contexts/RoleContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCampo } from '@/contexts/CampoContext';
 import { useNovasVidas, useUpdateNovaVida, STATUS_LABELS, useChangeNovaVidaStatus } from '@/hooks/useNovasVidas';
 import { useCreateEncaminhamento } from '@/hooks/useEncaminhamentos';
 import { useCelulasPublicas } from '@/hooks/useCelulasPublicas';
