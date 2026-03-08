@@ -48,10 +48,10 @@ function buildQuickActions(scopeType: string | null): QuickActionItem[] {
       ];
     case 'coordenacao':
       return [
-        { id: 'visao-geral', label: 'Células', icon: Home, path: '/dashboard?tab=visao-geral' },
-        { id: 'lideres', label: 'Líderes', icon: UserCheck, path: '/organograma' },
-        { id: 'acompanhamento', label: 'Acompanhamento', icon: ClipboardCheck, path: '/dashboard?tab=acompanhamento' },
-        { id: 'movimento', label: 'Novas Vidas', icon: Heart, path: '/dashboard?tab=acompanhamento' },
+        { id: 'celulas', label: 'Células', icon: Home, path: '/dashboard?tab=acoes&view=celulas' },
+        { id: 'acompanhamento', label: 'Acompanhamento', icon: ClipboardCheck, path: '/dashboard?tab=acoes&view=supervisoes' },
+        { id: 'novas-vidas', label: 'Novas Vidas', icon: Heart, path: '/dashboard?tab=acoes&view=novas-vidas' },
+        { id: 'lideres', label: 'Líderes', icon: UserCheck, path: '/dashboard?tab=acoes&view=lideres' },
       ];
     case 'rede':
       return [
