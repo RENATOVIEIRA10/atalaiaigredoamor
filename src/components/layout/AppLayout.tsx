@@ -88,33 +88,36 @@ export function AppLayout({ children, title }: AppLayoutProps) {
 
   // --- Web / Desktop layout ---
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset className={isDemoActive ? 'pt-10' : ''}>
-        <header
-          className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-3 border-b border-border/30 bg-background/80 px-5 backdrop-blur-2xl md:px-8"
-          style={{ boxShadow: '0 20px 40px -34px rgba(0, 0, 0, 0.6)' }}
-        >
-          <SidebarTrigger className="-ml-1 h-9 w-9 rounded-xl text-muted-foreground hover:text-foreground" />
-          {title && (
-            <>
-              <Separator orientation="vertical" className="mr-2 h-5 bg-border/30" />
-              <h1 className="truncate text-base font-semibold tracking-tight text-foreground font-display">
-                {title}
-              </h1>
-            </>
-          )}
-          <div className="ml-auto flex items-center gap-2 md:gap-3">
-            <CampusBadge />
-            <CampoSelector />
-          </div>
-        </header>
-        <main className="internal-page-bg flex-1 overflow-auto p-4 md:p-8 lg:p-10">
-          <div className="animate-fade-in">
-            {children}
-          </div>
-        </main>
-      </SidebarInset>
-    </SidebarProvider>
+    <PastoralTourContext.Provider value={tourCtx}>
+      <SidebarProvider>
+        <AppSidebar />
+        <SidebarInset className={isDemoActive ? 'pt-10' : ''}>
+          <header
+            className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-3 border-b border-border/30 bg-background/80 px-5 backdrop-blur-2xl md:px-8"
+            style={{ boxShadow: '0 20px 40px -34px rgba(0, 0, 0, 0.6)' }}
+          >
+            <SidebarTrigger className="-ml-1 h-9 w-9 rounded-xl text-muted-foreground hover:text-foreground" />
+            {title && (
+              <>
+                <Separator orientation="vertical" className="mr-2 h-5 bg-border/30" />
+                <h1 className="truncate text-base font-semibold tracking-tight text-foreground font-display">
+                  {title}
+                </h1>
+              </>
+            )}
+            <div className="ml-auto flex items-center gap-2 md:gap-3">
+              <CampusBadge />
+              <CampoSelector />
+            </div>
+          </header>
+          <main className="internal-page-bg flex-1 overflow-auto p-4 md:p-8 lg:p-10">
+            <div className="animate-fade-in">
+              {children}
+            </div>
+          </main>
+        </SidebarInset>
+      </SidebarProvider>
+      <PastoralTourDialog open={tourCtx.isOpen} onClose={tourCtx.closeTour} />
+    </PastoralTourContext.Provider>
   );
 }
