@@ -49,12 +49,12 @@ export function useServiceWorkerUpdate() {
       });
     });
 
-    // Check for updates more frequently (every 30s)
+    // Check for updates frequently (every 15s)
     const interval = setInterval(() => {
       navigator.serviceWorker.getRegistration().then((reg) => {
         reg?.update();
       });
-    }, 30_000);
+    }, 15_000);
 
     return () => {
       clearInterval(interval);

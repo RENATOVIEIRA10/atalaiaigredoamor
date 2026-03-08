@@ -21,6 +21,85 @@
     <meta property="og:title" content="Rede Amor a 2" />
     <meta property="og:description" content="Sistema de gestão pastoral – Rede Amor a 2" />
     <meta property="og:type" content="website" />
+
+    <!--
+      PRE-REACT VERSION GATE
+      Runs BEFORE any cached JS bundle loads.
+      If a new build is deployed, clears all caches and reloads
+      so the PWA never shows a stale UI.
+    -->
+    <script>
+      (function() {
+        // Skip in development or if we just reloaded
+        if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') return;
+        var RELOAD_FLAG = '__pwa_version_reload__';
+        if (sessionStorage.getItem(RELOAD_FLAG)) {
+          sessionStorage.removeItem(RELOAD_FLAG);
+          return; // Already reloaded — proceed normally
+        }
+
+        // Detect current bundle hash from the page we're on
+        var scripts = document.querySelectorAll('script[type="module"][src]');
+        var currentHash = '';
+        for (var i = 0; i < scripts.length; i++) {
+          var src = scripts[i].getAttribute('src') || '';
+          if (src.includes('/assets/') && src.endsWith('.js')) {
+            currentHash = src;
+            break;
+          }
+        }
+
+        // Fetch version.json (always network, never cached)
+        fetch('/version.json?_t=' + Date.now(), { cache: 'no-store' })
+          .then(function(r) { return r.ok ? r.json() : null; })
+          .then(function(data) {
+            if (!data || !data.version) return;
+            var stored = localStorage.getItem('__app_build_loaded__');
+            // If we have a stored version and it matches server — no update needed
+            if (stored && stored === data.version) return;
+            // First visit ever — just store
+            if (!stored) {
+              localStorage.setItem('__app_build_loaded__', data.version);
+              return;
+            }
+            // VERSION MISMATCH — clear everything and reload
+            console.log('[PreGate] New build detected:', stored, '->', data.version, '— purging caches');
+            sessionStorage.setItem(RELOAD_FLAG, '1');
+            localStorage.setItem('__app_build_loaded__', data.version);
+
+            // Clear Cache API
+            if (window.caches) {
+              caches.keys().then(function(keys) {
+                return Promise.all(keys.map(function(k) { return caches.delete(k); }));
+              }).then(function() {
+                doReload();
+              }).catch(function() {
+                doReload();
+              });
+            } else {
+              doReload();
+            }
+
+            function doReload() {
+              // Force SW update if available
+              if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistration().then(function(reg) {
+                  if (reg && reg.waiting) {
+                    reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+                  }
+                  // Hard reload
+                  location.replace(location.pathname + '?_v=' + Date.now());
+                }).catch(function() {
+                  location.replace(location.pathname + '?_v=' + Date.now());
+                });
+              } else {
+                location.replace(location.pathname + '?_v=' + Date.now());
+              }
+            }
+          })
+          .catch(function() { /* version.json unavailable — proceed normally */ });
+      })();
+    </script>
   </head>
 
   <body>

@@ -166,8 +166,8 @@ export function useVersionCheck() {
     // Check immediately on mount
     checkVersion();
 
-    // Check every 2 minutes (prod) 
-    const interval = setInterval(checkVersion, 2 * 60_000);
+    // Check every 60 seconds (prod) 
+    const interval = setInterval(checkVersion, 60_000);
     return () => clearInterval(interval);
   }, []);
 }
