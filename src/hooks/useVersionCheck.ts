@@ -13,7 +13,7 @@ declare const __APP_BUILD_ID__: string;
 
 const LOCAL_BUILD_ID = typeof __APP_BUILD_ID__ !== 'undefined' ? __APP_BUILD_ID__ : 'dev';
 const RELOAD_FLAG = '__app_reloaded_for_update__';
-const VERSION_KEY = '__app_version__';
+const VERSION_KEY = '__app_build_loaded__';
 
 /** Clear all browser caches (Cache API + optionally SW) */
 async function clearAllCaches() {
@@ -166,8 +166,8 @@ export function useVersionCheck() {
     // Check immediately on mount
     checkVersion();
 
-    // Check every 2 minutes (prod) 
-    const interval = setInterval(checkVersion, 2 * 60_000);
+    // Check every 60 seconds (prod) 
+    const interval = setInterval(checkVersion, 60_000);
     return () => clearInterval(interval);
   }, []);
 }

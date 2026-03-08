@@ -37,12 +37,14 @@ export default defineConfig(({ mode }) => ({
       includeAssets: ["favicon.ico", "placeholder.svg"],
       workbox: {
         // Cache only static assets – never cache API / dynamic data
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff,woff2,ttf,eot}"],
-        // NEVER cache version.json
-        globIgnores: ["version.json"],
+        globPatterns: ["**/*.{js,css,ico,png,svg,woff,woff2,ttf,eot}"],
+        // NEVER cache index.html or version.json — always network first
+        globIgnores: ["version.json", "**/index.html"],
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         // Never cache OAuth redirects or Supabase / API calls
         navigateFallbackDenylist: [/^\/~oauth/, /^\/rest/, /^\/auth/],
+        // Don't use navigateFallback so index.html is always fetched from network
+        navigateFallback: undefined,
         // Clean old caches on new SW activation
         cleanupOutdatedCaches: true,
         // Force immediate activation of new SW
