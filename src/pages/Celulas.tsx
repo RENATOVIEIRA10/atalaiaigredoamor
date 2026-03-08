@@ -30,8 +30,10 @@ export default function Celulas() {
       list = list.filter(c => (c as any).supervisor_id === scopeId);
     } else if (scopeType === 'coordenacao' && scopeId) {
       list = list.filter(c => c.coordenacao_id === scopeId);
+    } else if (scopeType === 'rede' && scopeId) {
+      list = list.filter(c => c.rede_id === scopeId);
     }
-    // rede and admin see everything
+    // admin sees everything
     
     // Apply search filter
     return list.filter(c => 

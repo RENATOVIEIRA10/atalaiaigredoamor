@@ -14,20 +14,29 @@ import { CoordenacaoFormDialog } from '@/components/coordenacoes/CoordenacaoForm
 import { DeleteCoordenacaoDialog } from '@/components/coordenacoes/DeleteCoordenacaoDialog';
 import { CoupleAvatars } from '@/components/profile/CoupleAvatars';
 import { ProfileViewerDialog } from '@/components/profile/ProfileViewerDialog';
+import { useRole } from '@/contexts/RoleContext';
 
 export default function Coordenacoes() {
   const { data: coordenacoes, isLoading } = useCoordenacoes();
+  const { scopeType, scopeId, isAdmin } = useRole();
   const [search, setSearch] = useState('');
   const [formOpen, setFormOpen] = useState(false);
   const [editingCoordenacao, setEditingCoordenacao] = useState<Coordenacao | null>(null);
   const [deletingCoordenacao, setDeletingCoordenacao] = useState<Coordenacao | null>(null);
   const [viewingCouple, setViewingCouple] = useState<Coordenacao | null>(null);
   
-  const filteredCoordenacoes = coordenacoes?.filter(c => 
+  const scopedCoordenacoes = (() => {
+    const list = coordenacoes || [];
+    if (scopeType === 'rede' && scopeId) return list.filter(c => c.rede_id === scopeId);
+    if (scopeType === 'coordenacao' && scopeId) return list.filter(c => c.id === scopeId);
+    return list;
+  })();
+  
+  const filteredCoordenacoes = scopedCoordenacoes.filter(c => 
     c.name.toLowerCase().includes(search.toLowerCase()) ||
     c.leader?.name.toLowerCase().includes(search.toLowerCase()) ||
     c.rede?.name.toLowerCase().includes(search.toLowerCase())
-  ) || [];
+  );
   
   function handleEdit(coordenacao: Coordenacao) {
     setEditingCoordenacao(coordenacao);
@@ -54,10 +63,12 @@ export default function Coordenacoes() {
               className="pl-9"
             />
           </div>
-          <Button onClick={() => setFormOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Nova Coordenação
-          </Button>
+          {isAdmin && (
+            <Button onClick={() => setFormOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Nova Coordenação
+            </Button>
+          )}
         </div>
 
         <Card>
@@ -83,7 +94,7 @@ export default function Coordenacoes() {
                     <TableHead>Rede</TableHead>
                     <TableHead>Coordenador</TableHead>
                     <TableHead>Células</TableHead>
-                    <TableHead className="w-[50px]"></TableHead>
+                    {isAdmin && <TableHead className="w-[50px]"></TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -123,28 +134,30 @@ export default function Coordenacoes() {
                           {coordenacao._count?.celulas || 0}
                         </div>
                       </TableCell>
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleEdit(coordenacao)}>
-                              <Pencil className="mr-2 h-4 w-4" />
-                              Editar
-                            </DropdownMenuItem>
-                            <DropdownMenuItem 
-                              onClick={() => setDeletingCoordenacao(coordenacao)}
-                              className="text-destructive"
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Excluir
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
+                      {isAdmin && (
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleEdit(coordenacao)}>
+                                <Pencil className="mr-2 h-4 w-4" />
+                                Editar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                onClick={() => setDeletingCoordenacao(coordenacao)}
+                                className="text-destructive"
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Excluir
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      )}
                     </TableRow>
                   ))}
                 </TableBody>
