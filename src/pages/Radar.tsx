@@ -141,6 +141,8 @@ export default function Radar() {
             <p className="text-xs text-muted-foreground">Visão da saúde de cada célula</p>
           </div>
 
+          <HealthLegend preset="radar" />
+
           {/* Summary badges */}
           <div className="flex gap-3">
             {(['saudavel', 'atencao', 'risco'] as const).map(h => (
