@@ -118,6 +118,7 @@ export function AppLayout({ children, title }: AppLayoutProps) {
             </div>
           </main>
         </SidebarInset>
+        <PastoralAssistant />
       </SidebarProvider>
       <PastoralTourDialog open={tourCtx.isOpen} onClose={tourCtx.closeTour} />
     </PastoralTourContext.Provider>
