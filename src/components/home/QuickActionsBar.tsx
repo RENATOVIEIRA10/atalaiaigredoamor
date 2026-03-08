@@ -62,7 +62,7 @@ function buildQuickActions(scopeType: string | null): QuickActionItem[] {
         { id: 'radar', label: 'Radar', icon: BarChart3, path: '/radar' },
       ];
     case 'recomeco_cadastro':
-      return [{ id: 'nova-vida', label: 'Nova Vida', icon: Heart, path: '/recomeco' }];
+      return [{ id: 'nova-vida', label: 'Nova Vida', icon: Heart, path: '/recomeco-cadastro' }];
     case 'central_celulas':
       return [
         { id: 'encaminhamentos', label: 'Encaminhamentos', icon: ArrowRightLeft, path: '/central-celulas' },
