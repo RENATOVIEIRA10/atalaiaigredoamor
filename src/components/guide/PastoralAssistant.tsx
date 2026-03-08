@@ -326,7 +326,7 @@ export function PastoralAssistant() {
               <div className="flex items-center gap-2">
                 <Sparkles className="h-5 w-5 text-primary" />
                 <div>
-                  <h3 className="text-sm font-semibold text-foreground">Assistente Pastoral</h3>
+                  <h3 className="text-sm font-semibold text-foreground">Pastor Digital 💛</h3>
                   <p className="text-[10px] text-muted-foreground">
                     {scopeType ? SCOPE_DESCRIPTIONS[scopeType]?.label || scopeType : 'Atalaia'}
                     {activeCampo ? ` • ${activeCampo.nome}` : ''}
