@@ -13,6 +13,9 @@ import { useRecentActivity } from '@/hooks/useRecentActivity';
 import { useSummaryMetrics, getScopeLevel } from '@/hooks/useSummaryMetrics';
 import { useRole } from '@/contexts/RoleContext';
 import { useCampo } from '@/contexts/CampoContext';
+import { useIsPWA } from '@/hooks/useIsPWA';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { AdminPWADashboard } from '@/components/dashboard/pwa/AdminPWADashboard';
 import { roleLabels } from '@/lib/icons';
 import { Sparkles, Star } from 'lucide-react';
 
