@@ -8,12 +8,14 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { RoleProvider } from "@/contexts/RoleContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { DemoModeProvider } from "@/contexts/DemoModeContext";
+import { TorreControleProvider } from "@/contexts/TorreControleContext";
 import { RedeProvider } from "@/contexts/RedeContext";
 import { CampoProvider } from "@/contexts/CampoContext";
 import { RoleProtectedRoute } from "@/components/RoleProtectedRoute";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { DemoBar } from "@/components/demo/DemoBar";
 import { UpdateBanner } from "@/components/pwa/UpdateBanner";
+import { TorreControlePanel } from "@/components/torre/TorreControlePanel";
 import { useVersionCheck } from "@/hooks/useVersionCheck";
 import { useVersionGate } from "@/hooks/useVersionGate";
 
@@ -66,6 +68,7 @@ function AppInner() {
     <>
       <UpdateBanner />
       <DemoBar />
+      <TorreControlePanel />
       <Suspense fallback={<LazyFallback />}>
         <Routes>
           {/* Auth page (no protection) */}
@@ -124,7 +127,9 @@ const App = () => (
               <CampoProvider>
                 <RedeProvider>
                   <DemoModeProvider>
-                    <AppInner />
+                    <TorreControleProvider>
+                      <AppInner />
+                    </TorreControleProvider>
                   </DemoModeProvider>
                 </RedeProvider>
               </CampoProvider>
