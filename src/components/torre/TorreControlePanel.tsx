@@ -139,7 +139,7 @@ export function TorreControlePanel() {
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/30">
         <div className="flex items-center gap-2">
-          <Tower className="h-5 w-5 text-primary" />
+          <Landmark className="h-5 w-5 text-primary" />
           <h2 className="text-sm font-bold text-foreground tracking-tight">Torre de Controle</h2>
         </div>
         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsOpen(false)}>
