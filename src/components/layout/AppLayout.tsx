@@ -13,6 +13,7 @@ import { CampusBadge } from './CampusBadge';
 import { useTorreControle } from '@/contexts/TorreControleContext';
 import { PastoralTourContext, usePastoralTourProvider } from '@/hooks/usePastoralTour';
 import { PastoralTourDialog } from '@/components/dashboard/PastoralTourDialog';
+import { PastoralAssistant } from '@/components/guide/PastoralAssistant';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -80,6 +81,7 @@ export function AppLayout({ children, title }: AppLayoutProps) {
           </main>
 
           <MobileBottomNav />
+          <PastoralAssistant />
         </div>
         <PastoralTourDialog open={tourCtx.isOpen} onClose={tourCtx.closeTour} />
       </PastoralTourContext.Provider>
@@ -116,6 +118,7 @@ export function AppLayout({ children, title }: AppLayoutProps) {
             </div>
           </main>
         </SidebarInset>
+        <PastoralAssistant />
       </SidebarProvider>
       <PastoralTourDialog open={tourCtx.isOpen} onClose={tourCtx.closeTour} />
     </PastoralTourContext.Provider>
