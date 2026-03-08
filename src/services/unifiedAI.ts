@@ -21,10 +21,30 @@ interface UnifiedAIResponse {
   error?: string;
 }
 
+const REQUEST_TIMEOUT_MS = 25000;
+
 export async function requestUnifiedAI(payload: UnifiedAIRequest): Promise<string> {
-  const { data, error } = await supabase.functions.invoke('unified-ai', {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (!session?.access_token) {
+    throw new Error('Sessão expirada. Faça login novamente para usar o Pastor Digital.');
+  }
+
+  const invokePromise = supabase.functions.invoke('unified-ai', {
     body: payload,
+    headers: {
+      Authorization: `Bearer ${session.access_token}`,
+      apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || '',
+    },
   });
+
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    setTimeout(() => reject(new Error('A IA demorou para responder. Tente novamente.')), REQUEST_TIMEOUT_MS);
+  });
+
+  const { data, error } = await Promise.race([invokePromise, timeoutPromise]);
 
   if (error) {
     throw new Error(error.message || 'Falha ao consultar a IA.');
