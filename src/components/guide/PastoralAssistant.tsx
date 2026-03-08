@@ -12,6 +12,7 @@ import ReactMarkdown from 'react-markdown';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -159,11 +160,17 @@ export function PastoralAssistant() {
   const streamResponse = useCallback(async (allMessages: Message[]) => {
     const systemContext = buildSystemPrompt(scopeType, activeCampo?.nome ?? null, location.pathname);
 
+    // Get the user's actual session token
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token;
+    if (!token) throw new Error('Você precisa estar logado para usar o assistente.');
+
     const resp = await fetch(CHAT_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        Authorization: `Bearer ${token}`,
+        apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
       },
       body: JSON.stringify({
         messages: allMessages.map(m => ({ role: m.role, content: m.content })),
