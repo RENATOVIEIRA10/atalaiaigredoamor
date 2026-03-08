@@ -75,7 +75,7 @@ export function AppSidebar() {
   const { isDemoActive, deactivateDemo } = useDemoMode();
   const { theme, toggleTheme } = useTheme();
   const { setIsOpen: setTorreOpen } = useTorreControle();
-  const [demoDialogOpen, setDemoDialogOpen] = useState(false);
+  
   const { openTour } = usePastoralTour();
 
   const isOriginalAdmin = (isAdmin || isDemoActive) && !isDemoInstitucional;
