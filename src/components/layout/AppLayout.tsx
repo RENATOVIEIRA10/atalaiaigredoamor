@@ -2,13 +2,15 @@ import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/s
 import { AppSidebar } from './AppSidebar';
 import { MobileBottomNav } from './MobileBottomNav';
 import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
 import { useDemoMode } from '@/contexts/DemoModeContext';
 import { useIsPWA } from '@/hooks/useIsPWA';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Radio } from 'lucide-react';
 import { CampoSelector } from '@/components/campo/CampoSelector';
 import { CampusBadge } from './CampusBadge';
+import { useTorreControle } from '@/contexts/TorreControleContext';
 
 interface AppLayoutProps {
   children: React.ReactNode;
