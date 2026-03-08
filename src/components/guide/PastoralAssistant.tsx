@@ -352,9 +352,9 @@ export function PastoralAssistant() {
                   <div className="space-y-4 py-4">
                     <div className="text-center space-y-2">
                       <Sparkles className="h-10 w-10 mx-auto text-primary/40" />
-                      <p className="text-sm font-medium text-foreground">Olá! Como posso ajudar?</p>
+                      <p className="text-sm font-medium text-foreground">Graça e paz! 💛</p>
                       <p className="text-xs text-muted-foreground">
-                        Pergunte sobre o sistema, métricas ou orientações pastorais.
+                        Tô aqui pra te ajudar na caminhada pastoral. Pergunte o que quiser!
                       </p>
                     </div>
                     <div className="space-y-2">
