@@ -147,7 +147,7 @@ export default function HomePage() {
           // Always start in global view, never fall into a campus
           clearCampo();
           setIsGlobalView(true);
-          navigate('/dashboard');
+          navigate('/home');
           return;
         }
         if (st === 'pastor_de_campo') {
@@ -319,7 +319,7 @@ export default function HomePage() {
         // Clear any previously saved campus and activate global view
         clearCampo();
         setIsGlobalView(true);
-        navigate('/dashboard');
+        navigate('/home');
         setIsLoading(false);
         return;
       }
@@ -339,7 +339,7 @@ export default function HomePage() {
         setScopeAccess(scopeType, match.scope_id, match.id);
         clearCampo();
         setIsGlobalView(true);
-        navigate('/dashboard');
+        navigate('/home');
         setIsLoading(false);
         return;
       }

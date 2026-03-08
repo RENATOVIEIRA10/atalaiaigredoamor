@@ -165,7 +165,7 @@ export default function TrocarFuncao() {
       setScopeAccess(scopeType, link.scope_id, link.access_key_id);
       clearCampo();
       setIsGlobalView(true);
-      navigate('/dashboard');
+      navigate('/home');
       return;
     }
 
@@ -212,7 +212,7 @@ export default function TrocarFuncao() {
       setScopeAccess(scopeType, link.scope_id, link.access_key_id);
       clearCampo();
       setIsGlobalView(true);
-      navigate('/dashboard');
+      navigate('/home');
       return;
     }
 
