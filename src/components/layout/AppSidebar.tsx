@@ -1,8 +1,6 @@
-import { useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { roleLabels } from '@/lib/icons';
 import {
-  ShieldCheck,
   LogOut,
   RefreshCw,
   HelpCircle,
@@ -20,7 +18,6 @@ import {
   PlayCircle,
   Moon,
   Map,
-  Church,
   UserCheck,
   TrendingUp,
   Eye,
@@ -29,7 +26,6 @@ import {
   MessageSquare,
   KeyRound,
   Radar,
-  Shield,
 } from 'lucide-react';
 import logoIgreja from '@/assets/logo-igreja-do-amor-new.png';
 import logoRedeAmor from '@/assets/logo-amor-a-dois-new.png';
@@ -40,7 +36,6 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useTorreControle } from '@/contexts/TorreControleContext';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { DemoModeDialog } from '@/components/demo/DemoModeDialog';
 import { CampoSelector } from '@/components/campo/CampoSelector';
 import { usePastoralTour } from '@/hooks/usePastoralTour';
 import {
@@ -80,7 +75,7 @@ export function AppSidebar() {
   const { isDemoActive, deactivateDemo } = useDemoMode();
   const { theme, toggleTheme } = useTheme();
   const { setIsOpen: setTorreOpen } = useTorreControle();
-  const [demoDialogOpen, setDemoDialogOpen] = useState(false);
+  
   const { openTour } = usePastoralTour();
 
   const isOriginalAdmin = (isAdmin || isDemoActive) && !isDemoInstitucional;
@@ -199,17 +194,6 @@ export function AppSidebar() {
                       <span className="font-semibold text-xs tracking-wide">Torre de Controle</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                  {!isDemoActive && (
-                    <SidebarMenuItem>
-                      <SidebarMenuButton
-                        onClick={() => setDemoDialogOpen(true)}
-                        className="h-10 rounded-xl border border-sidebar-border/30 text-sidebar-foreground/70 hover:bg-sidebar-accent/50"
-                      >
-                        <ShieldCheck className="h-4 w-4" />
-                        <span className="font-medium text-xs">Modo Validação</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  )}
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
@@ -341,8 +325,6 @@ export function AppSidebar() {
           </div>
         </SidebarFooter>
       </Sidebar>
-
-      <DemoModeDialog open={demoDialogOpen} onOpenChange={setDemoDialogOpen} />
     </>
   );
 }

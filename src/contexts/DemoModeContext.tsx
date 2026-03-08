@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, ReactNode, useCallback } from 'react';
 import { useRole } from './RoleContext';
 
-type DemoScopeType = 'pastor' | 'admin' | 'rede' | 'coordenacao' | 'supervisor' | 'celula' | 'demo_institucional';
+type DemoScopeType = 'pastor' | 'admin' | 'rede' | 'coordenacao' | 'supervisor' | 'celula' | 'demo_institucional' | 'recomeco_operador' | 'recomeco_cadastro' | 'lider_recomeco_central' | 'central_celulas' | 'lider_batismo_aclamacao' | 'central_batismo_aclamacao' | 'pastor_senior_global' | 'pastor_de_campo';
 
 interface DemoModeContextType {
   isDemoActive: boolean;
