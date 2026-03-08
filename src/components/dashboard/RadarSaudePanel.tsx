@@ -62,6 +62,8 @@ export function RadarSaudePanel({ scopeType, scopeId, campoId, title = 'Saúde d
         <Activity className="h-4 w-4" /> {title}
       </h2>
 
+      <HealthLegend preset="supervisor" />
+
       {/* Summary cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard icon={ShieldCheck} label="Saudáveis" value={data.saudaveis} className="border-green-500/20" />
