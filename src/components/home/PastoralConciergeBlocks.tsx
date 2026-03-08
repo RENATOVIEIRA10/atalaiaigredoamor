@@ -1,4 +1,5 @@
 import { TrendingUp, Heart, Droplets, BookOpen, Users, AlertTriangle, Sprout, ChevronRight, ArrowUpRight, Minus, ArrowDownRight } from 'lucide-react';
+import { HealthLegend } from '@/components/health/HealthLegend';
 import { useNavigate } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';

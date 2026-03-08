@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Heart, ShieldCheck, Eye, AlertTriangle, Activity, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { format, parseISO, differenceInDays, differenceInWeeks, startOfWeek, addDays } from 'date-fns';
+import { HealthLegend, HealthReason } from '@/components/health/HealthLegend';
 import { ptBR } from 'date-fns/locale';
 import { EmptyState } from '@/components/ui/empty-state';
 

@@ -4,6 +4,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Heart, ShieldCheck, Eye, AlertTriangle, HelpCircle, TrendingUp, TrendingDown, Minus, Activity } from 'lucide-react';
 import { useRadarSaude, CelulaSaude } from '@/hooks/useRadarSaude';
+import { HealthLegend, HealthReason } from '@/components/health/HealthLegend';
 import { format, parseISO, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { StatCard } from '@/components/ui/stat-card';

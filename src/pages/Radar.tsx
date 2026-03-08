@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Home, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { HealthLegend, HealthReason } from '@/components/health/HealthLegend';
 
 type CelulaHealth = 'saudavel' | 'atencao' | 'risco';
 
