@@ -5,6 +5,7 @@ import { useNovasVidas, useCreateNovaVida, useUpdateNovaVida, NovaVidaInsert } f
 import { useEncaminhamentos, useCreateEncaminhamento, useUpdateEncaminhamento } from '@/hooks/useEncaminhamentos';
 import { useCelulasPublicas } from '@/hooks/useCelulasPublicas';
 import { useRedes } from '@/hooks/useRedes';
+import { useCampo } from '@/contexts/CampoContext';
 import { useAuditProfiles, useMyProfileName } from '@/hooks/useAuditProfiles';
 import { useRecomecoMessages } from '@/hooks/useRecomecoAgent';
 import { Button } from '@/components/ui/button';
