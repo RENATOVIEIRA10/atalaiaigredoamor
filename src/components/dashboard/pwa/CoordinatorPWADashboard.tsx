@@ -217,7 +217,9 @@ function SupervisoesSemanaCoordView({ supervisoes, onBack }: { supervisoes: any[
 
 // ────────── Aba Ações ──────────
 function CoordAcoes({ coordId }: { coordId: string }) {
-  const [activeAction, setActiveAction] = useState<'pendentes' | 'aniversariantes' | 'supervisoes' | null>(null);
+  const [searchParams] = useSearchParams();
+  const initialView = searchParams.get('view');
+  const [activeAction, setActiveAction] = useState<string | null>(initialView || null);
 
   return (
     <div className="space-y-5">
@@ -225,6 +227,11 @@ function CoordAcoes({ coordId }: { coordId: string }) {
         <>
           <MissionBlock icon={AlertTriangle} title="O que precisa da minha atenção">
             <ActionCard label="Células sem relatório" icon={AlertTriangle} description="Cobrar relatórios via WhatsApp" onClick={() => setActiveAction('pendentes')} />
+          </MissionBlock>
+          <MissionBlock icon={Sprout} title="Movimento do Reino">
+            <ActionCard label="Células da Coordenação" icon={Home} description="Ver todas as células e seus dados" onClick={() => setActiveAction('celulas')} />
+            <ActionCard label="Novas Vidas" icon={Heart} description="Vidas encaminhadas para suas células" onClick={() => setActiveAction('novas-vidas')} />
+            <ActionCard label="Líderes de Célula" icon={UserCheck} description="Todos os líderes da coordenação" onClick={() => setActiveAction('lideres')} />
           </MissionBlock>
           <MissionBlock icon={HeartPulse} title="Saúde e Cuidado">
             <ActionCard label="Aniversariantes da semana" icon={Cake} description="Enviar parabéns via WhatsApp" onClick={() => setActiveAction('aniversariantes')} />
@@ -236,6 +243,9 @@ function CoordAcoes({ coordId }: { coordId: string }) {
       {activeAction === 'pendentes' && <PendentesView coordId={coordId} onBack={() => setActiveAction(null)} />}
       {activeAction === 'aniversariantes' && <AniversariantesView coordId={coordId} onBack={() => setActiveAction(null)} />}
       {activeAction === 'supervisoes' && <SupervisoesView coordId={coordId} onBack={() => setActiveAction(null)} />}
+      {activeAction === 'celulas' && <CelulasCoordView coordId={coordId} onBack={() => setActiveAction(null)} />}
+      {activeAction === 'novas-vidas' && <NovasVidasCoordView coordId={coordId} onBack={() => setActiveAction(null)} />}
+      {activeAction === 'lideres' && <LideresCoordView coordId={coordId} onBack={() => setActiveAction(null)} />}
     </div>
   );
 }
