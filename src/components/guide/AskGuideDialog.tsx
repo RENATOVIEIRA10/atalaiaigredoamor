@@ -116,12 +116,23 @@ O usuário atual tem escopo: ${level} (${scopeType || 'não definido'})`;
         { role: 'user' as const, content: q }
       ];
 
-      const { data, error } = await supabase.functions.invoke('guide-ai', {
-        body: { messages: allMessages, systemContext },
+      const answer = await requestUnifiedAI({
+        mode: 'glossario',
+        message: q,
+        messages: allMessages,
+        context: {
+          systemContext,
+          glossary: GLOSSARY,
+          modules: ADMIN_PRODUCT_MAP,
+          scopes: SCOPE_DESCRIPTIONS,
+          onboarding: ONBOARDING_STEPS,
+        },
+        scope: {
+          scopeType,
+          roleLabel: SCOPE_DESCRIPTIONS[scopeType || 'celula']?.label || scopeType || 'não definido',
+        },
       });
 
-      if (error) throw error;
-      const answer = data?.content || 'Desculpe, não consegui processar sua pergunta.';
       setMessages(prev => [...prev, { role: 'assistant', content: answer }]);
     } catch (err) {
       console.error('Guide AI error:', err);
