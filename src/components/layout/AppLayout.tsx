@@ -35,51 +35,54 @@ export function AppLayout({ children, title }: AppLayoutProps) {
   // --- PWA App Shell ---
   if (isPWAMobile) {
     return (
-      <div className="flex flex-col h-[100dvh] bg-background" style={{ height: '-webkit-fill-available' }}>
-        <header
-          className="flex shrink-0 items-center gap-2 border-b border-border/30 px-4 bg-background/90 backdrop-blur-2xl z-30"
-          style={{
-            boxShadow: '0 12px 30px -26px rgba(0,0,0,0.9)',
-            minHeight: 'calc(48px + env(safe-area-inset-top, 0px))',
-            paddingTop: 'env(safe-area-inset-top, 0px)',
-          }}
-        >
-          {showBackButton && (
-            <button
-              onClick={() => navigate(-1)}
-              className="flex items-center justify-center h-11 w-11 -ml-2 rounded-xl active:bg-accent/60 touch-manipulation transition-colors"
-              aria-label="Voltar"
-            >
-              <ArrowLeft className="h-5 w-5 text-foreground" />
-            </button>
-          )}
-          {title && (
-            <h1 className="text-sm font-semibold text-foreground tracking-wide truncate font-display">
-              {title}
-            </h1>
-          )}
-          {isOperating && activeState.label && (
-            <Badge variant="outline" className="text-[9px] h-5 border-gold/30 text-gold bg-gold/8 shrink-0 gap-1">
-              <Radio className="h-2.5 w-2.5 animate-pulse" />
-              {activeState.label}
-            </Badge>
-          )}
-          <div className="ml-auto">
-            <CampusBadge compact />
-          </div>
-        </header>
+      <PastoralTourContext.Provider value={tourCtx}>
+        <div className="flex flex-col h-[100dvh] bg-background" style={{ height: '-webkit-fill-available' }}>
+          <header
+            className="flex shrink-0 items-center gap-2 border-b border-border/30 px-4 bg-background/90 backdrop-blur-2xl z-30"
+            style={{
+              boxShadow: '0 12px 30px -26px rgba(0,0,0,0.9)',
+              minHeight: 'calc(48px + env(safe-area-inset-top, 0px))',
+              paddingTop: 'env(safe-area-inset-top, 0px)',
+            }}
+          >
+            {showBackButton && (
+              <button
+                onClick={() => navigate(-1)}
+                className="flex items-center justify-center h-11 w-11 -ml-2 rounded-xl active:bg-accent/60 touch-manipulation transition-colors"
+                aria-label="Voltar"
+              >
+                <ArrowLeft className="h-5 w-5 text-foreground" />
+              </button>
+            )}
+            {title && (
+              <h1 className="text-sm font-semibold text-foreground tracking-wide truncate font-display">
+                {title}
+              </h1>
+            )}
+            {isOperating && activeState.label && (
+              <Badge variant="outline" className="text-[9px] h-5 border-gold/30 text-gold bg-gold/8 shrink-0 gap-1">
+                <Radio className="h-2.5 w-2.5 animate-pulse" />
+                {activeState.label}
+              </Badge>
+            )}
+            <div className="ml-auto">
+              <CampusBadge compact />
+            </div>
+          </header>
 
-        <main
-          className="flex-1 overflow-y-auto overscroll-y-contain p-4 md:p-5 internal-page-bg pwa-scroll-area"
-          style={{ paddingBottom: 'calc(72px + env(safe-area-inset-bottom, 0px))' }}
-        >
-          <div className="pwa-page-enter" key={location.pathname + location.search}>
-            {children}
-          </div>
-        </main>
+          <main
+            className="flex-1 overflow-y-auto overscroll-y-contain p-4 md:p-5 internal-page-bg pwa-scroll-area"
+            style={{ paddingBottom: 'calc(72px + env(safe-area-inset-bottom, 0px))' }}
+          >
+            <div className="pwa-page-enter" key={location.pathname + location.search}>
+              {children}
+            </div>
+          </main>
 
-        <MobileBottomNav />
-      </div>
+          <MobileBottomNav />
+        </div>
+        <PastoralTourDialog open={tourCtx.isOpen} onClose={tourCtx.closeTour} />
+      </PastoralTourContext.Provider>
     );
   }
 
