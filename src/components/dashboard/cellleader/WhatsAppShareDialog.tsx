@@ -121,16 +121,6 @@ export function WhatsAppShareDialog({ open, onOpenChange, reportData }: WhatsApp
   const bloco2 = useMemo(() => buildBloco2(reportData), [reportData]);
   const bloco3 = useMemo(() => buildBloco3(reportData), [reportData]);
 
-  // Pre-encode WhatsApp URLs so click is instant
-  const waUrlBloco2 = useMemo(() => {
-    const normalized = bloco2.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-    return `https://wa.me/?text=${encodeURIComponent(normalized)}`;
-  }, [bloco2]);
-
-  const waUrlBloco3 = useMemo(() => {
-    const normalized = bloco3.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-    return `https://wa.me/?text=${encodeURIComponent(normalized)}`;
-  }, [bloco3]);
 
   // Pre-fetch photo when dialog opens
   useEffect(() => {
