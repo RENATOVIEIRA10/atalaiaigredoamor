@@ -41,10 +41,8 @@ const MINISTRY_ROLES: { value: TorreRole; label: string; icon: React.ElementType
 
 /**
  * Map TorreRole to the actual DemoScopeType used by DemoModeContext.
- * Ministry roles need their own scope types, NOT generic 'pastor'.
  */
 function torreRoleToDemoScope(role: TorreRole): string {
-  // Most roles map directly
   const directMap: Record<string, string> = {
     pastor_senior_global: 'pastor_senior_global',
     pastor_de_campo: 'pastor_de_campo',
@@ -90,7 +88,7 @@ export function TorreControlePanel() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { isAdmin } = useRole();
-  const { isOpen, setIsOpen, selection, setSelection, clearSelection, isActive } = useTorreControle();
+  const { isOpen, setIsOpen, selection, setSelection, clearSelection, isOperating, setActiveState, clearActiveState } = useTorreControle();
   const { activateDemo, deactivateDemo, isDemoActive } = useDemoMode();
   const { setActiveCampo, clearCampo, setIsGlobalView } = useCampo();
   const { setActiveRede, clearRede } = useRede();
@@ -135,7 +133,8 @@ export function TorreControlePanel() {
   if (!isAdmin) return null;
 
   /**
-   * APPLY: Updates REAL CampoContext + RedeContext + activates demo scope,
+   * APPLY: Updates REAL CampoContext + RedeContext + activates demo scope
+   * with ALL scope IDs (campus, rede, coordenação, célula),
    * then invalidates all queries so dashboards reload with new data.
    */
   const handleApply = () => {
@@ -160,7 +159,7 @@ export function TorreControlePanel() {
       clearRede();
     }
 
-    // 3. Activate demo/simulation scope 
+    // 3. Activate demo/simulation scope with ALL scope IDs
     const demoScope = torreRoleToDemoScope(selection.role) as DemoScopeType;
     let scopeId: string | null = null;
     if (selection.role === 'celula') scopeId = selection.celulaId;
@@ -169,22 +168,46 @@ export function TorreControlePanel() {
     else if (selection.role === 'rede') scopeId = selection.redeId;
 
     const label = `Torre: ${torreRoleLabel(selection.role)}`;
-    activateDemo(demoScope, scopeId, label, null, selection.campoId);
+    
+    // Pass ALL scope IDs to DemoModeContext for full isolation
+    activateDemo(
+      demoScope,
+      scopeId,
+      label,
+      null,                       // runId
+      selection.campoId,          // campusId
+      selection.redeId,           // redeId
+      selection.coordenacaoId,    // coordenacaoId
+      selection.celulaId,         // celulaId
+    );
 
-    // 4. Invalidate ALL queries so dashboards reload with new campus/scope
+    // 4. Commit Torre active state (persists after panel close)
+    setActiveState({
+      campoId: selection.campoId,
+      redeId: selection.redeId,
+      coordenacaoId: selection.coordenacaoId,
+      celulaId: selection.celulaId,
+      role: selection.role,
+      label,
+    });
+
+    // 5. Invalidate ALL queries so dashboards reload with new campus/scope
     queryClient.invalidateQueries();
 
-    // 5. Navigate to correct route
+    // 6. Navigate to correct route
     const route = getRouteForRole(selection.role);
     navigate(route);
 
-    // 6. Close panel
+    // 7. Close panel
     setIsOpen(false);
   };
 
   const handleDeactivate = () => {
     deactivateDemo();
-    clearSelection();
+    clearActiveState();
+    clearRede();
+    // Reset global view
+    setIsGlobalView(false);
     // Invalidate to reload with real admin data
     queryClient.invalidateQueries();
     navigate('/home');
@@ -198,15 +221,15 @@ export function TorreControlePanel() {
         className={cn(
           'fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-2xl px-4 py-3 transition-all duration-300',
           'border border-border/30 shadow-[0_8px_30px_-8px_rgba(0,0,0,0.5)]',
-          isDemoActive
+          isOperating
             ? 'bg-gold/90 text-gold-foreground hover:bg-gold'
             : 'bg-card/90 backdrop-blur-lg text-foreground hover:bg-card border-gold/20',
           'hover:scale-105'
         )}
       >
-        <Radar className={cn('h-5 w-5', isDemoActive ? 'text-gold-foreground' : 'text-gold')} />
+        <Radar className={cn('h-5 w-5', isOperating ? 'text-gold-foreground' : 'text-gold')} />
         <span className="text-sm font-semibold hidden md:inline">Torre de Controle</span>
-        {isDemoActive && <Radio className="h-3 w-3 animate-pulse" />}
+        {isOperating && <Radio className="h-3 w-3 animate-pulse" />}
       </button>
     );
   }
@@ -229,7 +252,7 @@ export function TorreControlePanel() {
           </div>
           <div>
             <h2 className="text-sm font-display font-bold text-foreground">Torre de Controle</h2>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Centro de comando</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Centro de operação</p>
           </div>
         </div>
         <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)} className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground">
@@ -238,11 +261,11 @@ export function TorreControlePanel() {
       </div>
 
       {/* Active indicator */}
-      {isDemoActive && (
+      {isOperating && (
         <div className="px-5 py-2.5 bg-gold/8 border-b border-gold/15 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Radio className="h-3 w-3 text-gold animate-pulse" />
-            <span className="text-[11px] font-semibold text-gold">Simulação ativa</span>
+            <span className="text-[11px] font-semibold text-gold">Operação ativa</span>
           </div>
           <Button variant="ghost" size="sm" className="h-6 text-[11px] text-gold hover:text-foreground" onClick={handleDeactivate}>
             <RotateCcw className="h-3 w-3 mr-1" />
@@ -341,7 +364,7 @@ export function TorreControlePanel() {
           <div className="space-y-2">
             <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/50 font-semibold flex items-center gap-2">
               <span className="h-px w-5 bg-gold/25" />
-              Visualizar como
+              Operar como
             </p>
             <div className="grid grid-cols-2 gap-1.5">
               {STRUCTURAL_ROLES.map((opt) => (
@@ -387,11 +410,11 @@ export function TorreControlePanel() {
           className="w-full h-10 rounded-xl bg-gold/90 text-gold-foreground hover:bg-gold font-semibold text-sm"
         >
           <Eye className="h-4 w-4 mr-2" />
-          Ativar Visão
+          Ativar Operação
         </Button>
         {!selection.role && (
           <p className="text-[10px] text-muted-foreground text-center">
-            Selecione um papel para ativar
+            Selecione um papel para operar
           </p>
         )}
       </div>
@@ -450,11 +473,11 @@ function RoleButton({
         'flex items-center gap-2 rounded-xl border px-3 py-2.5 text-left transition-all duration-200',
         selected
           ? 'border-gold/40 bg-gold/10 text-foreground shadow-[0_0_16px_-6px_hsl(var(--gold)/0.3)]'
-          : 'border-border/20 text-muted-foreground hover:border-border/35 hover:bg-accent/20 hover:text-foreground'
+          : 'border-border/20 bg-transparent text-muted-foreground hover:bg-background/30 hover:text-foreground',
       )}
     >
-      <Icon className={cn('h-3.5 w-3.5 shrink-0', selected ? 'text-gold' : color)} />
-      <span className="text-[11px] font-medium leading-tight">{label}</span>
+      <Icon className={cn('h-4 w-4 shrink-0', selected ? color : '')} />
+      <span className="text-xs font-medium truncate">{label}</span>
     </button>
   );
 }
