@@ -12,7 +12,8 @@ import ReactMarkdown from 'react-markdown';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { requestUnifiedAI } from '@/services/unifiedAI';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -120,8 +121,6 @@ ${Object.entries(SCOPE_DESCRIPTIONS).map(([k, v]) => `- **${v.label}** (${k}): $
 Responda SEMPRE em português brasileiro.`;
 }
 
-const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/guide-ai`;
-
 const SUGGESTIONS: Record<string, string[]> = {
   celula: ['O que devo fazer essa semana?', 'Chegou nova vida pra minha célula?', 'Como enviar relatório pelo WhatsApp?'],
   supervisor: ['Quais ovelhas precisam de cuidado?', 'Como registrar supervisão?', 'O que é o Radar?'],
@@ -133,6 +132,18 @@ const SUGGESTIONS: Record<string, string[]> = {
   admin: ['Como criar chave de acesso?', 'O que é o organograma?', 'Como funciona o sistema?'],
 };
 
+const getFirstName = (fullName?: string | null) => {
+  if (!fullName) return 'querido';
+  return fullName.trim().split(' ')[0] || 'querido';
+};
+
+const isLikelyFemale = (fullName?: string | null, gender?: string | null) => {
+  if (gender === 'female' || gender === 'feminino') return true;
+  if (!fullName) return false;
+  const first = getFirstName(fullName).toLowerCase();
+  return first.endsWith('a');
+};
+
 export function PastoralAssistant() {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -140,8 +151,9 @@ export function PastoralAssistant() {
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const { scopeType } = useRole();
+  const { scopeType, selectedRole } = useRole();
   const { activeCampo } = useCampo();
+  const { user } = useAuth();
   const location = useLocation();
   const isMobile = useIsMobile();
 
@@ -157,105 +169,63 @@ export function PastoralAssistant() {
     }
   }, [open, isMobile]);
 
-  const streamResponse = useCallback(async (allMessages: Message[]) => {
+  useEffect(() => {
+    if (!user || !selectedRole) return;
+    const isDashboardRoute = location.pathname.startsWith('/dashboard') || location.pathname.startsWith('/home');
+    if (!isDashboardRoute) return;
+
+    const autoKey = `pastoral_auto_greeted_${user.id}`;
+    if (sessionStorage.getItem(autoKey) === '1') return;
+
+    const fullName = (user.user_metadata?.name as string | undefined)
+      || (user.user_metadata?.full_name as string | undefined)
+      || user.email?.split('@')[0]
+      || '';
+
+    const firstName = getFirstName(fullName);
+    const female = isLikelyFemale(fullName, (user.user_metadata?.gender as string | undefined) || null);
+    const saudacao = female
+      ? `Graça e paz, minha filhona ${firstName} 💛`
+      : `Graça e paz, meu filhão ${firstName} 💛`;
+
+    const roleHint = SCOPE_DESCRIPTIONS[scopeType || 'celula']?.label || 'sua missão';
+    const welcome = `${saudacao}
+
+Já disse que te amo hoje?
+Que alegria ter você aqui no Atalaia. Tô contigo pra cuidar das vidas que Deus colocou nas suas mãos.
+
+Como posso te ajudar agora em **${roleHint}**?`;
+
+    setOpen(true);
+    setMessages([{ role: 'assistant', content: welcome }]);
+    sessionStorage.setItem(autoKey, '1');
+  }, [user, selectedRole, scopeType, location.pathname]);
+
+  const askAI = useCallback(async (allMessages: Message[]) => {
     const systemContext = buildSystemPrompt(scopeType, activeCampo?.nome ?? null, location.pathname);
-
-    // Get the user's actual session token
-    const { data: { session } } = await supabase.auth.getSession();
-    const token = session?.access_token;
-    if (!token) throw new Error('Você precisa estar logado para usar o assistente.');
-
-    const resp = await fetch(CHAT_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-        apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-      },
-      body: JSON.stringify({
-        messages: allMessages.map(m => ({ role: m.role, content: m.content })),
+    const content = await requestUnifiedAI({
+      mode: 'chatbot',
+      message: allMessages[allMessages.length - 1]?.content || '',
+      messages: allMessages.map((m) => ({ role: m.role, content: m.content })),
+      context: {
         systemContext,
-        stream: true,
-      }),
+        glossary: GLOSSARY,
+        modules: ADMIN_PRODUCT_MAP,
+      },
+      user: {
+        id: user?.id,
+        name: (user?.user_metadata?.name as string | undefined) || (user?.user_metadata?.full_name as string | undefined) || null,
+      },
+      scope: {
+        scopeType,
+        roleLabel: scopeType ? SCOPE_DESCRIPTIONS[scopeType]?.label || scopeType : 'não definido',
+        campus: activeCampo?.nome || null,
+        route: ROUTE_LABELS[location.pathname.split('?')[0]] || location.pathname,
+      },
     });
 
-    if (!resp.ok) {
-      const errData = await resp.json().catch(() => ({}));
-      throw new Error(errData.error || `Erro ${resp.status}`);
-    }
-
-    if (!resp.body) throw new Error('Sem corpo na resposta');
-
-    const reader = resp.body.getReader();
-    const decoder = new TextDecoder();
-    let textBuffer = '';
-    let assistantSoFar = '';
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      textBuffer += decoder.decode(value, { stream: true });
-
-      let newlineIndex: number;
-      while ((newlineIndex = textBuffer.indexOf('\n')) !== -1) {
-        let line = textBuffer.slice(0, newlineIndex);
-        textBuffer = textBuffer.slice(newlineIndex + 1);
-
-        if (line.endsWith('\r')) line = line.slice(0, -1);
-        if (line.startsWith(':') || line.trim() === '') continue;
-        if (!line.startsWith('data: ')) continue;
-
-        const jsonStr = line.slice(6).trim();
-        if (jsonStr === '[DONE]') break;
-
-        try {
-          const parsed = JSON.parse(jsonStr);
-          const content = parsed.choices?.[0]?.delta?.content as string | undefined;
-          if (content) {
-            assistantSoFar += content;
-            const snapshot = assistantSoFar;
-            setMessages(prev => {
-              const last = prev[prev.length - 1];
-              if (last?.role === 'assistant') {
-                return prev.map((m, i) => (i === prev.length - 1 ? { ...m, content: snapshot } : m));
-              }
-              return [...prev, { role: 'assistant', content: snapshot }];
-            });
-          }
-        } catch {
-          textBuffer = line + '\n' + textBuffer;
-          break;
-        }
-      }
-    }
-
-    // Final flush
-    if (textBuffer.trim()) {
-      for (let raw of textBuffer.split('\n')) {
-        if (!raw) continue;
-        if (raw.endsWith('\r')) raw = raw.slice(0, -1);
-        if (raw.startsWith(':') || raw.trim() === '') continue;
-        if (!raw.startsWith('data: ')) continue;
-        const jsonStr = raw.slice(6).trim();
-        if (jsonStr === '[DONE]') continue;
-        try {
-          const parsed = JSON.parse(jsonStr);
-          const content = parsed.choices?.[0]?.delta?.content as string | undefined;
-          if (content) {
-            assistantSoFar += content;
-            const snapshot = assistantSoFar;
-            setMessages(prev => {
-              const last = prev[prev.length - 1];
-              if (last?.role === 'assistant') {
-                return prev.map((m, i) => (i === prev.length - 1 ? { ...m, content: snapshot } : m));
-              }
-              return [...prev, { role: 'assistant', content: snapshot }];
-            });
-          }
-        } catch { /* ignore */ }
-      }
-    }
-  }, [scopeType, activeCampo, location.pathname]);
+    setMessages((prev) => [...prev, { role: 'assistant', content }]);
+  }, [scopeType, activeCampo, location.pathname, user]);
 
   const handleSend = async (text?: string) => {
     const q = (text || input).trim();
@@ -268,7 +238,7 @@ export function PastoralAssistant() {
     setIsLoading(true);
 
     try {
-      await streamResponse(allMessages);
+      await askAI(allMessages);
     } catch (err: any) {
       console.error('Pastoral AI error:', err);
       setMessages(prev => [...prev, {
@@ -398,14 +368,10 @@ export function PastoralAssistant() {
                   </div>
                 ))}
 
-                {isLoading && messages[messages.length - 1]?.role === 'user' && (
+                {isLoading && (
                   <div className="flex justify-start">
                     <div className="bg-muted/50 border border-border/30 rounded-2xl rounded-bl-md px-3.5 py-2.5">
-                      <div className="flex items-center gap-1.5">
-                        <div className="h-1.5 w-1.5 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: '0ms' }} />
-                        <div className="h-1.5 w-1.5 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: '150ms' }} />
-                        <div className="h-1.5 w-1.5 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: '300ms' }} />
-                      </div>
+                      <Loader2 className="h-4 w-4 animate-spin text-primary/80" />
                     </div>
                   </div>
                 )}

@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { requestUnifiedAI } from '@/services/unifiedAI';
 
 interface ReportData {
   celula_name: string;
@@ -36,17 +36,22 @@ export function useAIInsights() {
     setInsight(null);
 
     try {
-      const { data: response, error } = await supabase.functions.invoke('ai-insights', {
-        body: { type, data, period }
+      const content = await requestUnifiedAI({
+        mode: 'dashboard',
+        message: `Gerar ${type} para ${period}`,
+        context: {
+          insightType: type,
+          period,
+          reportData: data,
+        },
       });
 
-      if (error) {
-        throw error;
-      }
-
-      if (response?.error) {
-        throw new Error(response.error);
-      }
+      const response: InsightResponse = {
+        insight: content,
+        type,
+        period,
+        generatedAt: new Date().toISOString(),
+      };
 
       setInsight(response);
       return response;
