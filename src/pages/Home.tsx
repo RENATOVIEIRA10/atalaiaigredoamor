@@ -319,7 +319,7 @@ export default function HomePage() {
         // Clear any previously saved campus and activate global view
         clearCampo();
         setIsGlobalView(true);
-        navigate('/dashboard');
+        navigate('/home');
         setIsLoading(false);
         return;
       }

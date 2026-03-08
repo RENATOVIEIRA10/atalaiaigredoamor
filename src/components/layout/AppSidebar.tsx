@@ -126,8 +126,8 @@ export function AppSidebar() {
     admin: [
       { title: 'Início', href: '/home', icon: LayoutDashboard },
       { title: 'Lideranças', href: '/organograma', icon: GitBranch },
-      { title: 'Códigos', href: '/dados', icon: KeyRound },
-      { title: 'Campos', href: '/dashboard?tab=semanal', icon: Map },
+      { title: 'Códigos', href: '/configuracoes?tab=leadership', icon: KeyRound },
+      { title: 'Campos', href: '/configuracoes?tab=campos', icon: Map },
       { title: 'Redes', href: '/redes', icon: Network },
       { title: 'Coordenações', href: '/coordenacoes', icon: Layers },
       { title: 'Células', href: '/celulas', icon: Home },
