@@ -33,6 +33,16 @@ export default function HomeConcierge() {
   const level = getScopeLevel(scopeType);
   const { incrementVisit } = useOnboarding();
 
+  const isPastorCampo = scopeType === 'pastor_de_campo';
+  const isPastorGlobal = scopeType === 'pastor_senior_global' || scopeType === 'pastor';
+  const isPastoral = isPastorCampo || isPastorGlobal;
+
+  const { data: pastorCampoData, isLoading: pastorCampoLoading } = usePastorCampoConcierge();
+  const { data: pastorGlobalData, isLoading: pastorGlobalLoading } = usePastorGlobalConcierge();
+
+  const pastoralData = isPastorCampo ? pastorCampoData : pastorGlobalData;
+  const pastoralLoading = isPastorCampo ? pastorCampoLoading : pastorGlobalLoading;
+
   useEffect(() => {
     incrementVisit();
   }, []);
