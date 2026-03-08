@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useCampo } from '@/contexts/CampoContext';
+import { useDemoScope } from '@/hooks/useDemoScope';
 
 export interface Encaminhamento {
   id: string;
@@ -28,9 +29,17 @@ export interface EncaminhamentoInsert {
   notas?: string | null;
 }
 
-export function useEncaminhamentos(novaVidaId?: string, campoId?: string | null) {
+/**
+ * useEncaminhamentos — Campus-isolated query.
+ * Uses useDemoScope internally. Optional novaVidaId filter and campoId override.
+ */
+export function useEncaminhamentos(novaVidaId?: string, overrideCampoId?: string | null) {
+  const { campoId: scopeCampoId, isMissingCampo, queryKeyExtra } = useDemoScope();
+  const effectiveCampoId = overrideCampoId !== undefined ? overrideCampoId : scopeCampoId;
+
   return useQuery({
-    queryKey: ['encaminhamentos', novaVidaId, campoId],
+    queryKey: ['encaminhamentos', novaVidaId, effectiveCampoId ?? 'global', ...queryKeyExtra],
+    enabled: !isMissingCampo,
     queryFn: async () => {
       let q = supabase
         .from('encaminhamentos_recomeco')
@@ -45,8 +54,8 @@ export function useEncaminhamentos(novaVidaId?: string, campoId?: string | null)
       if (novaVidaId) {
         q = q.eq('nova_vida_id', novaVidaId);
       }
-      if (campoId) {
-        q = q.eq('campo_id', campoId);
+      if (effectiveCampoId) {
+        q = q.eq('campo_id', effectiveCampoId);
       }
 
       const { data, error } = await q;

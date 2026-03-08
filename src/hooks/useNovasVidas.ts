@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useCampo } from '@/contexts/CampoContext';
+import { useDemoScope } from '@/hooks/useDemoScope';
 
 export const PIPELINE_STATUSES = [
   'nova', 'em_triagem', 'encaminhada', 'recebida_pela_celula',
@@ -53,15 +54,23 @@ export interface NovaVidaInsert {
   observacao?: string | null;
 }
 
-export function useNovasVidas(campoId?: string | null) {
+/**
+ * useNovasVidas — Campus-isolated query.
+ * Uses useDemoScope internally. Optional override campoId for admin/global views.
+ */
+export function useNovasVidas(overrideCampoId?: string | null) {
+  const { campoId: scopeCampoId, isMissingCampo, isGlobal, queryKeyExtra } = useDemoScope();
+  const effectiveCampoId = overrideCampoId !== undefined ? overrideCampoId : scopeCampoId;
+
   return useQuery({
-    queryKey: ['novas_vidas', campoId],
+    queryKey: ['novas_vidas', effectiveCampoId ?? 'global', ...queryKeyExtra],
+    enabled: !isMissingCampo,
     queryFn: async () => {
       let q = supabase
         .from('novas_vidas')
         .select('*')
         .order('created_at', { ascending: false });
-      if (campoId) q = q.eq('campo_id', campoId);
+      if (effectiveCampoId) q = q.eq('campo_id', effectiveCampoId);
       const { data, error } = await q;
       if (error) throw error;
       return data as NovaVida[];
