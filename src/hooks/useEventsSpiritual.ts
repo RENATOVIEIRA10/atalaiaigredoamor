@@ -36,16 +36,24 @@ export interface EventRegistration {
   celula?: { id: string; name: string } | null;
 }
 
-export function useSpiritualEvents(type?: 'batismo' | 'aclamacao', campoId?: string | null) {
+/**
+ * useSpiritualEvents — Campus-isolated query.
+ * Uses useDemoScope internally. Optional override campoId.
+ */
+export function useSpiritualEvents(type?: 'batismo' | 'aclamacao', overrideCampoId?: string | null) {
+  const { campoId: scopeCampoId, isMissingCampo, queryKeyExtra } = useDemoScope();
+  const effectiveCampoId = overrideCampoId !== undefined ? overrideCampoId : scopeCampoId;
+
   return useQuery({
-    queryKey: ['events_spiritual', type, campoId],
+    queryKey: ['events_spiritual', type, effectiveCampoId ?? 'global', ...queryKeyExtra],
+    enabled: !isMissingCampo,
     queryFn: async () => {
       let query = supabase
         .from('events_spiritual')
         .select('*')
         .order('event_date', { ascending: false });
       if (type) query = query.eq('type', type);
-      if (campoId) query = query.eq('campo_id', campoId);
+      if (effectiveCampoId) query = query.eq('campo_id', effectiveCampoId);
       const { data, error } = await query;
       if (error) throw error;
       return (data || []) as SpiritualEvent[];
