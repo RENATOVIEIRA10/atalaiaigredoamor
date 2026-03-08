@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ConciergeCard as ConciergeCardType } from '@/hooks/useConciergeCards';
+import { ConciergeCardDrilldown } from './ConciergeCardDrilldown';
 import { cn } from '@/lib/utils';
 import { CheckCircle, ArrowRight } from 'lucide-react';
 
@@ -10,8 +12,16 @@ interface Props {
   isLoading: boolean;
 }
 
+const DRILLDOWN_CARD_IDS = [
+  'novas-vidas-pendentes',
+  'vidas-aguardando-contato',
+  'celulas-sem-relatorio',
+  'novas-vidas-mes',
+];
+
 export function ConciergeCards({ cards, isLoading }: Props) {
   const navigate = useNavigate();
+  const [openDrilldown, setOpenDrilldown] = useState<{ id: string; title: string } | null>(null);
 
   if (isLoading) {
     return (
@@ -33,6 +43,24 @@ export function ConciergeCards({ cards, isLoading }: Props) {
     );
   }
 
+  if (openDrilldown) {
+    return (
+      <ConciergeCardDrilldown
+        cardId={openDrilldown.id}
+        cardTitle={openDrilldown.title}
+        onClose={() => setOpenDrilldown(null)}
+      />
+    );
+  }
+
+  const handleCardClick = (card: ConciergeCardType) => {
+    if (DRILLDOWN_CARD_IDS.includes(card.id)) {
+      setOpenDrilldown({ id: card.id, title: card.title });
+    } else {
+      navigate(card.actionPath);
+    }
+  };
+
   return (
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {cards.map((card) => (
@@ -43,7 +71,7 @@ export function ConciergeCards({ cards, isLoading }: Props) {
             'bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-lg',
             'hover:-translate-y-0.5 hover:border-border/60 hover:shadow-[0_20px_40px_-20px_hsl(var(--primary)/0.2)]',
           )}
-          onClick={() => navigate(card.actionPath)}
+          onClick={() => handleCardClick(card)}
           role="button"
         >
           <div className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full bg-primary/8 blur-2xl transition-all duration-500 group-hover:bg-primary/15" />
@@ -60,7 +88,7 @@ export function ConciergeCards({ cards, isLoading }: Props) {
             className="relative mt-3 h-8 rounded-full px-3.5 text-[11px] font-semibold gap-1.5"
             onClick={(e) => {
               e.stopPropagation();
-              navigate(card.actionPath);
+              handleCardClick(card);
             }}
           >
             {card.actionLabel}

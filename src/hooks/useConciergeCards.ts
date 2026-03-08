@@ -220,8 +220,8 @@ export function useConciergeCards() {
         }
       }
 
-      // Summary for pastor+
-      if (['pastor', 'global'].includes(level) && campoId) {
+      // Summary for pastor+ (NOT rede — rede leaders don't manage conversions)
+      if (['pastor', 'global'].includes(level) && !['rede'].includes(level) && campoId) {
         const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
         const { count: totalNovasVidas } = await supabase
           .from('novas_vidas')
