@@ -4,13 +4,16 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Activity, AlertTriangle, BookOpen, GraduationCap,
-  ChevronDown, ChevronUp, Loader2, Church, Heart,
+  ChevronDown, ChevronUp, Loader2, Church, Heart, ArrowLeft, MapPin, FolderTree,
 } from 'lucide-react';
 import { usePulsoRede } from '@/hooks/usePulsoRede';
 import { CelulaAlertaStatus as CelulaReportStatus } from '@/hooks/usePulsoEngine';
 import { AniversariantesSemanaCard } from './AniversariantesSemanaCard';
+import { useMarcoDrilldown, type MarcoType, type MarcoDrilldownMember } from '@/hooks/useMarcoDrilldown';
+import { useDemoScope } from '@/hooks/useDemoScope';
 
 interface PulsoRedeSectionProps {
   scopeType: 'coordenacao' | 'rede';
@@ -18,10 +21,21 @@ interface PulsoRedeSectionProps {
   title?: string;
 }
 
+const MARCO_LABELS: Record<MarcoType, string> = {
+  encontro_com_deus: 'Encontro c/ Deus',
+  batismo: 'Batismo',
+  is_discipulado: 'Discipulado',
+  curso_lidere: 'Curso Lidere',
+  renovo: 'Renovo',
+  is_lider_em_treinamento: 'Líder em Treinamento',
+};
+
 export function PulsoRedeSection({ scopeType, scopeId, title }: PulsoRedeSectionProps) {
   const { data: pulso, isLoading } = usePulsoRede({ scopeType, scopeId });
   const [showAlertCells, setShowAlertCells] = useState(false);
   const [showStagnantMembers, setShowStagnantMembers] = useState(false);
+  const [activeDrilldown, setActiveDrilldown] = useState<MarcoType | null>(null);
+  const { campoId } = useDemoScope();
 
   if (isLoading) {
     return (
@@ -37,6 +51,22 @@ export function PulsoRedeSection({ scopeType, scopeId, title }: PulsoRedeSection
   const totalAlertas = pulso.celulasAlerta1Semana.length + pulso.celulasAlerta2Semanas.length + pulso.celulasAlerta3Semanas.length;
   const label = title || (scopeType === 'coordenacao' ? 'Pulso da Coordenação' : 'Pulso da Rede');
   const scopeLabel = scopeType === 'coordenacao' ? 'na coordenação' : 'na rede';
+
+  // If drilldown is active, show the drilldown panel
+  if (activeDrilldown) {
+    return (
+      <div className="space-y-4">
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">🫀 {label}</h2>
+        <MarcoDrilldownPanel
+          scopeType={scopeType}
+          scopeId={scopeId}
+          marcoType={activeDrilldown}
+          campoId={campoId}
+          onClose={() => setActiveDrilldown(null)}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -109,8 +139,12 @@ export function PulsoRedeSection({ scopeType, scopeId, title }: PulsoRedeSection
           </CardContent>
         </Card>
 
-        {/* Discipulado */}
-        <Card>
+        {/* Discipulado — clicável */}
+        <Card
+          className="cursor-pointer transition-all hover:border-primary/40 hover:shadow-md"
+          onClick={() => setActiveDrilldown('is_discipulado')}
+          role="button"
+        >
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
               <BookOpen className="h-4 w-4 text-primary" />
@@ -126,8 +160,12 @@ export function PulsoRedeSection({ scopeType, scopeId, title }: PulsoRedeSection
           </CardContent>
         </Card>
 
-        {/* Liderança */}
-        <Card>
+        {/* Liderança — clicável */}
+        <Card
+          className="cursor-pointer transition-all hover:border-primary/40 hover:shadow-md"
+          onClick={() => setActiveDrilldown('is_lider_em_treinamento')}
+          role="button"
+        >
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
               <GraduationCap className="h-4 w-4 text-primary" />
@@ -168,23 +206,23 @@ export function PulsoRedeSection({ scopeType, scopeId, title }: PulsoRedeSection
         </Card>
       )}
 
-      {/* Marcos Espirituais */}
+      {/* Marcos Espirituais — clicáveis */}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
             <Church className="h-4 w-4 text-primary" />
             Marcos Espirituais
           </CardTitle>
-          <CardDescription>Crescimento espiritual real do rebanho</CardDescription>
+          <CardDescription>Crescimento espiritual real do rebanho — clique para ver detalhes</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            <MarcoCard label="Encontro c/ Deus" value={pulso.marcosEncontro} icon="🔥" />
-            <MarcoCard label="Batismo" value={pulso.marcosBatismo} icon="💧" />
-            <MarcoCard label="Discipulado" value={pulso.marcosDiscipulado} icon="📖" />
-            <MarcoCard label="Curso Lidere" value={pulso.marcosCursoLidere} icon="🎓" />
-            <MarcoCard label="Renovo" value={pulso.marcosRenovo} icon="🌿" />
-            <MarcoCard label="Líder em Treinamento" value={pulso.marcosLiderEmTreinamento} icon="⭐" />
+            <MarcoCard label="Encontro c/ Deus" value={pulso.marcosEncontro} icon="🔥" onClick={() => setActiveDrilldown('encontro_com_deus')} />
+            <MarcoCard label="Batismo" value={pulso.marcosBatismo} icon="💧" onClick={() => setActiveDrilldown('batismo')} />
+            <MarcoCard label="Discipulado" value={pulso.marcosDiscipulado} icon="📖" onClick={() => setActiveDrilldown('is_discipulado')} />
+            <MarcoCard label="Curso Lidere" value={pulso.marcosCursoLidere} icon="🎓" onClick={() => setActiveDrilldown('curso_lidere')} />
+            <MarcoCard label="Renovo" value={pulso.marcosRenovo} icon="🌿" onClick={() => setActiveDrilldown('renovo')} />
+            <MarcoCard label="Líder em Treinamento" value={pulso.marcosLiderEmTreinamento} icon="⭐" onClick={() => setActiveDrilldown('is_lider_em_treinamento')} />
           </div>
         </CardContent>
       </Card>
@@ -245,6 +283,95 @@ export function PulsoRedeSection({ scopeType, scopeId, title }: PulsoRedeSection
   );
 }
 
+// ─── Drilldown Panel ──────────────────────────────────────────────────────────
+
+function MarcoDrilldownPanel({
+  scopeType, scopeId, marcoType, campoId, onClose,
+}: {
+  scopeType: 'coordenacao' | 'rede';
+  scopeId: string;
+  marcoType: MarcoType;
+  campoId?: string | null;
+  onClose: () => void;
+}) {
+  const { data: members, isLoading } = useMarcoDrilldown({ scopeType, scopeId, marcoType, campoId });
+  const title = MARCO_LABELS[marcoType];
+
+  // Group by coordenação
+  const grouped = (members || []).reduce<Record<string, MarcoDrilldownMember[]>>((acc, m) => {
+    const key = m.coordenacao_name;
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(m);
+    return acc;
+  }, {});
+
+  const sortedGroups = Object.entries(grouped).sort(([a], [b]) => a.localeCompare(b));
+
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0 rounded-xl" onClick={onClose}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div>
+            <CardTitle className="text-base">{title}</CardTitle>
+            <CardDescription>
+              {isLoading ? 'Carregando...' : `${members?.length ?? 0} pessoa(s) encontrada(s)`}
+            </CardDescription>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {isLoading && (
+          <div className="space-y-2">
+            {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-14 rounded-xl" />)}
+          </div>
+        )}
+
+        {!isLoading && !members?.length && (
+          <p className="text-sm text-muted-foreground text-center py-6">Nenhuma pessoa encontrada com este marco</p>
+        )}
+
+        {!isLoading && sortedGroups.length > 0 && (
+          <ScrollArea className="max-h-[500px]">
+            <div className="space-y-5 pr-2">
+              {sortedGroups.map(([coordName, groupMembers]) => (
+                <div key={coordName}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <FolderTree className="h-3.5 w-3.5 text-primary" />
+                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{coordName}</span>
+                    <Badge variant="secondary" className="text-[10px] h-4">{groupMembers.length}</Badge>
+                  </div>
+                  <div className="space-y-1.5">
+                    {groupMembers.map(m => (
+                      <div key={m.id} className="flex items-center gap-2.5 p-2.5 rounded-xl bg-muted/30 border border-border/30 transition-colors hover:bg-muted/50">
+                        <Avatar className="h-8 w-8 shrink-0">
+                          <AvatarImage src={m.avatar_url || undefined} />
+                          <AvatarFallback className="text-xs bg-primary/10 text-primary">{m.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{m.name}</p>
+                          <p className="text-xs text-muted-foreground truncate flex items-center gap-1">
+                            <MapPin className="h-3 w-3 shrink-0" />
+                            {m.celula_name}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
 function AlertCellGroup({ label, cells }: { label: string; cells: CelulaReportStatus[] }) {
   return (
     <div>
@@ -261,9 +388,14 @@ function AlertCellGroup({ label, cells }: { label: string; cells: CelulaReportSt
   );
 }
 
-function MarcoCard({ label, value, icon }: { label: string; value: number; icon: string }) {
+function MarcoCard({ label, value, icon, onClick }: { label: string; value: number; icon: string; onClick?: () => void }) {
   return (
-    <div className="flex flex-col items-center justify-center p-3 rounded-xl bg-muted/40 border border-border/50 text-center gap-1">
+    <div
+      className="flex flex-col items-center justify-center p-3 rounded-xl bg-muted/40 border border-border/50 text-center gap-1 cursor-pointer transition-all hover:border-primary/40 hover:bg-muted/60 hover:shadow-sm active:scale-[0.97]"
+      onClick={onClick}
+      role="button"
+      tabIndex={0}
+    >
       <span className="text-xl">{icon}</span>
       <span className="text-2xl font-bold text-foreground">{value}</span>
       <span className="text-xs text-muted-foreground leading-tight">{label}</span>
