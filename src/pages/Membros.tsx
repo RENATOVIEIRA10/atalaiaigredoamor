@@ -45,7 +45,7 @@ export default function Membros() {
     
     // Scope filtering
     const allowedCelulaIds = new Set(celulas.map(c => c.id));
-    if (scopeType && scopeType !== 'admin' && scopeType !== 'rede') {
+    if (scopeType && scopeType !== 'admin') {
       list = list.filter(m => allowedCelulaIds.has(m.celula_id));
     }
     
