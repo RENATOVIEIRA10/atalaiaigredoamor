@@ -15,6 +15,7 @@ import { RoleProtectedRoute } from "@/components/RoleProtectedRoute";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { DemoBar } from "@/components/demo/DemoBar";
 import { UpdateBanner } from "@/components/pwa/UpdateBanner";
+import { TorreControlePanel } from "@/components/torre/TorreControlePanel";
 import { useVersionCheck } from "@/hooks/useVersionCheck";
 import { useVersionGate } from "@/hooks/useVersionGate";
 
