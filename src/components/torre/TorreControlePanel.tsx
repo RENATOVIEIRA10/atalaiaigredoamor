@@ -149,10 +149,10 @@ export function TorreControlePanel() {
 
       {/* Active indicator */}
       {isActive && isDemoActive && (
-        <div className="px-4 py-2 bg-amber-500/10 border-b border-amber-500/20 flex items-center justify-between">
+        <div className="px-4 py-2 bg-accent/20 border-b border-accent/30 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Radio className="h-3.5 w-3.5 text-amber-600 animate-pulse" />
-            <span className="text-xs font-medium text-amber-700">Modo ativo</span>
+            <Radio className="h-3.5 w-3.5 text-accent-foreground animate-pulse" />
+            <span className="text-xs font-medium text-accent-foreground">Modo ativo</span>
           </div>
           <Button variant="ghost" size="sm" className="h-6 text-xs text-amber-700 hover:text-amber-800" onClick={handleDeactivate}>
             <RotateCcw className="h-3 w-3 mr-1" />
