@@ -68,6 +68,7 @@ function AppInner() {
     <>
       <UpdateBanner />
       <DemoBar />
+      <TorreControlePanel />
       <Suspense fallback={<LazyFallback />}>
         <Routes>
           {/* Auth page (no protection) */}
