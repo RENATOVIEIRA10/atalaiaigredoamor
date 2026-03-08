@@ -94,7 +94,7 @@ export default function Coordenacoes() {
                     <TableHead>Rede</TableHead>
                     <TableHead>Coordenador</TableHead>
                     <TableHead>Células</TableHead>
-                    <TableHead className="w-[50px]"></TableHead>
+                    {isAdmin && <TableHead className="w-[50px]"></TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
