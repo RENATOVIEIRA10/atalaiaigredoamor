@@ -34,7 +34,6 @@ export default function Dashboard() {
   const isPWA = useIsPWA();
   const isMobile = useIsMobile();
   const isPWAMobile = isPWA && isMobile;
-  const { isOpen: tourOpen, closeTour } = usePastoralTour();
 
   const suspenseFallback = <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
 
