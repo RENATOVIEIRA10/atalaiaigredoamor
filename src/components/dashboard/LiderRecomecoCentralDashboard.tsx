@@ -5,6 +5,7 @@ import { useNovasVidas, STATUS_LABELS, useChangeNovaVidaStatus, PIPELINE_STATUSE
 import { useEncaminhamentos, useCreateEncaminhamento } from '@/hooks/useEncaminhamentos';
 import { useCelulasPublicas } from '@/hooks/useCelulasPublicas';
 import { useRedes } from '@/hooks/useRedes';
+import { useCampo } from '@/contexts/CampoContext';
 import { useRecomecoMessages } from '@/hooks/useRecomecoAgent';
 import { useAuditProfiles, useMyProfileName } from '@/hooks/useAuditProfiles';
 import { useQuery } from '@tanstack/react-query';
