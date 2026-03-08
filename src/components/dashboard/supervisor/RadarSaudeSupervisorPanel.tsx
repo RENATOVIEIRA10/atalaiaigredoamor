@@ -191,6 +191,8 @@ export function RadarSaudeSupervisorPanel({ supervisorId, coordenacaoId, compact
         Saúde da Rede — Minhas Células
       </h2>
 
+      <HealthLegend preset="supervisor" compact />
+
       {/* Mini KPIs */}
       <div className="grid grid-cols-4 gap-2">
         <MiniKPI emoji="🟢" value={counts.estavel} label="Estável" />
