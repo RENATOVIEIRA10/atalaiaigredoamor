@@ -238,7 +238,7 @@ Como posso te ajudar agora em **${roleHint}**?`;
     setIsLoading(true);
 
     try {
-      await streamResponse(allMessages);
+      await askAI(allMessages);
     } catch (err: any) {
       console.error('Pastoral AI error:', err);
       setMessages(prev => [...prev, {
