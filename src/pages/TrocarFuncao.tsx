@@ -208,7 +208,15 @@ export default function TrocarFuncao() {
       return;
     }
 
-    if (scopeType === 'pastor' || scopeType === 'admin') {
+    if (scopeType === 'admin') {
+      setScopeAccess(scopeType, link.scope_id, link.access_key_id);
+      clearCampo();
+      setIsGlobalView(true);
+      navigate('/dashboard');
+      return;
+    }
+
+    if (scopeType === 'pastor') {
       setPendingMatch(link);
       setShowRedeSelect(true);
       return;

@@ -158,7 +158,14 @@ export default function HomePage() {
           navigate('/dashboard');
           return;
         }
-        if (st === 'pastor' || st === 'admin') {
+        if (st === 'admin') {
+          setScopeAccess(st, link.scope_id, link.access_key_id);
+          clearCampo();
+          setIsGlobalView(true);
+          navigate('/dashboard');
+          return;
+        }
+        if (st === 'pastor') {
           // Can't auto-select rede, go to trocar-funcao
           navigate('/trocar-funcao');
           return;
@@ -327,8 +334,18 @@ export default function HomePage() {
         return;
       }
 
-      // Pastor/admin can pick any rede
-      if (scopeType === 'pastor' || scopeType === 'admin') {
+      // Admin — direct to global dashboard
+      if (scopeType === 'admin') {
+        setScopeAccess(scopeType, match.scope_id, match.id);
+        clearCampo();
+        setIsGlobalView(true);
+        navigate('/dashboard');
+        setIsLoading(false);
+        return;
+      }
+
+      // Pastor can pick any rede
+      if (scopeType === 'pastor') {
         await resolveCampoFromAccessKey(match.id);
         setPendingMatch({ ...match, scopeType });
         setStep('rede-select');
