@@ -8,6 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { RoleProvider } from "@/contexts/RoleContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { DemoModeProvider } from "@/contexts/DemoModeContext";
+import { TorreControleProvider } from "@/contexts/TorreControleContext";
 import { RedeProvider } from "@/contexts/RedeContext";
 import { CampoProvider } from "@/contexts/CampoContext";
 import { RoleProtectedRoute } from "@/components/RoleProtectedRoute";
