@@ -12,7 +12,8 @@ import ReactMarkdown from 'react-markdown';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { requestUnifiedAI } from '@/services/unifiedAI';
 
 interface Message {
   role: 'user' | 'assistant';
