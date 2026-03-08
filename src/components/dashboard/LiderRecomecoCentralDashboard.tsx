@@ -221,10 +221,12 @@ function EncaminharDialog({ vidaId, novasVidas, onClose }: { vidaId: string; nov
   const [filterBairro, setFilterBairro] = useState(nv?.bairro || '');
   const [filterCidade, setFilterCidade] = useState(nv?.cidade || '');
   const [filterRedeId, setFilterRedeId] = useState('');
+  const { activeCampoId } = useCampo();
   const { data: celulas, isLoading } = useCelulasPublicas({
     bairro: filterBairro || undefined,
     cidade: filterCidade || undefined,
     rede_id: filterRedeId || undefined,
+    campo_id: activeCampoId,
   });
   const createEnc = useCreateEncaminhamento();
 

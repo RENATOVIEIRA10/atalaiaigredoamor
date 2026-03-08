@@ -250,10 +250,12 @@ function EncaminharForm({ novaVidaId, novaVidaNome, bairro, cidade, onSuccess }:
   const [filterBairro, setFilterBairro] = useState(bairro || '');
   const [filterCidade, setFilterCidade] = useState(cidade || '');
   const [filterRedeId, setFilterRedeId] = useState('');
+  const { activeCampoId } = useCampo();
   const { data: celulas, isLoading } = useCelulasPublicas({
     bairro: filterBairro || undefined,
     cidade: filterCidade || undefined,
     rede_id: filterRedeId || undefined,
+    campo_id: activeCampoId,
   });
   const createEnc = useCreateEncaminhamento();
 

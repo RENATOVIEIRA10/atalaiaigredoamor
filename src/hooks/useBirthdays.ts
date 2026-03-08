@@ -99,9 +99,9 @@ export function useUpcomingBirthdays(celulaId?: string) {
 }
 
 // Hook for cell leader birthdays (used by coordinators and network leaders)
-export function useCellLeaderBirthdays(coordenacaoId?: string, redeId?: string) {
+export function useCellLeaderBirthdays(coordenacaoId?: string, redeId?: string, campoId?: string | null) {
   return useQuery({
-    queryKey: ['leader-birthdays', coordenacaoId, redeId],
+    queryKey: ['leader-birthdays', coordenacaoId, redeId, campoId],
     queryFn: async () => {
       // Get all celulas with their leaders
       let query = supabase
@@ -126,6 +126,9 @@ export function useCellLeaderBirthdays(coordenacaoId?: string, redeId?: string) 
       
       if (coordenacaoId) {
         query = query.eq('coordenacao_id', coordenacaoId);
+      }
+      if (campoId) {
+        query = query.eq('campo_id', campoId);
       }
       
       const { data, error } = await query;
