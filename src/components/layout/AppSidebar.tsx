@@ -325,8 +325,6 @@ export function AppSidebar() {
           </div>
         </SidebarFooter>
       </Sidebar>
-
-      <DemoModeDialog open={demoDialogOpen} onOpenChange={setDemoDialogOpen} />
     </>
   );
 }
