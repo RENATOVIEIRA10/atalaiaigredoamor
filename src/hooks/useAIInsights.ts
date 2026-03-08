@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { requestUnifiedAI } from '@/services/unifiedAI';
 
 interface ReportData {
   celula_name: string;
