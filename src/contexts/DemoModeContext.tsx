@@ -10,9 +10,24 @@ interface DemoModeContextType {
   demoLabel: string | null;
   /** The seed_run_id whose data should be shown in demo mode */
   demoRunId: string | null;
-  /** Campus currently selected in demo (for multi-campus switching) */
+  /** Campus currently selected in Torre/demo */
   demoCampusId: string | null;
-  activateDemo: (scopeType: DemoScopeType, scopeId: string | null, label: string, runId?: string | null, campusId?: string | null) => void;
+  /** Rede currently selected in Torre/demo */
+  demoRedeId: string | null;
+  /** Coordenação currently selected in Torre/demo */
+  demoCoordenacaoId: string | null;
+  /** Célula currently selected in Torre/demo */
+  demoCelulaId: string | null;
+  activateDemo: (
+    scopeType: DemoScopeType,
+    scopeId: string | null,
+    label: string,
+    runId?: string | null,
+    campusId?: string | null,
+    redeId?: string | null,
+    coordenacaoId?: string | null,
+    celulaId?: string | null,
+  ) => void;
   deactivateDemo: () => void;
   /** Switch the demo seed run (e.g. after reset/regenerate) */
   setDemoRunId: (runId: string | null) => void;
@@ -32,6 +47,9 @@ interface DemoStoredState {
   savedAccessKeyId: string | null;
   demoRunId: string | null;
   demoCampusId: string | null;
+  demoRedeId: string | null;
+  demoCoordenacaoId: string | null;
+  demoCelulaId: string | null;
 }
 
 export function DemoModeProvider({ children }: { children: ReactNode }) {
@@ -43,6 +61,9 @@ export function DemoModeProvider({ children }: { children: ReactNode }) {
   const [savedAccessKeyId, setSavedAccessKeyId] = useState<string | null>(null);
   const [demoRunId, setDemoRunIdState] = useState<string | null>(null);
   const [demoCampusId, setDemoCampusIdState] = useState<string | null>(null);
+  const [demoRedeId, setDemoRedeIdState] = useState<string | null>(null);
+  const [demoCoordenacaoId, setDemoCoordenacaoIdState] = useState<string | null>(null);
+  const [demoCelulaId, setDemoCelulaIdState] = useState<string | null>(null);
 
   const persistState = useCallback((state: DemoStoredState) => {
     try { sessionStorage.setItem(DEMO_STORAGE_KEY, JSON.stringify(state)); } catch {}
@@ -54,6 +75,9 @@ export function DemoModeProvider({ children }: { children: ReactNode }) {
     label: string,
     runId?: string | null,
     campusId?: string | null,
+    redeId?: string | null,
+    coordenacaoId?: string | null,
+    celulaId?: string | null,
   ) => {
     if (!isAdmin && !isDemoActive) return;
     
@@ -69,6 +93,9 @@ export function DemoModeProvider({ children }: { children: ReactNode }) {
     setDemoLabel(label);
     if (runId !== undefined) setDemoRunIdState(runId ?? null);
     if (campusId !== undefined) setDemoCampusIdState(campusId ?? null);
+    if (redeId !== undefined) setDemoRedeIdState(redeId ?? null);
+    if (coordenacaoId !== undefined) setDemoCoordenacaoIdState(coordenacaoId ?? null);
+    if (celulaId !== undefined) setDemoCelulaIdState(celulaId ?? null);
     
     // Switch scope but KEEP the admin's accessKeyId so policy guard passes
     setScopeAccess(scopeType, scopeId, akId);
@@ -81,8 +108,11 @@ export function DemoModeProvider({ children }: { children: ReactNode }) {
       savedAccessKeyId: akId,
       demoRunId: runId ?? demoRunId,
       demoCampusId: campusId ?? demoCampusId,
+      demoRedeId: redeId ?? demoRedeId,
+      demoCoordenacaoId: coordenacaoId ?? demoCoordenacaoId,
+      demoCelulaId: celulaId ?? demoCelulaId,
     });
-  }, [isAdmin, isDemoActive, setScopeAccess, accessKeyId, savedAccessKeyId, demoRunId, demoCampusId, persistState]);
+  }, [isAdmin, isDemoActive, setScopeAccess, accessKeyId, savedAccessKeyId, demoRunId, demoCampusId, demoRedeId, demoCoordenacaoId, demoCelulaId, persistState]);
 
   const deactivateDemo = useCallback(() => {
     const akId = savedAccessKeyId;
@@ -93,6 +123,9 @@ export function DemoModeProvider({ children }: { children: ReactNode }) {
     setSavedAccessKeyId(null);
     setDemoRunIdState(null);
     setDemoCampusIdState(null);
+    setDemoRedeIdState(null);
+    setDemoCoordenacaoIdState(null);
+    setDemoCelulaIdState(null);
     
     // Restore admin with the original accessKeyId
     setScopeAccess('admin', null, akId);
@@ -111,7 +144,7 @@ export function DemoModeProvider({ children }: { children: ReactNode }) {
   return (
     <DemoModeContext.Provider value={{
       isDemoActive, demoScopeType, demoScopeId, demoLabel,
-      demoRunId, demoCampusId,
+      demoRunId, demoCampusId, demoRedeId, demoCoordenacaoId, demoCelulaId,
       activateDemo, deactivateDemo,
       setDemoRunId, setDemoCampusId,
     }}>

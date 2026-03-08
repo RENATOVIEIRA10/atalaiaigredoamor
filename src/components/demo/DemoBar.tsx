@@ -2,27 +2,36 @@ import { useDemoMode } from '@/contexts/DemoModeContext';
 import { useTorreControle } from '@/contexts/TorreControleContext';
 import { useRole } from '@/contexts/RoleContext';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Radar, RotateCcw, Radio } from 'lucide-react';
 import { useIsPWA } from '@/hooks/useIsPWA';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
+import { useCampo } from '@/contexts/CampoContext';
+import { useRede } from '@/contexts/RedeContext';
 
 export function DemoBar() {
   const { isDemoActive, demoLabel, deactivateDemo } = useDemoMode();
-  const { clearSelection } = useTorreControle();
+  const { clearActiveState, isOperating, activeState } = useTorreControle();
   const { isAdmin } = useRole();
+  const { setIsGlobalView } = useCampo();
+  const { clearRede } = useRede();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const isPWA = useIsPWA();
   const isMobile = useIsMobile();
   const isPWAMobile = isPWA && isMobile;
 
-  if (!isDemoActive || !isAdmin) return null;
+  if (!isDemoActive && !isOperating) return null;
+  // Only show for admin users operating via Torre
+  if (!isAdmin && !isDemoActive) return null;
 
   const handleDeactivate = () => {
     deactivateDemo();
-    clearSelection();
+    clearActiveState();
+    clearRede();
+    setIsGlobalView(false);
     queryClient.invalidateQueries();
     navigate('/home');
   };
@@ -46,7 +55,7 @@ export function DemoBar() {
         <div className="h-4 w-px bg-border/20 shrink-0" />
 
         <span className="text-xs font-medium text-foreground/80 truncate">
-          {demoLabel || 'Simulação ativa'}
+          {demoLabel || activeState?.label || 'Operação ativa'}
         </span>
 
         <div className="flex-1" />

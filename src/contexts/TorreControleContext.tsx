@@ -26,13 +26,30 @@ export interface TorreSelection {
   role: TorreRole | null;
 }
 
+/** The committed (active) Torre state after "Ativar Visão" is clicked */
+export interface TorreActiveState {
+  campoId: string | null;
+  redeId: string | null;
+  coordenacaoId: string | null;
+  celulaId: string | null;
+  role: TorreRole | null;
+  label: string | null;
+}
+
 interface TorreControleContextType {
   isOpen: boolean;
   setIsOpen: (v: boolean) => void;
   selection: TorreSelection;
   setSelection: (s: Partial<TorreSelection>) => void;
   clearSelection: () => void;
+  /** True when a role has been selected (uncommitted) */
   isActive: boolean;
+  /** The committed active state (persists after panel close) */
+  activeState: TorreActiveState;
+  setActiveState: (s: TorreActiveState) => void;
+  clearActiveState: () => void;
+  /** True when Torre has a committed active simulation */
+  isOperating: boolean;
 }
 
 const EMPTY: TorreSelection = {
@@ -43,11 +60,17 @@ const EMPTY: TorreSelection = {
   role: null,
 };
 
+const EMPTY_ACTIVE: TorreActiveState = {
+  campoId: null, redeId: null, coordenacaoId: null, celulaId: null,
+  role: null, label: null,
+};
+
 const TorreControleContext = createContext<TorreControleContextType | undefined>(undefined);
 
 export function TorreControleProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   const [selection, setSelectionState] = useState<TorreSelection>(EMPTY);
+  const [activeState, setActiveStateInternal] = useState<TorreActiveState>(EMPTY_ACTIVE);
 
   const setSelection = useCallback((partial: Partial<TorreSelection>) => {
     setSelectionState(prev => ({ ...prev, ...partial }));
@@ -57,10 +80,26 @@ export function TorreControleProvider({ children }: { children: ReactNode }) {
     setSelectionState(EMPTY);
   }, []);
 
+  const setActiveState = useCallback((state: TorreActiveState) => {
+    setActiveStateInternal(state);
+  }, []);
+
+  const clearActiveState = useCallback(() => {
+    setActiveStateInternal(EMPTY_ACTIVE);
+    setSelectionState(EMPTY);
+  }, []);
+
   const isActive = selection.role !== null;
+  const isOperating = activeState.role !== null;
 
   return (
-    <TorreControleContext.Provider value={{ isOpen, setIsOpen, selection, setSelection, clearSelection, isActive }}>
+    <TorreControleContext.Provider value={{
+      isOpen, setIsOpen,
+      selection, setSelection, clearSelection,
+      isActive,
+      activeState, setActiveState, clearActiveState,
+      isOperating,
+    }}>
       {children}
     </TorreControleContext.Provider>
   );
