@@ -39,7 +39,6 @@ function buildQuickActions(scopeType: string | null): QuickActionItem[] {
         { id: 'relatorio', label: 'Relatório', icon: FileText, path: '/dashboard?tab=celula' },
         { id: 'membros', label: 'Membros', icon: Users, path: '/dashboard?tab=membros' },
         { id: 'discipulado', label: 'Discipulado', icon: BookOpen, path: '/dashboard?tab=discipulado' },
-        { id: 'roteiro', label: 'Reuniões', icon: CalendarDays, path: '/dashboard?tab=roteiro' },
         { id: 'novas-vidas', label: 'Novas Vidas', icon: Heart, path: '/dashboard?tab=novas-vidas' },
       ];
     case 'supervisor':
