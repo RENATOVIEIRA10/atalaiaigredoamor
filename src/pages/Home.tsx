@@ -339,7 +339,7 @@ export default function HomePage() {
         setScopeAccess(scopeType, match.scope_id, match.id);
         clearCampo();
         setIsGlobalView(true);
-        navigate('/dashboard');
+        navigate('/home');
         setIsLoading(false);
         return;
       }
