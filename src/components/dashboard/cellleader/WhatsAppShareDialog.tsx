@@ -196,38 +196,48 @@ export function WhatsAppShareDialog({ open, onOpenChange, reportData }: WhatsApp
     setBusyBtn(null);
   };
 
-  // Fast WhatsApp open — no encoding on click, just navigate
-  const openWhatsAppFast = useCallback((url: string, btnId: string, nextStep: WizardStep) => {
+  // Share text via native share sheet (same UX as photo sharing)
+  const shareTextNative = useCallback(async (text: string, btnId: string, nextStep: WizardStep) => {
     if (busyRef.current) return;
     busyRef.current = true;
     setBusyBtn(btnId);
 
-    const t0 = performance.now();
-    console.log(`[WA perf] ${btnId} click`);
-
-    // Instant navigation
-    if (isPWA) {
-      window.location.href = url;
-    } else {
-      const newTab = window.open(url, '_blank', 'noopener,noreferrer');
-      if (!newTab || newTab.closed) {
-        window.location.href = url;
+    try {
+      if (navigator.share) {
+        await navigator.share({ text });
+        // User completed or dismissed share sheet — advance
+        advanceTo(nextStep);
+      } else {
+        // Fallback: copy to clipboard + open wa.me
+        await navigator.clipboard.writeText(text).catch(() => {});
+        toast({ title: 'Texto copiado!', description: 'Cole no WhatsApp manualmente.' });
+        const normalized = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+        const url = `https://wa.me/?text=${encodeURIComponent(normalized)}`;
+        if (isPWA) {
+          window.location.href = url;
+        } else {
+          window.open(url, '_blank', 'noopener,noreferrer');
+        }
+        setTimeout(() => {
+          if (isPWA) {
+            setConfirmPrompt(true);
+          } else {
+            advanceTo(nextStep);
+          }
+        }, 800);
       }
-    }
-
-    console.log(`[WA perf] ${btnId} dispatched: ${Math.round(performance.now() - t0)}ms`);
-
-    // Release lock after short delay
-    setTimeout(() => {
+    } catch (e: any) {
+      // AbortError = user dismissed share sheet, still advance
+      if (e?.name === 'AbortError') {
+        // User cancelled — stay on same step
+      } else {
+        toast({ title: 'Erro ao compartilhar', variant: 'destructive' });
+      }
+    } finally {
       busyRef.current = false;
       setBusyBtn(null);
-      if (isPWA) {
-        setConfirmPrompt(true);
-      } else {
-        advanceTo(nextStep);
-      }
-    }, 800);
-  }, [isPWA, advanceTo]);
+    }
+  }, [isPWA, advanceTo, toast]);
 
   const copyToClipboard = async (text: string) => {
     try {
