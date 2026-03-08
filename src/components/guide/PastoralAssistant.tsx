@@ -122,13 +122,13 @@ Responda SEMPRE em português brasileiro.`;
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/guide-ai`;
 
 const SUGGESTIONS: Record<string, string[]> = {
-  celula: ['Como registrar relatório?', 'O que fazer com membro ausente?', 'Como enviar pelo WhatsApp?'],
-  supervisor: ['Quais células precisam supervisão?', 'Como registrar visita?', 'O que é o Radar?'],
-  coordenacao: ['Quais células estão sem reunião?', 'Como apoiar meus líderes?', 'O que é o Pulso?'],
-  rede: ['Onde devo focar essa semana?', 'Como está minha rede?', 'O que é multiplicação?'],
-  pastor: ['Resumo para reunião de líderes', 'Qual rede precisa atenção?', 'Como está o crescimento?'],
-  pastor_de_campo: ['Resumo para reunião de líderes', 'Qual rede precisa atenção?', 'Como está o crescimento?'],
-  pastor_senior_global: ['Quais campos estão crescendo?', 'Resumo executivo do reino', 'Onde há estagnação?'],
+  celula: ['O que devo fazer essa semana?', 'Chegou nova vida pra minha célula?', 'Como enviar relatório pelo WhatsApp?'],
+  supervisor: ['Quais ovelhas precisam de cuidado?', 'Como registrar supervisão?', 'O que é o Radar?'],
+  coordenacao: ['Alguma célula precisando de apoio?', 'Como fortalecer meus líderes?', 'O que o Pulso mostra?'],
+  rede: ['Onde Deus está pedindo mais atenção?', 'Como está minha rede?', 'O que é multiplicação?'],
+  pastor: ['Resumo pra reunião com líderes', 'Qual rede precisa de cuidado?', 'Como está o crescimento do campus?'],
+  pastor_de_campo: ['Resumo pra reunião com líderes', 'Qual rede precisa de cuidado?', 'Como está o crescimento do campus?'],
+  pastor_senior_global: ['Como o Reino está avançando?', 'Resumo executivo dos campos', 'Onde precisa de presença pastoral?'],
   admin: ['Como criar chave de acesso?', 'O que é o organograma?', 'Como funciona o sistema?'],
 };
 
