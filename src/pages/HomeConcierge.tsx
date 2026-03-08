@@ -42,6 +42,17 @@ export default function HomeConcierge() {
     return 'Boa noite';
   })();
 
+  // Admin in PWA → Torre de Controle as main view
+  if (isAdmin && isPWAMobile) {
+    return (
+      <AppLayout title="Torre de Controle">
+        <div className="mx-auto w-full max-w-[600px]">
+          <AdminPWADashboard />
+        </div>
+      </AppLayout>
+    );
+  }
+
   return (
     <AppLayout title="Início">
       <ScopeMissingGate>
