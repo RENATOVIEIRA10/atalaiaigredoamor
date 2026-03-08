@@ -1,8 +1,6 @@
-import { useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { roleLabels } from '@/lib/icons';
 import {
-  ShieldCheck,
   LogOut,
   RefreshCw,
   HelpCircle,
@@ -20,7 +18,6 @@ import {
   PlayCircle,
   Moon,
   Map,
-  Church,
   UserCheck,
   TrendingUp,
   Eye,
@@ -29,7 +26,6 @@ import {
   MessageSquare,
   KeyRound,
   Radar,
-  Shield,
 } from 'lucide-react';
 import logoIgreja from '@/assets/logo-igreja-do-amor-new.png';
 import logoRedeAmor from '@/assets/logo-amor-a-dois-new.png';
@@ -40,7 +36,6 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useTorreControle } from '@/contexts/TorreControleContext';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { DemoModeDialog } from '@/components/demo/DemoModeDialog';
 import { CampoSelector } from '@/components/campo/CampoSelector';
 import { usePastoralTour } from '@/hooks/usePastoralTour';
 import {
