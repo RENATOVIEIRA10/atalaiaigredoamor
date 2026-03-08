@@ -11,6 +11,8 @@ import { ArrowLeft, Radio } from 'lucide-react';
 import { CampoSelector } from '@/components/campo/CampoSelector';
 import { CampusBadge } from './CampusBadge';
 import { useTorreControle } from '@/contexts/TorreControleContext';
+import { PastoralTourContext, usePastoralTourProvider } from '@/hooks/usePastoralTour';
+import { PastoralTourDialog } from '@/components/dashboard/PastoralTourDialog';
 
 interface AppLayoutProps {
   children: React.ReactNode;

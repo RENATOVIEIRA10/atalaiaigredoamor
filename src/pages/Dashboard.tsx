@@ -15,8 +15,6 @@ import { NetworkLeaderPWADashboard } from '@/components/dashboard/pwa/NetworkLea
 import { CellLeaderPWADashboard } from '@/components/dashboard/pwa/CellLeaderPWADashboard';
 import { SupervisorPWADashboard } from '@/components/dashboard/pwa/SupervisorPWADashboard';
 import { ScopeMissingGate } from '@/components/ScopeMissingGate';
-import { PastoralTourDialog } from '@/components/dashboard/PastoralTourDialog';
-import { usePastoralTour } from '@/hooks/usePastoralTour';
 import { Loader2 } from 'lucide-react';
 
 const LiderRecomecoCentralDashboard = lazy(() => import('@/components/dashboard/LiderRecomecoCentralDashboard'));
