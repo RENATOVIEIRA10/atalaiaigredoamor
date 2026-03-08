@@ -126,11 +126,10 @@ const App = () => (
             <RoleProvider>
               <CampoProvider>
                 <RedeProvider>
-                <DemoModeProvider>
+                  <DemoModeProvider>
                     <TorreControleProvider>
                       <AppInner />
                     </TorreControleProvider>
-                  </DemoModeProvider>
                   </DemoModeProvider>
                 </RedeProvider>
               </CampoProvider>
