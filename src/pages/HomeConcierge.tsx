@@ -23,8 +23,11 @@ export default function HomeConcierge() {
   const { data: cards, isLoading: cardsLoading } = useConciergeCards();
   const { data: activity, isLoading: activityLoading } = useRecentActivity();
   const { data: metrics, isLoading: metricsLoading } = useSummaryMetrics();
-  const { selectedRole, scopeType } = useRole();
+  const { selectedRole, scopeType, isAdmin } = useRole();
   const { activeCampo } = useCampo();
+  const isPWA = useIsPWA();
+  const isMobile = useIsMobile();
+  const isPWAMobile = isPWA && isMobile;
   const level = getScopeLevel(scopeType);
   const { incrementVisit } = useOnboarding();
 
