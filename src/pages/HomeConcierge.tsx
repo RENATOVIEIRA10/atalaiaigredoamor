@@ -101,35 +101,48 @@ export default function HomeConcierge() {
                 <AskGuideDialog />
               </div>
 
-              {/* Priority Cards inline */}
-              <div className="mt-8">
-                <SectionLabel label="O que precisa da sua atenção" />
-                <div className="mt-3">
-                  <ConciergeCards cards={cards} isLoading={cardsLoading} />
+              {/* Priority Cards inline — only for non-pastoral roles */}
+              {!isPastoral && (
+                <div className="mt-8">
+                  <SectionLabel label="O que precisa da sua atenção" />
+                  <div className="mt-3">
+                    <ConciergeCards cards={cards} isLoading={cardsLoading} />
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </section>
 
-          {/* ═══ PANORAMA + AÇÕES ═══ */}
-          <div className="grid gap-5 lg:grid-cols-[1fr_340px]">
-            <section className="space-y-5">
-              <SectionLabel label={getSectionLabel(level)} />
-              <SummaryMetricsPanel metrics={metrics} isLoading={metricsLoading} />
-            </section>
-            <aside className="space-y-5">
-              <SectionLabel label="Ações essenciais" />
-              <div className="glass-card rounded-2xl p-5">
-                <QuickActionsBar />
+          {/* ═══ PASTORAL VIEW (Pastor de Campo / Pastor Global) ═══ */}
+          {isPastoral ? (
+            <PastoralConciergeBlocks
+              data={pastoralData}
+              isLoading={pastoralLoading}
+              level={isPastorCampo ? 'campo' : 'global'}
+            />
+          ) : (
+            <>
+              {/* ═══ PANORAMA + AÇÕES ═══ */}
+              <div className="grid gap-5 lg:grid-cols-[1fr_340px]">
+                <section className="space-y-5">
+                  <SectionLabel label={getSectionLabel(level)} />
+                  <SummaryMetricsPanel metrics={metrics} isLoading={metricsLoading} />
+                </section>
+                <aside className="space-y-5">
+                  <SectionLabel label="Ações essenciais" />
+                  <div className="glass-card rounded-2xl p-5">
+                    <QuickActionsBar />
+                  </div>
+                </aside>
               </div>
-            </aside>
-          </div>
 
-          {/* ═══ ATIVIDADE RECENTE ═══ */}
-          <section className="space-y-3">
-            <SectionLabel label="Atividade recente" />
-            <RecentActivity items={activity} isLoading={activityLoading} />
-          </section>
+              {/* ═══ ATIVIDADE RECENTE ═══ */}
+              <section className="space-y-3">
+                <SectionLabel label="Atividade recente" />
+                <RecentActivity items={activity} isLoading={activityLoading} />
+              </section>
+            </>
+          )}
         </div>
       </ScopeMissingGate>
     </AppLayout>
