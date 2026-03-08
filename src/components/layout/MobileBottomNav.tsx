@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Heart, FileText, Users, Menu, ClipboardCheck, Zap, History, Calendar, UserPlus, ArrowRight, Droplets, ListChecks, Eye } from 'lucide-react';
+import { LayoutDashboard, Heart, FileText, Users, Menu, ClipboardCheck, Zap, History, Calendar, UserPlus, ArrowRight, Droplets, ListChecks, Eye, Radar, Settings } from 'lucide-react';
 import { useIsPWA } from '@/hooks/useIsPWA';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useRole } from '@/contexts/RoleContext';
