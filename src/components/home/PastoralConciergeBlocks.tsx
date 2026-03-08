@@ -48,6 +48,11 @@ function UnitRow({ unit, level }: { unit: RedeHealth | CampoHealth; level: 'camp
         <p className="text-[11px] text-muted-foreground">
           {unit.membros} membros · {unit.celulas} células · {unit.novasVidas} novas vidas
         </p>
+        <HealthReason reason={
+          unit.status === 'growing' ? 'Novas vidas chegando e membros crescendo'
+          : unit.status === 'attention' ? 'Queda de engajamento ou redução de membros'
+          : 'Crescimento neutro, poucas conversões recentes'
+        } />
       </div>
       <StatusBadge status={unit.status} />
     </div>
