@@ -55,6 +55,12 @@ export function AppLayout({ children, title }: AppLayoutProps) {
               {title}
             </h1>
           )}
+          {isOperating && activeState.label && (
+            <Badge variant="outline" className="text-[9px] h-5 border-gold/30 text-gold bg-gold/8 shrink-0 gap-1">
+              <Radio className="h-2.5 w-2.5 animate-pulse" />
+              {activeState.label}
+            </Badge>
+          )}
           <div className="ml-auto">
             <CampusBadge compact />
           </div>
