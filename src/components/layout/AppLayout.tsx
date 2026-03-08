@@ -81,6 +81,7 @@ export function AppLayout({ children, title }: AppLayoutProps) {
           </main>
 
           <MobileBottomNav />
+          <PastoralAssistant />
         </div>
         <PastoralTourDialog open={tourCtx.isOpen} onClose={tourCtx.closeTour} />
       </PastoralTourContext.Provider>
