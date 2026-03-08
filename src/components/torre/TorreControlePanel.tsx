@@ -154,7 +154,7 @@ export function TorreControlePanel() {
             <Radio className="h-3.5 w-3.5 text-accent-foreground animate-pulse" />
             <span className="text-xs font-medium text-accent-foreground">Modo ativo</span>
           </div>
-          <Button variant="ghost" size="sm" className="h-6 text-xs text-amber-700 hover:text-amber-800" onClick={handleDeactivate}>
+          <Button variant="ghost" size="sm" className="h-6 text-xs text-accent-foreground" onClick={handleDeactivate}>
             <RotateCcw className="h-3 w-3 mr-1" />
             Desativar
           </Button>
