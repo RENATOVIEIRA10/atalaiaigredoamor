@@ -12,6 +12,15 @@ import {
   Eye,
   CalendarDays,
   ListChecks,
+  FileText,
+  Activity,
+  Layers,
+  TrendingUp,
+  BarChart3,
+  Map,
+  MessageSquare,
+  Home,
+  UserCheck,
 } from 'lucide-react';
 import { useRole } from '@/contexts/RoleContext';
 import { cn } from '@/lib/utils';
@@ -27,20 +36,31 @@ function buildQuickActions(scopeType: string | null): QuickActionItem[] {
   switch (scopeType) {
     case 'celula':
       return [
-        { id: 'nova-vida', label: 'Nova Vida', icon: Heart, path: '/recomeco' },
-        { id: 'reuniao', label: 'Reunião', icon: ClipboardCheck, path: '/dashboard?tab=acoes' },
-        { id: 'membro', label: 'Membro', icon: Users, path: '/membros' },
-        { id: 'batismo', label: 'Batismo', icon: Droplets, path: '/dashboard' },
-        { id: 'discipulado', label: 'Discipulado', icon: BookOpen, path: '/dashboard?tab=acoes' },
+        { id: 'relatorio', label: 'Relatório', icon: FileText, path: '/dashboard?tab=celula' },
+        { id: 'membros', label: 'Membros', icon: Users, path: '/dashboard?tab=membros' },
+        { id: 'discipulado', label: 'Discipulado', icon: BookOpen, path: '/dashboard?tab=discipulado' },
+        { id: 'roteiro', label: 'Reuniões', icon: CalendarDays, path: '/dashboard?tab=roteiro' },
+        { id: 'novas-vidas', label: 'Novas Vidas', icon: Heart, path: '/dashboard?tab=novas-vidas' },
       ];
     case 'supervisor':
+      return [
+        { id: 'visao-geral', label: 'Células', icon: Home, path: '/dashboard?tab=visao-geral' },
+        { id: 'cuidado', label: 'Supervisões', icon: ClipboardCheck, path: '/dashboard?tab=cuidado' },
+      ];
     case 'coordenacao':
+      return [
+        { id: 'visao-geral', label: 'Células', icon: Home, path: '/dashboard?tab=visao-geral' },
+        { id: 'lideres', label: 'Líderes', icon: UserCheck, path: '/organograma' },
+        { id: 'acompanhamento', label: 'Acompanhamento', icon: ClipboardCheck, path: '/dashboard?tab=acompanhamento' },
+        { id: 'movimento', label: 'Novas Vidas', icon: Heart, path: '/dashboard?tab=acompanhamento' },
+      ];
     case 'rede':
       return [
-        { id: 'reuniao', label: 'Reunião', icon: ClipboardCheck, path: '/dashboard?tab=acoes' },
-        { id: 'membro', label: 'Membros', icon: Users, path: '/membros' },
-        { id: 'discipulado', label: 'Discipulado', icon: BookOpen, path: '/dashboard?tab=acoes' },
-        { id: 'listas', label: 'Listas', icon: ListChecks, path: '/dashboard' },
+        { id: 'visao-geral', label: 'Coordenações', icon: Layers, path: '/dashboard?tab=visao-geral' },
+        { id: 'lideres', label: 'Líderes', icon: UserCheck, path: '/organograma' },
+        { id: 'acompanhamento', label: 'Acompanhamento', icon: ClipboardCheck, path: '/dashboard?tab=acompanhamento' },
+        { id: 'analises', label: 'Movimento & Saúde', icon: Activity, path: '/dashboard?tab=analises' },
+        { id: 'radar', label: 'Radar', icon: BarChart3, path: '/radar' },
       ];
     case 'recomeco_cadastro':
       return [{ id: 'nova-vida', label: 'Nova Vida', icon: Heart, path: '/recomeco' }];
@@ -62,17 +82,24 @@ function buildQuickActions(scopeType: string | null): QuickActionItem[] {
       ];
     case 'pastor_de_campo':
       return [
-        { id: 'ver-redes', label: 'Ver Redes', icon: Network, path: '/redes' },
-        { id: 'preparar-reuniao', label: 'Reunião', icon: CalendarDays, path: '/dashboard' },
-        { id: 'ver-novas-vidas', label: 'Novas Vidas', icon: Eye, path: '/recomeco' },
+        { id: 'visao-geral', label: 'Visão do Campus', icon: Eye, path: '/dashboard?tab=visao-geral' },
+        { id: 'redes', label: 'Redes', icon: Network, path: '/dashboard?tab=visao-geral' },
+        { id: 'movimento', label: 'Crescimento', icon: TrendingUp, path: '/dashboard?tab=movimento' },
+        { id: 'pastoral', label: 'Radar Pastoral', icon: Activity, path: '/dashboard?tab=pastoral' },
+        { id: 'reuniao', label: 'Reunião com Líderes', icon: MessageSquare, path: '/dashboard?tab=pastoral' },
       ];
     case 'pastor_senior_global':
     case 'pastor':
+      return [
+        { id: 'visao-geral', label: 'Visão Global', icon: Eye, path: '/dashboard?tab=visao-geral' },
+        { id: 'campos', label: 'Campos', icon: Map, path: '/dashboard?tab=visao-geral' },
+        { id: 'movimento', label: 'Expansão', icon: TrendingUp, path: '/dashboard?tab=movimento' },
+        { id: 'pastoral', label: 'Radar Estratégico', icon: BarChart3, path: '/dashboard?tab=pastoral' },
+      ];
     case 'admin':
       return [
-        { id: 'ver-campus', label: 'Campus', icon: Building2, path: '/dados' },
+        { id: 'ver-campus', label: 'Campus', icon: Building2, path: '/configuracoes?tab=campos' },
         { id: 'ver-redes', label: 'Redes', icon: Network, path: '/redes' },
-        { id: 'preparar-reuniao', label: 'Reunião', icon: CalendarDays, path: '/dashboard' },
         { id: 'ver-novas-vidas', label: 'Novas Vidas', icon: Eye, path: '/recomeco' },
       ];
     default:

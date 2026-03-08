@@ -84,44 +84,23 @@ export function AppSidebar() {
   const roleNavItems: Record<string, NavGroup['items']> = {
     celula_leader: [
       { title: 'Início', href: '/home', icon: LayoutDashboard },
-      { title: 'Membros', href: '/dashboard?tab=membros', icon: Users },
-      { title: 'Discipulado', href: '/dashboard?tab=discipulado', icon: BookOpen },
-      { title: 'Relatório', href: '/dashboard?tab=celula', icon: ClipboardCheck },
-      { title: 'Novas Vidas', href: '/dashboard?tab=novas-vidas', icon: Heart },
-      { title: 'Reuniões', href: '/dashboard?tab=roteiro', icon: Calendar },
+      { title: 'Dashboard', href: '/dashboard', icon: Activity },
     ],
     coordenador: [
       { title: 'Início', href: '/home', icon: LayoutDashboard },
-      { title: 'Células', href: '/dashboard?tab=visao-geral', icon: Home },
-      { title: 'Líderes', href: '/organograma', icon: UserCheck },
-      { title: 'Novas Vidas', href: '/dashboard?tab=movimento', icon: Heart },
-      { title: 'Discipulado', href: '/dashboard?tab=movimento', icon: BookOpen },
-      { title: 'Acompanhamentos', href: '/dashboard?tab=acompanhamento', icon: ClipboardCheck },
+      { title: 'Dashboard', href: '/dashboard', icon: Activity },
     ],
     rede_leader: [
       { title: 'Início', href: '/home', icon: LayoutDashboard },
-      { title: 'Coordenações', href: '/dashboard?tab=visao-geral', icon: Layers },
-      { title: 'Líderes', href: '/organograma', icon: UserCheck },
-      { title: 'Células', href: '/dashboard?tab=visao-geral', icon: Home },
-      { title: 'Supervisões', href: '/dashboard?tab=analises', icon: ClipboardCheck },
-      { title: 'Multiplicação', href: '/dashboard?tab=analises', icon: TrendingUp },
-      { title: 'Radar', href: '/radar', icon: Activity },
+      { title: 'Dashboard', href: '/dashboard', icon: Activity },
     ],
     pastor_de_campo: [
       { title: 'Início', href: '/home', icon: LayoutDashboard },
-      { title: 'Visão do Campus', href: '/dashboard?tab=visao-geral', icon: Eye },
-      { title: 'Redes', href: '/dashboard?tab=visao-geral', icon: Network },
-      { title: 'Crescimento', href: '/dashboard?tab=movimento', icon: TrendingUp },
-      { title: 'Radar Pastoral', href: '/dashboard?tab=pastoral', icon: Activity },
-      { title: 'Reuniões com Líderes', href: '/dashboard?tab=pastoral&view=reuniao', icon: MessageSquare },
+      { title: 'Dashboard', href: '/dashboard', icon: Activity },
     ],
     pastor_senior_global: [
       { title: 'Início', href: '/home', icon: LayoutDashboard },
-      { title: 'Visão Global', href: '/dashboard?tab=visao-geral', icon: Eye },
-      { title: 'Campos', href: '/dashboard?tab=visao-geral', icon: Map },
-      { title: 'Redes por Campo', href: '/dashboard?tab=visao-geral', icon: Network },
-      { title: 'Expansão', href: '/dashboard?tab=movimento', icon: TrendingUp },
-      { title: 'Radar Estratégico', href: '/dashboard?tab=pastoral', icon: BarChart3 },
+      { title: 'Dashboard', href: '/dashboard', icon: Activity },
     ],
     admin: [
       { title: 'Início', href: '/home', icon: LayoutDashboard },
@@ -136,10 +115,7 @@ export function AppSidebar() {
     ],
     default: [
       { title: 'Início', href: '/home', icon: LayoutDashboard },
-      { title: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-      { title: 'Novas Vidas', href: '/recomeco', icon: Heart },
-      { title: 'Radar', href: '/radar', icon: Activity },
-      { title: 'Organograma', href: '/organograma', icon: GitBranch },
+      { title: 'Dashboard', href: '/dashboard', icon: Activity },
     ],
   };
 
