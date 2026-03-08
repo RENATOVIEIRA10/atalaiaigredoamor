@@ -174,7 +174,8 @@ export default function Radar() {
                       <Badge variant="outline" className={cn('text-[10px]', config.color)}>
                         {config.dot} {config.label}
                       </Badge>
-                      <p className="text-[10px] text-muted-foreground mt-1 flex items-center gap-1 justify-end">
+                      <HealthReason reason={c.healthReason} className="mt-0.5" />
+                      <p className="text-[10px] text-muted-foreground mt-0.5 flex items-center gap-1 justify-end">
                         <Users className="h-3 w-3" /> {c.membrosAtivos}
                       </p>
                     </div>
