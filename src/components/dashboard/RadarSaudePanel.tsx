@@ -4,6 +4,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Heart, ShieldCheck, Eye, AlertTriangle, HelpCircle, TrendingUp, TrendingDown, Minus, Activity } from 'lucide-react';
 import { useRadarSaude, CelulaSaude } from '@/hooks/useRadarSaude';
+import { HealthLegend, HealthReason } from '@/components/health/HealthLegend';
 import { format, parseISO, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { StatCard } from '@/components/ui/stat-card';
@@ -60,6 +61,8 @@ export function RadarSaudePanel({ scopeType, scopeId, campoId, title = 'Saúde d
       <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
         <Activity className="h-4 w-4" /> {title}
       </h2>
+
+      <HealthLegend preset="supervisor" />
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -139,6 +142,8 @@ export function RadarSaudePanel({ scopeType, scopeId, campoId, title = 'Saúde d
 function CompactRadar({ data, criticalCells, attentionCells }: { data: any; criticalCells: CelulaSaude[]; attentionCells: CelulaSaude[] }) {
   return (
     <div className="space-y-3">
+      <HealthLegend preset="supervisor" compact />
+
       {/* Mini KPIs */}
       <div className="grid grid-cols-4 gap-2">
         <MiniStat emoji="🟢" value={data.saudaveis} label="Saudável" />
@@ -216,6 +221,12 @@ function CelulaHealthRow({ celula, compact = false }: { celula: CelulaSaude; com
             ? `Última: ${format(parseISO(celula.ultima_supervisao), "dd/MM", { locale: ptBR })} (${daysAgo}d atrás)`
             : 'Sem supervisão registrada'}
         </p>
+        <HealthReason reason={
+          celula.status === 'critica' ? 'Pontuação abaixo de 3.0 — cuidado pastoral necessário'
+          : celula.status === 'acompanhamento' ? 'Pontuação entre 3.0 e 3.9 — pontos a acompanhar'
+          : celula.status === 'sem_avaliacao' ? 'Sem supervisões registradas para avaliação'
+          : 'Supervisões em dia com boa pontuação'
+        } />
       </div>
       <div className="flex items-center gap-2 shrink-0">
         {celula.media !== null && (

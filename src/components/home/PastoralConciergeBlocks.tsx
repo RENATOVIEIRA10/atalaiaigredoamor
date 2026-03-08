@@ -1,4 +1,5 @@
 import { TrendingUp, Heart, Droplets, BookOpen, Users, AlertTriangle, Sprout, ChevronRight, ArrowUpRight, Minus, ArrowDownRight } from 'lucide-react';
+import { HealthLegend, HealthReason } from '@/components/health/HealthLegend';
 import { useNavigate } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
@@ -47,6 +48,11 @@ function UnitRow({ unit, level }: { unit: RedeHealth | CampoHealth; level: 'camp
         <p className="text-[11px] text-muted-foreground">
           {unit.membros} membros · {unit.celulas} células · {unit.novasVidas} novas vidas
         </p>
+        <HealthReason reason={
+          unit.status === 'growing' ? 'Novas vidas chegando e membros crescendo'
+          : unit.status === 'attention' ? 'Queda de engajamento ou redução de membros'
+          : 'Crescimento neutro, poucas conversões recentes'
+        } />
       </div>
       <StatusBadge status={unit.status} />
     </div>
@@ -79,6 +85,7 @@ export function PastoralConciergeBlocks({ data, isLoading, level }: Props) {
       {/* ═══ SINAIS DE GOVERNO ═══ */}
       <section className="space-y-3">
         <SectionLabel label={level === 'campo' ? 'Sinais de governo do campus' : 'Panorama do Reino'} />
+        <HealthLegend preset="concierge" compact />
 
         {attention.length > 0 && (
           <div className="glass-card rounded-2xl border-destructive/20 p-4 space-y-1">

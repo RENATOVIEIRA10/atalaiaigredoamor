@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Home, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { HealthLegend, HealthReason } from '@/components/health/HealthLegend';
 
 type CelulaHealth = 'saudavel' | 'atencao' | 'risco';
 
@@ -140,6 +141,8 @@ export default function Radar() {
             <p className="text-xs text-muted-foreground">Visão da saúde de cada célula</p>
           </div>
 
+          <HealthLegend preset="radar" />
+
           {/* Summary badges */}
           <div className="flex gap-3">
             {(['saudavel', 'atencao', 'risco'] as const).map(h => (
@@ -171,7 +174,8 @@ export default function Radar() {
                       <Badge variant="outline" className={cn('text-[10px]', config.color)}>
                         {config.dot} {config.label}
                       </Badge>
-                      <p className="text-[10px] text-muted-foreground mt-1 flex items-center gap-1 justify-end">
+                      <HealthReason reason={c.healthReason} className="mt-0.5" />
+                      <p className="text-[10px] text-muted-foreground mt-0.5 flex items-center gap-1 justify-end">
                         <Users className="h-3 w-3" /> {c.membrosAtivos}
                       </p>
                     </div>

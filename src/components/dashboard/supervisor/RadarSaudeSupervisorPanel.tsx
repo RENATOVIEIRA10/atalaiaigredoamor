@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Heart, ShieldCheck, Eye, AlertTriangle, Activity, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { format, parseISO, differenceInDays, differenceInWeeks, startOfWeek, addDays } from 'date-fns';
+import { HealthLegend, HealthReason } from '@/components/health/HealthLegend';
 import { ptBR } from 'date-fns/locale';
 import { EmptyState } from '@/components/ui/empty-state';
 
@@ -190,6 +191,8 @@ export function RadarSaudeSupervisorPanel({ supervisorId, coordenacaoId, compact
         Saúde da Rede — Minhas Células
       </h2>
 
+      <HealthLegend preset="supervisor" compact />
+
       {/* Mini KPIs */}
       <div className="grid grid-cols-4 gap-2">
         <MiniKPI emoji="🟢" value={counts.estavel} label="Estável" />
@@ -264,6 +267,12 @@ function CellRow({ cell, compact = false }: { cell: CelulaHealth; compact?: bool
             <span className="ml-2">· {cell.weeks_without_report}sem s/ relatório</span>
           )}
         </p>
+        <HealthReason reason={
+          cell.status === 'prioridade_cuidado' ? 'Nota abaixo de 3.0 — necessita ação pastoral'
+          : cell.status === 'atencao' ? 'Nota entre 3.0 e 3.9 — acompanhar de perto'
+          : cell.status === 'sem_avaliacao' ? 'Sem supervisões para avaliar'
+          : 'Supervisões com boa pontuação'
+        } />
       </div>
       <div className="flex items-center gap-1.5 shrink-0">
         {cell.media !== null && (
