@@ -3,6 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Cake, PartyPopper, Bell, Crown } from 'lucide-react';
 import { useCellLeaderBirthdays, BirthdayLeader } from '@/hooks/useBirthdays';
+import { useDemoScope } from '@/hooks/useDemoScope';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -12,7 +13,8 @@ interface LeaderBirthdayAlertProps {
 }
 
 export function LeaderBirthdayAlert({ coordenacaoId, redeId }: LeaderBirthdayAlertProps) {
-  const { data: birthdays, isLoading } = useCellLeaderBirthdays(coordenacaoId, redeId);
+  const { campoId } = useDemoScope();
+  const { data: birthdays, isLoading } = useCellLeaderBirthdays(coordenacaoId, redeId, campoId);
   
   if (isLoading || !birthdays || birthdays.length === 0) {
     return null;
