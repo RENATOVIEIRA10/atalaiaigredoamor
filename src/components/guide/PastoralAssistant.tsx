@@ -368,14 +368,10 @@ Como posso te ajudar agora em **${roleHint}**?`;
                   </div>
                 ))}
 
-                {isLoading && messages[messages.length - 1]?.role === 'user' && (
+                {isLoading && (
                   <div className="flex justify-start">
                     <div className="bg-muted/50 border border-border/30 rounded-2xl rounded-bl-md px-3.5 py-2.5">
-                      <div className="flex items-center gap-1.5">
-                        <div className="h-1.5 w-1.5 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: '0ms' }} />
-                        <div className="h-1.5 w-1.5 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: '150ms' }} />
-                        <div className="h-1.5 w-1.5 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: '300ms' }} />
-                      </div>
+                      <Loader2 className="h-4 w-4 animate-spin text-primary/80" />
                     </div>
                   </div>
                 )}
