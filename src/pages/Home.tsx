@@ -334,8 +334,18 @@ export default function HomePage() {
         return;
       }
 
-      // Pastor/admin can pick any rede
-      if (scopeType === 'pastor' || scopeType === 'admin') {
+      // Admin — direct to global dashboard
+      if (scopeType === 'admin') {
+        setScopeAccess(scopeType, match.scope_id, match.id);
+        clearCampo();
+        setIsGlobalView(true);
+        navigate('/dashboard');
+        setIsLoading(false);
+        return;
+      }
+
+      // Pastor can pick any rede
+      if (scopeType === 'pastor') {
         await resolveCampoFromAccessKey(match.id);
         setPendingMatch({ ...match, scopeType });
         setStep('rede-select');
