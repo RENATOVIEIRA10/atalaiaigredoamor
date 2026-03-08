@@ -2,13 +2,15 @@ import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/s
 import { AppSidebar } from './AppSidebar';
 import { MobileBottomNav } from './MobileBottomNav';
 import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
 import { useDemoMode } from '@/contexts/DemoModeContext';
 import { useIsPWA } from '@/hooks/useIsPWA';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Radio } from 'lucide-react';
 import { CampoSelector } from '@/components/campo/CampoSelector';
 import { CampusBadge } from './CampusBadge';
+import { useTorreControle } from '@/contexts/TorreControleContext';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -22,6 +24,7 @@ export function AppLayout({ children, title }: AppLayoutProps) {
   const isPWAMobile = isPWA && isMobile;
   const navigate = useNavigate();
   const location = useLocation();
+  const { isOperating, activeState } = useTorreControle();
 
   const isRootPage = location.pathname === '/home' || location.pathname === '/dashboard';
   const showBackButton = isPWAMobile && !isRootPage;
@@ -51,6 +54,12 @@ export function AppLayout({ children, title }: AppLayoutProps) {
             <h1 className="text-sm font-semibold text-foreground tracking-wide truncate font-display">
               {title}
             </h1>
+          )}
+          {isOperating && activeState.label && (
+            <Badge variant="outline" className="text-[9px] h-5 border-gold/30 text-gold bg-gold/8 shrink-0 gap-1">
+              <Radio className="h-2.5 w-2.5 animate-pulse" />
+              {activeState.label}
+            </Badge>
           )}
           <div className="ml-auto">
             <CampusBadge compact />

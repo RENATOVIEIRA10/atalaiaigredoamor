@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Heart, FileText, Users, Menu, ClipboardCheck, Zap, History, Calendar, UserPlus, ArrowRight, Droplets, ListChecks, Eye } from 'lucide-react';
+import { LayoutDashboard, Heart, FileText, Users, Menu, ClipboardCheck, Zap, History, Calendar, UserPlus, ArrowRight, Droplets, ListChecks, Eye, Radar, Settings } from 'lucide-react';
 import { useIsPWA } from '@/hooks/useIsPWA';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useRole } from '@/contexts/RoleContext';
@@ -53,6 +53,12 @@ export function MobileBottomNav() {
     navItems = [{ label: 'Inscritos', icon: Droplets, path: '/dashboard' }];
   } else if (isLiderBatismoAclamacao) {
     navItems = [{ label: 'Eventos', icon: Droplets, path: '/dashboard' }];
+  } else if (isAdmin) {
+    navItems = [
+      { label: 'Torre', icon: Radar, path: '/home' },
+      { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
+      { label: 'Config', icon: Settings, path: '/configuracoes' },
+    ];
   } else if (isDemoInstitucional) {
     navItems = [{ label: 'Início', icon: LayoutDashboard, path: '/home' }];
   } else if (isPastorSeniorGlobal || isPastorDeCampo || isPastor) {

@@ -13,6 +13,9 @@ import { useRecentActivity } from '@/hooks/useRecentActivity';
 import { useSummaryMetrics, getScopeLevel } from '@/hooks/useSummaryMetrics';
 import { useRole } from '@/contexts/RoleContext';
 import { useCampo } from '@/contexts/CampoContext';
+import { useIsPWA } from '@/hooks/useIsPWA';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { AdminPWADashboard } from '@/components/dashboard/pwa/AdminPWADashboard';
 import { roleLabels } from '@/lib/icons';
 import { Sparkles, Star } from 'lucide-react';
 
@@ -20,8 +23,11 @@ export default function HomeConcierge() {
   const { data: cards, isLoading: cardsLoading } = useConciergeCards();
   const { data: activity, isLoading: activityLoading } = useRecentActivity();
   const { data: metrics, isLoading: metricsLoading } = useSummaryMetrics();
-  const { selectedRole, scopeType } = useRole();
+  const { selectedRole, scopeType, isAdmin } = useRole();
   const { activeCampo } = useCampo();
+  const isPWA = useIsPWA();
+  const isMobile = useIsMobile();
+  const isPWAMobile = isPWA && isMobile;
   const level = getScopeLevel(scopeType);
   const { incrementVisit } = useOnboarding();
 
@@ -35,6 +41,17 @@ export default function HomeConcierge() {
     if (h < 18) return 'Boa tarde';
     return 'Boa noite';
   })();
+
+  // Admin in PWA → Torre de Controle as main view
+  if (isAdmin && isPWAMobile) {
+    return (
+      <AppLayout title="Torre de Controle">
+        <div className="mx-auto w-full max-w-[600px]">
+          <AdminPWADashboard />
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout title="Início">
