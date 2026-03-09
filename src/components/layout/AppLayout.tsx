@@ -39,7 +39,7 @@ export function AppLayout({ children, title }: AppLayoutProps) {
       <PastoralTourContext.Provider value={tourCtx}>
         <div className="flex flex-col h-[100dvh] bg-background" style={{ height: '-webkit-fill-available' }}>
           <header
-            className="flex shrink-0 items-center gap-2 border-b border-border/30 px-4 bg-background/90 backdrop-blur-2xl z-30"
+            className="flex shrink-0 items-center gap-2 border-b border-border/30 px-4 bg-background/85 backdrop-blur-3xl z-30"
             style={{
               boxShadow: '0 12px 30px -26px rgba(0,0,0,0.9)',
               minHeight: 'calc(48px + env(safe-area-inset-top, 0px))',
