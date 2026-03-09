@@ -189,7 +189,7 @@ export function PulsoRedeSection({ scopeType, scopeId, title }: PulsoRedeSection
             <CardTitle className="text-base">Detalhes – Células sem Relatório</CardTitle>
           </CardHeader>
           <CardContent>
-            <ScrollArea className="max-h-64">
+            <ScrollArea className="h-64">
               <div className="space-y-4">
                 {pulso.celulasAlerta3Semanas.length > 0 && (
                   <AlertCellGroup label="🔴 3+ semanas sem relatório" cells={pulso.celulasAlerta3Semanas} />
@@ -253,7 +253,7 @@ export function PulsoRedeSection({ scopeType, scopeId, title }: PulsoRedeSection
               </div>
             </div>
             {showStagnantMembers && pulso.stagnantMembers.length > 0 && (
-              <ScrollArea className="mt-3 max-h-56">
+              <ScrollArea className="mt-3 h-56">
                 <div className="space-y-2 pr-2">
                   {pulso.stagnantMembers.map((m) => (
                     <div key={m.id} className="flex items-center gap-2.5 p-2 rounded-lg bg-background/60 border border-amber-500/10">
@@ -334,7 +334,7 @@ function MarcoDrilldownPanel({
         )}
 
         {!isLoading && sortedGroups.length > 0 && (
-          <ScrollArea className="max-h-[500px]">
+          <ScrollArea className="h-[500px]">
             <div className="space-y-5 pr-2">
               {sortedGroups.map(([coordName, groupMembers]) => (
                 <div key={coordName}>

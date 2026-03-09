@@ -290,7 +290,7 @@ function CampoPastorDashboard() {
               <CardHeader className="pb-3"><CardTitle className="text-base flex items-center gap-2"><Cake className="h-4 w-4 text-primary" />Aniversários da Semana</CardTitle></CardHeader>
               <CardContent>
                 {birthdays && birthdays.length > 0 ? (
-                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                  <ScrollArea className="h-48"><div className="space-y-2">
                     {birthdays.map((b) => (
                       <div key={b.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50">
                         <div className="flex-1 min-w-0">
@@ -300,7 +300,7 @@ function CampoPastorDashboard() {
                         {b.is_today && <Badge className="bg-primary/10 text-primary text-xs">Hoje! 🎂</Badge>}
                       </div>
                     ))}
-                  </div>
+                  </div></ScrollArea>
                 ) : (
                   <p className="text-sm text-muted-foreground text-center py-4">Nenhum aniversário nesta semana</p>
                 )}
