@@ -15,7 +15,7 @@ const cardVariants = cva(
           "command-surface",
           "hover:shadow-[0_32px_56px_-24px_hsl(var(--primary)/0.18)]",
         ].join(" "),
-        glass: "glass-card",
+        glass: "glass-card hover:-translate-y-0.5 hover:shadow-[0_16px_32px_-12px_hsl(0_0%_0%/0.4)]",
         alert: [
           "glass-card border-l-2 border-l-warning",
           "hover:-translate-y-0.5",
@@ -33,6 +33,11 @@ const cardVariants = cva(
           "hover:-translate-y-0.5",
         ].join(" "),
         ghost: "bg-transparent border-0 shadow-none",
+        interactive: [
+          "glass-card cursor-pointer",
+          "hover:-translate-y-1 hover:shadow-[0_20px_40px_-16px_hsl(var(--primary)/0.25)] hover:border-primary/30",
+          "active:scale-[0.98] active:translate-y-0",
+        ].join(" "),
       },
     },
     defaultVariants: {
@@ -65,7 +70,7 @@ CardHeader.displayName = "CardHeader";
 
 const CardTitle = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLHeadingElement>>(
   ({ className, ...props }, ref) => (
-    <h3 ref={ref} className={cn("font-display text-2xl font-semibold leading-none tracking-tight", className)} {...props} />
+    <h3 ref={ref} className={cn("font-display text-xl font-semibold leading-none tracking-tight", className)} {...props} />
   ),
 );
 CardTitle.displayName = "CardTitle";
