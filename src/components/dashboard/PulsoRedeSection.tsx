@@ -189,7 +189,7 @@ export function PulsoRedeSection({ scopeType, scopeId, title }: PulsoRedeSection
             <CardTitle className="text-base">Detalhes – Células sem Relatório</CardTitle>
           </CardHeader>
           <CardContent>
-            <ScrollArea className="max-h-64">
+            <ScrollArea className="h-64">
               <div className="space-y-4">
                 {pulso.celulasAlerta3Semanas.length > 0 && (
                   <AlertCellGroup label="🔴 3+ semanas sem relatório" cells={pulso.celulasAlerta3Semanas} />
