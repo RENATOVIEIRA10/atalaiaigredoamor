@@ -19,8 +19,8 @@ export function usePastoralContext() {
     scopeType, scopeId
   } = useRole();
   
-  const { campo, isGlobalView } = useCampo();
-  const { rede } = useRede();
+  const { activeCampo, isGlobalView } = useCampo();
+  const { activeRede } = useRede();
   
   // Dados estruturais
   const { data: stats } = useDashboardStats();
@@ -46,24 +46,23 @@ export function usePastoralContext() {
     : 'Líder de Célula';
 
   // Contexto geográfico
-  const campusName = campo?.nome || 'Não definido';
-  const redeName = rede?.name || null;
+  const campusName = activeCampo?.nome || 'Não definido';
+  const redeName = activeRede?.name || null;
 
   // Preparar métricas contextuais por papel
   const metrics: Record<string, any> = {};
 
   if (isPastorSeniorGlobal) {
     // Pastor Global: visão de múltiplos campos
-    metrics.totalCampos = stats?.totalCampos || 0;
-    metrics.totalRedes = stats?.totalRedes || 0;
+    metrics.totalRedes = stats?.totalNetworks || 0;
     metrics.totalCelulas = stats?.totalCelulas || 0;
-    metrics.totalMembros = stats?.totalMembros || 0;
+    metrics.totalMembros = stats?.totalMembers || 0;
     metrics.novasVidasPendentes = novasVidas?.filter(v => v.status === 'nova').length || 0;
   } else if (isPastorDeCampo || isPastor) {
     // Pastor de Campo: foco nas redes do campus
-    metrics.totalRedes = stats?.totalRedes || 0;
+    metrics.totalRedes = stats?.totalNetworks || 0;
     metrics.totalCelulas = stats?.totalCelulas || 0;
-    metrics.totalMembros = stats?.totalMembros || 0;
+    metrics.totalMembros = stats?.totalMembers || 0;
     metrics.novasVidasPendentes = novasVidas?.filter(v => v.status === 'nova').length || 0;
     metrics.celulasSemanaSemRelatorio = celulas?.filter(c => {
       const hasReport = weeklyReports?.some(r => r.celula_id === c.id);
