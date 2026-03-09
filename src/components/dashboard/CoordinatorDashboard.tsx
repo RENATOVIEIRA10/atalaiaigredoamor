@@ -41,6 +41,7 @@ import { SectionLabel } from './SectionLabel';
 import { useMembers } from '@/hooks/useMembers';
 import { PotenciaisServirCard } from './PotenciaisServirCard';
 import { LeadershipRecommendationDialog } from './LeadershipRecommendationDialog';
+import { CuidadoEspiritualConsolidado } from './CuidadoEspiritualPanel';
 
 export function CoordinatorDashboard() {
   const [searchParams] = useSearchParams();
