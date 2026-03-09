@@ -10,6 +10,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Radio } from 'lucide-react';
 import { CampoSelector } from '@/components/campo/CampoSelector';
 import { CampusBadge } from './CampusBadge';
+import { CommandBarTrigger } from '@/components/command/CommandBar';
 import { useTorreControle } from '@/contexts/TorreControleContext';
 import { PastoralTourContext, usePastoralTourProvider } from '@/hooks/usePastoralTour';
 import { PastoralTourDialog } from '@/components/dashboard/PastoralTourDialog';
@@ -117,6 +118,7 @@ export function AppLayout({ children, title }: AppLayoutProps) {
               </>
             )}
             <div className="ml-auto flex items-center gap-2 md:gap-3">
+              <CommandBarTrigger />
               <CampusBadge />
               <CampoSelector />
             </div>
