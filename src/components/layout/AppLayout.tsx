@@ -76,9 +76,17 @@ export function AppLayout({ children, title }: AppLayoutProps) {
             className="flex-1 overflow-y-auto overscroll-y-contain p-4 md:p-5 internal-page-bg pwa-scroll-area"
             style={{ paddingBottom: 'calc(72px + env(safe-area-inset-bottom, 0px))' }}
           >
-            <div className="pwa-page-enter" key={location.pathname + location.search}>
-              {children}
-            </div>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={location.pathname + location.search}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+              >
+                {children}
+              </motion.div>
+            </AnimatePresence>
           </main>
 
           <MobileBottomNav />
