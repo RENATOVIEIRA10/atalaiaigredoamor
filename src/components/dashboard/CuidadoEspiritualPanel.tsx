@@ -38,10 +38,10 @@ const ALERT_CONFIG: Record<AlertType, { label: string; color: string; icon: type
 function MarcosIcons({ marcos }: { marcos: CuidadoAlert['marcos'] }) {
   return (
     <div className="flex gap-1.5">
-      {marcos.batismo && <Droplets className="h-3.5 w-3.5 text-blue-500" title="Batismo" />}
-      {marcos.encontro && <Church className="h-3.5 w-3.5 text-purple-500" title="Encontro com Deus" />}
-      {marcos.cursoLidere && <GraduationCap className="h-3.5 w-3.5 text-green-500" title="Curso Lidere" />}
-      {marcos.renovo && <BookOpen className="h-3.5 w-3.5 text-amber-500" title="Renovo" />}
+      {marcos.batismo && <span title="Batismo"><Droplets className="h-3.5 w-3.5 text-primary" /></span>}
+      {marcos.encontro && <span title="Encontro com Deus"><Church className="h-3.5 w-3.5 text-primary" /></span>}
+      {marcos.cursoLidere && <span title="Curso Lidere"><GraduationCap className="h-3.5 w-3.5 text-primary" /></span>}
+      {marcos.renovo && <span title="Renovo"><BookOpen className="h-3.5 w-3.5 text-primary" /></span>}
     </div>
   );
 }
