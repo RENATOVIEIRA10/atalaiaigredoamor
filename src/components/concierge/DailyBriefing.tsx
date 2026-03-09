@@ -5,15 +5,12 @@ import {
   TrendingUp,
   Heart,
   Users,
-  BookOpen,
   Sparkles,
-  ArrowRight,
   ChevronRight,
   Activity,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useConciergeCards, ConciergeCard as ConciergeCardType } from '@/hooks/useConciergeCards';
-import { useSummaryMetrics } from '@/hooks/useSummaryMetrics';
+import { ConciergeCard as ConciergeCardType } from '@/hooks/useConciergeCards';
 import { useRole } from '@/contexts/RoleContext';
 import { roleLabels } from '@/lib/icons';
 
