@@ -7,12 +7,13 @@ import { Progress } from '@/components/ui/progress';
 import {
   HeartPulse, AlertTriangle, ShieldAlert, UserX,
   Heart, BookOpen, Droplets, GraduationCap, Church,
-  Loader2, Users, ChevronDown, ChevronUp
+  Loader2, Users, ChevronDown, ChevronUp, Info
 } from 'lucide-react';
 import { useCuidadoEspiritual, CuidadoAlert, AlertType } from '@/hooks/useCuidadoEspiritual';
 import { StatCard } from '@/components/ui/stat-card';
-import { SectionLabel } from './SectionLabel';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 const ALERT_CONFIG: Record<AlertType, { label: string; color: string; icon: typeof AlertTriangle; description: string }> = {
   risco_isolamento: {
@@ -35,6 +36,42 @@ const ALERT_CONFIG: Record<AlertType, { label: string; color: string; icon: type
   },
 };
 
+function buildMotivos(alert: CuidadoAlert): string[] {
+  const motivos: string[] = [];
+
+  if (alert.type === 'risco_isolamento') {
+    if (!alert.isDiscipulado) motivos.push('Não está sendo acompanhado em discipulado');
+    if (!alert.serveMinisterio) motivos.push('Não participa de nenhum ministério');
+    if (alert.marcosCount === 0) motivos.push('Nenhum marco espiritual registrado (batismo, encontro, curso, renovo)');
+  }
+
+  if (alert.type === 'risco_estagnacao') {
+    motivos.push(`Está na igreja há ${alert.yearsInChurch >= 2 ? Math.floor(alert.yearsInChurch) + ' anos' : alert.yearsInChurch.toFixed(1) + ' ano(s)'}`);
+    if (!alert.serveMinisterio) motivos.push('Não exerce nenhuma função em ministério');
+  }
+
+  if (alert.type === 'precisa_cuidado') {
+    motivos.push(`Está na igreja há ${alert.yearsInChurch >= 2 ? Math.floor(alert.yearsInChurch) + ' anos' : alert.yearsInChurch.toFixed(1) + ' ano(s)'}`);
+    if (!alert.isDiscipulado) motivos.push('Não está em acompanhamento de discipulado');
+  }
+
+  // Marcos ausentes
+  if (!alert.marcos.batismo && alert.type !== 'risco_isolamento') motivos.push('Ainda não foi batizado');
+  if (!alert.marcos.encontro && alert.type !== 'risco_isolamento') motivos.push('Ainda não participou do Encontro com Deus');
+
+  return motivos;
+}
+
+function buildSugestao(alert: CuidadoAlert): string {
+  if (alert.type === 'risco_isolamento') {
+    return 'Priorize contato pessoal. Convide para participar de um grupo de discipulado ou ministério da igreja.';
+  }
+  if (alert.type === 'risco_estagnacao') {
+    return 'Converse com essa pessoa sobre seus dons e como poderia servir. Incentive a participação em um ministério.';
+  }
+  return 'Considere iniciar um acompanhamento de discipulado com essa pessoa.';
+}
+
 function MarcosIcons({ marcos }: { marcos: CuidadoAlert['marcos'] }) {
   return (
     <div className="flex gap-1.5">
@@ -46,30 +83,115 @@ function MarcosIcons({ marcos }: { marcos: CuidadoAlert['marcos'] }) {
   );
 }
 
-function AlertRow({ alert }: { alert: CuidadoAlert }) {
+function AlertDetailDialog({ alert, open, onOpenChange }: { alert: CuidadoAlert; open: boolean; onOpenChange: (v: boolean) => void }) {
   const config = ALERT_CONFIG[alert.type];
   const Icon = config.icon;
+  const motivos = buildMotivos(alert);
+  const sugestao = buildSugestao(alert);
 
   return (
-    <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-muted/50 transition-colors">
-      <Icon className="h-4 w-4 shrink-0 opacity-70" />
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium truncate">{alert.memberName}</p>
-        <p className="text-xs text-muted-foreground truncate">
-          {alert.celulaName} · {alert.yearsInChurch.toFixed(0)} {alert.yearsInChurch >= 2 ? 'anos' : 'ano'} de igreja
-        </p>
-      </div>
-      <div className="flex items-center gap-2 shrink-0">
-        <MarcosIcons marcos={alert.marcos} />
-        <Badge variant="outline" className={`text-[10px] px-1.5 py-0.5 ${config.color}`}>
-          {alert.type === 'risco_isolamento' ? 'Isolamento' : alert.type === 'risco_estagnacao' ? 'Estagnação' : 'Cuidado'}
-        </Badge>
-      </div>
-    </div>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-base">
+            <Icon className="h-5 w-5" />
+            {alert.memberName}
+          </DialogTitle>
+          <DialogDescription>{alert.celulaName} · {config.label}</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 pt-2">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">
+              🔍 Por que está aqui?
+            </p>
+            <ul className="text-sm text-foreground space-y-1.5 list-disc list-inside">
+              {motivos.map((m, i) => <li key={i}>{m}</li>)}
+            </ul>
+          </div>
+
+          <div className="rounded-xl border border-primary/20 bg-primary/5 p-3">
+            <p className="text-xs font-semibold uppercase tracking-widest text-primary mb-1">💡 Sugestão pastoral</p>
+            <p className="text-sm text-muted-foreground">{sugestao}</p>
+          </div>
+
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span>Marcos espirituais:</span>
+            <MarcosIcons marcos={alert.marcos} />
+            {alert.marcosCount === 0 && <span className="italic">nenhum registrado</span>}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
-function AlertList({ alerts, maxHeight = 'h-64' }: { alerts: CuidadoAlert[]; maxHeight?: string }) {
+function AlertInfoTooltip({ alert }: { alert: CuidadoAlert }) {
+  const motivos = buildMotivos(alert);
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button className="shrink-0 p-0.5 rounded-full hover:bg-muted/80 transition-colors" aria-label="Por que está aqui?">
+          <Info className="h-3.5 w-3.5 text-muted-foreground/60" />
+        </button>
+      </TooltipTrigger>
+      <TooltipContent side="left" className="max-w-[280px] space-y-1">
+        <p className="font-semibold text-xs">Por que está aqui?</p>
+        <ul className="text-xs text-muted-foreground space-y-0.5 list-disc list-inside">
+          {motivos.slice(0, 3).map((m, i) => <li key={i}>{m}</li>)}
+        </ul>
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
+function AlertRow({ alert }: { alert: CuidadoAlert }) {
+  const config = ALERT_CONFIG[alert.type];
+  const Icon = config.icon;
+  const [detailOpen, setDetailOpen] = useState(false);
+
+  return (
+    <>
+      <div
+        className="flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
+        onClick={() => setDetailOpen(true)}
+      >
+        <Icon className="h-4 w-4 shrink-0 opacity-70" />
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium truncate">{alert.memberName}</p>
+          <p className="text-xs text-muted-foreground truncate">
+            {alert.celulaName} · {alert.yearsInChurch.toFixed(0)} {alert.yearsInChurch >= 2 ? 'anos' : 'ano'} de igreja
+          </p>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <MarcosIcons marcos={alert.marcos} />
+          <AlertInfoTooltip alert={alert} />
+          <Badge variant="outline" className={`text-[10px] px-1.5 py-0.5 ${config.color}`}>
+            {alert.type === 'risco_isolamento' ? 'Isolamento' : alert.type === 'risco_estagnacao' ? 'Estagnação' : 'Cuidado'}
+          </Badge>
+        </div>
+      </div>
+      <AlertDetailDialog alert={alert} open={detailOpen} onOpenChange={setDetailOpen} />
+    </>
+  );
+}
+
+function CategoryDescription({ type }: { type: AlertType | 'todos' }) {
+  const descriptions: Record<string, string> = {
+    todos: 'Todos os membros que precisam de acompanhamento pastoral. Clique em cada nome para entender os motivos.',
+    risco_isolamento: 'Membros sem discipulado, sem ministério e sem marcos espirituais. São os que mais precisam de atenção urgente.',
+    risco_estagnacao: 'Membros com mais de 2 anos de igreja que não servem em nenhum ministério. Podem estar desanimados ou sem direcionamento.',
+    precisa_cuidado: 'Membros com mais de 1 ano de igreja que não estão em discipulado. Precisam de acompanhamento para crescer na fé.',
+  };
+
+  return (
+    <p className="text-xs text-muted-foreground italic px-1 pb-2 border-b border-border/30 mb-1">
+      {descriptions[type]}
+    </p>
+  );
+}
+
+function AlertList({ alerts, maxHeight = 'h-64', category = 'todos' as AlertType | 'todos' }: { alerts: CuidadoAlert[]; maxHeight?: string; category?: AlertType | 'todos' }) {
   if (alerts.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground text-sm">
@@ -80,11 +202,14 @@ function AlertList({ alerts, maxHeight = 'h-64' }: { alerts: CuidadoAlert[]; max
   }
 
   return (
-    <ScrollArea className={maxHeight}>
-      <div className="divide-y divide-border/50">
-        {alerts.map(alert => <AlertRow key={alert.id} alert={alert} />)}
-      </div>
-    </ScrollArea>
+    <div>
+      <CategoryDescription type={category} />
+      <ScrollArea className={maxHeight}>
+        <div className="divide-y divide-border/50">
+          {alerts.map(alert => <AlertRow key={alert.id} alert={alert} />)}
+        </div>
+      </ScrollArea>
+    </div>
   );
 }
 
@@ -103,10 +228,25 @@ export function CuidadoEspiritualCelula({ celulaId }: { celulaId: string }) {
       <CardHeader className="pb-3">
         <div className="flex items-center gap-2">
           <HeartPulse className="h-5 w-5 text-primary" />
-          <div>
+          <div className="flex-1">
             <CardTitle className="text-base">Cuidado Espiritual</CardTitle>
             <CardDescription>Membros que precisam de acompanhamento</CardDescription>
           </div>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button className="p-1 rounded-full hover:bg-muted/80" aria-label="Como funciona?">
+                <Info className="h-4 w-4 text-muted-foreground/60" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="left" className="max-w-[300px]">
+              <p className="font-semibold text-xs mb-1">Como funciona?</p>
+              <p className="text-xs text-muted-foreground">
+                O sistema identifica automaticamente membros que podem estar sem acompanhamento adequado,
+                com base no tempo de igreja, discipulado, ministério e marcos espirituais.
+                Clique em cada nome para ver os motivos e sugestões pastorais.
+              </p>
+            </TooltipContent>
+          </Tooltip>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -168,34 +308,76 @@ export function CuidadoEspiritualConsolidado({
       <CardHeader className="pb-3">
         <div className="flex items-center gap-2">
           <HeartPulse className="h-5 w-5 text-primary" />
-          <div>
+          <div className="flex-1">
             <CardTitle className="text-base">Cuidado Espiritual & Pertencimento</CardTitle>
             <CardDescription>Visão preventiva de acompanhamento pastoral</CardDescription>
           </div>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button className="p-1 rounded-full hover:bg-muted/80" aria-label="Como funciona?">
+                <Info className="h-4 w-4 text-muted-foreground/60" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="left" className="max-w-[300px]">
+              <p className="font-semibold text-xs mb-1">Como funciona?</p>
+              <p className="text-xs text-muted-foreground">
+                Membros são sinalizados quando faltam elementos-chave na jornada espiritual:
+                discipulado, ministério e marcos como batismo e Encontro com Deus.
+                O objetivo é cuidado preventivo — nenhuma ovelha invisível.
+              </p>
+            </TooltipContent>
+          </Tooltip>
         </div>
       </CardHeader>
       <CardContent className="space-y-5">
-        {/* KPIs */}
+        {/* KPIs with tooltips */}
         <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
           <StatCard icon={Users} label="Membros Ativos" value={data.totalMembers} />
-          <StatCard
-            icon={Heart}
-            label="Precisa de Cuidado"
-            value={data.precisaCuidado.length}
-            className={data.precisaCuidado.length > 0 ? 'border-blue-500/30' : ''}
-          />
-          <StatCard
-            icon={ShieldAlert}
-            label="Risco de Estagnação"
-            value={data.riscoEstagnacao.length}
-            className={data.riscoEstagnacao.length > 0 ? 'border-amber-500/30' : ''}
-          />
-          <StatCard
-            icon={UserX}
-            label="Risco de Isolamento"
-            value={data.riscoIsolamento.length}
-            className={data.riscoIsolamento.length > 0 ? 'border-destructive/30' : ''}
-          />
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div>
+                <StatCard
+                  icon={Heart}
+                  label="Precisa de Cuidado"
+                  value={data.precisaCuidado.length}
+                  className={data.precisaCuidado.length > 0 ? 'border-blue-500/30' : ''}
+                />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-[250px]">
+              <p className="text-xs">+1 ano de igreja sem acompanhamento de discipulado</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div>
+                <StatCard
+                  icon={ShieldAlert}
+                  label="Risco de Estagnação"
+                  value={data.riscoEstagnacao.length}
+                  className={data.riscoEstagnacao.length > 0 ? 'border-amber-500/30' : ''}
+                />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-[250px]">
+              <p className="text-xs">+2 anos de igreja sem servir em nenhum ministério</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div>
+                <StatCard
+                  icon={UserX}
+                  label="Risco de Isolamento"
+                  value={data.riscoIsolamento.length}
+                  className={data.riscoIsolamento.length > 0 ? 'border-destructive/30' : ''}
+                />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-[250px]">
+              <p className="text-xs">Sem discipulado, sem ministério e sem marcos espirituais — maior risco pastoral</p>
+            </TooltipContent>
+          </Tooltip>
         </div>
 
         {/* Health bar */}
@@ -219,6 +401,7 @@ export function CuidadoEspiritualConsolidado({
 
             <TabsContent value="todos">
               <ScrollArea className="h-72">
+                <CategoryDescription type="todos" />
                 <div className="space-y-1">
                   {Object.entries(grouped).map(([groupId, groupAlerts]) => (
                     <Collapsible key={groupId} open={expandedGroups.has(groupId)} onOpenChange={() => toggleGroup(groupId)}>
@@ -243,13 +426,13 @@ export function CuidadoEspiritualConsolidado({
             </TabsContent>
 
             <TabsContent value="isolamento">
-              <AlertList alerts={data.riscoIsolamento} maxHeight="h-72" />
+              <AlertList alerts={data.riscoIsolamento} maxHeight="h-72" category="risco_isolamento" />
             </TabsContent>
             <TabsContent value="estagnacao">
-              <AlertList alerts={data.riscoEstagnacao} maxHeight="h-72" />
+              <AlertList alerts={data.riscoEstagnacao} maxHeight="h-72" category="risco_estagnacao" />
             </TabsContent>
             <TabsContent value="cuidado">
-              <AlertList alerts={data.precisaCuidado} maxHeight="h-72" />
+              <AlertList alerts={data.precisaCuidado} maxHeight="h-72" category="precisa_cuidado" />
             </TabsContent>
           </Tabs>
         )}
