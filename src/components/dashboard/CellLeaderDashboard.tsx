@@ -38,8 +38,13 @@ export function CellLeaderDashboard() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="flex flex-col gap-4 p-4">
+        <SkeletonBreathe className="h-12 w-2/3" />
+        <div className="grid gap-4 grid-cols-2">
+          <SkeletonBreathe className="h-28" />
+          <SkeletonBreathe className="h-28" />
+        </div>
+        <SkeletonBreathe className="h-40" />
       </div>
     );
   }
