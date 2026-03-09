@@ -101,7 +101,19 @@ function CampoPastorDashboard() {
   };
 
   if (statsLoading || pulsoLoading) {
-    return <div className="flex items-center justify-center h-64"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+    return (
+      <div className="flex flex-col gap-4 p-4">
+        <SkeletonBreathe className="h-14 w-1/2" />
+        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+          <SkeletonBreathe className="h-28" />
+          <SkeletonBreathe className="h-28" />
+          <SkeletonBreathe className="h-28" />
+          <SkeletonBreathe className="h-28" />
+        </div>
+        <SkeletonBreathe className="h-48" />
+      </div>
+    );
+  }
   }
 
   return (
