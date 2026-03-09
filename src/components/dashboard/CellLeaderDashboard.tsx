@@ -23,6 +23,7 @@ import { RevelaShortcut } from './RevelaShortcut';
 import { DashboardScopeBanner } from './DashboardScopeBanner';
 import { MissionBlock } from './MissionBlock';
 import { InitialViewGate } from './InitialViewGate';
+import { CuidadoEspiritualCelula } from './CuidadoEspiritualPanel';
 
 export function CellLeaderDashboard() {
   const { data: celulas, isLoading } = useCelulas();
