@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2, ClipboardCheck, Plus, Eye, Calendar, Activity, AlertTriangle, Home, HeartPulse } from 'lucide-react';
+import { FadeIn, StaggerContainer, StaggerItem, SkeletonBreathe } from '@/components/ui/animations';
 import { CuidadoEspiritualConsolidado } from './CuidadoEspiritualPanel';
 import { VitalidadeCascataPanel } from './VitalidadeRelacionalPanel';
 import { useCoordenacoes } from '@/hooks/useCoordenacoes';

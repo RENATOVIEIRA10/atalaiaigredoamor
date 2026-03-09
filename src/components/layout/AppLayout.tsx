@@ -14,6 +14,7 @@ import { useTorreControle } from '@/contexts/TorreControleContext';
 import { PastoralTourContext, usePastoralTourProvider } from '@/hooks/usePastoralTour';
 import { PastoralTourDialog } from '@/components/dashboard/PastoralTourDialog';
 import { PastoralAssistant } from '@/components/guide/PastoralAssistant';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -75,9 +76,17 @@ export function AppLayout({ children, title }: AppLayoutProps) {
             className="flex-1 overflow-y-auto overscroll-y-contain p-4 md:p-5 internal-page-bg pwa-scroll-area"
             style={{ paddingBottom: 'calc(72px + env(safe-area-inset-bottom, 0px))' }}
           >
-            <div className="pwa-page-enter" key={location.pathname + location.search}>
-              {children}
-            </div>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={location.pathname + location.search}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+              >
+                {children}
+              </motion.div>
+            </AnimatePresence>
           </main>
 
           <MobileBottomNav />
@@ -113,9 +122,17 @@ export function AppLayout({ children, title }: AppLayoutProps) {
             </div>
           </header>
           <main className="internal-page-bg flex-1 overflow-auto p-4 md:p-8 lg:p-10">
-            <div className="animate-fade-in">
-              {children}
-            </div>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={location.pathname}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
+              >
+                {children}
+              </motion.div>
+            </AnimatePresence>
           </main>
         </SidebarInset>
         <PastoralAssistant />

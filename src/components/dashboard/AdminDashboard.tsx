@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Users, UserCheck, Heart, UserPlus, Baby, Loader2, Network, FileSpreadsheet, LayoutGrid, Home, GitBranch, AlertTriangle, Calendar, Sprout, TrendingUp } from 'lucide-react';
+import { FadeIn, StaggerContainer, StaggerItem, SkeletonBreathe } from '@/components/ui/animations';
 import { useRedes } from '@/hooks/useRedes';
 import { useCoordenacoes } from '@/hooks/useCoordenacoes';
 import { useCelulas } from '@/hooks/useCelulas';
@@ -102,7 +103,15 @@ export function AdminDashboard() {
   };
 
   if (isLoading) {
-    return <div className="flex items-center justify-center h-64"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+    return (
+      <div className="flex flex-col gap-4 p-4">
+        <SkeletonBreathe className="h-14 w-1/2" />
+        <div className="grid gap-4 grid-cols-2 lg:grid-cols-5">
+          {[1,2,3,4,5].map(i => <SkeletonBreathe key={i} className="h-28" />)}
+        </div>
+        <SkeletonBreathe className="h-48" />
+      </div>
+    );
   }
 
   const totalCelulas = celulas?.length || 0;
@@ -124,14 +133,16 @@ export function AdminDashboard() {
       </div>
 
       {/* ═══ PRIMEIRA TELA — Métricas Estruturais ═══ */}
-      <SectionLabel title="Dados Estruturais" subtitle="Visão consolidada do campo" />
-      <div className="grid gap-4 grid-cols-2 lg:grid-cols-5">
-        <StatCard icon={Network} label="Redes" value={redes?.length || 0} />
-        <StatCard icon={LayoutGrid} label="Coordenações" value={coordenacoes?.length || 0} />
-        <StatCard icon={Home} label="Células" value={totalCelulas} />
-        <StatCard icon={Users} label="Membros Ativos" value={dashStats?.totalMembers || 0} />
-        <StatCard icon={TrendingUp} label="Crescimento" value={`${dashStats?.growth || 0}%`} subtitle="últimos 30 dias" />
-      </div>
+      <FadeIn delay={0.1}>
+        <SectionLabel title="Dados Estruturais" subtitle="Visão consolidada do campo" />
+      </FadeIn>
+      <StaggerContainer className="grid gap-4 grid-cols-2 lg:grid-cols-5">
+        <StaggerItem><StatCard icon={Network} label="Redes" value={redes?.length || 0} /></StaggerItem>
+        <StaggerItem><StatCard icon={LayoutGrid} label="Coordenações" value={coordenacoes?.length || 0} /></StaggerItem>
+        <StaggerItem><StatCard icon={Home} label="Células" value={totalCelulas} /></StaggerItem>
+        <StaggerItem><StatCard icon={Users} label="Membros Ativos" value={dashStats?.totalMembers || 0} /></StaggerItem>
+        <StaggerItem><StatCard icon={TrendingUp} label="Crescimento" value={`${dashStats?.growth || 0}%`} subtitle="últimos 30 dias" /></StaggerItem>
+      </StaggerContainer>
 
       {/* ═══ ABAS OPERACIONAIS ═══ */}
       <Tabs defaultValue={defaultMainTab} className="space-y-4">

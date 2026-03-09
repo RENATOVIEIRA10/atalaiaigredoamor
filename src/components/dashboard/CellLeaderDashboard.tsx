@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2, Users, Search, MapPin, Calendar, FileText, Heart, DoorOpen, ClipboardList, BookOpen, AlertTriangle, Sprout, HeartPulse, LayoutDashboard } from 'lucide-react';
+import { FadeIn, StaggerContainer, StaggerItem, SkeletonBreathe } from '@/components/ui/animations';
 import { useCelulas } from '@/hooks/useCelulas';
 import { useEncaminhamentos } from '@/hooks/useEncaminhamentos';
 import { CelulaDetailsDialog } from './CelulaDetailsDialog';
@@ -37,8 +38,13 @@ export function CellLeaderDashboard() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="flex flex-col gap-4 p-4">
+        <SkeletonBreathe className="h-12 w-2/3" />
+        <div className="grid gap-4 grid-cols-2">
+          <SkeletonBreathe className="h-28" />
+          <SkeletonBreathe className="h-28" />
+        </div>
+        <SkeletonBreathe className="h-40" />
       </div>
     );
   }
@@ -75,24 +81,27 @@ export function CellLeaderDashboard() {
         icon={Users}
       />
 
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <MissionVerse role="celula_leader" />
-        <RevelaShortcut />
-      </div>
+      <FadeIn delay={0.05}>
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <MissionVerse role="celula_leader" />
+          <RevelaShortcut />
+        </div>
+      </FadeIn>
 
       {singleCell ? (
         <>
           {/* 3 blocos missionais — sempre visíveis */}
-          <div className="space-y-6">
+          <StaggerContainer className="space-y-6" staggerDelay={0.08}>
             {/* BLOCO 1 — O que precisa da minha atenção */}
-            <MissionBlock icon={AlertTriangle} title="O que precisa da minha atenção">
-              {cellEncaminhamentos.length > 0 ? (
-                <StatCard
-                  icon={DoorOpen}
-                  label="Vidas Encaminhadas"
-                  value={cellEncaminhamentos.length}
-                  subtitle={pendingNovasVidas > 0 ? `${pendingNovasVidas} aguardando contato` : 'Todas contatadas ✓'}
-                />
+            <StaggerItem>
+              <MissionBlock icon={AlertTriangle} title="O que precisa da minha atenção">
+                {cellEncaminhamentos.length > 0 ? (
+                  <StatCard
+                    icon={DoorOpen}
+                    label="Vidas Encaminhadas"
+                    value={cellEncaminhamentos.length}
+                    subtitle={pendingNovasVidas > 0 ? `${pendingNovasVidas} aguardando contato` : 'Todas contatadas ✓'}
+                  />
               ) : (
                 <Card>
                   <CardContent className="p-4 text-sm text-muted-foreground text-center">
@@ -100,24 +109,33 @@ export function CellLeaderDashboard() {
                   </CardContent>
                 </Card>
               )}
-            </MissionBlock>
+              </MissionBlock>
+            </StaggerItem>
 
             {/* BLOCO 2 — Movimento do Reino */}
-            <MissionBlock icon={Sprout} title="Movimento do Reino">
-              <CellProfileSection celulaId={singleCell.id} />
-            </MissionBlock>
+            <StaggerItem>
+              <MissionBlock icon={Sprout} title="Movimento do Reino">
+                <CellProfileSection celulaId={singleCell.id} />
+              </MissionBlock>
+            </StaggerItem>
 
             {/* BLOCO 3 — Saúde e Cuidado */}
-            <MissionBlock icon={HeartPulse} title="Saúde e Cuidado">
-              <CellLeaderPulsoTab celulaId={singleCell.id} />
-            </MissionBlock>
+            <StaggerItem>
+              <MissionBlock icon={HeartPulse} title="Saúde e Cuidado">
+                <CellLeaderPulsoTab celulaId={singleCell.id} />
+              </MissionBlock>
+            </StaggerItem>
 
             {/* BLOCO 4 — Cuidado Espiritual & Pertencimento */}
-            <CuidadoEspiritualCelula celulaId={singleCell.id} />
+            <StaggerItem>
+              <CuidadoEspiritualCelula celulaId={singleCell.id} />
+            </StaggerItem>
 
             {/* BLOCO 5 — Índice de Vitalidade Relacional */}
-            <VitalidadeMembrosPanel celulaId={singleCell.id} />
-          </div>
+            <StaggerItem>
+              <VitalidadeMembrosPanel celulaId={singleCell.id} />
+            </StaggerItem>
+          </StaggerContainer>
 
           {/* Conteúdo detalhado — oculto por padrão */}
           <InitialViewGate>
