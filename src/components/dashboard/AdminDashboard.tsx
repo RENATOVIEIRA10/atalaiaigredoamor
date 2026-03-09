@@ -113,7 +113,6 @@ export function AdminDashboard() {
       </div>
     );
   }
-  }
 
   const totalCelulas = celulas?.length || 0;
   const celulasComRelatorio = currentReports.length;
