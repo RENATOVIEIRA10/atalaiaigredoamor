@@ -9,13 +9,11 @@ interface SectionLabelProps {
 export function SectionLabel({ title, subtitle, className }: SectionLabelProps) {
   return (
     <div className={cn("space-y-0.5", className)}>
-      <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground"
-        style={{ letterSpacing: '0.1em' }}
-      >
-        {title}
-      </h3>
+      <div className="section-label">
+        <span>{title}</span>
+      </div>
       {subtitle && (
-        <p className="text-[11px] text-muted-foreground/70">{subtitle}</p>
+        <p className="text-[11px] text-muted-foreground/60 pl-[calc(2rem+0.75rem)]">{subtitle}</p>
       )}
     </div>
   );
