@@ -109,24 +109,33 @@ export function CellLeaderDashboard() {
                   </CardContent>
                 </Card>
               )}
-            </MissionBlock>
+              </MissionBlock>
+            </StaggerItem>
 
             {/* BLOCO 2 — Movimento do Reino */}
-            <MissionBlock icon={Sprout} title="Movimento do Reino">
-              <CellProfileSection celulaId={singleCell.id} />
-            </MissionBlock>
+            <StaggerItem>
+              <MissionBlock icon={Sprout} title="Movimento do Reino">
+                <CellProfileSection celulaId={singleCell.id} />
+              </MissionBlock>
+            </StaggerItem>
 
             {/* BLOCO 3 — Saúde e Cuidado */}
-            <MissionBlock icon={HeartPulse} title="Saúde e Cuidado">
-              <CellLeaderPulsoTab celulaId={singleCell.id} />
-            </MissionBlock>
+            <StaggerItem>
+              <MissionBlock icon={HeartPulse} title="Saúde e Cuidado">
+                <CellLeaderPulsoTab celulaId={singleCell.id} />
+              </MissionBlock>
+            </StaggerItem>
 
             {/* BLOCO 4 — Cuidado Espiritual & Pertencimento */}
-            <CuidadoEspiritualCelula celulaId={singleCell.id} />
+            <StaggerItem>
+              <CuidadoEspiritualCelula celulaId={singleCell.id} />
+            </StaggerItem>
 
             {/* BLOCO 5 — Índice de Vitalidade Relacional */}
-            <VitalidadeMembrosPanel celulaId={singleCell.id} />
-          </div>
+            <StaggerItem>
+              <VitalidadeMembrosPanel celulaId={singleCell.id} />
+            </StaggerItem>
+          </StaggerContainer>
 
           {/* Conteúdo detalhado — oculto por padrão */}
           <InitialViewGate>
