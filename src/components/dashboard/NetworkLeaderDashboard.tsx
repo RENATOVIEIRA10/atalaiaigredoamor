@@ -402,6 +402,7 @@ export function NetworkLeaderDashboard({ initialRedeId, overrideCampoId, onBack,
                 <TabsTrigger value="planejamento" className="gap-1.5"><Calendar className="h-4 w-4" />Planejamento</TabsTrigger>
                 <TabsTrigger value="historico" className="gap-1.5"><History className="h-4 w-4" />Histórico</TabsTrigger>
                 <TabsTrigger value="insights" className="gap-1.5"><Sparkles className="h-4 w-4" />IA</TabsTrigger>
+                <TabsTrigger value="cuidado-espiritual" className="gap-1.5"><HeartPulse className="h-4 w-4" />Cuidado Espiritual</TabsTrigger>
                 <TabsTrigger value="fotos" className="gap-1.5"><Image className="h-4 w-4" />Fotos</TabsTrigger>
               </TabsList>
 
