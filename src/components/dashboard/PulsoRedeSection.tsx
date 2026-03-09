@@ -253,7 +253,7 @@ export function PulsoRedeSection({ scopeType, scopeId, title }: PulsoRedeSection
               </div>
             </div>
             {showStagnantMembers && pulso.stagnantMembers.length > 0 && (
-              <ScrollArea className="mt-3 max-h-56">
+              <ScrollArea className="mt-3 h-56">
                 <div className="space-y-2 pr-2">
                   {pulso.stagnantMembers.map((m) => (
                     <div key={m.id} className="flex items-center gap-2.5 p-2 rounded-lg bg-background/60 border border-amber-500/10">
