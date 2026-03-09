@@ -15,6 +15,7 @@ export default {
       fontFamily: {
         display: ["Manrope", "Inter", "system-ui", "sans-serif"],
         sans: ["Inter", "system-ui", "-apple-system", "sans-serif"],
+        editorial: ["Playfair Display", "Manrope", "serif"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -61,6 +62,14 @@ export default {
         gold: {
           DEFAULT: "hsl(var(--gold))",
           foreground: "hsl(var(--gold-foreground))",
+        },
+        ruby: {
+          DEFAULT: "hsl(var(--ruby))",
+          foreground: "hsl(var(--ruby-foreground))",
+        },
+        vida: {
+          DEFAULT: "hsl(var(--vida))",
+          foreground: "hsl(var(--vida-foreground))",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",

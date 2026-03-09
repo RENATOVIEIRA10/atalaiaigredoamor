@@ -6,6 +6,7 @@ import { QuickActionsBar } from '@/components/home/QuickActionsBar';
 import { PastoralConciergeBlocks } from '@/components/home/PastoralConciergeBlocks';
 import { SummaryMetricsPanel, getSectionLabel } from '@/components/concierge/SummaryMetrics';
 import { RecentActivity } from '@/components/concierge/RecentActivity';
+import { DailyBriefing } from '@/components/concierge/DailyBriefing';
 import { OnboardingBanner } from '@/components/guide/OnboardingBanner';
 import { AskGuideDialog } from '@/components/guide/AskGuideDialog';
 import { useConciergeCards } from '@/hooks/useConciergeCards';
@@ -19,7 +20,7 @@ import { useIsPWA } from '@/hooks/useIsPWA';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { AdminPWADashboard } from '@/components/dashboard/pwa/AdminPWADashboard';
 import { roleLabels } from '@/lib/icons';
-import { Sparkles, Star } from 'lucide-react';
+import { Sparkles, Crosshair, Shield, Compass } from 'lucide-react';
 
 export default function HomeConcierge() {
   const { data: cards, isLoading: cardsLoading } = useConciergeCards();
@@ -54,6 +55,8 @@ export default function HomeConcierge() {
     return 'Boa noite';
   })();
 
+  const roleLabel = selectedRole ? roleLabels[selectedRole] : 'Atalaia';
+
   // Admin in PWA → Torre de Controle as main view
   if (isAdmin && isPWAMobile) {
     return (
@@ -66,52 +69,54 @@ export default function HomeConcierge() {
   }
 
   return (
-    <AppLayout title="Início">
+    <AppLayout title="Centro de Comando Pastoral">
       <ScopeMissingGate>
-        <div className="mx-auto w-full max-w-[1360px] space-y-6">
+        <div className="mx-auto w-full max-w-[1380px] space-y-7">
           <OnboardingBanner />
 
-          {/* ═══ HERO CINEMATOGRÁFICO ═══ */}
-          <section className="relative overflow-hidden rounded-3xl">
-            {/* Background layers */}
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/15 via-background to-gold/5" />
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,hsl(var(--primary)/0.2),transparent_55%)]" />
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,hsl(var(--gold)/0.08),transparent_50%)]" />
-            <div className="absolute top-4 right-8 h-32 w-32 rounded-full bg-gold/8 blur-3xl animate-float" />
+          {/* ═══ COMMAND HERO ═══ */}
+          <section className="command-surface relative overflow-hidden rounded-3xl p-6 md:p-9">
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,hsl(var(--primary)/0.08),transparent_58%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,hsl(var(--gold)/0.04),transparent_52%)]" />
 
-            <div className="glass-card-strong relative px-6 py-8 md:px-10 md:py-10">
-              <div className="flex flex-wrap items-start justify-between gap-5">
-                <div className="space-y-3 max-w-xl">
-                  <div className="inline-flex items-center gap-2 rounded-full border border-gold/20 bg-gold/8 px-3 py-1">
-                    <Star className="h-3 w-3 text-gold" />
-                    <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-gold">
-                      {selectedRole ? roleLabels[selectedRole] : 'Atalaia'}
-                    </span>
-                  </div>
-                  <h1 className="text-2xl md:text-3xl font-display font-bold tracking-tight text-foreground">
-                    {greeting},<br />
-                    <span className="gradient-text-gold">líder</span>
-                  </h1>
-                  <p className="text-sm md:text-base text-muted-foreground leading-relaxed max-w-md">
-                    Você lidera um movimento de transformação espiritual.
-                    {activeCampo ? ` Campus ${activeCampo.nome}.` : ''}
-                    {' '}Hoje o Reino avançou através de você.
-                  </p>
+            <div className="relative flex flex-wrap items-start justify-between gap-6">
+              <div className="max-w-2xl space-y-4">
+                <div className="inline-flex items-center gap-2 rounded-full border border-gold/20 bg-gold/10 px-3 py-1">
+                  <Sparkles className="h-3.5 w-3.5 text-gold" />
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-gold">Atalaia OS</span>
                 </div>
-                <AskGuideDialog />
+
+                <h1 className="editorial-heading text-3xl md:text-4xl font-semibold text-foreground">
+                  {greeting}, liderança.
+                  <span className="block font-display text-2xl md:text-3xl text-foreground/90 mt-1">
+                    Seu centro de comando pastoral está vivo.
+                  </span>
+                </h1>
+
+                <p className="max-w-xl text-sm md:text-base leading-relaxed text-muted-foreground">
+                  Contexto ativo: <span className="text-foreground font-medium">{roleLabel}</span>
+                  {activeCampo ? (
+                    <>
+                      {' '}no campus <span className="text-foreground font-medium">{activeCampo.nome}</span>.
+                    </>
+                  ) : (
+                    '.'
+                  )}
+                </p>
+
+                <div className="flex flex-wrap gap-2 pt-1">
+                  <ContextChip icon={Crosshair} label="Direção do dia" />
+                  <ContextChip icon={Shield} label="Cuidado preventivo" />
+                  <ContextChip icon={Compass} label="Ação pastoral" />
+                </div>
               </div>
 
-              {/* Priority Cards inline — only for non-pastoral roles */}
-              {!isPastoral && (
-                <div className="mt-8">
-                  <SectionLabel label="O que precisa da sua atenção" />
-                  <div className="mt-3">
-                    <ConciergeCards cards={cards} isLoading={cardsLoading} />
-                  </div>
-                </div>
-              )}
+              <AskGuideDialog />
             </div>
           </section>
+
+          {/* ═══ DAILY BRIEFING ═══ */}
+          <DailyBriefing cards={cards} metrics={metrics} />
 
           {/* ═══ PASTORAL VIEW (Pastor de Campo / Pastor Global) ═══ */}
           {isPastoral ? (
@@ -122,23 +127,29 @@ export default function HomeConcierge() {
             />
           ) : (
             <>
-              {/* ═══ PANORAMA + AÇÕES ═══ */}
-              <div className="grid gap-5 lg:grid-cols-[1fr_340px]">
-                <section className="space-y-5">
+              {/* ═══ AÇÕES PASTORAIS ═══ */}
+              <section className="space-y-3">
+                <SectionLabel label="Ações pastorais prioritárias" />
+                <ConciergeCards cards={cards} isLoading={cardsLoading} />
+              </section>
+
+              {/* ═══ PANORAMA + AÇÕES ESSENCIAIS ═══ */}
+              <div className="grid gap-5 lg:grid-cols-[1fr_360px]">
+                <section className="space-y-4">
                   <SectionLabel label={getSectionLabel(level)} />
                   <SummaryMetricsPanel metrics={metrics} isLoading={metricsLoading} />
                 </section>
-                <aside className="space-y-5">
-                  <SectionLabel label="Ações essenciais" />
-                  <div className="glass-card rounded-2xl p-5">
+                <aside className="space-y-4">
+                  <SectionLabel label="Próximos passos" />
+                  <div className="glass-card-strong rounded-2xl p-6">
                     <QuickActionsBar />
                   </div>
                 </aside>
               </div>
 
-              {/* ═══ ATIVIDADE RECENTE ═══ */}
+              {/* ═══ MOVIMENTO VIVO ═══ */}
               <section className="space-y-3">
-                <SectionLabel label="Atividade recente" />
+                <SectionLabel label="Vida acontecendo na igreja" />
                 <RecentActivity items={activity} isLoading={activityLoading} />
               </section>
             </>
@@ -149,11 +160,15 @@ export default function HomeConcierge() {
   );
 }
 
-function SectionLabel({ label }: { label: string }) {
+function ContextChip({ icon: Icon, label }: { icon: React.ElementType; label: string }) {
   return (
-    <h2 className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/70 font-semibold flex items-center gap-3">
-      <span className="h-px w-8 bg-gradient-to-r from-primary/50 to-transparent" />
+    <span className="inline-flex items-center gap-1.5 rounded-full border border-border/40 bg-background/25 px-3 py-1 text-[11px] font-medium text-foreground/80">
+      <Icon className="h-3 w-3 text-primary" />
       {label}
-    </h2>
+    </span>
   );
+}
+
+function SectionLabel({ label }: { label: string }) {
+  return <h2 className="section-label">{label}</h2>;
 }

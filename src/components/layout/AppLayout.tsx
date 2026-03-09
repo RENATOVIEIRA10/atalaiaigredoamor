@@ -39,7 +39,7 @@ export function AppLayout({ children, title }: AppLayoutProps) {
       <PastoralTourContext.Provider value={tourCtx}>
         <div className="flex flex-col h-[100dvh] bg-background" style={{ height: '-webkit-fill-available' }}>
           <header
-            className="flex shrink-0 items-center gap-2 border-b border-border/30 px-4 bg-background/90 backdrop-blur-2xl z-30"
+            className="flex shrink-0 items-center gap-2 border-b border-border/30 px-4 bg-background/85 backdrop-blur-3xl z-30"
             style={{
               boxShadow: '0 12px 30px -26px rgba(0,0,0,0.9)',
               minHeight: 'calc(48px + env(safe-area-inset-top, 0px))',
@@ -95,8 +95,8 @@ export function AppLayout({ children, title }: AppLayoutProps) {
         <AppSidebar />
         <SidebarInset className={isDemoActive ? 'pt-10' : ''}>
           <header
-            className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-3 border-b border-border/30 bg-background/80 px-5 backdrop-blur-2xl md:px-8"
-            style={{ boxShadow: '0 20px 40px -34px rgba(0, 0, 0, 0.6)' }}
+            className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-3 border-b border-border/30 bg-background/75 px-5 backdrop-blur-3xl md:px-8"
+            style={{ boxShadow: '0 20px 40px -34px rgba(0, 0, 0, 0.7)' }}
           >
             <SidebarTrigger className="-ml-1 h-9 w-9 rounded-xl text-muted-foreground hover:text-foreground" />
             {title && (
