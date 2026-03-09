@@ -13,6 +13,7 @@ import {
   AlertTriangle, MessageSquare, Network, Footprints
 } from 'lucide-react';
 import { AltarCelulaPanel } from './AltarCelulaPanel';
+import { FadeIn, StaggerContainer, StaggerItem, SkeletonBreathe } from '@/components/ui/animations';
 import {
   usePastoralStats,
   useWeeklyBirthdays,
