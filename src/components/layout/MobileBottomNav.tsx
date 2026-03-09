@@ -6,6 +6,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useRole } from '@/contexts/RoleContext';
 import { MobileMenuSheet } from './MobileMenuSheet';
 import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
 
 interface NavItem {
   label: string;
@@ -70,7 +71,7 @@ export function MobileBottomNav() {
   } else if (isCellLeaderOnly) {
     navItems = [
       { label: 'Início', icon: LayoutDashboard, path: '/home' },
-      { label: 'Ações', icon: Zap, path: '/dashboard?tab=acoes' },
+      { label: 'Célula', icon: Heart, path: '/dashboard' },
       { label: 'Histórico', icon: History, path: '/dashboard?tab=historico' },
     ];
   } else if (isSupervisor) {
@@ -107,10 +108,10 @@ export function MobileBottomNav() {
         className="fixed bottom-0 left-0 right-0 z-50 border-t border-border/20"
         style={{
           paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-          background: 'linear-gradient(to top, hsl(222 47% 6% / 0.98), hsl(222 47% 8% / 0.92))',
-          backdropFilter: 'blur(20px) saturate(1.3)',
-          WebkitBackdropFilter: 'blur(20px) saturate(1.3)',
-          boxShadow: '0 -1px 20px rgba(0,0,0,0.4)',
+          background: 'linear-gradient(to top, hsl(225 44% 5% / 0.98), hsl(225 44% 7% / 0.92))',
+          backdropFilter: 'blur(24px) saturate(1.4)',
+          WebkitBackdropFilter: 'blur(24px) saturate(1.4)',
+          boxShadow: '0 -1px 24px rgba(0,0,0,0.5)',
         }}
       >
         <div className="flex items-stretch justify-around max-w-lg mx-auto">
@@ -121,17 +122,21 @@ export function MobileBottomNav() {
                 key={item.path}
                 onClick={() => navigate(item.path)}
                 className={cn(
-                  'flex flex-col items-center justify-center gap-0.5 flex-1 py-2.5 min-h-[56px] transition-colors',
-                  'active:bg-accent/30 touch-manipulation',
+                  'relative flex flex-col items-center justify-center gap-0.5 flex-1 py-2.5 min-h-[56px] transition-colors',
+                  'touch-manipulation',
                   active ? 'text-primary' : 'text-muted-foreground'
                 )}
               >
-                <item.icon className={cn('h-5 w-5', active && 'stroke-[2.5]')} />
+                <item.icon className={cn('h-5 w-5 transition-all', active && 'stroke-[2.5]')} />
                 <span className={cn('text-[10px] leading-tight', active ? 'font-bold' : 'font-medium')}>
                   {item.label}
                 </span>
                 {active && (
-                  <div className="absolute bottom-1 h-0.5 w-5 rounded-full bg-primary" />
+                  <motion.div
+                    layoutId="tab-indicator"
+                    className="absolute -top-px left-1/2 -translate-x-1/2 h-[2px] w-8 rounded-full bg-primary"
+                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                  />
                 )}
               </button>
             );
@@ -141,7 +146,7 @@ export function MobileBottomNav() {
             onClick={() => setMenuOpen(true)}
             className={cn(
               'flex flex-col items-center justify-center gap-0.5 flex-1 py-2.5 min-h-[56px] transition-colors',
-              'active:bg-accent/30 touch-manipulation',
+              'touch-manipulation',
               'text-muted-foreground'
             )}
           >
