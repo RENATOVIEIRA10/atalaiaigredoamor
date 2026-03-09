@@ -44,6 +44,7 @@ import { DashboardScopeBanner } from './DashboardScopeBanner';
 import { SectionLabel } from './SectionLabel';
 import { LeadershipRecommendationsSection } from './LeadershipRecommendationsSection';
 import { CuidadoEspiritualConsolidado } from './CuidadoEspiritualPanel';
+import { VitalidadeCascataPanel } from './VitalidadeRelacionalPanel';
 
 export function PastorDashboard() {
   const { isPastorSeniorGlobal } = useRole();
