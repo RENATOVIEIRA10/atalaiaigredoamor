@@ -212,9 +212,9 @@ export function CuidadoEspiritualConsolidado({
           <Tabs defaultValue="todos" className="space-y-3">
             <TabsList className="h-auto flex-wrap">
               <TabsTrigger value="todos">Todos ({data.alerts.length})</TabsTrigger>
-              <TabsTrigger value="isolamento" className="text-destructive">Isolamento ({data.riscoIsolamento.length})</TabsTrigger>
-              <TabsTrigger value="estagnacao" className="text-amber-600">Estagnação ({data.riscoEstagnacao.length})</TabsTrigger>
-              <TabsTrigger value="cuidado" className="text-blue-600">Cuidado ({data.precisaCuidado.length})</TabsTrigger>
+              <TabsTrigger value="isolamento">Isolamento ({data.riscoIsolamento.length})</TabsTrigger>
+              <TabsTrigger value="estagnacao">Estagnação ({data.riscoEstagnacao.length})</TabsTrigger>
+              <TabsTrigger value="cuidado">Cuidado ({data.precisaCuidado.length})</TabsTrigger>
             </TabsList>
 
             <TabsContent value="todos">
