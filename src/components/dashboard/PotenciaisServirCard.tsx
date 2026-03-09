@@ -59,7 +59,7 @@ export function PotenciaisServirCard({ campoId, coordenacaoId, redeId }: Potenci
           {data.serving.length === 0 ? (
             <p className="text-xs text-muted-foreground text-center py-4">Nenhum membro registrado</p>
           ) : (
-            <ScrollArea className="max-h-64">
+            <ScrollArea className="h-64">
               <div className="space-y-2">
                 {data.serving.map(m => (
                   <div key={m.id} className="flex items-center justify-between p-2 rounded-lg bg-primary/5 border border-primary/10">
