@@ -1,17 +1,59 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
+import { cva, type VariantProps } from "class-variance-authority";
 
-const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn(
-      "premium-surface rounded-2xl text-card-foreground transition-all duration-300 ease-out",
-      "hover:-translate-y-0.5 hover:shadow-[0_28px_50px_-24px_hsl(var(--primary)/0.25)]",
-      className
-    )}
-    {...props}
-  />
-));
+const cardVariants = cva(
+  "rounded-2xl text-card-foreground transition-all duration-300 ease-out",
+  {
+    variants: {
+      variant: {
+        default: [
+          "premium-surface",
+          "hover:-translate-y-0.5 hover:shadow-[0_28px_50px_-24px_hsl(var(--primary)/0.2)]",
+        ].join(" "),
+        command: [
+          "command-surface",
+          "hover:shadow-[0_32px_56px_-24px_hsl(var(--primary)/0.18)]",
+        ].join(" "),
+        glass: "glass-card",
+        alert: [
+          "glass-card border-l-2 border-l-warning",
+          "hover:-translate-y-0.5",
+        ].join(" "),
+        risk: [
+          "glass-card border-l-2 border-l-ruby",
+          "hover:-translate-y-0.5",
+        ].join(" "),
+        vida: [
+          "glass-card border-l-2 border-l-vida",
+          "hover:-translate-y-0.5",
+        ].join(" "),
+        gold: [
+          "glass-card border-l-2 border-l-gold",
+          "hover:-translate-y-0.5",
+        ].join(" "),
+        ghost: "bg-transparent border-0 shadow-none",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+    },
+  }
+);
+
+export interface CardProps
+  extends React.HTMLAttributes<HTMLDivElement>,
+    VariantProps<typeof cardVariants> {}
+
+const Card = React.forwardRef<HTMLDivElement, CardProps>(
+  ({ className, variant, ...props }, ref) => (
+    <div
+      ref={ref}
+      className={cn(cardVariants({ variant }), className)}
+      {...props}
+    />
+  )
+);
 Card.displayName = "Card";
 
 const CardHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
@@ -47,4 +89,4 @@ const CardFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDiv
 );
 CardFooter.displayName = "CardFooter";
 
-export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent };
+export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent, cardVariants };

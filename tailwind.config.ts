@@ -15,6 +15,7 @@ export default {
       fontFamily: {
         display: ["Manrope", "Inter", "system-ui", "sans-serif"],
         sans: ["Inter", "system-ui", "-apple-system", "sans-serif"],
+        editorial: ["Playfair Display", "Manrope", "serif"],
       },
       colors: {
         border: "hsl(var(--border))",
