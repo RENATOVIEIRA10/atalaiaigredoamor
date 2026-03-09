@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, UserCheck, Heart, UserPlus, Baby, Loader2, Network, FileSpreadsheet, ChevronDown, ChevronUp, Eye, ClipboardCheck, Image, Sparkles, History, GitBranch, User, Activity, Mail, Calendar, DoorOpen, BookOpen, ArrowLeft, AlertTriangle, Home, Sprout } from 'lucide-react';
+import { Users, UserCheck, Heart, UserPlus, Baby, Loader2, Network, FileSpreadsheet, ChevronDown, ChevronUp, Eye, ClipboardCheck, Image, Sparkles, History, GitBranch, User, Activity, Mail, Calendar, DoorOpen, BookOpen, ArrowLeft, AlertTriangle, Home, Sprout, HeartPulse } from 'lucide-react';
 import { useRedesScoped } from '@/hooks/useRedes';
 import { useCoordenacoes } from '@/hooks/useCoordenacoes';
 import { useCelulas } from '@/hooks/useCelulas';
@@ -45,6 +45,7 @@ import { SectionLabel } from './SectionLabel';
 import { PotenciaisServirCard } from './PotenciaisServirCard';
 import { LeadershipRecommendationDialog } from './LeadershipRecommendationDialog';
 import { LeadershipRecommendationsSection } from './LeadershipRecommendationsSection';
+import { CuidadoEspiritualConsolidado } from './CuidadoEspiritualPanel';
 
 interface NetworkLeaderDashboardProps {
   initialRedeId?: string;
@@ -401,6 +402,7 @@ export function NetworkLeaderDashboard({ initialRedeId, overrideCampoId, onBack,
                 <TabsTrigger value="planejamento" className="gap-1.5"><Calendar className="h-4 w-4" />Planejamento</TabsTrigger>
                 <TabsTrigger value="historico" className="gap-1.5"><History className="h-4 w-4" />Histórico</TabsTrigger>
                 <TabsTrigger value="insights" className="gap-1.5"><Sparkles className="h-4 w-4" />IA</TabsTrigger>
+                <TabsTrigger value="cuidado-espiritual" className="gap-1.5"><HeartPulse className="h-4 w-4" />Cuidado Espiritual</TabsTrigger>
                 <TabsTrigger value="fotos" className="gap-1.5"><Image className="h-4 w-4" />Fotos</TabsTrigger>
               </TabsList>
 
@@ -410,6 +412,7 @@ export function NetworkLeaderDashboard({ initialRedeId, overrideCampoId, onBack,
               <TabsContent value="supervisoes-historico"><SupervisoesRedeHistoryPanel redeId={selectedRede} /></TabsContent>
               <TabsContent value="historico"><ReportsHistoryTable reports={currentReports} onEdit={handleEditReport} onDelete={handleDeleteReport} /></TabsContent>
               <TabsContent value="insights"><AIInsightsPanel reports={currentReports} periodLabel={formatDateRangeDisplay()} context="rede" /></TabsContent>
+              <TabsContent value="cuidado-espiritual"><CuidadoEspiritualConsolidado redeId={selectedRede} groupBy="coordenacao" /></TabsContent>
               <TabsContent value="fotos"><CelulaPhotoGallery reports={currentReports} /></TabsContent>
                 </Tabs>
               </InitialViewGate>

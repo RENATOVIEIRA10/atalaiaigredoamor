@@ -43,6 +43,7 @@ import { RevelaShortcut } from './RevelaShortcut';
 import { DashboardScopeBanner } from './DashboardScopeBanner';
 import { SectionLabel } from './SectionLabel';
 import { LeadershipRecommendationsSection } from './LeadershipRecommendationsSection';
+import { CuidadoEspiritualConsolidado } from './CuidadoEspiritualPanel';
 
 export function PastorDashboard() {
   const { isPastorSeniorGlobal } = useRole();
@@ -220,6 +221,7 @@ function CampoPastorDashboard() {
         </TabsContent>
 
         <TabsContent value="pastoral" className="space-y-6">
+          <CuidadoEspiritualConsolidado groupBy="rede" />
           <SectionLabel title="Pontos de Atenção" subtitle="Alertas estratégicos gerados automaticamente" />
           <PastorStrategicAlerts
             alerts={alerts || []}

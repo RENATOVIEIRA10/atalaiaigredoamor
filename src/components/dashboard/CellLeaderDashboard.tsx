@@ -23,6 +23,7 @@ import { RevelaShortcut } from './RevelaShortcut';
 import { DashboardScopeBanner } from './DashboardScopeBanner';
 import { MissionBlock } from './MissionBlock';
 import { InitialViewGate } from './InitialViewGate';
+import { CuidadoEspiritualCelula } from './CuidadoEspiritualPanel';
 
 export function CellLeaderDashboard() {
   const { data: celulas, isLoading } = useCelulas();
@@ -109,6 +110,9 @@ export function CellLeaderDashboard() {
             <MissionBlock icon={HeartPulse} title="Saúde e Cuidado">
               <CellLeaderPulsoTab celulaId={singleCell.id} />
             </MissionBlock>
+
+            {/* BLOCO 4 — Cuidado Espiritual & Pertencimento */}
+            <CuidadoEspiritualCelula celulaId={singleCell.id} />
           </div>
 
           {/* Conteúdo detalhado — oculto por padrão */}
