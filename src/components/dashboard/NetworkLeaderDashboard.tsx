@@ -45,6 +45,7 @@ import { SectionLabel } from './SectionLabel';
 import { PotenciaisServirCard } from './PotenciaisServirCard';
 import { LeadershipRecommendationDialog } from './LeadershipRecommendationDialog';
 import { LeadershipRecommendationsSection } from './LeadershipRecommendationsSection';
+import { CuidadoEspiritualConsolidado } from './CuidadoEspiritualPanel';
 
 interface NetworkLeaderDashboardProps {
   initialRedeId?: string;
