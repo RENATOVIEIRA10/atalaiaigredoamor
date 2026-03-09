@@ -81,24 +81,27 @@ export function CellLeaderDashboard() {
         icon={Users}
       />
 
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <MissionVerse role="celula_leader" />
-        <RevelaShortcut />
-      </div>
+      <FadeIn delay={0.05}>
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <MissionVerse role="celula_leader" />
+          <RevelaShortcut />
+        </div>
+      </FadeIn>
 
       {singleCell ? (
         <>
           {/* 3 blocos missionais — sempre visíveis */}
-          <div className="space-y-6">
+          <StaggerContainer className="space-y-6" staggerDelay={0.08}>
             {/* BLOCO 1 — O que precisa da minha atenção */}
-            <MissionBlock icon={AlertTriangle} title="O que precisa da minha atenção">
-              {cellEncaminhamentos.length > 0 ? (
-                <StatCard
-                  icon={DoorOpen}
-                  label="Vidas Encaminhadas"
-                  value={cellEncaminhamentos.length}
-                  subtitle={pendingNovasVidas > 0 ? `${pendingNovasVidas} aguardando contato` : 'Todas contatadas ✓'}
-                />
+            <StaggerItem>
+              <MissionBlock icon={AlertTriangle} title="O que precisa da minha atenção">
+                {cellEncaminhamentos.length > 0 ? (
+                  <StatCard
+                    icon={DoorOpen}
+                    label="Vidas Encaminhadas"
+                    value={cellEncaminhamentos.length}
+                    subtitle={pendingNovasVidas > 0 ? `${pendingNovasVidas} aguardando contato` : 'Todas contatadas ✓'}
+                  />
               ) : (
                 <Card>
                   <CardContent className="p-4 text-sm text-muted-foreground text-center">
