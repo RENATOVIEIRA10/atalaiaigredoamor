@@ -69,8 +69,8 @@ function flattenTree(
 
 export function usePulsoVivo() {
   const { tree, isLoading: orgLoading } = useOrganograma();
-  const { data: radarData, isLoading: radarLoading } = useRadarSaude();
   const { campoId, queryKeyExtra } = useDemoScope();
+  const { data: radarData, isLoading: radarLoading } = useRadarSaude({ scopeType: 'all', campoId });
 
   // Member counts per celula
   const { data: memberCounts, isLoading: membersLoading } = useQuery({
