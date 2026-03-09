@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2, ClipboardCheck, Plus, Eye, Calendar, Activity, AlertTriangle, Home, HeartPulse } from 'lucide-react';
 import { CuidadoEspiritualConsolidado } from './CuidadoEspiritualPanel';
+import { VitalidadeCascataPanel } from './VitalidadeRelacionalPanel';
 import { useCoordenacoes } from '@/hooks/useCoordenacoes';
 import { useSupervisores, useSupervisoesBySupervisor, Supervisao } from '@/hooks/useSupervisoes';
 import { useCelulas } from '@/hooks/useCelulas';
@@ -146,6 +147,13 @@ export function SupervisorDashboard() {
               <RadarSaudeSupervisorPanel supervisorId={selectedSupervisor} coordenacaoId={selectedCoordenacao} />
 
               <CuidadoEspiritualConsolidado coordenacaoId={selectedCoordenacao} groupBy="celula" />
+
+              <VitalidadeCascataPanel
+                mode="lideres"
+                coordenacaoId={selectedCoordenacao}
+                title="Vitalidade dos Líderes de Célula"
+                description="Acompanhamento ministerial dos líderes sob sua supervisão"
+              />
             </TabsContent>
 
             <TabsContent value="cuidado" className="space-y-4">

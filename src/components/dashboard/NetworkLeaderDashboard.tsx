@@ -46,6 +46,7 @@ import { PotenciaisServirCard } from './PotenciaisServirCard';
 import { LeadershipRecommendationDialog } from './LeadershipRecommendationDialog';
 import { LeadershipRecommendationsSection } from './LeadershipRecommendationsSection';
 import { CuidadoEspiritualConsolidado } from './CuidadoEspiritualPanel';
+import { VitalidadeCascataPanel } from './VitalidadeRelacionalPanel';
 
 interface NetworkLeaderDashboardProps {
   initialRedeId?: string;
@@ -403,6 +404,7 @@ export function NetworkLeaderDashboard({ initialRedeId, overrideCampoId, onBack,
                 <TabsTrigger value="historico" className="gap-1.5"><History className="h-4 w-4" />Histórico</TabsTrigger>
                 <TabsTrigger value="insights" className="gap-1.5"><Sparkles className="h-4 w-4" />IA</TabsTrigger>
                 <TabsTrigger value="cuidado-espiritual" className="gap-1.5"><HeartPulse className="h-4 w-4" />Cuidado Espiritual</TabsTrigger>
+                <TabsTrigger value="vitalidade" className="gap-1.5"><Activity className="h-4 w-4" />Vitalidade</TabsTrigger>
                 <TabsTrigger value="fotos" className="gap-1.5"><Image className="h-4 w-4" />Fotos</TabsTrigger>
               </TabsList>
 
@@ -413,6 +415,12 @@ export function NetworkLeaderDashboard({ initialRedeId, overrideCampoId, onBack,
               <TabsContent value="historico"><ReportsHistoryTable reports={currentReports} onEdit={handleEditReport} onDelete={handleDeleteReport} /></TabsContent>
               <TabsContent value="insights"><AIInsightsPanel reports={currentReports} periodLabel={formatDateRangeDisplay()} context="rede" /></TabsContent>
               <TabsContent value="cuidado-espiritual"><CuidadoEspiritualConsolidado redeId={selectedRede} groupBy="coordenacao" /></TabsContent>
+              <TabsContent value="vitalidade">
+                <div className="space-y-6">
+                  <VitalidadeCascataPanel mode="membros" redeId={selectedRede} title="Vitalidade Relacional — Membros" description="Saúde relacional de toda a rede" />
+                  <VitalidadeCascataPanel mode="lideres" redeId={selectedRede} title="Vitalidade Ministerial — Líderes" description="Engajamento ministerial dos líderes de célula" />
+                </div>
+              </TabsContent>
               <TabsContent value="fotos"><CelulaPhotoGallery reports={currentReports} /></TabsContent>
                 </Tabs>
               </InitialViewGate>

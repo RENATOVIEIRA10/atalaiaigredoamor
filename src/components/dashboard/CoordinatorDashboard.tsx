@@ -42,6 +42,7 @@ import { useMembers } from '@/hooks/useMembers';
 import { PotenciaisServirCard } from './PotenciaisServirCard';
 import { LeadershipRecommendationDialog } from './LeadershipRecommendationDialog';
 import { CuidadoEspiritualConsolidado } from './CuidadoEspiritualPanel';
+import { VitalidadeCascataPanel } from './VitalidadeRelacionalPanel';
 
 export function CoordinatorDashboard() {
   const [searchParams] = useSearchParams();
@@ -313,6 +314,7 @@ export function CoordinatorDashboard() {
                 <TabsTrigger value="insights" className="gap-1.5"><Sparkles className="h-4 w-4" />Insights IA</TabsTrigger>
                 <TabsTrigger value="fotos" className="gap-1.5"><Image className="h-4 w-4" />Fotos</TabsTrigger>
                 <TabsTrigger value="cuidado-espiritual" className="gap-1.5"><HeartPulse className="h-4 w-4" />Cuidado Espiritual</TabsTrigger>
+                <TabsTrigger value="vitalidade" className="gap-1.5"><Activity className="h-4 w-4" />Vitalidade</TabsTrigger>
                 <TabsTrigger value="supervisoes" className="gap-1.5"><ClipboardCheck className="h-4 w-4" />Cuidado e Supervisão</TabsTrigger>
               </TabsList>
 
@@ -323,6 +325,12 @@ export function CoordinatorDashboard() {
               <TabsContent value="insights"><AIInsightsPanel reports={currentReports} periodLabel={formatDateRangeDisplay()} context="coordenacao" /></TabsContent>
               <TabsContent value="fotos"><CelulaPhotoGallery reports={currentReports} /></TabsContent>
               <TabsContent value="cuidado-espiritual"><CuidadoEspiritualConsolidado coordenacaoId={selectedCoordenacao} groupBy="celula" /></TabsContent>
+              <TabsContent value="vitalidade">
+                <div className="space-y-6">
+                  <VitalidadeCascataPanel mode="membros" coordenacaoId={selectedCoordenacao} title="Vitalidade Relacional — Membros" description="Saúde relacional dos membros da coordenação" />
+                  <VitalidadeCascataPanel mode="lideres" coordenacaoId={selectedCoordenacao} title="Vitalidade Ministerial — Líderes" description="Engajamento ministerial dos líderes de célula" />
+                </div>
+              </TabsContent>
               <TabsContent value="supervisoes">
                 <div className="space-y-4">
                   <div className="flex justify-end">

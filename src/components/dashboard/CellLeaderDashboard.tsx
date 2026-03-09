@@ -24,6 +24,7 @@ import { DashboardScopeBanner } from './DashboardScopeBanner';
 import { MissionBlock } from './MissionBlock';
 import { InitialViewGate } from './InitialViewGate';
 import { CuidadoEspiritualCelula } from './CuidadoEspiritualPanel';
+import { VitalidadeMembrosPanel } from './VitalidadeRelacionalPanel';
 
 export function CellLeaderDashboard() {
   const { data: celulas, isLoading } = useCelulas();
@@ -113,6 +114,9 @@ export function CellLeaderDashboard() {
 
             {/* BLOCO 4 — Cuidado Espiritual & Pertencimento */}
             <CuidadoEspiritualCelula celulaId={singleCell.id} />
+
+            {/* BLOCO 5 — Índice de Vitalidade Relacional */}
+            <VitalidadeMembrosPanel celulaId={singleCell.id} />
           </div>
 
           {/* Conteúdo detalhado — oculto por padrão */}
