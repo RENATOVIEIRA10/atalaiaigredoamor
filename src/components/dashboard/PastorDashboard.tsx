@@ -43,6 +43,7 @@ import { RevelaShortcut } from './RevelaShortcut';
 import { DashboardScopeBanner } from './DashboardScopeBanner';
 import { SectionLabel } from './SectionLabel';
 import { LeadershipRecommendationsSection } from './LeadershipRecommendationsSection';
+import { CuidadoEspiritualConsolidado } from './CuidadoEspiritualPanel';
 
 export function PastorDashboard() {
   const { isPastorSeniorGlobal } = useRole();
