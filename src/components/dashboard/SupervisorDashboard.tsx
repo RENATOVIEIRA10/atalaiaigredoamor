@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2, ClipboardCheck, Plus, Eye, Calendar, Activity, AlertTriangle, Home, HeartPulse } from 'lucide-react';
+import { CuidadoEspiritualConsolidado } from './CuidadoEspiritualPanel';
 import { useCoordenacoes } from '@/hooks/useCoordenacoes';
 import { useSupervisores, useSupervisoesBySupervisor, Supervisao } from '@/hooks/useSupervisoes';
 import { useCelulas } from '@/hooks/useCelulas';
