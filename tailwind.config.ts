@@ -62,6 +62,14 @@ export default {
           DEFAULT: "hsl(var(--gold))",
           foreground: "hsl(var(--gold-foreground))",
         },
+        ruby: {
+          DEFAULT: "hsl(var(--ruby))",
+          foreground: "hsl(var(--ruby-foreground))",
+        },
+        vida: {
+          DEFAULT: "hsl(var(--vida))",
+          foreground: "hsl(var(--vida-foreground))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
