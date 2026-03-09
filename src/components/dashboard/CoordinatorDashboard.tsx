@@ -135,7 +135,6 @@ export function CoordinatorDashboard() {
       </div>
     );
   }
-  }
 
   return (
     <div className="space-y-6">
