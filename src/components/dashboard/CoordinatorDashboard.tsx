@@ -312,6 +312,7 @@ export function CoordinatorDashboard() {
                 <TabsTrigger value="historico" className="gap-1.5"><History className="h-4 w-4" />Histórico</TabsTrigger>
                 <TabsTrigger value="insights" className="gap-1.5"><Sparkles className="h-4 w-4" />Insights IA</TabsTrigger>
                 <TabsTrigger value="fotos" className="gap-1.5"><Image className="h-4 w-4" />Fotos</TabsTrigger>
+                <TabsTrigger value="cuidado-espiritual" className="gap-1.5"><HeartPulse className="h-4 w-4" />Cuidado Espiritual</TabsTrigger>
                 <TabsTrigger value="supervisoes" className="gap-1.5"><ClipboardCheck className="h-4 w-4" />Cuidado e Supervisão</TabsTrigger>
               </TabsList>
 
