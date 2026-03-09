@@ -108,6 +108,7 @@ function AppInner() {
           <Route path="/demo-pastoral" element={<DemoPastoral />} />
           <Route path="/glossario" element={<RoleProtectedRoute><Glossario /></RoleProtectedRoute>} />
           <Route path="/guia-admin" element={<RoleProtectedRoute><GuiaAdmin /></RoleProtectedRoute>} />
+          <Route path="/pulso-vivo" element={<RoleProtectedRoute><PulsoVivo /></RoleProtectedRoute>} />
 
           <Route path="*" element={<NotFound />} />
         </Routes>
