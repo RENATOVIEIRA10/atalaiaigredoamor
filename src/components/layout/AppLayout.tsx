@@ -14,6 +14,7 @@ import { useTorreControle } from '@/contexts/TorreControleContext';
 import { PastoralTourContext, usePastoralTourProvider } from '@/hooks/usePastoralTour';
 import { PastoralTourDialog } from '@/components/dashboard/PastoralTourDialog';
 import { PastoralAssistant } from '@/components/guide/PastoralAssistant';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface AppLayoutProps {
   children: React.ReactNode;
