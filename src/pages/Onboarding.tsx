@@ -4,34 +4,34 @@ import { useRole } from '@/contexts/RoleContext';
 import { supabase } from '@/integrations/supabase/client';
 import { POLICY_VERSION } from '@/lib/policyVersion';
 import { Button } from '@/components/ui/button';
-import { Loader2, ShieldCheck, Eye, KeyRound, Fingerprint } from 'lucide-react';
+import { Loader2, ShieldCheck, Eye, KeyRound } from 'lucide-react';
 import { motion } from 'framer-motion';
-import logoIgrejaDoAmor from '@/assets/logo-igreja-do-amor-new.png';
+import logoRedeAmor from '@/assets/logo-rede-amor-a2.png';
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
+  hidden: { opacity: 0, y: 20 },
   visible: (i: number) => ({
     opacity: 1,
     y: 0,
-    transition: { delay: i * 0.12, duration: 0.5, ease: [0.22, 1, 0.36, 1] as const },
+    transition: { delay: i * 0.1, duration: 0.5, ease: [0.22, 1, 0.36, 1] },
   }),
-} as const;
+};
 
 const sections = [
   {
     icon: ShieldCheck,
     title: 'Cuidado com as informações',
-    text: 'Os dados aqui são vidas reais. Trate cada informação com zelo, responsabilidade e amor pastoral.',
+    text: 'Usamos essas informações para cuidar, acompanhar e servir. Trate tudo com amor, zelo e responsabilidade.',
   },
   {
     icon: Eye,
-    title: 'Visão por escopo',
-    text: 'Você verá apenas o que é relevante à sua função — célula, supervisão, coordenação ou rede.',
+    title: 'Cada um vê o que precisa ver',
+    text: 'Você verá apenas as informações ligadas à sua função e ao seu escopo (célula, supervisão, coordenação ou rede).',
   },
   {
     icon: KeyRound,
-    title: 'Acesso pessoal e intransferível',
-    text: 'Seu código define seu nível de acesso. Nunca compartilhe suas credenciais.',
+    title: 'Seu acesso é pessoal',
+    text: 'Seu código define seu nível de acesso. Não compartilhe seu código.',
   },
 ];
 
@@ -98,42 +98,34 @@ export default function Onboarding() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-start relative overflow-y-auto bg-background">
-      {/* Ambient glow */}
+      {/* Warm ambient glow at top */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            'radial-gradient(ellipse 60% 40% at 50% 0%, hsl(217 72% 58% / 0.08) 0%, transparent 70%), radial-gradient(ellipse 50% 50% at 50% 100%, hsl(40 58% 52% / 0.04) 0%, transparent 60%)',
+            'radial-gradient(ellipse 70% 35% at 50% 0%, hsl(15 60% 30% / 0.25) 0%, transparent 70%), radial-gradient(ellipse 50% 50% at 50% 100%, hsl(40 58% 52% / 0.04) 0%, transparent 60%)',
         }}
       />
 
       <div className="relative z-10 w-full max-w-lg px-5 py-12 sm:py-20 flex flex-col items-center">
         {/* Logo */}
-        <motion.div
-          custom={0}
-          variants={fadeUp}
-          initial="hidden"
-          animate="visible"
-          className="mb-8"
-        >
+        <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible" className="mb-8">
           <div className="relative">
-            <div className="absolute -inset-3 rounded-full bg-primary/10 blur-xl" />
+            <div className="absolute -inset-3 rounded-full bg-gold/10 blur-xl" />
             <img
-              src={logoIgrejaDoAmor}
-              alt="Igreja do Amor"
-              className="relative h-20 w-20 rounded-full object-cover ring-2 ring-border shadow-2xl brightness-0 invert"
+              src={logoRedeAmor}
+              alt="Rede Amor a 2"
+              className="relative h-20 w-20 rounded-full object-cover ring-2 ring-gold/30 shadow-2xl"
             />
           </div>
         </motion.div>
 
         {/* Header */}
         <motion.div custom={1} variants={fadeUp} initial="hidden" animate="visible" className="text-center mb-2">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 mb-4">
-            <Fingerprint className="h-3.5 w-3.5 text-primary" />
-            <span className="text-xs font-medium text-primary tracking-wide uppercase">Diretrizes de Uso</span>
-          </div>
           <h1 className="font-display text-2xl sm:text-3xl font-bold text-foreground tracking-tight leading-tight">
-            Bem-vindo ao Atalaia
+            Bem-vindo ao Sistema
+            <br />
+            Rede Amor a 2
           </h1>
         </motion.div>
 
@@ -144,7 +136,7 @@ export default function Onboarding() {
           animate="visible"
           className="text-sm sm:text-base text-center max-w-sm mb-10 text-muted-foreground leading-relaxed"
         >
-          Antes de prosseguir, leia e aceite as diretrizes de uso do sistema pastoral.
+          Este sistema existe para servir o cuidado pastoral, organizar as células e apoiar as vidas que Deus confiou à liderança.
         </motion.p>
 
         {/* Card */}
@@ -153,7 +145,7 @@ export default function Onboarding() {
           variants={fadeUp}
           initial="hidden"
           animate="visible"
-          className="w-full rounded-2xl p-6 sm:p-8 space-y-5 premium-surface border border-border"
+          className="w-full rounded-2xl p-6 sm:p-8 space-y-6 border border-border/50 bg-card/60 backdrop-blur-md"
         >
           {sections.map((s, i) => (
             <motion.div
@@ -164,8 +156,8 @@ export default function Onboarding() {
               animate="visible"
               className="flex gap-4"
             >
-              <div className="shrink-0 mt-0.5 h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
-                <s.icon className="h-4.5 w-4.5 text-primary" />
+              <div className="shrink-0 mt-0.5 h-9 w-9 rounded-xl bg-muted/50 flex items-center justify-center">
+                <s.icon className="h-4 w-4 text-gold" />
               </div>
               <div className="space-y-1">
                 <h2 className="text-sm font-semibold text-foreground">{s.title}</h2>
@@ -179,7 +171,7 @@ export default function Onboarding() {
             <Button
               onClick={handleAccept}
               disabled={isAccepting}
-              className="w-full h-12 text-base font-semibold tracking-wide mt-3"
+              className="w-full h-12 text-base font-semibold tracking-wide mt-2 bg-gold hover:bg-gold/90 text-gold-foreground"
             >
               {isAccepting && <Loader2 className="h-5 w-5 animate-spin mr-2" />}
               Entendi e quero continuar
@@ -188,14 +180,8 @@ export default function Onboarding() {
         </motion.div>
 
         {/* Verse */}
-        <motion.div
-          custom={8}
-          variants={fadeUp}
-          initial="hidden"
-          animate="visible"
-          className="mt-10 text-center space-y-0.5"
-        >
-          <p className="text-xs italic text-gold/50 font-display">
+        <motion.div custom={8} variants={fadeUp} initial="hidden" animate="visible" className="mt-10 text-center space-y-0.5">
+          <p className="text-xs italic text-gold/40 font-display">
             "Tudo seja feito com amor."
           </p>
           <p className="text-[10px] text-muted-foreground/40">
@@ -204,13 +190,7 @@ export default function Onboarding() {
         </motion.div>
 
         {/* Policy version */}
-        <motion.p
-          custom={9}
-          variants={fadeUp}
-          initial="hidden"
-          animate="visible"
-          className="mt-4 text-[10px] text-muted-foreground/25"
-        >
+        <motion.p custom={9} variants={fadeUp} initial="hidden" animate="visible" className="mt-4 text-[10px] text-muted-foreground/25">
           Versão da política: {POLICY_VERSION}
         </motion.p>
       </div>
