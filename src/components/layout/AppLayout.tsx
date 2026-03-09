@@ -118,6 +118,7 @@ export function AppLayout({ children, title }: AppLayoutProps) {
               </>
             )}
             <div className="ml-auto flex items-center gap-2 md:gap-3">
+              <CommandBarTrigger />
               <CampusBadge />
               <CampoSelector />
             </div>

@@ -67,11 +67,13 @@ const LazyFallback = () => (
 function AppInner() {
   useVersionGate();
   useVersionCheck();
+  useNavigationMemory();
   return (
     <>
       <UpdateBanner />
       <DemoBar />
       <TorreControlePanel />
+      <CommandBar />
       <Suspense fallback={<LazyFallback />}>
         <Routes>
           {/* Auth page (no protection) */}
