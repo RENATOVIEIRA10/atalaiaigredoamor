@@ -1,36 +1,36 @@
 import { LucideIcon } from 'lucide-react';
 import { ReactNode } from 'react';
+import { cn } from '@/lib/utils';
 
 interface PageHeaderProps {
   title: string;
   subtitle?: string;
   icon?: LucideIcon;
   actions?: ReactNode;
+  action?: ReactNode;
+  className?: string;
 }
 
-export function PageHeader({ title, subtitle, icon: Icon, actions }: PageHeaderProps) {
+export function PageHeader({ title, subtitle, icon: Icon, actions, action, className }: PageHeaderProps) {
+  const actionSlot = actions || action;
   return (
-    <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-      <div className="space-y-1">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-3"
-          style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 600, letterSpacing: '-0.01em' }}
-        >
-          {Icon && (
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 ring-1 ring-primary/25"
-              style={{ boxShadow: '0 0 12px hsl(var(--primary) / 0.08)' }}
-            >
-              <Icon className="h-5 w-5 text-primary" />
-            </div>
-          )}
-          {title}
-        </h1>
-        {subtitle && (
-          <p className="text-sm text-muted-foreground" style={{ fontFamily: "'Inter', sans-serif" }}>
-            {subtitle}
-          </p>
+    <div className={cn("flex items-start justify-between gap-4", className)}>
+      <div className="flex items-center gap-4">
+        {Icon && (
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-primary/20 shadow-[0_0_20px_hsl(var(--primary)/0.08)]">
+            <Icon className="h-6 w-6 text-primary" />
+          </div>
         )}
+        <div className="space-y-0.5">
+          <h1 className="text-2xl font-display font-bold tracking-tight text-foreground">
+            {title}
+          </h1>
+          {subtitle && (
+            <p className="text-sm text-muted-foreground">{subtitle}</p>
+          )}
+        </div>
       </div>
-      {actions && <div className="flex flex-wrap items-center gap-2 mt-2 sm:mt-0">{actions}</div>}
+      {actionSlot && <div className="flex flex-wrap items-center gap-2 shrink-0">{actionSlot}</div>}
     </div>
   );
 }
