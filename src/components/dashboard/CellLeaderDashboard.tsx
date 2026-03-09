@@ -24,6 +24,7 @@ import { DashboardScopeBanner } from './DashboardScopeBanner';
 import { MissionBlock } from './MissionBlock';
 import { InitialViewGate } from './InitialViewGate';
 import { CuidadoEspiritualCelula } from './CuidadoEspiritualPanel';
+import { VitalidadeMembrosPanel } from './VitalidadeRelacionalPanel';
 
 export function CellLeaderDashboard() {
   const { data: celulas, isLoading } = useCelulas();
