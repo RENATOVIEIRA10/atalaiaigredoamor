@@ -134,14 +134,16 @@ export function AdminDashboard() {
       </div>
 
       {/* ═══ PRIMEIRA TELA — Métricas Estruturais ═══ */}
-      <SectionLabel title="Dados Estruturais" subtitle="Visão consolidada do campo" />
-      <div className="grid gap-4 grid-cols-2 lg:grid-cols-5">
-        <StatCard icon={Network} label="Redes" value={redes?.length || 0} />
-        <StatCard icon={LayoutGrid} label="Coordenações" value={coordenacoes?.length || 0} />
-        <StatCard icon={Home} label="Células" value={totalCelulas} />
-        <StatCard icon={Users} label="Membros Ativos" value={dashStats?.totalMembers || 0} />
-        <StatCard icon={TrendingUp} label="Crescimento" value={`${dashStats?.growth || 0}%`} subtitle="últimos 30 dias" />
-      </div>
+      <FadeIn delay={0.1}>
+        <SectionLabel title="Dados Estruturais" subtitle="Visão consolidada do campo" />
+      </FadeIn>
+      <StaggerContainer className="grid gap-4 grid-cols-2 lg:grid-cols-5">
+        <StaggerItem><StatCard icon={Network} label="Redes" value={redes?.length || 0} /></StaggerItem>
+        <StaggerItem><StatCard icon={LayoutGrid} label="Coordenações" value={coordenacoes?.length || 0} /></StaggerItem>
+        <StaggerItem><StatCard icon={Home} label="Células" value={totalCelulas} /></StaggerItem>
+        <StaggerItem><StatCard icon={Users} label="Membros Ativos" value={dashStats?.totalMembers || 0} /></StaggerItem>
+        <StaggerItem><StatCard icon={TrendingUp} label="Crescimento" value={`${dashStats?.growth || 0}%`} subtitle="últimos 30 dias" /></StaggerItem>
+      </StaggerContainer>
 
       {/* ═══ ABAS OPERACIONAIS ═══ */}
       <Tabs defaultValue={defaultMainTab} className="space-y-4">
