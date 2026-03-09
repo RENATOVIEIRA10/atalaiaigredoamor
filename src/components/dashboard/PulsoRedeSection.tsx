@@ -334,7 +334,7 @@ function MarcoDrilldownPanel({
         )}
 
         {!isLoading && sortedGroups.length > 0 && (
-          <ScrollArea className="max-h-[500px]">
+          <ScrollArea className="h-[500px]">
             <div className="space-y-5 pr-2">
               {sortedGroups.map(([coordName, groupMembers]) => (
                 <div key={coordName}>

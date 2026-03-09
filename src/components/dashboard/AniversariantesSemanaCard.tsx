@@ -80,11 +80,13 @@ export function AniversariantesSemanaCard({ scopeType, scopeId }: Aniversariante
       <Card>
         <CardContent className="p-4">
           {aniversariantes && aniversariantes.length > 0 ? (
-            <div className="space-y-2 max-h-56 overflow-y-auto">
-              {aniversariantes.map((b) => (
-                <BirthdayRow key={b.id} b={b} />
-              ))}
-            </div>
+            <ScrollArea className="h-56">
+              <div className="space-y-2">
+                {aniversariantes.map((b) => (
+                  <BirthdayRow key={b.id} b={b} />
+                ))}
+              </div>
+            </ScrollArea>
           ) : (
             <p className="text-sm text-muted-foreground text-center py-4">Nenhum aniversário nesta semana</p>
           )}

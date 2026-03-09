@@ -300,7 +300,7 @@ function CampoPastorDashboard() {
                         {b.is_today && <Badge className="bg-primary/10 text-primary text-xs">Hoje! 🎂</Badge>}
                       </div>
                     ))}
-                  </div>
+                  </div></ScrollArea>
                 ) : (
                   <p className="text-sm text-muted-foreground text-center py-4">Nenhum aniversário nesta semana</p>
                 )}
