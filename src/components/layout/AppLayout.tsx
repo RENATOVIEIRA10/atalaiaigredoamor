@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from './AppSidebar';
 import { MobileBottomNav } from './MobileBottomNav';
@@ -15,6 +16,8 @@ import { useTorreControle } from '@/contexts/TorreControleContext';
 import { PastoralTourContext, usePastoralTourProvider } from '@/hooks/usePastoralTour';
 import { PastoralTourDialog } from '@/components/dashboard/PastoralTourDialog';
 import { PastoralAssistant } from '@/components/guide/PastoralAssistant';
+import { MagicFAB } from '@/components/pwa/MagicFAB';
+import { PullToRefresh } from '@/components/pwa/PullToRefresh';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface AppLayoutProps {
@@ -31,6 +34,7 @@ export function AppLayout({ children, title }: AppLayoutProps) {
   const location = useLocation();
   const { isOperating, activeState } = useTorreControle();
   const tourCtx = usePastoralTourProvider();
+  const scrollRef = useRef<HTMLElement>(null);
 
   const isRootPage = location.pathname === '/home' || location.pathname === '/dashboard';
   const showBackButton = isPWAMobile && !isRootPage;
@@ -41,9 +45,9 @@ export function AppLayout({ children, title }: AppLayoutProps) {
       <PastoralTourContext.Provider value={tourCtx}>
         <div className="flex flex-col h-[100dvh] bg-background" style={{ height: '-webkit-fill-available' }}>
           <header
-            className="flex shrink-0 items-center gap-2 border-b border-border/30 px-4 bg-background/85 backdrop-blur-3xl z-30"
+            className="flex shrink-0 items-center gap-2 border-b border-border/20 px-4 bg-background/80 backdrop-blur-2xl z-30"
             style={{
-              boxShadow: '0 12px 30px -26px rgba(0,0,0,0.9)',
+              boxShadow: '0 1px 12px rgba(0,0,0,0.3)',
               minHeight: 'calc(48px + env(safe-area-inset-top, 0px))',
               paddingTop: 'env(safe-area-inset-top, 0px)',
             }}
@@ -58,7 +62,7 @@ export function AppLayout({ children, title }: AppLayoutProps) {
               </button>
             )}
             {title && (
-              <h1 className="text-sm font-semibold text-foreground tracking-wide truncate font-display">
+              <h1 className="text-sm font-semibold text-foreground tracking-wide truncate">
                 {title}
               </h1>
             )}
@@ -74,9 +78,11 @@ export function AppLayout({ children, title }: AppLayoutProps) {
           </header>
 
           <main
+            ref={scrollRef}
             className="flex-1 overflow-y-auto overscroll-y-contain p-4 md:p-5 internal-page-bg pwa-scroll-area"
-            style={{ paddingBottom: 'calc(72px + env(safe-area-inset-bottom, 0px))' }}
+            style={{ paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))' }}
           >
+            <PullToRefresh scrollRef={scrollRef} />
             <AnimatePresence mode="wait">
               <motion.div
                 key={location.pathname + location.search}
@@ -90,6 +96,7 @@ export function AppLayout({ children, title }: AppLayoutProps) {
             </AnimatePresence>
           </main>
 
+          <MagicFAB />
           <MobileBottomNav />
           <PastoralAssistant />
         </div>

@@ -124,9 +124,11 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', system-ui, sans-serif;
     line-height: 1.6;
     letter-spacing: 0.005em;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -340,6 +342,11 @@
   body {
     overscroll-behavior-y: none;
     -webkit-overflow-scrolling: touch;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
   }
 
   input, select, textarea {
@@ -368,11 +375,13 @@
   }
   * {
     scrollbar-width: none;
+    -webkit-tap-highlight-color: transparent;
   }
 
-  button, nav, header {
+  button, a, nav, header {
     -webkit-user-select: none;
     user-select: none;
+    -webkit-tap-highlight-color: transparent;
   }
 
   #root {
