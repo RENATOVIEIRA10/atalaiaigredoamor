@@ -119,13 +119,16 @@ function CampoPastorDashboard() {
   return (
     <div className="space-y-8">
       <DashboardScopeBanner />
-      <PageHeader title="Visão Pastoral" subtitle="Governo espiritual e cuidado do rebanho" icon={Heart} />
+      <FadeIn><PageHeader title="Visão Pastoral" subtitle="Governo espiritual e cuidado do rebanho" icon={Heart} /></FadeIn>
 
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <MissionVerse role="pastor" />
-        <RevelaShortcut />
-      </div>
+      <FadeIn delay={0.05}>
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <MissionVerse role="pastor" />
+          <RevelaShortcut />
+        </div>
+      </FadeIn>
 
+      <FadeIn delay={0.1}>
       <Tabs defaultValue={defaultMainTab} className="space-y-4">
         <TabsList className="w-full h-auto justify-start gap-1 overflow-x-auto whitespace-nowrap">
           <TabsTrigger value="visao-geral">Visão Geral</TabsTrigger>
@@ -135,12 +138,12 @@ function CampoPastorDashboard() {
 
         <TabsContent value="visao-geral" className="space-y-6">
           <SectionLabel title="Panorama da Igreja" subtitle="Dados estruturais consolidados" />
-          <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-            <StatCard icon={Network} label="Redes" value={redeGrowth?.length || 0} />
-            <StatCard icon={Home} label="Células Ativas" value={pulso?.totalCelulas || 0} />
-            <StatCard icon={Users} label="Membros Ativos" value={stats?.totalMembers || 0} />
-            <StatCard icon={GitBranch} label="Multiplicações" value={stats?.multiplicacoes90dias || 0} subtitle="últimos 90 dias" />
-          </div>
+          <StaggerContainer className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+            <StaggerItem><StatCard icon={Network} label="Redes" value={redeGrowth?.length || 0} /></StaggerItem>
+            <StaggerItem><StatCard icon={Home} label="Células Ativas" value={pulso?.totalCelulas || 0} /></StaggerItem>
+            <StaggerItem><StatCard icon={Users} label="Membros Ativos" value={stats?.totalMembers || 0} /></StaggerItem>
+            <StaggerItem><StatCard icon={GitBranch} label="Multiplicações" value={stats?.multiplicacoes90dias || 0} subtitle="últimos 90 dias" /></StaggerItem>
+          </StaggerContainer>
 
           <SectionLabel title="Saúde das Redes" subtitle="Visão consolidada por rede" />
           {redeGrowth && redeGrowth.length > 0 ? (
