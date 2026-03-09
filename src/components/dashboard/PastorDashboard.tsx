@@ -337,6 +337,7 @@ function CampoPastorDashboard() {
           </Tabs>
         </TabsContent>
       </Tabs>
+      </FadeIn>
     </div>
   );
 }
