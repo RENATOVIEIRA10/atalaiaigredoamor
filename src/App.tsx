@@ -18,6 +18,8 @@ import { UpdateBanner } from "@/components/pwa/UpdateBanner";
 import { TorreControlePanel } from "@/components/torre/TorreControlePanel";
 import { useVersionCheck } from "@/hooks/useVersionCheck";
 import { useVersionGate } from "@/hooks/useVersionGate";
+import { CommandBar } from "@/components/command/CommandBar";
+import { useNavigationMemory } from "@/hooks/useNavigationMemory";
 
 // Eager: landing + onboarding + auth (first paint)
 import Home from "./pages/Home";
