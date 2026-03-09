@@ -46,6 +46,7 @@ import { PotenciaisServirCard } from './PotenciaisServirCard';
 import { LeadershipRecommendationDialog } from './LeadershipRecommendationDialog';
 import { LeadershipRecommendationsSection } from './LeadershipRecommendationsSection';
 import { CuidadoEspiritualConsolidado } from './CuidadoEspiritualPanel';
+import { VitalidadeCascataPanel } from './VitalidadeRelacionalPanel';
 
 interface NetworkLeaderDashboardProps {
   initialRedeId?: string;
