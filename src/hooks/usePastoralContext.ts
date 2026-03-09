@@ -54,13 +54,11 @@ export function usePastoralContext() {
 
   if (isPastorSeniorGlobal) {
     // Pastor Global: visão de múltiplos campos
-    metrics.totalRedes = stats?.totalRedes || 0;
     metrics.totalCelulas = stats?.totalCelulas || 0;
     metrics.totalMembros = stats?.totalMembers || 0;
     metrics.novasVidasPendentes = novasVidas?.filter(v => v.status === 'nova').length || 0;
   } else if (isPastorDeCampo || isPastor) {
     // Pastor de Campo: foco nas redes do campus
-    metrics.totalRedes = stats?.totalRedes || 0;
     metrics.totalCelulas = stats?.totalCelulas || 0;
     metrics.totalMembros = stats?.totalMembers || 0;
     metrics.novasVidasPendentes = novasVidas?.filter(v => v.status === 'nova').length || 0;
