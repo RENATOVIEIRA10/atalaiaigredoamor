@@ -4,8 +4,36 @@ import { useRole } from '@/contexts/RoleContext';
 import { supabase } from '@/integrations/supabase/client';
 import { POLICY_VERSION } from '@/lib/policyVersion';
 import { Button } from '@/components/ui/button';
-import { Loader2, Shield, Eye, KeyRound } from 'lucide-react';
-import logoRedeAmor from '@/assets/logo-rede-amor-a2.png';
+import { Loader2, ShieldCheck, Eye, KeyRound, Fingerprint } from 'lucide-react';
+import { motion } from 'framer-motion';
+import logoIgrejaDoAmor from '@/assets/logo-igreja-do-amor-new.png';
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 24 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.12, duration: 0.5, ease: [0.22, 1, 0.36, 1] as const },
+  }),
+} as const;
+
+const sections = [
+  {
+    icon: ShieldCheck,
+    title: 'Cuidado com as informações',
+    text: 'Os dados aqui são vidas reais. Trate cada informação com zelo, responsabilidade e amor pastoral.',
+  },
+  {
+    icon: Eye,
+    title: 'Visão por escopo',
+    text: 'Você verá apenas o que é relevante à sua função — célula, supervisão, coordenação ou rede.',
+  },
+  {
+    icon: KeyRound,
+    title: 'Acesso pessoal e intransferível',
+    text: 'Seu código define seu nível de acesso. Nunca compartilhe suas credenciais.',
+  },
+];
 
 export default function Onboarding() {
   const navigate = useNavigate();
@@ -17,15 +45,10 @@ export default function Onboarding() {
   const hasSession = !!scopeType && !!accessKeyId;
 
   useEffect(() => {
-    if (hasSession) {
-      checkAcceptance();
-    }
+    if (hasSession) checkAcceptance();
   }, [accessKeyId, hasSession]);
 
-  // If no session, redirect to login
-  if (!hasSession) {
-    return <Navigate to="/" replace />;
-  }
+  if (!hasSession) return <Navigate to="/" replace />;
 
   async function checkAcceptance() {
     try {
@@ -42,7 +65,7 @@ export default function Onboarding() {
         return;
       }
     } catch {
-      // proceed to show onboarding
+      // show onboarding
     } finally {
       setIsLoading(false);
     }
@@ -54,16 +77,12 @@ export default function Onboarding() {
       await supabase
         .from('policy_acceptances')
         .upsert(
-          {
-            access_key_id: accessKeyId,
-            policy_version: POLICY_VERSION,
-          },
+          { access_key_id: accessKeyId, policy_version: POLICY_VERSION },
           { onConflict: 'access_key_id,policy_version' }
         );
-
       navigate('/dashboard', { replace: true });
     } catch {
-      // retry silently
+      // retry
     } finally {
       setIsAccepting(false);
     }
@@ -71,129 +90,129 @@ export default function Onboarding() {
 
   if (isLoading || alreadyAccepted) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(160deg, #0e0e10 0%, #1a0a0b 40%, #121212 100%)' }}>
-        <Loader2 className="h-8 w-8 animate-spin text-[#C9A24D]" />
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div
-      className="min-h-screen flex flex-col items-center justify-start relative overflow-y-auto"
-      style={{ background: 'linear-gradient(160deg, #0e0e10 0%, #1a0a0b 40%, #121212 100%)' }}
-    >
-      {/* Radial glows */}
-      <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at 50% 20%, rgba(140,15,20,0.15) 0%, transparent 60%)' }} />
-      <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at 50% 80%, rgba(201,162,77,0.06) 0%, transparent 50%)' }} />
+    <div className="min-h-screen flex flex-col items-center justify-start relative overflow-y-auto bg-background">
+      {/* Ambient glow */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            'radial-gradient(ellipse 60% 40% at 50% 0%, hsl(217 72% 58% / 0.08) 0%, transparent 70%), radial-gradient(ellipse 50% 50% at 50% 100%, hsl(40 58% 52% / 0.04) 0%, transparent 60%)',
+        }}
+      />
 
-      <div className="relative z-10 w-full max-w-lg px-5 py-10 sm:py-16 flex flex-col items-center">
+      <div className="relative z-10 w-full max-w-lg px-5 py-12 sm:py-20 flex flex-col items-center">
         {/* Logo */}
-        <div className="mb-6 opacity-0 animate-fade-in">
-          <img
-            src={logoRedeAmor}
-            alt="Rede Amor a 2"
-            className="h-20 w-20 rounded-full object-cover shadow-2xl ring-2 ring-[#C9A24D]/30"
-          />
-        </div>
+        <motion.div
+          custom={0}
+          variants={fadeUp}
+          initial="hidden"
+          animate="visible"
+          className="mb-8"
+        >
+          <div className="relative">
+            <div className="absolute -inset-3 rounded-full bg-primary/10 blur-xl" />
+            <img
+              src={logoIgrejaDoAmor}
+              alt="Igreja do Amor"
+              className="relative h-20 w-20 rounded-full object-cover ring-2 ring-border shadow-2xl brightness-0 invert"
+            />
+          </div>
+        </motion.div>
 
-        {/* Title */}
-        <h1
-          className="text-2xl sm:text-3xl text-center mb-2 opacity-0 animate-fade-in-up stagger-2"
-          style={{ fontFamily: "'DM Serif Display', serif", color: '#F6F4F1', letterSpacing: '-0.01em', lineHeight: 1.2 }}
+        {/* Header */}
+        <motion.div custom={1} variants={fadeUp} initial="hidden" animate="visible" className="text-center mb-2">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 mb-4">
+            <Fingerprint className="h-3.5 w-3.5 text-primary" />
+            <span className="text-xs font-medium text-primary tracking-wide uppercase">Diretrizes de Uso</span>
+          </div>
+          <h1 className="font-display text-2xl sm:text-3xl font-bold text-foreground tracking-tight leading-tight">
+            Bem-vindo ao Atalaia
+          </h1>
+        </motion.div>
+
+        <motion.p
+          custom={2}
+          variants={fadeUp}
+          initial="hidden"
+          animate="visible"
+          className="text-sm sm:text-base text-center max-w-sm mb-10 text-muted-foreground leading-relaxed"
         >
-          Bem-vindo ao Sistema<br />Rede Amor a 2
-        </h1>
-        <p
-          className="text-sm sm:text-base text-center max-w-sm mb-8 opacity-0 animate-fade-in-up stagger-3"
-          style={{ color: '#B8B6B3', fontFamily: "'Inter', sans-serif", lineHeight: 1.6 }}
-        >
-          Este sistema existe para servir o cuidado pastoral, organizar as células e apoiar as vidas que Deus confiou à liderança.
-        </p>
+          Antes de prosseguir, leia e aceite as diretrizes de uso do sistema pastoral.
+        </motion.p>
 
         {/* Card */}
-        <div
-          className="w-full rounded-2xl p-6 sm:p-8 space-y-6 opacity-0 animate-slide-up stagger-4"
-          style={{
-            background: 'linear-gradient(180deg, #1e1e22 0%, #1a1a1e 100%)',
-            border: '1px solid rgba(201,162,77,0.18)',
-            boxShadow: '0 16px 48px rgba(0,0,0,0.5), 0 0 0 1px rgba(201,162,77,0.06)',
-          }}
+        <motion.div
+          custom={3}
+          variants={fadeUp}
+          initial="hidden"
+          animate="visible"
+          className="w-full rounded-2xl p-6 sm:p-8 space-y-5 premium-surface border border-border"
         >
-          {/* Section 1 */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Shield className="h-5 w-5 shrink-0" style={{ color: '#C9A24D' }} />
-              <h2 className="text-base font-semibold" style={{ color: '#F6F4F1', fontFamily: "'Inter', sans-serif" }}>
-                Cuidado com as informações
-              </h2>
-            </div>
-            <p className="text-sm pl-7" style={{ color: '#B8B6B3', fontFamily: "'Inter', sans-serif", lineHeight: 1.7 }}>
-              Usamos essas informações para cuidar, acompanhar e servir. Trate tudo com amor, zelo e responsabilidade.
-            </p>
-          </div>
-
-          {/* Section 2 */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Eye className="h-5 w-5 shrink-0" style={{ color: '#C9A24D' }} />
-              <h2 className="text-base font-semibold" style={{ color: '#F6F4F1', fontFamily: "'Inter', sans-serif" }}>
-                Cada um vê o que precisa ver
-              </h2>
-            </div>
-            <p className="text-sm pl-7" style={{ color: '#B8B6B3', fontFamily: "'Inter', sans-serif", lineHeight: 1.7 }}>
-              Você verá apenas as informações ligadas à sua função e ao seu escopo (célula, supervisão, coordenação ou rede).
-            </p>
-          </div>
-
-          {/* Section 3 */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <KeyRound className="h-5 w-5 shrink-0" style={{ color: '#C9A24D' }} />
-              <h2 className="text-base font-semibold" style={{ color: '#F6F4F1', fontFamily: "'Inter', sans-serif" }}>
-                Seu acesso é pessoal
-              </h2>
-            </div>
-            <p className="text-sm pl-7" style={{ color: '#B8B6B3', fontFamily: "'Inter', sans-serif", lineHeight: 1.7 }}>
-              Seu código define seu nível de acesso. Não compartilhe seu código.
-            </p>
-          </div>
+          {sections.map((s, i) => (
+            <motion.div
+              key={s.title}
+              custom={4 + i}
+              variants={fadeUp}
+              initial="hidden"
+              animate="visible"
+              className="flex gap-4"
+            >
+              <div className="shrink-0 mt-0.5 h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
+                <s.icon className="h-4.5 w-4.5 text-primary" />
+              </div>
+              <div className="space-y-1">
+                <h2 className="text-sm font-semibold text-foreground">{s.title}</h2>
+                <p className="text-sm text-muted-foreground leading-relaxed">{s.text}</p>
+              </div>
+            </motion.div>
+          ))}
 
           {/* CTA */}
-          <Button
-            onClick={handleAccept}
-            disabled={isAccepting}
-            className="w-full h-12 text-base font-semibold tracking-wide mt-4"
-            style={{
-              background: isAccepting
-                ? '#B8B6B3'
-                : 'linear-gradient(135deg, #C9A24D 0%, #D4B366 100%)',
-              color: '#121212',
-              borderRadius: '12px',
-              fontFamily: "'Inter', sans-serif",
-              boxShadow: !isAccepting ? '0 4px 20px rgba(201,162,77,0.25)' : 'none',
-            }}
-          >
-            {isAccepting ? (
-              <Loader2 className="h-5 w-5 animate-spin mr-2" />
-            ) : null}
-            Entendi e quero continuar
-          </Button>
-        </div>
+          <motion.div custom={7} variants={fadeUp} initial="hidden" animate="visible">
+            <Button
+              onClick={handleAccept}
+              disabled={isAccepting}
+              className="w-full h-12 text-base font-semibold tracking-wide mt-3"
+            >
+              {isAccepting && <Loader2 className="h-5 w-5 animate-spin mr-2" />}
+              Entendi e quero continuar
+            </Button>
+          </motion.div>
+        </motion.div>
 
         {/* Verse */}
-        <div className="mt-8 text-center opacity-0 animate-fade-in stagger-6">
-          <p className="text-xs italic" style={{ color: 'rgba(201,162,77,0.5)', fontFamily: "'DM Serif Display', serif" }}>
+        <motion.div
+          custom={8}
+          variants={fadeUp}
+          initial="hidden"
+          animate="visible"
+          className="mt-10 text-center space-y-0.5"
+        >
+          <p className="text-xs italic text-gold/50 font-display">
             "Tudo seja feito com amor."
           </p>
-          <p className="text-[10px] mt-0.5" style={{ color: 'rgba(184,182,179,0.4)', fontFamily: "'Inter', sans-serif" }}>
+          <p className="text-[10px] text-muted-foreground/40">
             1 Coríntios 16:14
           </p>
-        </div>
+        </motion.div>
 
         {/* Policy version */}
-        <p className="mt-4 text-[10px]" style={{ color: 'rgba(184,182,179,0.25)' }}>
+        <motion.p
+          custom={9}
+          variants={fadeUp}
+          initial="hidden"
+          animate="visible"
+          className="mt-4 text-[10px] text-muted-foreground/25"
+        >
           Versão da política: {POLICY_VERSION}
-        </p>
+        </motion.p>
       </div>
     </div>
   );
