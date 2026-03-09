@@ -114,6 +114,9 @@ export function CellLeaderDashboard() {
 
             {/* BLOCO 4 — Cuidado Espiritual & Pertencimento */}
             <CuidadoEspiritualCelula celulaId={singleCell.id} />
+
+            {/* BLOCO 5 — Índice de Vitalidade Relacional */}
+            <VitalidadeMembrosPanel celulaId={singleCell.id} />
           </div>
 
           {/* Conteúdo detalhado — oculto por padrão */}

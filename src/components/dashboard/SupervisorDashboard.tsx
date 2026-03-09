@@ -147,6 +147,13 @@ export function SupervisorDashboard() {
               <RadarSaudeSupervisorPanel supervisorId={selectedSupervisor} coordenacaoId={selectedCoordenacao} />
 
               <CuidadoEspiritualConsolidado coordenacaoId={selectedCoordenacao} groupBy="celula" />
+
+              <VitalidadeCascataPanel
+                mode="lideres"
+                coordenacaoId={selectedCoordenacao}
+                title="Vitalidade dos Líderes de Célula"
+                description="Acompanhamento ministerial dos líderes sob sua supervisão"
+              />
             </TabsContent>
 
             <TabsContent value="cuidado" className="space-y-4">
