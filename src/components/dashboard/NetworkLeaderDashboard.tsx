@@ -412,6 +412,7 @@ export function NetworkLeaderDashboard({ initialRedeId, overrideCampoId, onBack,
               <TabsContent value="supervisoes-historico"><SupervisoesRedeHistoryPanel redeId={selectedRede} /></TabsContent>
               <TabsContent value="historico"><ReportsHistoryTable reports={currentReports} onEdit={handleEditReport} onDelete={handleDeleteReport} /></TabsContent>
               <TabsContent value="insights"><AIInsightsPanel reports={currentReports} periodLabel={formatDateRangeDisplay()} context="rede" /></TabsContent>
+              <TabsContent value="cuidado-espiritual"><CuidadoEspiritualConsolidado redeId={selectedRede} groupBy="coordenacao" /></TabsContent>
               <TabsContent value="fotos"><CelulaPhotoGallery reports={currentReports} /></TabsContent>
                 </Tabs>
               </InitialViewGate>

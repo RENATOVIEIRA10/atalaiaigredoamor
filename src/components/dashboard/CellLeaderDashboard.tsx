@@ -110,6 +110,9 @@ export function CellLeaderDashboard() {
             <MissionBlock icon={HeartPulse} title="Saúde e Cuidado">
               <CellLeaderPulsoTab celulaId={singleCell.id} />
             </MissionBlock>
+
+            {/* BLOCO 4 — Cuidado Espiritual & Pertencimento */}
+            <CuidadoEspiritualCelula celulaId={singleCell.id} />
           </div>
 
           {/* Conteúdo detalhado — oculto por padrão */}

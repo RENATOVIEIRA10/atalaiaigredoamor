@@ -221,6 +221,7 @@ function CampoPastorDashboard() {
         </TabsContent>
 
         <TabsContent value="pastoral" className="space-y-6">
+          <CuidadoEspiritualConsolidado groupBy="rede" />
           <SectionLabel title="Pontos de Atenção" subtitle="Alertas estratégicos gerados automaticamente" />
           <PastorStrategicAlerts
             alerts={alerts || []}

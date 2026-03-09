@@ -322,6 +322,7 @@ export function CoordinatorDashboard() {
               <TabsContent value="historico"><ReportsHistoryTable reports={currentReports} onEdit={handleEditReport} onDelete={handleDeleteReport} /></TabsContent>
               <TabsContent value="insights"><AIInsightsPanel reports={currentReports} periodLabel={formatDateRangeDisplay()} context="coordenacao" /></TabsContent>
               <TabsContent value="fotos"><CelulaPhotoGallery reports={currentReports} /></TabsContent>
+              <TabsContent value="cuidado-espiritual"><CuidadoEspiritualConsolidado coordenacaoId={selectedCoordenacao} groupBy="celula" /></TabsContent>
               <TabsContent value="supervisoes">
                 <div className="space-y-4">
                   <div className="flex justify-end">

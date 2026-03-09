@@ -144,6 +144,8 @@ export function SupervisorDashboard() {
               </Card>
 
               <RadarSaudeSupervisorPanel supervisorId={selectedSupervisor} coordenacaoId={selectedCoordenacao} />
+
+              <CuidadoEspiritualConsolidado coordenacaoId={selectedCoordenacao} groupBy="celula" />
             </TabsContent>
 
             <TabsContent value="cuidado" className="space-y-4">
