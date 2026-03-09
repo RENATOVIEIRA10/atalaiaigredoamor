@@ -52,6 +52,7 @@ const HomeConcierge = lazy(() => import("./pages/HomeConcierge"));
 const Radar = lazy(() => import("./pages/Radar"));
 const Glossario = lazy(() => import("./pages/Glossario"));
 const GuiaAdmin = lazy(() => import("./pages/GuiaAdmin"));
+const PulsoVivo = lazy(() => import("./pages/PulsoVivo"));
 
 const queryClient = new QueryClient();
 
