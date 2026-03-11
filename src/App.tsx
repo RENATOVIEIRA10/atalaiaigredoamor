@@ -61,6 +61,7 @@ const ContasReceber = lazy(() => import("./pages/financeiro/ContasReceber"));
 const FluxoCaixa = lazy(() => import("./pages/financeiro/FluxoCaixa"));
 const CentrosCusto = lazy(() => import("./pages/financeiro/CentrosCusto"));
 const FinFornecedores = lazy(() => import("./pages/financeiro/Fornecedores"));
+const ConciliacaoBancaria = lazy(() => import("./pages/financeiro/ConciliacaoBancaria"));
 
 const queryClient = new QueryClient();
 
