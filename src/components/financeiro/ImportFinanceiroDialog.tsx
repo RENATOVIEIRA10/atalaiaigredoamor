@@ -200,6 +200,7 @@ export function ImportFinanceiroDialog({ open, onOpenChange, tipo, campoId, onIm
   const handleImport = useCallback(async () => {
     const selected = items.filter(i => i._selected && i.valor > 0);
     if (selected.length === 0) { toast.warning('Selecione ao menos um lançamento'); return; }
+    if (!campoId) { toast.error('Campus não identificado. Selecione um campus antes de importar.'); return; }
 
     setImporting(true);
     try {

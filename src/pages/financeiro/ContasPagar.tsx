@@ -218,19 +218,17 @@ export default function ContasPagar() {
       </div>
 
       <ContaPagarFormDialog open={dialogOpen} onOpenChange={setDialogOpen} editing={editing} />
-      {campoId && (
-        <ImportFinanceiroDialog
-          open={importOpen}
-          onOpenChange={setImportOpen}
-          tipo="pagar"
-          campoId={campoId}
-          onImported={() => {
-            queryClient.invalidateQueries({ queryKey: ['fin_contas_pagar'] });
-            queryClient.invalidateQueries({ queryKey: ['fin_dashboard_kpis'] });
-            queryClient.invalidateQueries({ queryKey: ['fin_analytics'] });
-          }}
-        />
-      )}
+      <ImportFinanceiroDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        tipo="pagar"
+        campoId={campoId || ''}
+        onImported={() => {
+          queryClient.invalidateQueries({ queryKey: ['fin_contas_pagar'] });
+          queryClient.invalidateQueries({ queryKey: ['fin_dashboard_kpis'] });
+          queryClient.invalidateQueries({ queryKey: ['fin_analytics'] });
+        }}
+      />
     </AppLayout>
   );
 }
