@@ -167,7 +167,7 @@ export default function Auth() {
           {view === 'main' && !emailSent && (
             <div className="space-y-3">
               <Button
-                onClick={() => { setAuthError(null); signInWithGoogle(); }}
+                onClick={async () => { setAuthError(null); try { await signInWithGoogle(); } catch (err: any) { setAuthError(err?.message || 'Erro ao conectar com Google'); } }}
                 variant="outline"
                 className="w-full h-12 text-sm font-medium bg-card/50 hover:bg-card border-border/50"
               >
