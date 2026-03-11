@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRole } from '@/contexts/RoleContext';
 import { useRede } from '@/contexts/RedeContext';
@@ -9,14 +9,14 @@ import { useUserAccessLinks } from '@/hooks/useUserAccessLinks';
 import { themeIcons } from '@/lib/icons';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { AlertCircle, Loader2, Lock as LockIcon, BookOpen, HelpCircle, ClipboardList, PlayCircle, ArrowLeft } from 'lucide-react';
+import { AlertCircle, Loader2, KeyRound, BookOpen, HelpCircle, ClipboardList, PlayCircle, ArrowLeft, Shield, Eye, Compass } from 'lucide-react';
 import logoRedeAmor from '@/assets/logo-amor-a-dois-new.png';
 import logoIgrejaDoAmor from '@/assets/logo-igreja-do-amor-new.png';
 import logoAnoSantidade from '@/assets/logo-ano-santidade.png';
 import { supabase } from '@/integrations/supabase/client';
 import { RedeSelector } from '@/components/rede/RedeSelector';
 import { roleLabels } from '@/lib/icons';
+import { motion, AnimatePresence } from 'framer-motion';
 
 type LoginStep = 'code' | 'rede-select';
 type ScopeType = 'pastor' | 'admin' | 'rede' | 'coordenacao' | 'supervisor' | 'celula' | 'demo_institucional' | 'recomeco_operador' | 'recomeco_leitura' | 'recomeco_cadastro' | 'central_celulas' | 'lider_recomeco_central' | 'lider_batismo_aclamacao' | 'central_batismo_aclamacao' | 'pastor_senior_global' | 'pastor_de_campo';
@@ -58,6 +58,14 @@ export default function HomePage() {
   const [step, setStep] = useState<LoginStep>('code');
   const [pendingMatch, setPendingMatch] = useState<any>(null);
   const [autoRedirectDone, setAutoRedirectDone] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Auto-focus input
+  useEffect(() => {
+    if (step === 'code' && inputRef.current) {
+      setTimeout(() => inputRef.current?.focus(), 400);
+    }
+  }, [step]);
 
   // Helper: resolve campo from access_key and set context
   const resolveCampoFromAccessKey = async (accessKeyId: string) => {
@@ -106,7 +114,6 @@ export default function HomePage() {
       const st = link.scope_type as ScopeType;
 
       const doAutoActivate = async () => {
-        // Resolve campo from link directly if available
         if (link.campo_id) {
           const { data: campoData } = await supabase.from('campos').select('id, nome').eq('id', link.campo_id).single();
           if (campoData) setActiveCampo({ id: campoData.id, nome: campoData.nome });
@@ -144,7 +151,6 @@ export default function HomePage() {
         }
         if (st === 'pastor_senior_global') {
           setScopeAccess(st, link.scope_id, link.access_key_id);
-          // Always start in global view, never fall into a campus
           clearCampo();
           setIsGlobalView(true);
           navigate('/home');
@@ -152,7 +158,6 @@ export default function HomePage() {
         }
         if (st === 'pastor_de_campo') {
           setScopeAccess(st, link.scope_id, link.access_key_id);
-          // Try campo_pastores first, then fallback to access_key
           const campoPastor = await resolveCampoFromPastores();
           if (!campoPastor) await resolveCampoFromAccessKey(link.access_key_id);
           navigate('/dashboard');
@@ -166,7 +171,6 @@ export default function HomePage() {
           return;
         }
         if (st === 'pastor') {
-          // Can't auto-select rede, go to trocar-funcao
           navigate('/trocar-funcao');
           return;
         }
@@ -178,7 +182,6 @@ export default function HomePage() {
             .single();
           if (redeData) setActiveRede({ id: redeData.id, name: redeData.name, slug: redeData.slug, ativa: redeData.ativa });
         }
-        // Auto-set campo from access_key
         await resolveCampoFromAccessKey(link.access_key_id);
         setScopeAccess(st, link.scope_id, link.access_key_id);
         navigate('/onboarding');
@@ -200,7 +203,6 @@ export default function HomePage() {
     try {
       const normalizedCode = code.trim();
 
-      // Query directly by code (case-insensitive) to avoid 1000-row limit
       const { data: matchRows, error: queryError } = await supabase
         .from('access_keys')
         .select('*')
@@ -215,7 +217,6 @@ export default function HomePage() {
         if (match && !match.active) {
           setError('Código desativado. Contate o administrador.');
         } else {
-          // Increment failed_attempts for any matching (inactive) key
           const { data: anyKeys } = await supabase
             .from('access_keys')
             .select('id, failed_attempts')
@@ -245,13 +246,11 @@ export default function HomePage() {
         return;
       }
 
-      // Update last_used_at and reset failed attempts
       await supabase
         .from('access_keys')
         .update({ last_used_at: new Date().toISOString(), failed_attempts: 0 })
         .eq('id', match.id);
 
-      // Log access silently
       try {
         await supabase.from('access_logs').insert({
           access_key_id: match.id,
@@ -262,7 +261,6 @@ export default function HomePage() {
         });
       } catch (_) { /* silent */ }
 
-      // Save link to user
       const label = scopeLabel(match.scope_type);
       const campoResolved = await resolveCampoFromAccessKey(match.id);
       await upsertLink({
@@ -275,7 +273,6 @@ export default function HomePage() {
 
       const scopeType = match.scope_type as ScopeType;
 
-      // Recomeco scopes go directly to their pages
       if (scopeType === 'recomeco_operador' || scopeType === 'recomeco_leitura') {
         setScopeAccess(scopeType, match.scope_id, match.id);
         navigate('/recomeco');
@@ -313,10 +310,8 @@ export default function HomePage() {
         return;
       }
 
-      // Pastor senior global — ALWAYS starts in global view
       if (scopeType === 'pastor_senior_global') {
         setScopeAccess(scopeType, match.scope_id, match.id);
-        // Clear any previously saved campus and activate global view
         clearCampo();
         setIsGlobalView(true);
         navigate('/home');
@@ -324,7 +319,6 @@ export default function HomePage() {
         return;
       }
 
-      // Pastor de campo
       if (scopeType === 'pastor_de_campo') {
         setScopeAccess(scopeType, match.scope_id, match.id);
         const campoPastor = await resolveCampoFromPastores();
@@ -334,7 +328,6 @@ export default function HomePage() {
         return;
       }
 
-      // Admin — direct to global dashboard
       if (scopeType === 'admin') {
         setScopeAccess(scopeType, match.scope_id, match.id);
         clearCampo();
@@ -344,7 +337,6 @@ export default function HomePage() {
         return;
       }
 
-      // Pastor can pick any rede
       if (scopeType === 'pastor') {
         await resolveCampoFromAccessKey(match.id);
         setPendingMatch({ ...match, scopeType });
@@ -353,7 +345,6 @@ export default function HomePage() {
         return;
       }
 
-      // For scoped roles, auto-set rede from access_key
       if (match.rede_id) {
         const { data: redeData } = await supabase
           .from('redes')
@@ -365,7 +356,6 @@ export default function HomePage() {
         }
       }
 
-      // Auto-set campo
       await resolveCampoFromAccessKey(match.id);
 
       setScopeAccess(scopeType, match.scope_id, match.id);
@@ -393,192 +383,293 @@ export default function HomePage() {
   // Show loading while checking links for auto-redirect
   if (linksLoading && !selectedRole) {
     return (
-      <div className="flex min-h-screen items-center justify-center" style={{ background: 'linear-gradient(160deg, #0f1a2b 0%, #1A2F4B 40%, #0f1a2b 100%)' }}>
-        <Loader2 className="h-6 w-6 animate-spin" style={{ color: '#C5A059' }} />
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="flex flex-col items-center gap-4"
+        >
+          <div className="relative">
+            <div className="h-12 w-12 rounded-full border-2 border-gold/30 animate-spin border-t-gold" />
+            <KeyRound className="absolute inset-0 m-auto h-5 w-5 text-gold" />
+          </div>
+          <p className="text-xs text-muted-foreground font-medium tracking-wide">Preparando seu acesso…</p>
+        </motion.div>
       </div>
     );
   }
 
+  const infoItems = [
+    { icon: Eye, text: 'Sua visão no sistema' },
+    { icon: Compass, text: 'Sua área de atuação' },
+    { icon: Shield, text: 'Seu nível de liderança' },
+  ];
+
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden" style={{ background: 'linear-gradient(160deg, #0f1a2b 0%, #1A2F4B 40%, #0f1a2b 100%)' }}>
+    <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden bg-background">
+      {/* Cinematic ambient layers */}
+      <div className="absolute inset-0 pointer-events-none" style={{
+        background: 'radial-gradient(ellipse 80% 50% at 50% 0%, hsl(var(--gold) / 0.08) 0%, transparent 60%)'
+      }} />
+      <div className="absolute inset-0 pointer-events-none" style={{
+        background: 'radial-gradient(ellipse 60% 40% at 50% 100%, hsl(var(--primary) / 0.06) 0%, transparent 50%)'
+      }} />
+      <div className="absolute inset-0 pointer-events-none" style={{
+        background: 'radial-gradient(circle at 15% 50%, hsl(var(--gold) / 0.04) 0%, transparent 40%)'
+      }} />
+      <div className="absolute inset-0 pointer-events-none" style={{
+        background: 'radial-gradient(circle at 85% 30%, hsl(var(--primary) / 0.03) 0%, transparent 35%)'
+      }} />
+
+      {/* Subtle grid */}
+      <div className="absolute inset-0 pointer-events-none opacity-[0.012]" style={{
+        backgroundImage: `linear-gradient(hsl(var(--gold)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--gold)) 1px, transparent 1px)`,
+        backgroundSize: '80px 80px'
+      }} />
+
       {/* Theme toggle */}
       <button
         onClick={toggleTheme}
-        className="absolute top-4 right-4 z-20 flex items-center gap-2 px-3.5 py-2 rounded-full text-xs font-medium transition-colors"
-        style={{ background: 'rgba(197,160,89,0.1)', color: '#B8B6B3', border: '1px solid rgba(197,160,89,0.15)' }}
+        className="absolute top-4 right-4 z-20 flex items-center gap-2 px-3.5 py-2 rounded-full text-xs font-medium transition-all duration-200 hover:scale-105 bg-secondary/50 text-muted-foreground border border-gold/10 hover:border-gold/25"
       >
-        <ThemeIcon className="h-4 w-4" style={{ color: '#C5A059' }} />
+        <ThemeIcon className="h-4 w-4 text-gold" />
         {theme === 'padrao' ? 'Tema Padrão' : 'Tema Amor'}
       </button>
-      {/* Subtle radial glow */}
-      <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at 50% 20%, rgba(197,160,89,0.12) 0%, transparent 60%)' }} />
-      <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at 50% 80%, rgba(197,160,89,0.06) 0%, transparent 50%)' }} />
 
-      <div className="relative z-10 w-full max-w-md px-5 py-8 flex flex-col items-center">
+      <div className="relative z-10 w-full max-w-lg px-5 py-8 flex flex-col items-center">
         {/* Institutional header */}
-        <div className="mb-5 flex items-center justify-center gap-5 opacity-0 animate-fade-in">
-          <div className="flex flex-col items-center gap-1">
-            <svg width="56" height="56" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M30 80C30 80 35 45 50 20C65 45 70 80 70 80" stroke="#C5A059" strokeWidth="6" strokeLinecap="round"/>
-              <path d="M40 65C45 62 55 62 60 65" stroke="#C5A059" strokeWidth="4" strokeLinecap="round"/>
-              <circle cx="50" cy="15" r="5" fill="#C5A059" />
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: 'easeOut' }}
+          className="mb-5 flex items-center justify-center gap-5"
+        >
+          <div className="flex flex-col items-center gap-1.5">
+            <svg width="52" height="52" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M30 80C30 80 35 45 50 20C65 45 70 80 70 80" stroke="hsl(var(--gold))" strokeWidth="5" strokeLinecap="round"/>
+              <path d="M40 65C45 62 55 62 60 65" stroke="hsl(var(--gold))" strokeWidth="3.5" strokeLinecap="round"/>
+              <circle cx="50" cy="15" r="5" fill="hsl(var(--gold))" />
             </svg>
-            <span className="text-[10px] font-semibold tracking-[0.2em] uppercase" style={{ color: '#C5A059', fontFamily: "'Outfit', sans-serif" }}>
+            <span className="text-[9px] font-bold tracking-[0.25em] uppercase text-gold" style={{ fontFamily: "'Playfair Display', serif" }}>
               ATALAIA
             </span>
           </div>
-          <div className="h-14 w-px" style={{ background: 'rgba(197,160,89,0.25)' }} />
-          <img src={logoIgrejaDoAmor} alt="Igreja do Amor" className="h-14 w-auto object-contain brightness-0 invert opacity-80" />
-          <div className="h-14 w-px" style={{ background: 'rgba(197,160,89,0.25)' }} />
-          <img src={logoRedeAmor} alt="Rede Amor a 2" className="h-14 w-auto object-contain brightness-0 invert opacity-80" />
-        </div>
+          <div className="h-14 w-px bg-gold/20" />
+          <img src={logoIgrejaDoAmor} alt="Igreja do Amor" className="h-14 w-auto object-contain brightness-0 invert opacity-70" />
+          <div className="h-14 w-px bg-gold/20" />
+          <img src={logoRedeAmor} alt="Rede Amor a 2" className="h-14 w-auto object-contain brightness-0 invert opacity-70" />
+        </motion.div>
 
-        {/* Title */}
-        <div className="text-center mb-8 opacity-0 animate-fade-in-up stagger-2">
-          <h1 className="text-xl sm:text-2xl mb-2" style={{ fontFamily: "'Outfit', sans-serif", color: '#F4EDE4', fontWeight: 600, letterSpacing: '-0.01em', lineHeight: 1.3 }}>
-            Atalaia — a serviço da Rede Amor a Dois
+        {/* Portal title */}
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.15 }}
+          className="text-center mb-8"
+        >
+          <h1 className="text-2xl sm:text-3xl mb-2 font-bold text-foreground tracking-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
+            Portal de Acesso Ministerial
           </h1>
-          <p className="text-xs sm:text-sm max-w-xs mx-auto" style={{ color: '#B8B6B3', fontFamily: "'Inter', sans-serif", lineHeight: 1.6 }}>
-            Cuidando da saúde espiritual, organizacional e pastoral da rede
+          <p className="text-sm max-w-sm mx-auto text-muted-foreground leading-relaxed" style={{ fontFamily: "'Manrope', sans-serif" }}>
+            Seu acesso define sua missão dentro da Rede
           </p>
-        </div>
+        </motion.div>
 
-        {/* Main card */}
-        <div
-          className="w-full rounded-2xl p-6 sm:p-8 opacity-0 animate-slide-up stagger-3"
+        {/* Main card — glassmorphism premium */}
+        <motion.div
+          initial={{ opacity: 0, y: 16, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.5, delay: 0.25 }}
+          className="w-full rounded-2xl p-7 sm:p-9 backdrop-blur-xl"
           style={{
-            background: 'rgba(20,35,56,0.94)',
-            border: '1px solid rgba(197,160,89,0.24)',
-            boxShadow: '0 16px 48px rgba(0,0,0,0.5), 0 0 0 1px rgba(197,160,89,0.06)'
+            background: 'hsl(var(--card) / 0.85)',
+            border: '1px solid hsl(var(--gold) / 0.2)',
+            boxShadow: '0 20px 60px hsl(var(--background) / 0.6), 0 0 0 1px hsl(var(--gold) / 0.05), inset 0 1px 0 hsl(var(--gold) / 0.06)'
           }}
         >
-          {step === 'code' && (
-            <>
-              <div className="text-center mb-6">
-                <p className="text-xs sm:text-sm" style={{ color: '#B8B6B3', fontFamily: "'Inter', sans-serif" }}>
-                  Acesse com o código fornecido pela liderança e caminhe conosco no cuidado do rebanho.
-                </p>
-              </div>
-
-              <form onSubmit={handleSubmit} className="space-y-5">
-                <div className="space-y-2">
-                  <Label htmlFor="access-code" className="text-xs font-medium uppercase tracking-widest" style={{ color: '#C5A059', fontFamily: "'Inter', sans-serif" }}>
-                    Código de Acesso
-                  </Label>
-                  <div className="relative">
-                    <LockIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: '#C5A059' }} />
-                    <Input
-                      id="access-code"
-                      type="text"
-                      placeholder="Ex: redeamor-4K7P2A"
-                      value={code}
-                      onChange={(e) => { setCode(e.target.value); setError(''); }}
-                      className="pl-10 h-12 text-base border-0 focus-visible:ring-1 theme-amor-input"
-                      style={{
-                        background: 'rgba(15,26,43,0.72)',
-                        color: '#F4EDE4',
-                        borderRadius: '12px',
-                        border: error ? '1px solid #D32F2F' : '1px solid rgba(197,160,89,0.25)',
-                        fontFamily: "'Inter', sans-serif",
-                      }}
-                      autoFocus
-                      autoComplete="off"
-                    />
+          <AnimatePresence mode="wait">
+            {step === 'code' && (
+              <motion.div
+                key="code-step"
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 10 }}
+                transition={{ duration: 0.25 }}
+              >
+                {/* Card header */}
+                <div className="text-center mb-7">
+                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl mb-4 bg-gold/10 border border-gold/15">
+                    <KeyRound className="h-5 w-5 text-gold" />
                   </div>
-                  {error && (
-                    <div className="flex items-center gap-2 text-sm" style={{ color: '#D32F2F' }}>
-                      <AlertCircle className="h-4 w-4 shrink-0" />
-                      <span>{error}</span>
-                    </div>
-                  )}
-                  {!error && (
-                    <p className="text-xs" style={{ color: '#B8B6B3', fontFamily: "'Inter', sans-serif" }}>
-                      Seu acesso define o nível de informações que você poderá visualizar.
-                    </p>
-                  )}
-                  {attempts >= 3 && (
-                    <p className="text-xs" style={{ color: '#B8B6B3' }}>
-                      💡 Não tem um código? Entre em contato com o administrador ou líder da sua rede.
-                    </p>
-                  )}
+                  <p className="text-sm text-muted-foreground leading-relaxed max-w-xs mx-auto" style={{ fontFamily: "'Manrope', sans-serif" }}>
+                    Insira o código fornecido pela liderança para acessar seu campo de responsabilidade dentro da Rede Amor a Dois.
+                  </p>
                 </div>
 
-                <Button
-                  type="submit"
-                  className="w-full h-12 text-base font-semibold tracking-wide btn-tap"
-                  disabled={!code.trim() || isLoading}
-                  style={{
-                    background: !code.trim() || isLoading ? '#B8B6B3' : 'linear-gradient(135deg, #C5A059 0%, #D4B366 100%)',
-                    color: '#1A2F4B',
-                    borderRadius: '12px',
-                    fontFamily: "'Inter', sans-serif",
-                    boxShadow: code.trim() && !isLoading ? '0 4px 20px rgba(197,160,89,0.25)' : 'none',
-                    transition: 'all 0.2s ease-out',
-                  }}
-                >
-                  {isLoading ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <LockIcon className="h-4 w-4 mr-2" />}
-                  Entrar no Sistema
-                </Button>
-              </form>
-            </>
-          )}
+                <form onSubmit={handleSubmit} className="space-y-5">
+                  <div className="space-y-2.5">
+                    <label htmlFor="access-code" className="text-[10px] font-semibold uppercase tracking-[0.2em] text-gold" style={{ fontFamily: "'Manrope', sans-serif" }}>
+                      Código Ministerial
+                    </label>
+                    <div className="relative group">
+                      <KeyRound className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gold/60 transition-colors group-focus-within:text-gold" />
+                      <Input
+                        ref={inputRef}
+                        id="access-code"
+                        type="text"
+                        placeholder="Digite seu código ministerial"
+                        value={code}
+                        onChange={(e) => { setCode(e.target.value); setError(''); }}
+                        className="pl-10 h-13 text-base bg-background/60 border-gold/15 focus-visible:ring-gold/30 focus-visible:border-gold/30 text-foreground placeholder:text-muted-foreground/50"
+                        style={{ borderRadius: '12px', height: '52px', fontFamily: "'Manrope', sans-serif" }}
+                        autoComplete="off"
+                      />
+                    </div>
 
-          {step === 'rede-select' && (
-            <>
-              <button
-                onClick={handleBackToCode}
-                className="flex items-center gap-1.5 text-xs mb-4 transition-colors"
-                style={{ color: '#B8B6B3' }}
+                    {/* Error */}
+                    <AnimatePresence>
+                      {error && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="flex items-center gap-2 text-sm text-destructive"
+                        >
+                          <AlertCircle className="h-4 w-4 shrink-0" />
+                          <span>{error}</span>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    {/* Info items */}
+                    {!error && (
+                      <div className="pt-1 space-y-1.5">
+                        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60 mb-2" style={{ fontFamily: "'Manrope', sans-serif" }}>
+                          Seu código determina:
+                        </p>
+                        {infoItems.map((item, i) => (
+                          <motion.div
+                            key={i}
+                            initial={{ opacity: 0, x: -6 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.4 + i * 0.08 }}
+                            className="flex items-center gap-2.5"
+                          >
+                            <div className="flex items-center justify-center w-5 h-5 rounded-md bg-gold/8">
+                              <item.icon className="h-3 w-3 text-gold/70" />
+                            </div>
+                            <span className="text-xs text-muted-foreground" style={{ fontFamily: "'Manrope', sans-serif" }}>{item.text}</span>
+                          </motion.div>
+                        ))}
+                      </div>
+                    )}
+
+                    {attempts >= 3 && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        💡 Não tem um código? Entre em contato com o administrador ou líder da sua rede.
+                      </p>
+                    )}
+                  </div>
+
+                  <Button
+                    type="submit"
+                    className="w-full h-13 text-base font-semibold tracking-wide transition-all duration-300 border-0"
+                    disabled={!code.trim() || isLoading}
+                    style={{
+                      height: '52px',
+                      borderRadius: '12px',
+                      fontFamily: "'Manrope', sans-serif",
+                      background: !code.trim() || isLoading
+                        ? 'hsl(var(--muted))'
+                        : 'linear-gradient(135deg, hsl(var(--gold)) 0%, hsl(42 65% 58%) 100%)',
+                      color: !code.trim() || isLoading
+                        ? 'hsl(var(--muted-foreground))'
+                        : 'hsl(var(--background))',
+                      boxShadow: code.trim() && !isLoading
+                        ? '0 4px 24px hsl(var(--gold) / 0.3), 0 1px 3px hsl(var(--gold) / 0.15)'
+                        : 'none',
+                    }}
+                  >
+                    {isLoading ? (
+                      <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                    ) : (
+                      <KeyRound className="h-4 w-4 mr-2.5" />
+                    )}
+                    Ativar Meu Acesso
+                  </Button>
+                </form>
+              </motion.div>
+            )}
+
+            {step === 'rede-select' && (
+              <motion.div
+                key="rede-step"
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10 }}
+                transition={{ duration: 0.25 }}
               >
-                <ArrowLeft className="h-3.5 w-3.5" />
-                Voltar
-              </button>
-              <RedeSelector onSelected={handleRedeSelected} />
-            </>
-          )}
-        </div>
+                <button
+                  onClick={handleBackToCode}
+                  className="flex items-center gap-1.5 text-xs mb-4 transition-colors text-muted-foreground hover:text-foreground"
+                >
+                  <ArrowLeft className="h-3.5 w-3.5" />
+                  Voltar
+                </button>
+                <RedeSelector onSelected={handleRedeSelected} />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
 
-        {/* Links institucionais */}
+        {/* Institutional links */}
         {step === 'code' && (
-          <>
-            <div className="mt-6 flex flex-wrap items-center justify-center gap-2.5 opacity-0 animate-fade-in stagger-5">
-              <button onClick={() => navigate('/material')} className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-medium transition-colors" style={{ background: 'rgba(197,160,89,0.1)', color: '#C5A059', border: '1px solid rgba(197,160,89,0.2)' }}>
-                <BookOpen className="h-3.5 w-3.5" />
-                Material Institucional
-              </button>
-              <button onClick={() => navigate('/manual-lider')} className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-medium transition-colors" style={{ background: 'rgba(197,160,89,0.1)', color: '#C5A059', border: '1px solid rgba(197,160,89,0.2)' }}>
-                <ClipboardList className="h-3.5 w-3.5" />
-                Manual do Líder
-              </button>
-              <button onClick={() => navigate('/manual-usuario')} className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-medium transition-colors" style={{ background: 'rgba(197,160,89,0.1)', color: '#C5A059', border: '1px solid rgba(197,160,89,0.2)' }}>
-                <PlayCircle className="h-3.5 w-3.5" />
-                Manual do Usuário
-              </button>
-              <button onClick={() => navigate('/faq')} className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-medium transition-colors" style={{ background: 'rgba(197,160,89,0.1)', color: '#C5A059', border: '1px solid rgba(197,160,89,0.2)' }}>
-                <HelpCircle className="h-3.5 w-3.5" />
-                Perguntas Frequentes
-              </button>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="mt-7 flex flex-col items-center gap-4"
+          >
+            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground/40" style={{ fontFamily: "'Manrope', sans-serif" }}>
+              Recursos Ministeriais
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              {[
+                { label: 'Material Institucional', icon: BookOpen, path: '/material' },
+                { label: 'Manual do Líder', icon: ClipboardList, path: '/manual-lider' },
+                { label: 'Manual do Usuário', icon: PlayCircle, path: '/manual-usuario' },
+                { label: 'Perguntas Frequentes', icon: HelpCircle, path: '/faq' },
+              ].map((item) => (
+                <button
+                  key={item.path}
+                  onClick={() => navigate(item.path)}
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-[11px] font-medium transition-all duration-200 bg-secondary/40 text-muted-foreground border border-gold/8 hover:border-gold/20 hover:text-gold hover:bg-gold/5"
+                  style={{ fontFamily: "'Manrope', sans-serif" }}
+                >
+                  <item.icon className="h-3.5 w-3.5" />
+                  {item.label}
+                </button>
+              ))}
             </div>
 
-            <div className="mt-4 flex justify-center opacity-0 animate-fade-in stagger-5">
-              <img src={logoAnoSantidade} alt="Ano da Santidade 2026" className="h-14 w-auto object-contain opacity-60" />
-            </div>
-          </>
+            <img src={logoAnoSantidade} alt="Ano da Santidade 2026" className="h-12 w-auto object-contain opacity-40 mt-1" />
+          </motion.div>
         )}
 
         {/* Scripture footer */}
-        <div className="mt-6 text-center opacity-0 animate-fade-in stagger-6">
-          <p className="text-xs italic" style={{ color: 'rgba(197,160,89,0.5)', fontFamily: "'Outfit', sans-serif" }}>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.65 }}
+          className="mt-7 text-center"
+        >
+          <p className="text-xs italic text-gold/35" style={{ fontFamily: "'Playfair Display', serif" }}>
             "Tudo seja feito com decência e ordem."
           </p>
-          <p className="text-[10px] mt-0.5" style={{ color: 'rgba(184,182,179,0.4)', fontFamily: "'Inter', sans-serif" }}>
+          <p className="text-[10px] mt-0.5 text-muted-foreground/30" style={{ fontFamily: "'Manrope', sans-serif" }}>
             1 Coríntios 14:40
           </p>
-        </div>
-
-        <p className="mt-4 text-[9px] opacity-0 animate-fade-in stagger-6" style={{ color: 'rgba(184,182,179,0.3)', fontFamily: "'Inter', sans-serif" }}>
-          v2026.02.25-01
-        </p>
+        </motion.div>
       </div>
     </div>
   );
