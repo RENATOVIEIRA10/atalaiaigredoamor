@@ -23,9 +23,9 @@ export function ContaReceberFormDialog({ open, onOpenChange, editing }: Props) {
   const { create, update } = useFinContaReceberMutations();
 
   const [form, setForm] = useState({
-    descricao: '', valor: '', data_prevista: '', categoria_id: '',
-    centro_custo_id: '', campo_id: '', origem: '', observacoes: '',
-    recorrencia: '', recorrencia_fim: '',
+    descricao: '', valor: '', data_prevista: '', categoria_id: '_none_',
+    centro_custo_id: '_none_', campo_id: '', origem: '', observacoes: '',
+    recorrencia: '_none_', recorrencia_fim: '',
   });
 
   useEffect(() => {
@@ -34,34 +34,36 @@ export function ContaReceberFormDialog({ open, onOpenChange, editing }: Props) {
         descricao: editing.descricao,
         valor: String(editing.valor),
         data_prevista: editing.data_prevista,
-        categoria_id: editing.categoria_id || '',
-        centro_custo_id: editing.centro_custo_id || '',
+        categoria_id: editing.categoria_id || '_none_',
+        centro_custo_id: editing.centro_custo_id || '_none_',
         campo_id: editing.campo_id || '',
         origem: editing.origem || '',
         observacoes: editing.observacoes || '',
-        recorrencia: editing.recorrencia || '',
+        recorrencia: editing.recorrencia || '_none_',
         recorrencia_fim: editing.recorrencia_fim || '',
       });
     } else {
       setForm({
-        descricao: '', valor: '', data_prevista: '', categoria_id: '',
-        centro_custo_id: '', campo_id: campoId || '', origem: '', observacoes: '',
-        recorrencia: '', recorrencia_fim: '',
+        descricao: '', valor: '', data_prevista: '', categoria_id: '_none_',
+        centro_custo_id: '_none_', campo_id: campoId || '', origem: '', observacoes: '',
+        recorrencia: '_none_', recorrencia_fim: '',
       });
     }
   }, [editing, open, campoId]);
+
+  const val = (v: string) => v && v !== '_none_' ? v : null;
 
   const handleSave = () => {
     const payload = {
       descricao: form.descricao,
       valor: parseFloat(form.valor) || 0,
       data_prevista: form.data_prevista,
-      categoria_id: form.categoria_id || null,
-      centro_custo_id: form.centro_custo_id || null,
+      categoria_id: val(form.categoria_id),
+      centro_custo_id: val(form.centro_custo_id),
       campo_id: form.campo_id,
       origem: form.origem || null,
       observacoes: form.observacoes || null,
-      recorrencia: form.recorrencia || null,
+      recorrencia: val(form.recorrencia),
       recorrencia_fim: form.recorrencia_fim || null,
     };
     if (editing) {
@@ -93,7 +95,7 @@ export function ContaReceberFormDialog({ open, onOpenChange, editing }: Props) {
               <Select value={form.categoria_id} onValueChange={(v) => setForm({ ...form, categoria_id: v })}>
                 <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Nenhuma</SelectItem>
+                  <SelectItem value="_none_">Nenhuma</SelectItem>
                   {cats.map((c) => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
                 </SelectContent>
               </Select>
@@ -105,7 +107,7 @@ export function ContaReceberFormDialog({ open, onOpenChange, editing }: Props) {
               <Select value={form.centro_custo_id} onValueChange={(v) => setForm({ ...form, centro_custo_id: v })}>
                 <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Nenhum</SelectItem>
+                  <SelectItem value="_none_">Nenhum</SelectItem>
                   {(centros || []).map((c) => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
                 </SelectContent>
               </Select>
@@ -127,12 +129,12 @@ export function ContaReceberFormDialog({ open, onOpenChange, editing }: Props) {
               <Select value={form.recorrencia} onValueChange={(v) => setForm({ ...form, recorrencia: v })}>
                 <SelectTrigger><SelectValue placeholder="Nenhuma" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Nenhuma</SelectItem>
+                  <SelectItem value="_none_">Nenhuma</SelectItem>
                   {RECORRENCIA_OPTIONS.map((r) => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
-            {form.recorrencia && (
+            {form.recorrencia && form.recorrencia !== '_none_' && (
               <div>
                 <Label>Recorrência até</Label>
                 <Input type="date" value={form.recorrencia_fim} onChange={(e) => setForm({ ...form, recorrencia_fim: e.target.value })} />

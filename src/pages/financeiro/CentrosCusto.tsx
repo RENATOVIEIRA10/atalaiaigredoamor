@@ -20,15 +20,15 @@ export default function CentrosCusto() {
   const [search, setSearch] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
-  const [form, setForm] = useState({ nome: '', descricao: '', campo_id: '' });
+  const [form, setForm] = useState({ nome: '', descricao: '', campo_id: '_none_' });
 
   const filtered = (centros || []).filter((c) => c.nome.toLowerCase().includes(search.toLowerCase()));
 
-  const openNew = () => { setEditing(null); setForm({ nome: '', descricao: '', campo_id: '' }); setDialogOpen(true); };
-  const openEdit = (c: any) => { setEditing(c); setForm({ nome: c.nome, descricao: c.descricao || '', campo_id: c.campo_id || '' }); setDialogOpen(true); };
+  const openNew = () => { setEditing(null); setForm({ nome: '', descricao: '', campo_id: '_none_' }); setDialogOpen(true); };
+  const openEdit = (c: any) => { setEditing(c); setForm({ nome: c.nome, descricao: c.descricao || '', campo_id: c.campo_id || '_none_' }); setDialogOpen(true); };
 
   const handleSave = () => {
-    const payload = { nome: form.nome, descricao: form.descricao || null, campo_id: form.campo_id || null };
+    const payload = { nome: form.nome, descricao: form.descricao || null, campo_id: form.campo_id && form.campo_id !== '_none_' ? form.campo_id : null };
     if (editing) {
       update.mutate({ id: editing.id, ...payload }, { onSuccess: () => setDialogOpen(false) });
     } else {
@@ -103,7 +103,7 @@ export default function CentrosCusto() {
               <Select value={form.campo_id} onValueChange={(v) => setForm({ ...form, campo_id: v })}>
                 <SelectTrigger><SelectValue placeholder="Global (todos)" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Global</SelectItem>
+                  <SelectItem value="_none_">Global</SelectItem>
                   {(campos || []).map((c: any) => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
                 </SelectContent>
               </Select>

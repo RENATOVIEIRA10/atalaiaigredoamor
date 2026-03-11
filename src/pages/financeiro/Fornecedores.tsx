@@ -20,16 +20,16 @@ export default function Fornecedores() {
   const [search, setSearch] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
-  const [form, setForm] = useState({ nome: '', telefone: '', email: '', categoria: '', cidade: '', observacoes: '', campo_id: '' });
+  const [form, setForm] = useState({ nome: '', telefone: '', email: '', categoria: '', cidade: '', observacoes: '', campo_id: '_none_' });
 
   const filtered = (fornecedores || []).filter((f) =>
     f.nome.toLowerCase().includes(search.toLowerCase()) || f.categoria?.toLowerCase().includes(search.toLowerCase())
   );
 
-  const openNew = () => { setEditing(null); setForm({ nome: '', telefone: '', email: '', categoria: '', cidade: '', observacoes: '', campo_id: '' }); setDialogOpen(true); };
+  const openNew = () => { setEditing(null); setForm({ nome: '', telefone: '', email: '', categoria: '', cidade: '', observacoes: '', campo_id: '_none_' }); setDialogOpen(true); };
   const openEdit = (f: any) => {
     setEditing(f);
-    setForm({ nome: f.nome, telefone: f.telefone || '', email: f.email || '', categoria: f.categoria || '', cidade: f.cidade || '', observacoes: f.observacoes || '', campo_id: f.campo_id || '' });
+    setForm({ nome: f.nome, telefone: f.telefone || '', email: f.email || '', categoria: f.categoria || '', cidade: f.cidade || '', observacoes: f.observacoes || '', campo_id: f.campo_id || '_none_' });
     setDialogOpen(true);
   };
 
@@ -41,7 +41,7 @@ export default function Fornecedores() {
       categoria: form.categoria || null,
       cidade: form.cidade || null,
       observacoes: form.observacoes || null,
-      campo_id: form.campo_id || null,
+      campo_id: form.campo_id && form.campo_id !== '_none_' ? form.campo_id : null,
     };
     if (editing) {
       update.mutate({ id: editing.id, ...payload }, { onSuccess: () => setDialogOpen(false) });
@@ -123,7 +123,7 @@ export default function Fornecedores() {
               <Select value={form.campo_id} onValueChange={(v) => setForm({ ...form, campo_id: v })}>
                 <SelectTrigger><SelectValue placeholder="Nenhum (global)" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Nenhum</SelectItem>
+                  <SelectItem value="_none_">Nenhum</SelectItem>
                   {(campos || []).map((c: any) => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
                 </SelectContent>
               </Select>
