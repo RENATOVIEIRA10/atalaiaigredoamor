@@ -55,6 +55,12 @@ const Radar = lazy(() => import("./pages/Radar"));
 const Glossario = lazy(() => import("./pages/Glossario"));
 const GuiaAdmin = lazy(() => import("./pages/GuiaAdmin"));
 const PulsoVivo = lazy(() => import("./pages/PulsoVivo"));
+const FinanceiroDashboard = lazy(() => import("./pages/financeiro/FinanceiroDashboard"));
+const ContasPagar = lazy(() => import("./pages/financeiro/ContasPagar"));
+const ContasReceber = lazy(() => import("./pages/financeiro/ContasReceber"));
+const FluxoCaixa = lazy(() => import("./pages/financeiro/FluxoCaixa"));
+const CentrosCusto = lazy(() => import("./pages/financeiro/CentrosCusto"));
+const FinFornecedores = lazy(() => import("./pages/financeiro/Fornecedores"));
 
 const queryClient = new QueryClient();
 
