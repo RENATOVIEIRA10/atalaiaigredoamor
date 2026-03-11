@@ -67,9 +67,14 @@ export default function ContasReceber() {
                 </SelectContent>
               </Select>
             </div>
-            <Button onClick={() => { setEditing(null); setDialogOpen(true); }}>
-              <Plus className="h-4 w-4 mr-1" /> Novo Recebível
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setImportOpen(true)}>
+                <Upload className="h-4 w-4 mr-1" /> Importar
+              </Button>
+              <Button onClick={() => { setEditing(null); setDialogOpen(true); }}>
+                <Plus className="h-4 w-4 mr-1" /> Novo Recebível
+              </Button>
+            </div>
           </div>
           <div className="flex gap-2 items-center">
             <span className="text-xs text-muted-foreground shrink-0">Período:</span>
