@@ -357,7 +357,7 @@ export default function ConciliacaoBancaria() {
       {view === 'list' ? (
         <div className="space-y-4">
           {/* Open Finance Panel */}
-          {campoId && <OpenFinancePanel campoId={campoId} />}
+          <OpenFinancePanel campoId={campoId || ''} />
 
           {/* Header */}
           <div className="flex items-center justify-between">
