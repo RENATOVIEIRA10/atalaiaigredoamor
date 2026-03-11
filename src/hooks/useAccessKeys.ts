@@ -116,6 +116,7 @@ export function useAccessKeys() {
         operador_central: 'Operador Central',
         demo_guiada: 'Demo Guiada',
         leitura_pastoral: 'Leitura Pastoral',
+        guardioes_culto: 'Guardião de Culto',
       };
 
       // Enrich with entity names

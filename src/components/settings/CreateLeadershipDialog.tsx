@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Plus, Trash2, Network, FolderTree, ClipboardCheck, Home, Church, Shield, Crown, Heart, BookOpen, Users, User, MapPin } from 'lucide-react';
+import { Loader2, Plus, Trash2, Network, FolderTree, ClipboardCheck, Home, Church, Shield, Crown, Heart, BookOpen, Users, User, MapPin, UserCheck } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useCreateCoupleFromNames } from '@/hooks/useCreateCoupleFromNames';
 import { useRedes } from '@/hooks/useRedes';
@@ -43,6 +43,7 @@ const SCOPE_REQUIREMENTS: Record<string, { entityType: string; label: string } |
   recomeco_cadastro: null,
   recomeco_operador: null,
   recomeco_leitura: null,
+  guardioes_culto: null,
 };
 
 const ALL_FUNCTION_TYPES = [
@@ -58,6 +59,7 @@ const ALL_FUNCTION_TYPES = [
   { value: 'central_batismo_aclamacao', label: 'Central Batismo / Aclamação', group: 'ministerio' },
   { value: 'central_celulas', label: 'Central de Células', group: 'ministerio' },
   { value: 'recomeco_cadastro', label: 'Recomeço (Cadastro)', group: 'ministerio' },
+  { value: 'guardioes_culto', label: 'Guardião de Culto', group: 'ministerio' },
 ];
 
 const roleIcons: Record<string, any> = {
@@ -65,6 +67,7 @@ const roleIcons: Record<string, any> = {
   celula_leader: Home, pastor_de_campo: Church, pastor_senior_global: Crown,
   admin: Shield, lider_recomeco_central: Heart, lider_batismo_aclamacao: BookOpen,
   central_batismo_aclamacao: BookOpen, central_celulas: Users, recomeco_cadastro: Heart,
+  guardioes_culto: UserCheck,
 };
 
 function generateAccessCode(): string {

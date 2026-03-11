@@ -57,6 +57,7 @@ const FUNCTION_LABELS: Record<string, string> = {
   recomeco_operador: 'Operador Recomeço',
   recomeco_leitura: 'Leitura Pastoral',
   demo_institucional: 'Demo Institucional',
+  guardioes_culto: 'Guardião de Culto',
 };
 
 const SCOPE_TYPE_FOR_ACCESS_KEY: Record<string, string> = {
@@ -75,6 +76,7 @@ const SCOPE_TYPE_FOR_ACCESS_KEY: Record<string, string> = {
   recomeco_operador: 'recomeco_operador',
   recomeco_leitura: 'recomeco_leitura',
   demo_institucional: 'demo_institucional',
+  guardioes_culto: 'guardioes_culto',
 };
 
 /** Functions that are truly global and don't require campus */

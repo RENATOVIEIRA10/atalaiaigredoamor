@@ -246,6 +246,28 @@ const adminConfig: RoleUXConfig = {
 };
 
 // ═══════════════════════════════════════════════════════════════════
+// GUARDIÃO DE CULTO — UX de Contagem de Público
+// ═══════════════════════════════════════════════════════════════════
+const guardioesCultoConfig: RoleUXConfig = {
+  hero: {
+    greeting: 'Guardião do Culto',
+    subtitle: 'Registre a presença e os frutos do culto de hoje.',
+    contextChips: [
+      { icon: UserCheck, label: 'Contagem ativa' },
+      { icon: Activity, label: 'Tempo real' },
+      { icon: Heart, label: 'Frutos espirituais' },
+    ],
+    accentColor: 'primary',
+  },
+  sectionLabel: 'Ações do Culto',
+  quickActions: [
+    { id: 'contagem', label: 'Iniciar Contagem', icon: UserCheck, path: '/guardioes', description: 'Abrir contador de público' },
+  ],
+  priorityAlerts: [],
+  hiddenSections: ['celulas', 'financeiro', 'lideranca', 'rede-metrics', 'global-metrics'],
+};
+
+// ═══════════════════════════════════════════════════════════════════
 // DEFAULT FALLBACK
 // ═══════════════════════════════════════════════════════════════════
 const defaultConfig: RoleUXConfig = {
@@ -285,6 +307,8 @@ export function getRoleUXConfig(scopeType: string | null): RoleUXConfig {
       return pastorGlobalConfig;
     case 'admin':
       return adminConfig;
+    case 'guardioes_culto':
+      return guardioesCultoConfig;
     default:
       return defaultConfig;
   }
@@ -299,4 +323,5 @@ export const roleUXConfigs = {
   pastor: pastorGlobalConfig,
   pastor_senior_global: pastorGlobalConfig,
   admin: adminConfig,
+  guardioes_culto: guardioesCultoConfig,
 };
