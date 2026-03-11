@@ -243,8 +243,8 @@ export function useVitalidadeLideres(options: UseVitalidadeLideresOptions = {}) 
 
       const profileMap = new Map((profiles || []).map(p => [p.id, p.name]));
 
-      // Get leadership couple names
-      const coupleIds = celulas.map(c => c.leadership_couple_id).filter(Boolean) as string[];
+      // Get leadership couple names for display in vitality panels
+      const coupleIds = [...new Set(celulas.map(c => c.leadership_couple_id).filter(Boolean) as string[])];
       const coupleMap = new Map<string, string>();
 
       if (coupleIds.length > 0) {
