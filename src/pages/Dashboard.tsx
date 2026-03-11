@@ -1,4 +1,5 @@
 import { lazy, Suspense } from 'react';
+import { Navigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useRole } from '@/contexts/RoleContext';
 import { useIsPWA } from '@/hooks/useIsPWA';
@@ -30,7 +31,7 @@ export default function Dashboard() {
     isAdmin, isRedeLeader, isCoordenador, isSupervisor, isPastor,
     isDemoInstitucional, isLiderRecomecoCentral, isLiderBatismoAclamacao,
     isCentralBatismoAclamacao, isPastorSeniorGlobal, isPastorDeCampo,
-    isRecomecoCadastro, isCentralCelulas, isFinanceiroAny,
+    isRecomecoCadastro, isCentralCelulas, isFinanceiroAny, isGuardioesCulto,
   } = useRole();
   const isPWA = useIsPWA();
   const isMobile = useIsMobile();
@@ -39,6 +40,9 @@ export default function Dashboard() {
   const suspenseFallback = <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
 
   const renderDashboard = () => {
+    // ── Guardião de Culto — redirect to dedicated page ──
+    if (isGuardioesCulto) return <Navigate to="/guardioes" replace />;
+
     // ── Ministry scopes (checked first) ──
     if (isRecomecoCadastro) {
       return <Suspense fallback={suspenseFallback}><RecomecoCadastroPWA /></Suspense>;

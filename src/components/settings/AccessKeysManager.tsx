@@ -35,6 +35,7 @@ const scopeLabels: Record<string, string> = {
   operador_central: 'Operador Central',
   demo_guiada: 'Demo Guiada',
   leitura_pastoral: 'Leitura Pastoral',
+  guardioes_culto: 'Guardião de Culto',
 };
 
 // Scopes that require linking to an entity (scope_id)
@@ -51,6 +52,7 @@ const scopesWithoutEntity = [
   'operador_central',
   'demo_guiada',
   'leitura_pastoral',
+  'guardioes_culto',
 ];
 
 function generateCode(): string {
@@ -460,6 +462,7 @@ export function AccessKeysManager() {
                   <SelectItem value="operador_central">Operador Central</SelectItem>
                   <SelectItem value="demo_guiada">Demo Guiada</SelectItem>
                   <SelectItem value="leitura_pastoral">Leitura Pastoral</SelectItem>
+                  <SelectItem value="guardioes_culto">Guardião de Culto</SelectItem>
                 </SelectContent>
               </Select>
             </div>
