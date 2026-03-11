@@ -127,9 +127,8 @@ function parseCSVExtrato(text: string): any[] {
   const items: any[] = [];
   for (let i = 1; i < lines.length; i++) {
     const cols = lines[i].split(/[;,]/).map(c => c.trim());
-    const rawVal = cols[valIdx]?.replace(/[R$\s.]/g, '').replace(',', '.');
-    const valor = parseFloat(rawVal);
-    if (isNaN(valor)) continue;
+    const valor = parseCurrencyValue(cols[valIdx]);
+    if (valor === 0 && cols[valIdx]?.trim() !== '0') continue;
 
     let dateStr = cols[dateIdx] || '';
     const dm = dateStr.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
