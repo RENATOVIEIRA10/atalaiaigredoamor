@@ -73,15 +73,19 @@ export function usePastoralAlerts({ scopeType = 'all', scopeId }: UsePastoralAle
       // ═══════════════════════════════════════════════════════════
       let celulasQuery = supabase
         .from('celulas')
-        .select('id, name, coordenacao:coordenacoes(name)');
+        .select('id, name, rede_id, coordenacao:coordenacoes(name)');
 
       if (campoId) celulasQuery = celulasQuery.eq('campo_id', campoId);
       if (scopeType === 'coordenacao' && scopeId) celulasQuery = celulasQuery.eq('coordenacao_id', scopeId);
-      
+      if (scopeType === 'rede' && scopeId) celulasQuery = celulasQuery.eq('rede_id', scopeId);
+
       const { data: celulas } = await celulasQuery;
 
+      // Track celulaIds for reuse in members scope below
+      const scopedCelulaIds: string[] = (celulas || []).map(c => c.id);
+
       if (celulas && celulas.length > 0) {
-        const celulaIds = celulas.map(c => c.id);
+        const celulaIds = scopedCelulaIds;
         const threeWeeksAgo = subWeeks(today, 3);
 
         let reportsQuery = supabase
@@ -204,6 +208,9 @@ export function usePastoralAlerts({ scopeType = 'all', scopeId }: UsePastoralAle
         .or('curso_lidere.is.null,curso_lidere.eq.false');
 
       if (campoId) membersQuery = membersQuery.eq('campo_id', campoId);
+      if (scopedCelulaIds.length > 0 && scopeType !== 'all') {
+        membersQuery = membersQuery.in('celula_id', scopedCelulaIds.slice(0, 200));
+      }
 
       const { data: stagMembers } = await membersQuery;
 
