@@ -209,9 +209,9 @@ export default function ConciliacaoBancaria() {
         const items: any[] = [];
         ws.eachRow((row, num) => {
           if (num === 1) return;
-          const rawVal = String(row.getCell(valIdx + 1).value || '0').replace(/[R$\s.]/g, '').replace(',', '.');
-          const valor = parseFloat(rawVal);
-          if (isNaN(valor)) return;
+          const cellVal = row.getCell(valIdx + 1).value;
+          const valor = parseCurrencyValue(cellVal);
+          if (valor === 0) return;
 
           let dateStr = '';
           const dc = row.getCell(dateIdx + 1).value;
