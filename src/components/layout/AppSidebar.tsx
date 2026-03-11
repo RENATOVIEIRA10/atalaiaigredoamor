@@ -77,6 +77,10 @@ export function AppSidebar() {
     isDemoInstitucional,
     isPastorSeniorGlobal,
     isPastorDeCampo,
+    isFinanceiroGlobal,
+    isFinanceiroCampo,
+    isSecretariaAdmin,
+    isFinanceiroAny,
   } = useRole();
   const { isDemoActive, deactivateDemo } = useDemoMode();
   const { theme, toggleTheme } = useTheme();
