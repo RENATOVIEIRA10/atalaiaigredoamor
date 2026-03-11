@@ -50,17 +50,19 @@ export function ContaPagarFormDialog({ open, onOpenChange, editing }: Props) {
     }
   }, [editing, open, campoId]);
 
+  const val = (v: string) => v && v !== '_none_' ? v : null;
+
   const handleSave = () => {
     const payload = {
       descricao: form.descricao,
       valor: parseFloat(form.valor) || 0,
       data_vencimento: form.data_vencimento,
-      categoria_id: form.categoria_id || null,
-      fornecedor_id: form.fornecedor_id || null,
-      centro_custo_id: form.centro_custo_id || null,
+      categoria_id: val(form.categoria_id),
+      fornecedor_id: val(form.fornecedor_id),
+      centro_custo_id: val(form.centro_custo_id),
       campo_id: form.campo_id,
       observacoes: form.observacoes || null,
-      recorrencia: form.recorrencia || null,
+      recorrencia: val(form.recorrencia),
       recorrencia_fim: form.recorrencia_fim || null,
     };
     if (editing) {
