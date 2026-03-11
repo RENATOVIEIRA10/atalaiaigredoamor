@@ -157,7 +157,7 @@ export default function ContasPagar() {
                             <TableCell className="font-medium max-w-[180px] truncate">
                               {c.descricao}
                               {c.recorrencia && (
-                                <RefreshCw className="inline h-3 w-3 ml-1 text-primary opacity-60" title={`Recorrente: ${c.recorrencia}`} />
+                                <span title={`Recorrente: ${c.recorrencia}`}><RefreshCw className="inline h-3 w-3 ml-1 text-primary opacity-60" /></span>
                               )}
                             </TableCell>
                             <TableCell className="text-muted-foreground">{c.fornecedor?.nome || '—'}</TableCell>
