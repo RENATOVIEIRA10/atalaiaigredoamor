@@ -168,18 +168,16 @@ export default function ContasReceber() {
         </Card>
       </div>
       <ContaReceberFormDialog open={dialogOpen} onOpenChange={setDialogOpen} editing={editing} />
-      {campoId && (
-        <ImportFinanceiroDialog
-          open={importOpen}
-          onOpenChange={setImportOpen}
-          tipo="receber"
-          campoId={campoId}
-          onImported={() => {
-            queryClient.invalidateQueries({ queryKey: ['fin_contas_receber'] });
-            queryClient.invalidateQueries({ queryKey: ['fin_dashboard_kpis'] });
-          }}
-        />
-      )}
+      <ImportFinanceiroDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        tipo="receber"
+        campoId={campoId || ''}
+        onImported={() => {
+          queryClient.invalidateQueries({ queryKey: ['fin_contas_receber'] });
+          queryClient.invalidateQueries({ queryKey: ['fin_dashboard_kpis'] });
+        }}
+      />
     </AppLayout>
   );
 }
