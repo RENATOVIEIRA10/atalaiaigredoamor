@@ -226,7 +226,40 @@ export function AppSidebar() {
             </SidebarGroupContent>
           </SidebarGroup>
 
-          {/* Apoio */}
+          {/* Financeiro — Admin + financial roles */}
+          {(isOriginalAdmin || isFinanceiroAny) && (
+            <SidebarGroup>
+              <SidebarGroupLabel className="px-3 text-[9px] uppercase tracking-[0.2em] text-sidebar-foreground/35 font-semibold">
+                Financeiro
+              </SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {[
+                    { title: 'Painel', href: '/financeiro', icon: Wallet },
+                    { title: 'Contas a Pagar', href: '/financeiro/contas-pagar', icon: ArrowDownRight },
+                    { title: 'Contas a Receber', href: '/financeiro/contas-receber', icon: ArrowUpRight },
+                    { title: 'Fluxo de Caixa', href: '/financeiro/fluxo-caixa', icon: TrendingUp },
+                    { title: 'Centros de Custo', href: '/financeiro/centros-custo', icon: FolderOpen },
+                    { title: 'Fornecedores', href: '/financeiro/fornecedores', icon: Building2 },
+                  ].map((item) => (
+                    <SidebarMenuItem key={item.href}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={location.pathname === item.href}
+                        className="h-9 rounded-xl text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-foreground"
+                      >
+                        <NavLink to={item.href}>
+                          <item.icon className="h-4 w-4" />
+                          <span className="text-[13px] font-medium">{item.title}</span>
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          )}
+
           <SidebarGroup>
             <SidebarGroupLabel className="px-3 text-[9px] uppercase tracking-[0.2em] text-sidebar-foreground/35 font-semibold">
               Apoio
