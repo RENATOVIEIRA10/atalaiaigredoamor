@@ -289,45 +289,89 @@ export interface MatchCandidate {
   valor: number;
   data: string;
   score: number;
+  confidence: 'perfect' | 'probable' | 'weak';
+}
+
+/** Normalise text for fuzzy comparison */
+function normText(s: string): string {
+  return (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+}
+
+/** Word-level similarity between two descriptions */
+function descriptionSimilarity(a: string, b: string): number {
+  const na = normText(a);
+  const nb = normText(b);
+  if (!na || !nb) return 0;
+  if (na === nb) return 1;
+  if (na.includes(nb) || nb.includes(na)) return 0.8;
+  // Word overlap
+  const wordsA = new Set(na.split(/\s+/).filter(w => w.length > 2));
+  const wordsB = new Set(nb.split(/\s+/).filter(w => w.length > 2));
+  if (wordsA.size === 0 || wordsB.size === 0) return 0;
+  let overlap = 0;
+  for (const w of wordsA) { if (wordsB.has(w)) overlap++; }
+  return overlap / Math.max(wordsA.size, wordsB.size);
+}
+
+/** Detect internal transfers (PIX, TED, DOC between own accounts) */
+const TRANSFER_KEYWORDS = ['transf', 'ted', 'doc', 'pix enviado', 'pix recebido', 'transferencia', 'resgate', 'aplicacao'];
+function isInternalTransfer(desc: string): boolean {
+  const d = normText(desc);
+  return TRANSFER_KEYWORDS.some(k => d.includes(k));
 }
 
 export function matchExtratoItem(
   item: { descricao: string; valor: number; data: string; tipo: string },
-  contasPagar: { id: string; descricao: string; valor: number; data_vencimento: string; status: string; fornecedor?: { nome: string } | null }[],
-  contasReceber: { id: string; descricao: string; valor: number; data_prevista: string; status: string; origem?: string | null }[],
+  contasPagar: { id: string; descricao: string; valor: number; data_vencimento: string; status: string; fornecedor?: { nome: string } | null; fornecedor_id?: string | null; categoria_id?: string | null }[],
+  contasReceber: { id: string; descricao: string; valor: number; data_prevista: string; status: string; origem?: string | null; categoria_id?: string | null }[],
 ): MatchCandidate[] {
   const candidates: MatchCandidate[] = [];
   const absVal = Math.abs(item.valor);
   const itemDate = new Date(item.data).getTime();
   const descLower = item.descricao.toLowerCase();
 
+  // Skip scoring for likely internal transfers (still return them but with low scores)
+  const isTransfer = isInternalTransfer(item.descricao);
+
   // Match against contas a pagar (for debits)
   if (item.tipo === 'saida' || item.valor < 0) {
     for (const cp of contasPagar) {
       if (cp.status === 'pago') continue;
       let score = 0;
-      // Value match
+
+      // Value match (0-50 points)
       const valDiff = Math.abs(Number(cp.valor) - absVal);
       if (valDiff === 0) score += 50;
+      else if (valDiff < absVal * 0.01) score += 40;
       else if (valDiff < absVal * 0.02) score += 30;
-      else if (valDiff < absVal * 0.1) score += 10;
+      else if (valDiff < absVal * 0.05) score += 15;
+      else if (valDiff < absVal * 0.1) score += 5;
       else continue; // too different
 
-      // Date proximity
+      // Date proximity (0-30 points)
       const cpDate = new Date(cp.data_vencimento).getTime();
       const daysDiff = Math.abs(cpDate - itemDate) / (1000 * 60 * 60 * 24);
       if (daysDiff <= 1) score += 30;
+      else if (daysDiff <= 3) score += 25;
       else if (daysDiff <= 7) score += 20;
+      else if (daysDiff <= 15) score += 10;
       else if (daysDiff <= 30) score += 5;
 
-      // Description similarity
-      const cpDesc = cp.descricao.toLowerCase();
+      // Description similarity (0-20 points)
+      const sim = descriptionSimilarity(item.descricao, cp.descricao);
+      score += Math.round(sim * 15);
+      
+      // Supplier name match (0-10 points)
       const fornNome = cp.fornecedor?.nome?.toLowerCase() || '';
-      if (descLower.includes(cpDesc) || cpDesc.includes(descLower)) score += 15;
-      if (fornNome && descLower.includes(fornNome)) score += 15;
+      if (fornNome && descLower.includes(fornNome)) score += 10;
+      else if (fornNome && descriptionSimilarity(item.descricao, fornNome) > 0.5) score += 5;
 
-      if (score >= 30) {
-        candidates.push({ id: cp.id, type: 'pagar', descricao: cp.descricao, valor: Number(cp.valor), data: cp.data_vencimento, score });
+      // Penalise if likely internal transfer
+      if (isTransfer) score = Math.round(score * 0.5);
+
+      if (score >= 25) {
+        const confidence = score >= 70 ? 'perfect' : score >= 40 ? 'probable' : 'weak';
+        candidates.push({ id: cp.id, type: 'pagar', descricao: cp.descricao, valor: Number(cp.valor), data: cp.data_vencimento, score, confidence });
       }
     }
   }
@@ -337,24 +381,40 @@ export function matchExtratoItem(
     for (const cr of contasReceber) {
       if (cr.status === 'recebido') continue;
       let score = 0;
+
       const valDiff = Math.abs(Number(cr.valor) - absVal);
       if (valDiff === 0) score += 50;
+      else if (valDiff < absVal * 0.01) score += 40;
       else if (valDiff < absVal * 0.02) score += 30;
-      else if (valDiff < absVal * 0.1) score += 10;
+      else if (valDiff < absVal * 0.05) score += 15;
+      else if (valDiff < absVal * 0.1) score += 5;
       else continue;
 
       const crDate = new Date(cr.data_prevista).getTime();
       const daysDiff = Math.abs(crDate - itemDate) / (1000 * 60 * 60 * 24);
       if (daysDiff <= 1) score += 30;
+      else if (daysDiff <= 3) score += 25;
       else if (daysDiff <= 7) score += 20;
+      else if (daysDiff <= 15) score += 10;
       else if (daysDiff <= 30) score += 5;
 
-      const crDesc = cr.descricao.toLowerCase();
-      if (descLower.includes(crDesc) || crDesc.includes(descLower)) score += 15;
-      if (cr.origem && descLower.includes(cr.origem.toLowerCase())) score += 15;
+      const sim = descriptionSimilarity(item.descricao, cr.descricao);
+      score += Math.round(sim * 15);
 
-      if (score >= 30) {
-        candidates.push({ id: cr.id, type: 'receber', descricao: cr.descricao, valor: Number(cr.valor), data: cr.data_prevista, score });
+      if (cr.origem && descLower.includes(cr.origem.toLowerCase())) score += 10;
+      else if (cr.origem && descriptionSimilarity(item.descricao, cr.origem) > 0.5) score += 5;
+
+      // Recurring patterns: dízimo, oferta
+      const recurringKeywords = ['dizimo', 'oferta', 'contribuicao', 'doacao'];
+      const descNorm = normText(item.descricao);
+      const crDescNorm = normText(cr.descricao);
+      if (recurringKeywords.some(k => descNorm.includes(k) && crDescNorm.includes(k))) score += 10;
+
+      if (isTransfer) score = Math.round(score * 0.5);
+
+      if (score >= 25) {
+        const confidence = score >= 70 ? 'perfect' : score >= 40 ? 'probable' : 'weak';
+        candidates.push({ id: cr.id, type: 'receber', descricao: cr.descricao, valor: Number(cr.valor), data: cr.data_prevista, score, confidence });
       }
     }
   }
