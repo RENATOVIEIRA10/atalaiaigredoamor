@@ -879,6 +879,324 @@ export type Database = {
           },
         ]
       }
+      fin_audit_log: {
+        Row: {
+          acao: string
+          campo_id: string | null
+          created_at: string
+          detalhes: Json | null
+          id: string
+          registro_id: string
+          tabela: string
+          user_id: string
+          user_name: string | null
+        }
+        Insert: {
+          acao: string
+          campo_id?: string | null
+          created_at?: string
+          detalhes?: Json | null
+          id?: string
+          registro_id: string
+          tabela: string
+          user_id: string
+          user_name?: string | null
+        }
+        Update: {
+          acao?: string
+          campo_id?: string | null
+          created_at?: string
+          detalhes?: Json | null
+          id?: string
+          registro_id?: string
+          tabela?: string
+          user_id?: string
+          user_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fin_audit_log_campo_id_fkey"
+            columns: ["campo_id"]
+            isOneToOne: false
+            referencedRelation: "campos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fin_categorias: {
+        Row: {
+          ativa: boolean
+          created_at: string
+          id: string
+          nome: string
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          ativa?: boolean
+          created_at?: string
+          id?: string
+          nome: string
+          tipo?: string
+          updated_at?: string
+        }
+        Update: {
+          ativa?: boolean
+          created_at?: string
+          id?: string
+          nome?: string
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      fin_centros_custo: {
+        Row: {
+          ativo: boolean
+          campo_id: string | null
+          created_at: string
+          descricao: string | null
+          id: string
+          nome: string
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          campo_id?: string | null
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome: string
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          campo_id?: string | null
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fin_centros_custo_campo_id_fkey"
+            columns: ["campo_id"]
+            isOneToOne: false
+            referencedRelation: "campos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fin_contas_pagar: {
+        Row: {
+          campo_id: string
+          categoria_id: string | null
+          centro_custo_id: string | null
+          created_at: string
+          created_by: string | null
+          data_pagamento: string | null
+          data_vencimento: string
+          descricao: string
+          fornecedor_id: string | null
+          id: string
+          observacoes: string | null
+          status: string
+          updated_at: string
+          updated_by: string | null
+          valor: number
+        }
+        Insert: {
+          campo_id: string
+          categoria_id?: string | null
+          centro_custo_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_pagamento?: string | null
+          data_vencimento: string
+          descricao: string
+          fornecedor_id?: string | null
+          id?: string
+          observacoes?: string | null
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+          valor?: number
+        }
+        Update: {
+          campo_id?: string
+          categoria_id?: string | null
+          centro_custo_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_pagamento?: string | null
+          data_vencimento?: string
+          descricao?: string
+          fornecedor_id?: string | null
+          id?: string
+          observacoes?: string | null
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fin_contas_pagar_campo_id_fkey"
+            columns: ["campo_id"]
+            isOneToOne: false
+            referencedRelation: "campos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fin_contas_pagar_categoria_id_fkey"
+            columns: ["categoria_id"]
+            isOneToOne: false
+            referencedRelation: "fin_categorias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fin_contas_pagar_centro_custo_id_fkey"
+            columns: ["centro_custo_id"]
+            isOneToOne: false
+            referencedRelation: "fin_centros_custo"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fin_contas_pagar_fornecedor_id_fkey"
+            columns: ["fornecedor_id"]
+            isOneToOne: false
+            referencedRelation: "fin_fornecedores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fin_contas_receber: {
+        Row: {
+          campo_id: string
+          categoria_id: string | null
+          centro_custo_id: string | null
+          created_at: string
+          created_by: string | null
+          data_prevista: string
+          data_recebimento: string | null
+          descricao: string
+          id: string
+          observacoes: string | null
+          origem: string | null
+          status: string
+          updated_at: string
+          updated_by: string | null
+          valor: number
+        }
+        Insert: {
+          campo_id: string
+          categoria_id?: string | null
+          centro_custo_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_prevista: string
+          data_recebimento?: string | null
+          descricao: string
+          id?: string
+          observacoes?: string | null
+          origem?: string | null
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+          valor?: number
+        }
+        Update: {
+          campo_id?: string
+          categoria_id?: string | null
+          centro_custo_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_prevista?: string
+          data_recebimento?: string | null
+          descricao?: string
+          id?: string
+          observacoes?: string | null
+          origem?: string | null
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fin_contas_receber_campo_id_fkey"
+            columns: ["campo_id"]
+            isOneToOne: false
+            referencedRelation: "campos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fin_contas_receber_categoria_id_fkey"
+            columns: ["categoria_id"]
+            isOneToOne: false
+            referencedRelation: "fin_categorias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fin_contas_receber_centro_custo_id_fkey"
+            columns: ["centro_custo_id"]
+            isOneToOne: false
+            referencedRelation: "fin_centros_custo"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fin_fornecedores: {
+        Row: {
+          ativo: boolean
+          campo_id: string | null
+          categoria: string | null
+          cidade: string | null
+          created_at: string
+          email: string | null
+          id: string
+          nome: string
+          observacoes: string | null
+          telefone: string | null
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          campo_id?: string | null
+          categoria?: string | null
+          cidade?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          nome: string
+          observacoes?: string | null
+          telefone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          campo_id?: string | null
+          categoria?: string | null
+          cidade?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          nome?: string
+          observacoes?: string | null
+          telefone?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fin_fornecedores_campo_id_fkey"
+            columns: ["campo_id"]
+            isOneToOne: false
+            referencedRelation: "campos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leadership_couples: {
         Row: {
           created_at: string
