@@ -59,7 +59,7 @@ export function AtalaiaLogoHeader({ size = 'md' }: { size?: 'sm' | 'md' }) {
       <img
         src={logoAmorADois}
         alt="Rede Amor a Dois"
-        className={`${logoH} w-auto object-contain brightness-0 invert opacity-80`}
+        className={`${logoH} w-auto object-contain dark-invert-logo opacity-80`}
       />
     </div>
   );
