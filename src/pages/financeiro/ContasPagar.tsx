@@ -33,6 +33,8 @@ export default function ContasPagar() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [importOpen, setImportOpen] = useState(false);
+  const { campoId } = useDemoScope();
 
   const periodo = periodoFrom && periodoTo ? { from: periodoFrom, to: periodoTo } : undefined;
   const { data: contas, isLoading } = useFinContasPagar({ status: statusFilter, periodo });
