@@ -112,7 +112,7 @@ export function ContaPagarFormDialog({ open, onOpenChange, editing }: Props) {
               <Select value={form.centro_custo_id} onValueChange={(v) => setForm({ ...form, centro_custo_id: v })}>
                 <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Nenhum</SelectItem>
+                  <SelectItem value="_none_">Nenhum</SelectItem>
                   {(centros || []).map((c) => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
                 </SelectContent>
               </Select>
