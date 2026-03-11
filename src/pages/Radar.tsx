@@ -3,6 +3,7 @@ import { ScopeMissingGate } from '@/components/ScopeMissingGate';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useCampo } from '@/contexts/CampoContext';
+import { useRole } from '@/contexts/RoleContext';
 import { getCurrentWeekStart } from '@/hooks/useWeeklyReports';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -92,20 +93,31 @@ function AlertCard({ alert, onClick }: { alert: PastoralAlert; onClick: () => vo
 
 export default function Radar() {
   const { activeCampoId } = useCampo();
+  const { scopeType, scopeId } = useRole();
   const navigate = useNavigate();
   const weekStart = getCurrentWeekStart();
 
-  const { data: alerts, isLoading: alertsLoading } = usePastoralAlerts({ scopeType: 'all' });
+  // Determine the alert scope based on the user's current role scope
+  const alertScopeType: 'coordenacao' | 'rede' | 'all' =
+    scopeType === 'coordenacao' ? 'coordenacao' :
+    scopeType === 'rede' ? 'rede' : 'all';
+
+  const { data: alerts, isLoading: alertsLoading } = usePastoralAlerts({
+    scopeType: alertScopeType,
+    scopeId: (alertScopeType !== 'all' ? scopeId : undefined) ?? undefined,
+  });
 
   const { data: celulas, isLoading } = useQuery({
-    queryKey: ['radar-pastoral', activeCampoId],
+    queryKey: ['radar-pastoral', activeCampoId, scopeType, scopeId],
     queryFn: async () => {
-      // Get all celulas
+      // Get all celulas filtered by the current user's scope
       let cQ = supabase
         .from('celulas')
-        .select('id, name, coordenacao:coordenacoes(name, rede:redes(name))')
+        .select('id, name, coordenacao_id, rede_id, coordenacao:coordenacoes(name, rede:redes(name))')
         .order('name');
       if (activeCampoId) cQ = cQ.eq('campo_id', activeCampoId);
+      if (scopeType === 'coordenacao' && scopeId) cQ = cQ.eq('coordenacao_id', scopeId);
+      if (scopeType === 'rede' && scopeId) cQ = cQ.eq('rede_id', scopeId);
       const { data: allCelulas } = await cQ;
 
       if (!allCelulas?.length) return [];

@@ -55,6 +55,7 @@ const Radar = lazy(() => import("./pages/Radar"));
 const Glossario = lazy(() => import("./pages/Glossario"));
 const GuiaAdmin = lazy(() => import("./pages/GuiaAdmin"));
 const PulsoVivo = lazy(() => import("./pages/PulsoVivo"));
+const Guardioes = lazy(() => import("./pages/Guardioes"));
 const FinanceiroDashboard = lazy(() => import("./pages/financeiro/FinanceiroDashboard"));
 const ContasPagar = lazy(() => import("./pages/financeiro/ContasPagar"));
 const ContasReceber = lazy(() => import("./pages/financeiro/ContasReceber"));
@@ -109,6 +110,7 @@ function AppInner() {
           <Route path="/recomeco" element={<Navigate to="/recomeco-cadastro" replace />} />
           <Route path="/recomeco-cadastro" element={<ProtectedRoute><RecomecoCadastro /></ProtectedRoute>} />
           <Route path="/central-celulas" element={<ProtectedRoute><CentralCelulas /></ProtectedRoute>} />
+          <Route path="/guardioes" element={<ProtectedRoute><Guardioes /></ProtectedRoute>} />
 
           {/* Public institutional pages (no auth required) */}
           <Route path="/material" element={<MaterialInstitucional />} />
