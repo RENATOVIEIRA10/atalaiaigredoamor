@@ -455,9 +455,9 @@ export default function HomePage() {
             </span>
           </div>
           <div className="h-14 w-px bg-gold/20" />
-          <img src={logoIgrejaDoAmor} alt="Igreja do Amor" className="h-14 w-auto object-contain brightness-0 invert opacity-70" />
+          <img src={logoIgrejaDoAmor} alt="Igreja do Amor" className={`h-14 w-auto object-contain opacity-70 ${theme === 'claro' ? '' : 'brightness-0 invert'}`} />
           <div className="h-14 w-px bg-gold/20" />
-          <img src={logoRedeAmor} alt="Rede Amor a 2" className="h-14 w-auto object-contain brightness-0 invert opacity-70" />
+          <img src={logoRedeAmor} alt="Rede Amor a 2" className={`h-14 w-auto object-contain opacity-70 ${theme === 'claro' ? '' : 'brightness-0 invert'}`} />
         </motion.div>
 
         {/* Portal title */}
