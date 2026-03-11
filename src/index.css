@@ -205,6 +205,13 @@
       radial-gradient(ellipse at 50% 50%, hsl(225 44% 8% / 1) 0%, hsl(225 44% 5% / 1) 100%);
   }
 
+  .theme-claro .internal-page-bg {
+    background:
+      radial-gradient(ellipse at 15% 0%, hsl(220 65% 55% / 0.04) 0%, transparent 55%),
+      radial-gradient(ellipse at 85% 100%, hsl(42 55% 50% / 0.03) 0%, transparent 50%),
+      hsl(220 20% 97%);
+  }
+
   /* ═══ PREMIUM SURFACE — GLASSMORPHISM ═══ */
   .premium-surface {
     background: linear-gradient(
@@ -220,6 +227,14 @@
       0 24px 48px -20px hsl(225 44% 3% / 0.5);
   }
 
+  .theme-claro .premium-surface {
+    background: linear-gradient(168deg, hsl(0 0% 100% / 0.95) 0%, hsl(220 20% 98% / 0.9) 100%);
+    border: 1px solid hsl(220 14% 88% / 0.7);
+    box-shadow:
+      0 1px 3px hsl(220 14% 50% / 0.06),
+      0 8px 24px -8px hsl(220 14% 50% / 0.08);
+  }
+
   /* ═══ GLASS CARDS ═══ */
   .glass-card {
     background: hsl(225 38% 10% / 0.7);
@@ -229,6 +244,14 @@
     box-shadow:
       inset 0 1px 0 hsl(0 0% 100% / 0.02),
       0 4px 16px -2px hsl(0 0% 0% / 0.35);
+  }
+
+  .theme-claro .glass-card {
+    background: hsl(0 0% 100% / 0.85);
+    border: 1px solid hsl(220 14% 88% / 0.6);
+    box-shadow:
+      0 1px 2px hsl(220 14% 50% / 0.04),
+      0 4px 12px -2px hsl(220 14% 50% / 0.06);
   }
 
   .glass-card-strong {
@@ -244,6 +267,14 @@
       inset 0 1px 0 hsl(0 0% 100% / 0.04),
       inset 0 0 0 1px hsl(0 0% 100% / 0.015),
       0 12px 40px -8px hsl(0 0% 0% / 0.45);
+  }
+
+  .theme-claro .glass-card-strong {
+    background: linear-gradient(140deg, hsl(0 0% 100%) 0%, hsl(220 20% 98%) 100%);
+    border: 1px solid hsl(220 14% 86% / 0.7);
+    box-shadow:
+      0 1px 3px hsl(220 14% 50% / 0.05),
+      0 8px 24px -8px hsl(220 14% 50% / 0.08);
   }
 
   /* ═══ COMMAND SURFACE — Hero / Briefing blocks ═══ */
@@ -262,6 +293,14 @@
       0 16px 48px -12px hsl(225 44% 3% / 0.6);
   }
 
+  .theme-claro .command-surface {
+    background: linear-gradient(155deg, hsl(0 0% 100%) 0%, hsl(220 20% 97%) 100%);
+    border: 1px solid hsl(220 14% 86% / 0.6);
+    box-shadow:
+      0 1px 3px hsl(220 14% 50% / 0.05),
+      0 12px 32px -12px hsl(220 14% 50% / 0.08);
+  }
+
   /* ═══ CARD HOVER ═══ */
   .card-hover {
     @apply transition-all duration-300 ease-out;
@@ -274,12 +313,25 @@
       0 0 30px -6px hsl(var(--primary) / 0.1);
   }
 
+  .theme-claro .card-hover:hover {
+    box-shadow:
+      0 8px 24px -8px hsl(220 14% 50% / 0.12),
+      0 0 0 1px hsl(var(--border) / 0.5),
+      0 0 20px -6px hsl(var(--primary) / 0.06);
+  }
+
   /* ═══ GLOW EFFECTS ═══ */
   .glow-primary {
     box-shadow:
       0 0 20px hsl(var(--primary) / 0.12),
       0 0 60px hsl(var(--primary) / 0.06),
       0 4px 16px -2px hsl(0 0% 0% / 0.35);
+  }
+
+  .theme-claro .glow-primary {
+    box-shadow:
+      0 0 16px hsl(var(--primary) / 0.08),
+      0 4px 12px -2px hsl(220 14% 50% / 0.1);
   }
 
   .glow-subtle {
@@ -300,8 +352,22 @@
     background-clip: text;
   }
 
+  .theme-claro .gradient-text {
+    background: linear-gradient(135deg, hsl(var(--primary)), hsl(220 65% 42%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
   .gradient-text-gold {
     background: linear-gradient(135deg, hsl(42 55% 60%), hsl(42 50% 46%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .theme-claro .gradient-text-gold {
+    background: linear-gradient(135deg, hsl(42 50% 38%), hsl(42 45% 30%));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -330,6 +396,10 @@
   /* ═══ CINEMATIC VIGNETTE ═══ */
   .vignette {
     box-shadow: inset 0 0 120px 40px hsl(225 44% 3% / 0.5);
+  }
+
+  .theme-claro .vignette {
+    box-shadow: inset 0 0 80px 20px hsl(220 14% 50% / 0.04);
   }
 
   /* ═══ STAGGER ANIMATIONS ═══ */
