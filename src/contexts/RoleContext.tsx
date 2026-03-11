@@ -64,6 +64,9 @@ function scopeTypeToRole(scopeType: ScopeType): UserRole {
     case 'central_batismo_aclamacao': return 'central_batismo_aclamacao';
     case 'pastor_senior_global': return 'pastor_senior_global';
     case 'pastor_de_campo': return 'pastor_de_campo';
+    case 'financeiro_global': return 'financeiro_global';
+    case 'financeiro_campo': return 'financeiro_campo';
+    case 'secretaria_admin': return 'secretaria_admin';
   }
 }
 
