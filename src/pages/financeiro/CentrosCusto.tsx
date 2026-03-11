@@ -28,7 +28,7 @@ export default function CentrosCusto() {
   const openEdit = (c: any) => { setEditing(c); setForm({ nome: c.nome, descricao: c.descricao || '', campo_id: c.campo_id || '_none_' }); setDialogOpen(true); };
 
   const handleSave = () => {
-    const payload = { nome: form.nome, descricao: form.descricao || null, campo_id: form.campo_id || null };
+    const payload = { nome: form.nome, descricao: form.descricao || null, campo_id: form.campo_id && form.campo_id !== '_none_' ? form.campo_id : null };
     if (editing) {
       update.mutate({ id: editing.id, ...payload }, { onSuccess: () => setDialogOpen(false) });
     } else {
