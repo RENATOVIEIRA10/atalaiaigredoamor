@@ -95,7 +95,7 @@ export function ContaReceberFormDialog({ open, onOpenChange, editing }: Props) {
               <Select value={form.categoria_id} onValueChange={(v) => setForm({ ...form, categoria_id: v })}>
                 <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Nenhuma</SelectItem>
+                  <SelectItem value="_none_">Nenhuma</SelectItem>
                   {cats.map((c) => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
                 </SelectContent>
               </Select>
