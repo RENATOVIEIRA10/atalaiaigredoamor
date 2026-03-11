@@ -31,7 +31,7 @@ export function OpenFinancePanel({ campoId }: Props) {
   // Generate connect token and open widget
   const handleConnect = useCallback(async () => {
     try {
-      const token = await getConnectToken.mutateAsync();
+      const token = await getConnectToken.mutateAsync(undefined);
       setConnectToken(token);
       setConnectOpen(true);
     } catch (e) {
