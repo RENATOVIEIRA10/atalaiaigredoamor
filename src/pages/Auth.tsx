@@ -131,9 +131,9 @@ export default function Auth() {
             <span className="text-[9px] font-semibold tracking-[0.25em] uppercase text-primary/80">ATALAIA</span>
           </div>
           <div className="h-12 w-px bg-border/20" />
-          <img src={logoIgrejaDoAmor} alt="Igreja do Amor" className="h-12 w-auto object-contain brightness-0 invert opacity-80" />
+          <img src={logoIgrejaDoAmor} alt="Igreja do Amor" className="h-12 w-auto object-contain opacity-80 dark-invert-logo" />
           <div className="h-12 w-px bg-border/20" />
-          <img src={logoRedeAmor} alt="Rede Amor a 2" className="h-12 w-auto object-contain brightness-0 invert opacity-80" />
+          <img src={logoRedeAmor} alt="Rede Amor a 2" className="h-12 w-auto object-contain opacity-80 dark-invert-logo" />
         </div>
 
         {/* Title */}

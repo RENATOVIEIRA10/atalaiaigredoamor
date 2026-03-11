@@ -433,7 +433,7 @@ export default function HomePage() {
         className="absolute top-4 right-4 z-20 flex items-center gap-2 px-3.5 py-2 rounded-full text-xs font-medium transition-all duration-200 hover:scale-105 bg-secondary/50 text-muted-foreground border border-gold/10 hover:border-gold/25"
       >
         <ThemeIcon className="h-4 w-4 text-gold" />
-        {theme === 'padrao' ? 'Tema Padrão' : 'Tema Amor'}
+        {theme === 'padrao' ? 'Padrão' : theme === 'claro' ? 'Claro' : 'Amor'}
       </button>
 
       <div className="relative z-10 w-full max-w-lg px-5 py-8 flex flex-col items-center">
@@ -455,9 +455,9 @@ export default function HomePage() {
             </span>
           </div>
           <div className="h-14 w-px bg-gold/20" />
-          <img src={logoIgrejaDoAmor} alt="Igreja do Amor" className="h-14 w-auto object-contain brightness-0 invert opacity-70" />
+          <img src={logoIgrejaDoAmor} alt="Igreja do Amor" className="h-14 w-auto object-contain opacity-70 dark-invert-logo" />
           <div className="h-14 w-px bg-gold/20" />
-          <img src={logoRedeAmor} alt="Rede Amor a 2" className="h-14 w-auto object-contain brightness-0 invert opacity-70" />
+          <img src={logoRedeAmor} alt="Rede Amor a 2" className="h-14 w-auto object-contain opacity-70 dark-invert-logo" />
         </motion.div>
 
         {/* Portal title */}
