@@ -166,6 +166,15 @@ export default function ContasReceber() {
         </Card>
       </div>
       <ContaReceberFormDialog open={dialogOpen} onOpenChange={setDialogOpen} editing={editing} />
+      {campoId && (
+        <ImportFinanceiroDialog
+          open={importOpen}
+          onOpenChange={setImportOpen}
+          tipo="receber"
+          campoId={campoId}
+          onImported={() => {}}
+        />
+      )}
     </AppLayout>
   );
 }
