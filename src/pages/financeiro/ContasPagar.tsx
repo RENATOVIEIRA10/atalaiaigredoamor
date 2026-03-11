@@ -103,6 +103,9 @@ export default function ContasPagar() {
                   Pagar {selected.size}
                 </Button>
               )}
+              <Button variant="outline" onClick={() => setImportOpen(true)}>
+                <Upload className="h-4 w-4 mr-1" /> Importar
+              </Button>
               <Button onClick={() => { setEditing(null); setDialogOpen(true); }} className="shrink-0">
                 <Plus className="h-4 w-4 mr-1" /> Nova Conta
               </Button>
