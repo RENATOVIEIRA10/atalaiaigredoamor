@@ -6,7 +6,7 @@ import {
   Check, X, SendHorizontal, Share2,
   CheckCircle, AlertCircle, AlertTriangle, PauseCircle,
   Network, FolderTree, ClipboardCheck, Database, Moon, Heart,
-  LogOut, Search, FileDown, Loader2, Lock,
+  LogOut, Search, FileDown, Loader2, Lock, UserCheck,
   type LucideIcon
 } from 'lucide-react';
 
@@ -24,6 +24,7 @@ export const roleIcons: Record<string, LucideIcon> = {
   supervisor: Shield,
   celula_leader: Home,
   membro: User,
+  guardioes_culto: UserCheck,
 };
 
 // ========================================

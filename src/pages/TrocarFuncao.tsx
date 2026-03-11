@@ -216,6 +216,12 @@ export default function TrocarFuncao() {
       return;
     }
 
+    if (scopeType === 'guardioes_culto') {
+      setScopeAccess(scopeType, link.scope_id, link.access_key_id);
+      navigate('/guardioes');
+      return;
+    }
+
     if (scopeType === 'pastor') {
       setPendingMatch(link);
       setShowRedeSelect(true);

@@ -10,6 +10,8 @@ export interface CultoContagem {
   total_presentes: number;
   status: 'em_andamento' | 'encerrado';
   guardiao_user_id: string | null;
+  guardiao_nome: string | null;
+  culto_titulo: string | null;
   novas_vidas_count: number;
   decisoes_espirituais: number;
   batismos_agendados: number;
@@ -26,6 +28,8 @@ export interface SaveContagemPayload {
   total_presentes: number;
   status: 'em_andamento' | 'encerrado';
   guardiao_user_id: string | null;
+  guardiao_nome?: string | null;
+  culto_titulo?: string | null;
   novas_vidas_count: number;
   decisoes_espirituais: number;
   batismos_agendados: number;

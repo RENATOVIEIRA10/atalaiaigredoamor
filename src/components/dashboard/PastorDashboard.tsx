@@ -46,6 +46,7 @@ import { SectionLabel } from './SectionLabel';
 import { LeadershipRecommendationsSection } from './LeadershipRecommendationsSection';
 import { CuidadoEspiritualConsolidado } from './CuidadoEspiritualPanel';
 import { VitalidadeCascataPanel } from './VitalidadeRelacionalPanel';
+import { GuardioesPanel } from './GuardioesPanel';
 
 export function PastorDashboard() {
   const { isPastorSeniorGlobal } = useRole();
@@ -133,6 +134,7 @@ function CampoPastorDashboard() {
           <TabsTrigger value="visao-geral">Visão Geral</TabsTrigger>
           <TabsTrigger value="movimento">Movimento do Reino</TabsTrigger>
           <TabsTrigger value="pastoral">Visão Pastoral e Cuidado</TabsTrigger>
+          <TabsTrigger value="cultos">Cultos</TabsTrigger>
         </TabsList>
 
         <TabsContent value="visao-geral" className="space-y-6">
@@ -334,6 +336,10 @@ function CampoPastorDashboard() {
           </div>
         </TabsContent>
           </Tabs>
+        </TabsContent>
+
+        <TabsContent value="cultos" className="space-y-6">
+          <GuardioesPanel />
         </TabsContent>
       </Tabs>
       </FadeIn>
