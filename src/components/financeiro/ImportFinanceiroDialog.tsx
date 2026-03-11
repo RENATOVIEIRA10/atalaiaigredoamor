@@ -130,8 +130,8 @@ export function ImportFinanceiroDialog({ open, onOpenChange, tipo, campoId, onIm
 
           if (descIdx === -1 || valIdx === -1) continue;
 
-          const rawVal = cols[valIdx]?.replace(/[R$\s.]/g, '').replace(',', '.');
-          const valor = parseFloat(rawVal);
+          const rawVal = cols[valIdx];
+          const valor = parseCurrencyValue(rawVal);
           if (isNaN(valor) || valor <= 0) continue;
 
           let dateStr = cols[dateIdx] || new Date().toISOString().split('T')[0];
