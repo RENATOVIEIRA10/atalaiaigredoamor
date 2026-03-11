@@ -61,6 +61,7 @@ const ContasReceber = lazy(() => import("./pages/financeiro/ContasReceber"));
 const FluxoCaixa = lazy(() => import("./pages/financeiro/FluxoCaixa"));
 const CentrosCusto = lazy(() => import("./pages/financeiro/CentrosCusto"));
 const FinFornecedores = lazy(() => import("./pages/financeiro/Fornecedores"));
+const ConciliacaoBancaria = lazy(() => import("./pages/financeiro/ConciliacaoBancaria"));
 
 const queryClient = new QueryClient();
 
@@ -127,6 +128,7 @@ function AppInner() {
           <Route path="/financeiro/fluxo-caixa" element={<RoleProtectedRoute><FluxoCaixa /></RoleProtectedRoute>} />
           <Route path="/financeiro/centros-custo" element={<RoleProtectedRoute><CentrosCusto /></RoleProtectedRoute>} />
           <Route path="/financeiro/fornecedores" element={<RoleProtectedRoute><FinFornecedores /></RoleProtectedRoute>} />
+          <Route path="/financeiro/conciliacao" element={<RoleProtectedRoute><ConciliacaoBancaria /></RoleProtectedRoute>} />
 
           <Route path="*" element={<NotFound />} />
         </Routes>
