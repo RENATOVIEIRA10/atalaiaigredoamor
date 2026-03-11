@@ -120,6 +120,14 @@ function AppInner() {
           <Route path="/guia-admin" element={<RoleProtectedRoute><GuiaAdmin /></RoleProtectedRoute>} />
           <Route path="/pulso-vivo" element={<RoleProtectedRoute><PulsoVivo /></RoleProtectedRoute>} />
 
+          {/* Financeiro module */}
+          <Route path="/financeiro" element={<RoleProtectedRoute><FinanceiroDashboard /></RoleProtectedRoute>} />
+          <Route path="/financeiro/contas-pagar" element={<RoleProtectedRoute><ContasPagar /></RoleProtectedRoute>} />
+          <Route path="/financeiro/contas-receber" element={<RoleProtectedRoute><ContasReceber /></RoleProtectedRoute>} />
+          <Route path="/financeiro/fluxo-caixa" element={<RoleProtectedRoute><FluxoCaixa /></RoleProtectedRoute>} />
+          <Route path="/financeiro/centros-custo" element={<RoleProtectedRoute><CentrosCusto /></RoleProtectedRoute>} />
+          <Route path="/financeiro/fornecedores" element={<RoleProtectedRoute><FinFornecedores /></RoleProtectedRoute>} />
+
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
