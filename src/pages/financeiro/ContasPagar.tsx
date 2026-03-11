@@ -216,6 +216,18 @@ export default function ContasPagar() {
       </div>
 
       <ContaPagarFormDialog open={dialogOpen} onOpenChange={setDialogOpen} editing={editing} />
+      {campoId && (
+        <ImportFinanceiroDialog
+          open={importOpen}
+          onOpenChange={setImportOpen}
+          tipo="pagar"
+          campoId={campoId}
+          onImported={() => {
+            const qc = (window as any).__queryClient;
+            // invalidation handled by re-render
+          }}
+        />
+      )}
     </AppLayout>
   );
 }
