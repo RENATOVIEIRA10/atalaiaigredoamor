@@ -36,6 +36,7 @@ export default function ContasPagar() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [importOpen, setImportOpen] = useState(false);
   const { campoId } = useDemoScope();
+  const queryClient = useQueryClient();
 
   const periodo = periodoFrom && periodoTo ? { from: periodoFrom, to: periodoTo } : undefined;
   const { data: contas, isLoading } = useFinContasPagar({ status: statusFilter, periodo });
