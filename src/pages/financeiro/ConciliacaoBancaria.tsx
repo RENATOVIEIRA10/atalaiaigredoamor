@@ -28,6 +28,7 @@ import {
 import * as ExcelJS from 'exceljs';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
+import { OpenFinancePanel } from '@/components/financeiro/OpenFinancePanel';
 
 function formatBRL(v: number) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
@@ -355,6 +356,9 @@ export default function ConciliacaoBancaria() {
     <AppLayout title="Conciliação Bancária">
       {view === 'list' ? (
         <div className="space-y-4">
+          {/* Open Finance Panel */}
+          {campoId && <OpenFinancePanel campoId={campoId} />}
+
           {/* Header */}
           <div className="flex items-center justify-between">
             <p className="text-sm text-muted-foreground">

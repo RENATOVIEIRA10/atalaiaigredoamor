@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.parse-financial]
 verify_jwt = false
+
+[functions.open-finance-proxy]
+verify_jwt = false

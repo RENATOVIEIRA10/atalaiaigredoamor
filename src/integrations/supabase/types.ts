@@ -923,6 +923,62 @@ export type Database = {
           },
         ]
       }
+      fin_bank_connections: {
+        Row: {
+          access_token_encrypted: string
+          account_number: string | null
+          account_type: string | null
+          bank_name: string | null
+          campo_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          last_sync_at: string | null
+          pluggy_item_id: string
+          status: string
+          sync_error: string | null
+          updated_at: string
+        }
+        Insert: {
+          access_token_encrypted: string
+          account_number?: string | null
+          account_type?: string | null
+          bank_name?: string | null
+          campo_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          last_sync_at?: string | null
+          pluggy_item_id: string
+          status?: string
+          sync_error?: string | null
+          updated_at?: string
+        }
+        Update: {
+          access_token_encrypted?: string
+          account_number?: string | null
+          account_type?: string | null
+          bank_name?: string | null
+          campo_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          last_sync_at?: string | null
+          pluggy_item_id?: string
+          status?: string
+          sync_error?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fin_bank_connections_campo_id_fkey"
+            columns: ["campo_id"]
+            isOneToOne: false
+            referencedRelation: "campos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fin_categorias: {
         Row: {
           ativa: boolean
