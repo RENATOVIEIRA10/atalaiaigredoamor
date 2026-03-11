@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,9 +10,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { useFinContasPagar, useFinContaPagarMutations } from '@/hooks/useFinanceiro';
 import { ContaPagarFormDialog } from '@/components/financeiro/ContaPagarFormDialog';
-import { Plus, Search, CheckCircle, Trash2, Edit, AlertTriangle, Receipt, Copy, RefreshCw, CheckCheck } from 'lucide-react';
+import { ImportFinanceiroDialog } from '@/components/financeiro/ImportFinanceiroDialog';
+import { Plus, Search, CheckCircle, Trash2, Edit, AlertTriangle, Receipt, Copy, RefreshCw, CheckCheck, Upload } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
+import { useDemoScope } from '@/hooks/useDemoScope';
 
 function formatBRL(value: number) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -31,6 +34,9 @@ export default function ContasPagar() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [importOpen, setImportOpen] = useState(false);
+  const { campoId } = useDemoScope();
+  const queryClient = useQueryClient();
 
   const periodo = periodoFrom && periodoTo ? { from: periodoFrom, to: periodoTo } : undefined;
   const { data: contas, isLoading } = useFinContasPagar({ status: statusFilter, periodo });
@@ -99,6 +105,9 @@ export default function ContasPagar() {
                   Pagar {selected.size}
                 </Button>
               )}
+              <Button variant="outline" onClick={() => setImportOpen(true)}>
+                <Upload className="h-4 w-4 mr-1" /> Importar
+              </Button>
               <Button onClick={() => { setEditing(null); setDialogOpen(true); }} className="shrink-0">
                 <Plus className="h-4 w-4 mr-1" /> Nova Conta
               </Button>
@@ -209,6 +218,19 @@ export default function ContasPagar() {
       </div>
 
       <ContaPagarFormDialog open={dialogOpen} onOpenChange={setDialogOpen} editing={editing} />
+      {campoId && (
+        <ImportFinanceiroDialog
+          open={importOpen}
+          onOpenChange={setImportOpen}
+          tipo="pagar"
+          campoId={campoId}
+          onImported={() => {
+            queryClient.invalidateQueries({ queryKey: ['fin_contas_pagar'] });
+            queryClient.invalidateQueries({ queryKey: ['fin_dashboard_kpis'] });
+            queryClient.invalidateQueries({ queryKey: ['fin_analytics'] });
+          }}
+        />
+      )}
     </AppLayout>
   );
 }

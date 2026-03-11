@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,9 +9,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useFinContasReceber, useFinContaReceberMutations } from '@/hooks/useFinanceiro';
 import { ContaReceberFormDialog } from '@/components/financeiro/ContaReceberFormDialog';
-import { Plus, Search, CheckCircle, Trash2, Edit, ArrowUpRight, Copy, RefreshCw } from 'lucide-react';
+import { ImportFinanceiroDialog } from '@/components/financeiro/ImportFinanceiroDialog';
+import { Plus, Search, CheckCircle, Trash2, Edit, ArrowUpRight, Copy, RefreshCw, Upload } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
+import { useDemoScope } from '@/hooks/useDemoScope';
 
 function formatBRL(value: number) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -29,6 +32,9 @@ export default function ContasReceber() {
   const [periodoTo, setPeriodoTo] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
+  const [importOpen, setImportOpen] = useState(false);
+  const { campoId } = useDemoScope();
+  const queryClient = useQueryClient();
 
   const periodo = periodoFrom && periodoTo ? { from: periodoFrom, to: periodoTo } : undefined;
   const { data: contas, isLoading } = useFinContasReceber({ status: statusFilter, periodo });
@@ -63,9 +69,14 @@ export default function ContasReceber() {
                 </SelectContent>
               </Select>
             </div>
-            <Button onClick={() => { setEditing(null); setDialogOpen(true); }}>
-              <Plus className="h-4 w-4 mr-1" /> Novo Recebível
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setImportOpen(true)}>
+                <Upload className="h-4 w-4 mr-1" /> Importar
+              </Button>
+              <Button onClick={() => { setEditing(null); setDialogOpen(true); }}>
+                <Plus className="h-4 w-4 mr-1" /> Novo Recebível
+              </Button>
+            </div>
           </div>
           <div className="flex gap-2 items-center">
             <span className="text-xs text-muted-foreground shrink-0">Período:</span>
@@ -157,6 +168,18 @@ export default function ContasReceber() {
         </Card>
       </div>
       <ContaReceberFormDialog open={dialogOpen} onOpenChange={setDialogOpen} editing={editing} />
+      {campoId && (
+        <ImportFinanceiroDialog
+          open={importOpen}
+          onOpenChange={setImportOpen}
+          tipo="receber"
+          campoId={campoId}
+          onImported={() => {
+            queryClient.invalidateQueries({ queryKey: ['fin_contas_receber'] });
+            queryClient.invalidateQueries({ queryKey: ['fin_dashboard_kpis'] });
+          }}
+        />
+      )}
     </AppLayout>
   );
 }
