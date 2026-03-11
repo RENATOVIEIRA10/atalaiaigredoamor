@@ -51,20 +51,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Detect if running on Lovable infrastructure (where /~oauth routes exist)
+  const isLovableHost = window.location.hostname.endsWith('.lovable.app');
+
   async function signInWithGoogle() {
-    const { lovable } = await import('@/integrations/lovable/index');
-    const { error } = await lovable.auth.signInWithOAuth('google', {
-      redirect_uri: window.location.origin,
-    });
-    if (error) throw error;
+    if (isLovableHost) {
+      const { lovable } = await import('@/integrations/lovable/index');
+      const { error } = await lovable.auth.signInWithOAuth('google', {
+        redirect_uri: window.location.origin,
+      });
+      if (error) throw error;
+    } else {
+      // On Vercel or other hosts, use Supabase native OAuth
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin + '/auth',
+        },
+      });
+      if (error) throw error;
+    }
   }
 
   async function signInWithApple() {
-    const { lovable } = await import('@/integrations/lovable/index');
-    const { error } = await lovable.auth.signInWithOAuth('apple', {
-      redirect_uri: window.location.origin,
-    });
-    if (error) throw error;
+    if (isLovableHost) {
+      const { lovable } = await import('@/integrations/lovable/index');
+      const { error } = await lovable.auth.signInWithOAuth('apple', {
+        redirect_uri: window.location.origin,
+      });
+      if (error) throw error;
+    } else {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'apple',
+        options: {
+          redirectTo: window.location.origin + '/auth',
+        },
+      });
+      if (error) throw error;
+    }
   }
 
   async function signOut() {
