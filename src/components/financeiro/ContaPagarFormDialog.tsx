@@ -134,7 +134,7 @@ export function ContaPagarFormDialog({ open, onOpenChange, editing }: Props) {
               <Select value={form.recorrencia} onValueChange={(v) => setForm({ ...form, recorrencia: v })}>
                 <SelectTrigger><SelectValue placeholder="Nenhuma" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Nenhuma</SelectItem>
+                  <SelectItem value="_none_">Nenhuma</SelectItem>
                   {RECORRENCIA_OPTIONS.map((r) => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}
                 </SelectContent>
               </Select>
