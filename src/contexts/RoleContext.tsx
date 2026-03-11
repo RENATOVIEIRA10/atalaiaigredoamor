@@ -166,6 +166,10 @@ export function RoleProvider({ children }: { children: ReactNode }) {
     isCentralBatismoAclamacao: selectedRole === 'central_batismo_aclamacao',
     isPastorSeniorGlobal: selectedRole === 'pastor_senior_global',
     isPastorDeCampo: selectedRole === 'pastor_de_campo',
+    isFinanceiroGlobal: selectedRole === 'financeiro_global',
+    isFinanceiroCampo: selectedRole === 'financeiro_campo',
+    isSecretariaAdmin: selectedRole === 'secretaria_admin',
+    isFinanceiroAny: selectedRole === 'financeiro_global' || selectedRole === 'financeiro_campo' || selectedRole === 'secretaria_admin',
   };
 
   return (
