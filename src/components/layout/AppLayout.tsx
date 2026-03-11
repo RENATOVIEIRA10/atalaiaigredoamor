@@ -80,7 +80,10 @@ export function AppLayout({ children, title }: AppLayoutProps) {
           <main
             ref={scrollRef}
             className="flex-1 overflow-y-auto overscroll-y-contain p-4 md:p-5 internal-page-bg pwa-scroll-area"
-            style={{ paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))' }}
+            style={{
+              paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))',
+              WebkitOverflowScrolling: 'touch',
+            }}
           >
             <PullToRefresh scrollRef={scrollRef} />
             <AnimatePresence mode="wait">

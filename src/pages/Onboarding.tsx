@@ -130,7 +130,15 @@ export default function Onboarding() {
   const redeName = activeRede?.name;
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-start relative overflow-y-auto bg-background">
+    <div
+      className="flex flex-col items-center justify-start relative bg-background"
+      style={{
+        minHeight: '100dvh',
+        overflowY: 'auto',
+        WebkitOverflowScrolling: 'touch',
+        paddingBottom: 'calc(24px + env(safe-area-inset-bottom, 0px))',
+      }}
+    >
       {/* Ambient glow */}
       <div
         className="absolute inset-0 pointer-events-none"

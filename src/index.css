@@ -333,10 +333,16 @@
 
 /* ═══ PWA STANDALONE ═══ */
 @media all and (display-mode: standalone) {
-  html, body, #root {
+  html, body {
     height: 100dvh;
     height: -webkit-fill-available;
     overflow: hidden;
+  }
+  #root {
+    height: 100dvh;
+    height: -webkit-fill-available;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   body {
