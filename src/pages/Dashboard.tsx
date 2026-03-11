@@ -20,6 +20,7 @@ import { Loader2 } from 'lucide-react';
 const LiderRecomecoCentralDashboard = lazy(() => import('@/components/dashboard/LiderRecomecoCentralDashboard'));
 const EventLeaderDashboard = lazy(() => import('@/components/dashboard/EventLeaderDashboard'));
 const CentralBatismoDashboard = lazy(() => import('@/components/dashboard/CentralBatismoDashboard'));
+const FinanceiroDashboardLazy = lazy(() => import('@/pages/financeiro/FinanceiroDashboard'));
 
 // PWA wrappers for ministry dashboards
 const RecomecoCadastroPWA = lazy(() => import('@/pages/RecomecoCadastro'));
