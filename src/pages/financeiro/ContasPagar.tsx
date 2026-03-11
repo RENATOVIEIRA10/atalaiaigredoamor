@@ -225,8 +225,9 @@ export default function ContasPagar() {
           tipo="pagar"
           campoId={campoId}
           onImported={() => {
-            const qc = (window as any).__queryClient;
-            // invalidation handled by re-render
+            queryClient.invalidateQueries({ queryKey: ['fin_contas_pagar'] });
+            queryClient.invalidateQueries({ queryKey: ['fin_dashboard_kpis'] });
+            queryClient.invalidateQueries({ queryKey: ['fin_analytics'] });
           }}
         />
       )}
