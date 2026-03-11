@@ -20,7 +20,7 @@ export default function Fornecedores() {
   const [search, setSearch] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
-  const [form, setForm] = useState({ nome: '', telefone: '', email: '', categoria: '', cidade: '', observacoes: '', campo_id: '' });
+  const [form, setForm] = useState({ nome: '', telefone: '', email: '', categoria: '', cidade: '', observacoes: '', campo_id: '_none_' });
 
   const filtered = (fornecedores || []).filter((f) =>
     f.nome.toLowerCase().includes(search.toLowerCase()) || f.categoria?.toLowerCase().includes(search.toLowerCase())
