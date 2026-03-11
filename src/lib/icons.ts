@@ -122,6 +122,7 @@ export const roleLabels: Record<string, string> = {
   financeiro_global: 'Financeiro Global',
   financeiro_campo: 'Financeiro de Campo',
   secretaria_admin: 'Secretaria Administrativa',
+  guardioes_culto: 'Guardiões de Culto',
 };
 
 // ========================================

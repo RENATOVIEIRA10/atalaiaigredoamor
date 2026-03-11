@@ -83,6 +83,7 @@ export function AppSidebar() {
     isFinanceiroCampo,
     isSecretariaAdmin,
     isFinanceiroAny,
+    isGuardioesCulto,
   } = useRole();
   const { isDemoActive, deactivateDemo } = useDemoMode();
   const { theme, toggleTheme } = useTheme();
@@ -130,6 +131,9 @@ export function AppSidebar() {
       { title: 'Seed Run', href: '/configuracoes?tab=seedrun', icon: PlayCircle },
       { title: 'Configurações', href: '/configuracoes', icon: Settings },
     ],
+    guardioes_culto: [
+      { title: 'Contagem', href: '/guardioes', icon: UserCheck },
+    ],
     default: [
       { title: 'Início', href: '/home', icon: LayoutDashboard },
       { title: 'Dashboard', href: '/dashboard', icon: Activity },
@@ -137,6 +141,7 @@ export function AppSidebar() {
   };
 
   const mainItems = (() => {
+    if (isGuardioesCulto) return roleNavItems.guardioes_culto;
     if (isDemoInstitucional) return [{ title: 'Início', href: '/home', icon: LayoutDashboard }];
     if (isPastorSeniorGlobal) return roleNavItems.pastor_senior_global;
     if (isPastorDeCampo) return roleNavItems.pastor_de_campo;
