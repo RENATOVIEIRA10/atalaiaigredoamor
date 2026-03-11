@@ -13,6 +13,7 @@ import { RedeProvider } from "@/contexts/RedeContext";
 import { CampoProvider } from "@/contexts/CampoContext";
 import { RoleProtectedRoute } from "@/components/RoleProtectedRoute";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { DemoBar } from "@/components/demo/DemoBar";
 import { UpdateBanner } from "@/components/pwa/UpdateBanner";
 import { TorreControlePanel } from "@/components/torre/TorreControlePanel";
@@ -88,7 +89,7 @@ function AppInner() {
           <Route path="/auth" element={<Auth />} />
 
           {/* Home = code entry (requires Supabase Auth, no role) */}
-          <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+          <Route path="/" element={<ErrorBoundary><ProtectedRoute><Home /></ProtectedRoute></ErrorBoundary>} />
           <Route path="/trocar-funcao" element={<ProtectedRoute><TrocarFuncao /></ProtectedRoute>} />
           <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
 
