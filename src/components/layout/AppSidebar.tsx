@@ -32,6 +32,7 @@ import {
   FolderOpen,
   ArrowDownRight,
   ArrowUpRight,
+  Landmark,
 } from 'lucide-react';
 import logoIgreja from '@/assets/logo-igreja-do-amor-new.png';
 import logoRedeAmor from '@/assets/logo-amor-a-dois-new.png';
