@@ -23,7 +23,7 @@ export function MobileBottomNav() {
     isSupervisor, isCoordenador, isRedeLeader, isCelulaLeader, isAdmin, isPastor,
     isDemoInstitucional, isPastorSeniorGlobal, isPastorDeCampo,
     isRecomecoCadastro, isCentralCelulas, isLiderRecomecoCentral,
-    isLiderBatismoAclamacao, isCentralBatismoAclamacao,
+    isLiderBatismoAclamacao, isCentralBatismoAclamacao, isGuardioesCulto,
   } = useRole();
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -33,7 +33,12 @@ export function MobileBottomNav() {
   const isCellLeaderOnly = isCelulaLeader && !isSupervisor && !isCoordenador && !isRedeLeader && !isAdmin && !isPastor;
 
   // ── Ministry scopes ──
-  if (isRecomecoCadastro) {
+  if (isGuardioesCulto) {
+    navItems = [
+      { label: 'Contagem', icon: ClipboardCheck, path: '/guardioes' },
+      { label: 'Histórico', icon: History, path: '/guardioes?tab=historico' },
+    ];
+  } else if (isRecomecoCadastro) {
     navItems = [
       { label: 'Cadastrar', icon: UserPlus, path: '/dashboard' },
       { label: 'Minhas', icon: ListChecks, path: '/dashboard?tab=minhas' },
