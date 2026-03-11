@@ -37,6 +37,58 @@ function formatBRL(v: number) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
 }
 
+/**
+ * Smart currency parser that handles both Brazilian (1.234,56) and international (1,234.56) formats.
+ * Also handles raw numbers returned by Excel libraries.
+ */
+function parseCurrencyValue(raw: unknown): number {
+  // If already a number, return directly
+  if (typeof raw === 'number') return raw;
+  
+  let str = String(raw || '0').trim();
+  
+  // Remove currency symbols, spaces
+  str = str.replace(/[R$\s]/g, '');
+  
+  // Remove leading/trailing non-numeric chars except digits, dots, commas, minus
+  str = str.replace(/^[^0-9,.\-]+|[^0-9,.]+$/g, '');
+  
+  if (!str) return 0;
+  
+  // Detect format by analyzing dots and commas
+  const dots = (str.match(/\./g) || []).length;
+  const commas = (str.match(/,/g) || []).length;
+  const lastDot = str.lastIndexOf('.');
+  const lastComma = str.lastIndexOf(',');
+  
+  if (commas === 1 && dots === 0) {
+    // "296,00" or "1296,45" → Brazilian decimal
+    str = str.replace(',', '.');
+  } else if (commas === 0 && dots === 1) {
+    // "296.00" or "1296.45" → international decimal (keep as is)
+  } else if (commas === 1 && dots >= 1 && lastComma > lastDot) {
+    // "1.296,45" → Brazilian: dots are thousands, comma is decimal
+    str = str.replace(/\./g, '').replace(',', '.');
+  } else if (dots === 1 && commas >= 1 && lastDot > lastComma) {
+    // "1,296.45" → International: commas are thousands, dot is decimal
+    str = str.replace(/,/g, '');
+  } else if (commas > 1 && dots === 0) {
+    // "1,234,567" → commas as thousands, no decimal
+    str = str.replace(/,/g, '');
+  } else if (dots > 1 && commas === 0) {
+    // "1.234.567" → dots as thousands, no decimal
+    str = str.replace(/\./g, '');
+  } else if (commas === 0 && dots === 0) {
+    // Plain integer "29600"
+  } else {
+    // Ambiguous — try Brazilian convention (comma = decimal)
+    str = str.replace(/\./g, '').replace(',', '.');
+  }
+  
+  const val = parseFloat(str);
+  return isNaN(val) ? 0 : val;
+}
+
 export function ImportFinanceiroDialog({ open, onOpenChange, tipo, campoId, onImported }: Props) {
   const [tab, setTab] = useState('planilha');
   const [items, setItems] = useState<ImportItem[]>([]);
@@ -78,8 +130,8 @@ export function ImportFinanceiroDialog({ open, onOpenChange, tipo, campoId, onIm
 
           if (descIdx === -1 || valIdx === -1) continue;
 
-          const rawVal = cols[valIdx]?.replace(/[R$\s.]/g, '').replace(',', '.');
-          const valor = parseFloat(rawVal);
+          const rawVal = cols[valIdx];
+          const valor = parseCurrencyValue(rawVal);
           if (isNaN(valor) || valor <= 0) continue;
 
           let dateStr = cols[dateIdx] || new Date().toISOString().split('T')[0];
@@ -122,8 +174,8 @@ export function ImportFinanceiroDialog({ open, onOpenChange, tipo, campoId, onIm
         const parsed: ImportItem[] = [];
         ws.eachRow((row, rowNumber) => {
           if (rowNumber === 1) return;
-          const rawVal = String(row.getCell(valIdx + 1).value || '0').replace(/[R$\s.]/g, '').replace(',', '.');
-          const valor = parseFloat(rawVal);
+          const cellVal = row.getCell(valIdx + 1).value;
+          const valor = parseCurrencyValue(cellVal);
           if (isNaN(valor) || valor <= 0) return;
 
           let dateStr = '';
