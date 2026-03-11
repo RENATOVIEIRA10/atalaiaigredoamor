@@ -30,7 +30,7 @@ export default function Dashboard() {
     isAdmin, isRedeLeader, isCoordenador, isSupervisor, isPastor,
     isDemoInstitucional, isLiderRecomecoCentral, isLiderBatismoAclamacao,
     isCentralBatismoAclamacao, isPastorSeniorGlobal, isPastorDeCampo,
-    isRecomecoCadastro, isCentralCelulas,
+    isRecomecoCadastro, isCentralCelulas, isFinanceiroAny,
   } = useRole();
   const isPWA = useIsPWA();
   const isMobile = useIsMobile();
