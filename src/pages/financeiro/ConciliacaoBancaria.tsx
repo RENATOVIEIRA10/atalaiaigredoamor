@@ -34,6 +34,26 @@ function formatBRL(v: number) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
 }
 
+/** Smart currency parser – handles Brazilian and international formats */
+function parseCurrencyValue(raw: unknown): number {
+  if (typeof raw === 'number') return raw;
+  let str = String(raw || '0').trim().replace(/[R$\s]/g, '').replace(/^[^0-9,.\-]+|[^0-9,.]+$/g, '');
+  if (!str) return 0;
+  const dots = (str.match(/\./g) || []).length;
+  const commas = (str.match(/,/g) || []).length;
+  const lastDot = str.lastIndexOf('.');
+  const lastComma = str.lastIndexOf(',');
+  if (commas === 1 && dots === 0) str = str.replace(',', '.');
+  else if (commas === 0 && dots === 1) { /* keep */ }
+  else if (commas === 1 && dots >= 1 && lastComma > lastDot) str = str.replace(/\./g, '').replace(',', '.');
+  else if (dots === 1 && commas >= 1 && lastDot > lastComma) str = str.replace(/,/g, '');
+  else if (commas > 1 && dots === 0) str = str.replace(/,/g, '');
+  else if (dots > 1 && commas === 0) str = str.replace(/\./g, '');
+  else str = str.replace(/\./g, '').replace(',', '.');
+  const val = parseFloat(str);
+  return isNaN(val) ? 0 : val;
+}
+
 const statusIcons: Record<string, any> = {
   conciliado: <CheckCircle className="h-4 w-4 text-vida" />,
   sugerido: <Clock className="h-4 w-4 text-warning" />,
@@ -107,9 +127,8 @@ function parseCSVExtrato(text: string): any[] {
   const items: any[] = [];
   for (let i = 1; i < lines.length; i++) {
     const cols = lines[i].split(/[;,]/).map(c => c.trim());
-    const rawVal = cols[valIdx]?.replace(/[R$\s.]/g, '').replace(',', '.');
-    const valor = parseFloat(rawVal);
-    if (isNaN(valor)) continue;
+    const valor = parseCurrencyValue(cols[valIdx]);
+    if (valor === 0 && cols[valIdx]?.trim() !== '0') continue;
 
     let dateStr = cols[dateIdx] || '';
     const dm = dateStr.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
@@ -190,9 +209,9 @@ export default function ConciliacaoBancaria() {
         const items: any[] = [];
         ws.eachRow((row, num) => {
           if (num === 1) return;
-          const rawVal = String(row.getCell(valIdx + 1).value || '0').replace(/[R$\s.]/g, '').replace(',', '.');
-          const valor = parseFloat(rawVal);
-          if (isNaN(valor)) return;
+          const cellVal = row.getCell(valIdx + 1).value;
+          const valor = parseCurrencyValue(cellVal);
+          if (valor === 0) return;
 
           let dateStr = '';
           const dc = row.getCell(dateIdx + 1).value;
