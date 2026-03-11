@@ -243,6 +243,33 @@ export function useVitalidadeLideres(options: UseVitalidadeLideresOptions = {}) 
 
       const profileMap = new Map((profiles || []).map(p => [p.id, p.name]));
 
+      // Get leadership couple names
+      const coupleIds = celulas.map(c => c.leadership_couple_id).filter(Boolean) as string[];
+      const coupleMap = new Map<string, string>();
+
+      if (coupleIds.length > 0) {
+        const { data: couples } = await supabase
+          .from('leadership_couples')
+          .select('id, spouse1_id, spouse2_id')
+          .in('id', coupleIds.slice(0, 200));
+
+        if (couples?.length) {
+          const spouseIds = couples.flatMap(c => [c.spouse1_id, c.spouse2_id]).filter(Boolean) as string[];
+          const { data: spouseProfiles } = spouseIds.length > 0
+            ? await supabase.from('profiles').select('id, name').in('id', spouseIds.slice(0, 400))
+            : { data: [] };
+
+          const spouseProfileMap = new Map((spouseProfiles || []).map(p => [p.id, p.name]));
+
+          couples.forEach(couple => {
+            const name1 = spouseProfileMap.get(couple.spouse1_id) || '';
+            const name2 = spouseProfileMap.get(couple.spouse2_id) || '';
+            const coupleName = [name1, name2].filter(Boolean).join(' & ');
+            if (coupleName) coupleMap.set(couple.id, coupleName);
+          });
+        }
+      }
+
       const items: VitalidadeScore[] = celulas.map(cel => {
         let score = 0;
         const details: string[] = [];
@@ -271,7 +298,11 @@ export function useVitalidadeLideres(options: UseVitalidadeLideresOptions = {}) 
 
         return {
           id: cel.id,
-          name: cel.leader_id ? (profileMap.get(cel.leader_id) || `Líder ${cel.name}`) : `Líder ${cel.name}`,
+          name: cel.leadership_couple_id && coupleMap.has(cel.leadership_couple_id)
+            ? coupleMap.get(cel.leadership_couple_id)!
+            : cel.leader_id
+              ? (profileMap.get(cel.leader_id) || `Líder ${cel.name}`)
+              : `Líder ${cel.name}`,
           entityName: cel.name,
           entityId: cel.coordenacao_id,
           parentEntityId: cel.rede_id,
