@@ -115,6 +115,63 @@
     --sidebar-border: 225 22% 14%;
     --sidebar-ring: 155 45% 45%;
   }
+
+  /* ═══ MODO CLARO — ATALAIA LIGHT ═══ */
+  .theme-claro {
+    --background: 220 20% 97%;
+    --foreground: 225 30% 14%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 225 30% 14%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 225 30% 14%;
+
+    --primary: 220 65% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 14% 92%;
+    --secondary-foreground: 225 20% 30%;
+
+    --muted: 220 14% 93%;
+    --muted-foreground: 220 10% 42%;
+
+    --accent: 220 14% 90%;
+    --accent-foreground: 225 24% 22%;
+
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 155 50% 36%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 85% 48%;
+    --warning-foreground: 32 60% 8%;
+
+    --gold: 42 50% 42%;
+    --gold-foreground: 0 0% 100%;
+
+    --ruby: 0 50% 48%;
+    --ruby-foreground: 0 0% 100%;
+
+    --vida: 155 50% 36%;
+    --vida-foreground: 0 0% 100%;
+
+    --border: 220 14% 86%;
+    --input: 220 14% 86%;
+    --ring: 220 65% 50%;
+
+    --radius: 0.875rem;
+
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 225 20% 28%;
+    --sidebar-primary: 220 65% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 14% 94%;
+    --sidebar-accent-foreground: 225 20% 22%;
+    --sidebar-border: 220 14% 88%;
+    --sidebar-ring: 220 65% 50%;
+  }
 }
 
 @layer base {
