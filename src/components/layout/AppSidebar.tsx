@@ -17,6 +17,7 @@ import {
   Settings,
   PlayCircle,
   Moon,
+  Sun,
   Map,
   UserCheck,
   TrendingUp,
