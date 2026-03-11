@@ -20,7 +20,7 @@ export default function CentrosCusto() {
   const [search, setSearch] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
-  const [form, setForm] = useState({ nome: '', descricao: '', campo_id: '' });
+  const [form, setForm] = useState({ nome: '', descricao: '', campo_id: '_none_' });
 
   const filtered = (centros || []).filter((c) => c.nome.toLowerCase().includes(search.toLowerCase()));
 
