@@ -52,7 +52,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // Detect if running on Lovable infrastructure (where /~oauth routes exist)
-  const isLovableHost = window.location.hostname.endsWith('.lovable.app');
+  const isLovableHost =
+    window.location.hostname.endsWith('.lovable.app') ||
+    window.location.hostname.endsWith('.lovableproject.com');
 
   async function signInWithGoogle() {
     // Always use managed Lovable OAuth on *.lovable.app domains
