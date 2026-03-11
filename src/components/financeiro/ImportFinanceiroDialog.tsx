@@ -174,8 +174,8 @@ export function ImportFinanceiroDialog({ open, onOpenChange, tipo, campoId, onIm
         const parsed: ImportItem[] = [];
         ws.eachRow((row, rowNumber) => {
           if (rowNumber === 1) return;
-          const rawVal = String(row.getCell(valIdx + 1).value || '0').replace(/[R$\s.]/g, '').replace(',', '.');
-          const valor = parseFloat(rawVal);
+          const cellVal = row.getCell(valIdx + 1).value;
+          const valor = parseCurrencyValue(cellVal);
           if (isNaN(valor) || valor <= 0) return;
 
           let dateStr = '';
