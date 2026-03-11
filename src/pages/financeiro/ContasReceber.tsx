@@ -8,9 +8,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useFinContasReceber, useFinContaReceberMutations } from '@/hooks/useFinanceiro';
 import { ContaReceberFormDialog } from '@/components/financeiro/ContaReceberFormDialog';
-import { Plus, Search, CheckCircle, Trash2, Edit, ArrowUpRight, Copy, RefreshCw } from 'lucide-react';
+import { ImportFinanceiroDialog } from '@/components/financeiro/ImportFinanceiroDialog';
+import { Plus, Search, CheckCircle, Trash2, Edit, ArrowUpRight, Copy, RefreshCw, Upload } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
+import { useDemoScope } from '@/hooks/useDemoScope';
 
 function formatBRL(value: number) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
