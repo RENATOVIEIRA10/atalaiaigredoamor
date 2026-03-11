@@ -174,7 +174,10 @@ export default function ContasReceber() {
           onOpenChange={setImportOpen}
           tipo="receber"
           campoId={campoId}
-          onImported={() => {}}
+          onImported={() => {
+            queryClient.invalidateQueries({ queryKey: ['fin_contas_receber'] });
+            queryClient.invalidateQueries({ queryKey: ['fin_dashboard_kpis'] });
+          }}
         />
       )}
     </AppLayout>
