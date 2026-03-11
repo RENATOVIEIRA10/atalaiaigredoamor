@@ -41,7 +41,7 @@ export default function Fornecedores() {
       categoria: form.categoria || null,
       cidade: form.cidade || null,
       observacoes: form.observacoes || null,
-      campo_id: form.campo_id || null,
+      campo_id: form.campo_id && form.campo_id !== '_none_' ? form.campo_id : null,
     };
     if (editing) {
       update.mutate({ id: editing.id, ...payload }, { onSuccess: () => setDialogOpen(false) });
