@@ -356,6 +356,9 @@ export default function ConciliacaoBancaria() {
     <AppLayout title="Conciliação Bancária">
       {view === 'list' ? (
         <div className="space-y-4">
+          {/* Open Finance Panel */}
+          {campoId && <OpenFinancePanel campoId={campoId} />}
+
           {/* Header */}
           <div className="flex items-center justify-between">
             <p className="text-sm text-muted-foreground">
