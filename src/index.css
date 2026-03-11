@@ -441,6 +441,14 @@
       transform: scale(0.98);
     }
   }
+
+  /* ═══ LOGO INVERT — dark themes only ═══ */
+  .dark-invert-logo {
+    filter: brightness(0) invert(1);
+  }
+  .theme-claro .dark-invert-logo {
+    filter: none;
+  }
 }
 
 @keyframes fadeIn {

@@ -53,13 +53,13 @@ export function AtalaiaLogoHeader({ size = 'md' }: { size?: 'sm' | 'md' }) {
       <img
         src={logoIgrejaDoAmor}
         alt="Igreja do Amor"
-        className={`${logoH} w-auto object-contain brightness-0 invert opacity-80`}
+        className={`${logoH} w-auto object-contain dark-invert-logo opacity-80`}
       />
       <div className="h-8 w-px opacity-20" style={{ background: '#C5A059' }} />
       <img
         src={logoAmorADois}
         alt="Rede Amor a Dois"
-        className={`${logoH} w-auto object-contain brightness-0 invert opacity-80`}
+        className={`${logoH} w-auto object-contain dark-invert-logo opacity-80`}
       />
     </div>
   );
