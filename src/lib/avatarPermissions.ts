@@ -32,6 +32,9 @@ const SCOPE_RANK: Record<ScopeType, number> = {
   central_batismo_aclamacao: 10,
   pastor_senior_global: 95,
   pastor_de_campo: 90,
+  financeiro_global: 30,
+  financeiro_campo: 25,
+  secretaria_admin: 20,
 };
 
 // The minimum viewer rank required to edit a given entity type
