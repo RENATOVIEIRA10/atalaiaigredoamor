@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useFinCategorias, useFinCentrosCusto, useFinContaReceberMutations } from '@/hooks/useFinanceiro';
+import { useFinCategorias, useFinCentrosCusto, useFinContaReceberMutations, RECORRENCIA_OPTIONS } from '@/hooks/useFinanceiro';
 import { useCampos } from '@/hooks/useCampos';
 import { useDemoScope } from '@/hooks/useDemoScope';
 
@@ -25,6 +25,7 @@ export function ContaReceberFormDialog({ open, onOpenChange, editing }: Props) {
   const [form, setForm] = useState({
     descricao: '', valor: '', data_prevista: '', categoria_id: '',
     centro_custo_id: '', campo_id: '', origem: '', observacoes: '',
+    recorrencia: '', recorrencia_fim: '',
   });
 
   useEffect(() => {
@@ -38,11 +39,14 @@ export function ContaReceberFormDialog({ open, onOpenChange, editing }: Props) {
         campo_id: editing.campo_id || '',
         origem: editing.origem || '',
         observacoes: editing.observacoes || '',
+        recorrencia: editing.recorrencia || '',
+        recorrencia_fim: editing.recorrencia_fim || '',
       });
     } else {
       setForm({
         descricao: '', valor: '', data_prevista: '', categoria_id: '',
         centro_custo_id: '', campo_id: campoId || '', origem: '', observacoes: '',
+        recorrencia: '', recorrencia_fim: '',
       });
     }
   }, [editing, open, campoId]);
@@ -57,6 +61,8 @@ export function ContaReceberFormDialog({ open, onOpenChange, editing }: Props) {
       campo_id: form.campo_id,
       origem: form.origem || null,
       observacoes: form.observacoes || null,
+      recorrencia: form.recorrencia || null,
+      recorrencia_fim: form.recorrencia_fim || null,
     };
     if (editing) {
       update.mutate({ id: editing.id, ...payload }, { onSuccess: () => onOpenChange(false) });
@@ -80,7 +86,7 @@ export function ContaReceberFormDialog({ open, onOpenChange, editing }: Props) {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label>Origem</Label>
-              <Input value={form.origem} onChange={(e) => setForm({ ...form, origem: e.target.value })} placeholder="Ex: Dízimos, Ofertas, Aluguel" />
+              <Input value={form.origem} onChange={(e) => setForm({ ...form, origem: e.target.value })} placeholder="Ex: Dízimos, Ofertas" />
             </div>
             <div>
               <Label>Categoria</Label>
@@ -113,6 +119,25 @@ export function ContaReceberFormDialog({ open, onOpenChange, editing }: Props) {
                 </SelectContent>
               </Select>
             </div>
+          </div>
+          {/* Recurrence */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label>Recorrência</Label>
+              <Select value={form.recorrencia} onValueChange={(v) => setForm({ ...form, recorrencia: v })}>
+                <SelectTrigger><SelectValue placeholder="Nenhuma" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Nenhuma</SelectItem>
+                  {RECORRENCIA_OPTIONS.map((r) => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            {form.recorrencia && (
+              <div>
+                <Label>Recorrência até</Label>
+                <Input type="date" value={form.recorrencia_fim} onChange={(e) => setForm({ ...form, recorrencia_fim: e.target.value })} />
+              </div>
+            )}
           </div>
           <div><Label>Observações</Label><Textarea value={form.observacoes} onChange={(e) => setForm({ ...form, observacoes: e.target.value })} /></div>
         </div>

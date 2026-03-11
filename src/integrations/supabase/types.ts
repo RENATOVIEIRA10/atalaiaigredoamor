@@ -993,6 +993,7 @@ export type Database = {
           campo_id: string
           categoria_id: string | null
           centro_custo_id: string | null
+          conta_origem_id: string | null
           created_at: string
           created_by: string | null
           data_pagamento: string | null
@@ -1001,6 +1002,8 @@ export type Database = {
           fornecedor_id: string | null
           id: string
           observacoes: string | null
+          recorrencia: string | null
+          recorrencia_fim: string | null
           status: string
           updated_at: string
           updated_by: string | null
@@ -1010,6 +1013,7 @@ export type Database = {
           campo_id: string
           categoria_id?: string | null
           centro_custo_id?: string | null
+          conta_origem_id?: string | null
           created_at?: string
           created_by?: string | null
           data_pagamento?: string | null
@@ -1018,6 +1022,8 @@ export type Database = {
           fornecedor_id?: string | null
           id?: string
           observacoes?: string | null
+          recorrencia?: string | null
+          recorrencia_fim?: string | null
           status?: string
           updated_at?: string
           updated_by?: string | null
@@ -1027,6 +1033,7 @@ export type Database = {
           campo_id?: string
           categoria_id?: string | null
           centro_custo_id?: string | null
+          conta_origem_id?: string | null
           created_at?: string
           created_by?: string | null
           data_pagamento?: string | null
@@ -1035,6 +1042,8 @@ export type Database = {
           fornecedor_id?: string | null
           id?: string
           observacoes?: string | null
+          recorrencia?: string | null
+          recorrencia_fim?: string | null
           status?: string
           updated_at?: string
           updated_by?: string | null
@@ -1063,6 +1072,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "fin_contas_pagar_conta_origem_id_fkey"
+            columns: ["conta_origem_id"]
+            isOneToOne: false
+            referencedRelation: "fin_contas_pagar"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "fin_contas_pagar_fornecedor_id_fkey"
             columns: ["fornecedor_id"]
             isOneToOne: false
@@ -1076,6 +1092,7 @@ export type Database = {
           campo_id: string
           categoria_id: string | null
           centro_custo_id: string | null
+          conta_origem_id: string | null
           created_at: string
           created_by: string | null
           data_prevista: string
@@ -1084,6 +1101,8 @@ export type Database = {
           id: string
           observacoes: string | null
           origem: string | null
+          recorrencia: string | null
+          recorrencia_fim: string | null
           status: string
           updated_at: string
           updated_by: string | null
@@ -1093,6 +1112,7 @@ export type Database = {
           campo_id: string
           categoria_id?: string | null
           centro_custo_id?: string | null
+          conta_origem_id?: string | null
           created_at?: string
           created_by?: string | null
           data_prevista: string
@@ -1101,6 +1121,8 @@ export type Database = {
           id?: string
           observacoes?: string | null
           origem?: string | null
+          recorrencia?: string | null
+          recorrencia_fim?: string | null
           status?: string
           updated_at?: string
           updated_by?: string | null
@@ -1110,6 +1132,7 @@ export type Database = {
           campo_id?: string
           categoria_id?: string | null
           centro_custo_id?: string | null
+          conta_origem_id?: string | null
           created_at?: string
           created_by?: string | null
           data_prevista?: string
@@ -1118,6 +1141,8 @@ export type Database = {
           id?: string
           observacoes?: string | null
           origem?: string | null
+          recorrencia?: string | null
+          recorrencia_fim?: string | null
           status?: string
           updated_at?: string
           updated_by?: string | null
@@ -1143,6 +1168,13 @@ export type Database = {
             columns: ["centro_custo_id"]
             isOneToOne: false
             referencedRelation: "fin_centros_custo"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fin_contas_receber_conta_origem_id_fkey"
+            columns: ["conta_origem_id"]
+            isOneToOne: false
+            referencedRelation: "fin_contas_receber"
             referencedColumns: ["id"]
           },
         ]
