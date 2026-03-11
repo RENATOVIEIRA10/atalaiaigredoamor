@@ -290,9 +290,21 @@ export function useCreateSupervisao() {
   return useMutation({
     mutationFn: async (input: SupervisaoInput) => {
       const { data: { user } } = await supabase.auth.getUser();
+      
+      // Auto-resolve campo_id from the selected célula
+      let campo_id: string | null = null;
+      if (input.celula_id) {
+        const { data: celula } = await supabase
+          .from('celulas')
+          .select('campo_id')
+          .eq('id', input.celula_id)
+          .single();
+        campo_id = celula?.campo_id ?? null;
+      }
+      
       const { data, error } = await supabase
         .from('supervisoes')
-        .insert({ ...input, created_by: user?.id ?? null } as any)
+        .insert({ ...input, campo_id, created_by: user?.id ?? null } as any)
         .select()
         .single();
       if (error) throw error;
