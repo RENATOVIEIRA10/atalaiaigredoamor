@@ -314,7 +314,7 @@ export function AppSidebar() {
               onClick={toggleTheme}
               className="flex-1 h-8 rounded-lg border border-sidebar-border/25 text-[11px] font-medium text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/40 gap-1.5"
             >
-              <Moon className="h-3.5 w-3.5" />
+              {theme === 'claro' ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
               {theme === 'padrao' ? 'Claro' : theme === 'claro' ? 'Amor' : 'Padrão'}
             </Button>
             <Button
