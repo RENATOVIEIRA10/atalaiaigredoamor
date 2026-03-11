@@ -134,7 +134,7 @@ export function ContaReceberFormDialog({ open, onOpenChange, editing }: Props) {
                 </SelectContent>
               </Select>
             </div>
-            {form.recorrencia && (
+            {form.recorrencia && form.recorrencia !== '_none_' && (
               <div>
                 <Label>Recorrência até</Label>
                 <Input type="date" value={form.recorrencia_fim} onChange={(e) => setForm({ ...form, recorrencia_fim: e.target.value })} />
