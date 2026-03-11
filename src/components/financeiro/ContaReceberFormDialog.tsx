@@ -23,9 +23,9 @@ export function ContaReceberFormDialog({ open, onOpenChange, editing }: Props) {
   const { create, update } = useFinContaReceberMutations();
 
   const [form, setForm] = useState({
-    descricao: '', valor: '', data_prevista: '', categoria_id: '',
-    centro_custo_id: '', campo_id: '', origem: '', observacoes: '',
-    recorrencia: '', recorrencia_fim: '',
+    descricao: '', valor: '', data_prevista: '', categoria_id: '_none_',
+    centro_custo_id: '_none_', campo_id: '', origem: '', observacoes: '',
+    recorrencia: '_none_', recorrencia_fim: '',
   });
 
   useEffect(() => {
@@ -34,19 +34,19 @@ export function ContaReceberFormDialog({ open, onOpenChange, editing }: Props) {
         descricao: editing.descricao,
         valor: String(editing.valor),
         data_prevista: editing.data_prevista,
-        categoria_id: editing.categoria_id || '',
-        centro_custo_id: editing.centro_custo_id || '',
+        categoria_id: editing.categoria_id || '_none_',
+        centro_custo_id: editing.centro_custo_id || '_none_',
         campo_id: editing.campo_id || '',
         origem: editing.origem || '',
         observacoes: editing.observacoes || '',
-        recorrencia: editing.recorrencia || '',
+        recorrencia: editing.recorrencia || '_none_',
         recorrencia_fim: editing.recorrencia_fim || '',
       });
     } else {
       setForm({
-        descricao: '', valor: '', data_prevista: '', categoria_id: '',
-        centro_custo_id: '', campo_id: campoId || '', origem: '', observacoes: '',
-        recorrencia: '', recorrencia_fim: '',
+        descricao: '', valor: '', data_prevista: '', categoria_id: '_none_',
+        centro_custo_id: '_none_', campo_id: campoId || '', origem: '', observacoes: '',
+        recorrencia: '_none_', recorrencia_fim: '',
       });
     }
   }, [editing, open, campoId]);
