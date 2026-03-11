@@ -226,7 +226,8 @@ export default function ConciliacaoBancaria() {
 
   // ── Import & match ──
   const handleImport = useCallback(async () => {
-    if (!campoId || parsedItems.length === 0) return;
+    if (!campoId) { toast.error('Campus não identificado. Selecione um campus.'); return; }
+    if (parsedItems.length === 0) { toast.warning('Nenhuma transação para importar.'); return; }
     setImporting(true);
     try {
       // Run matching engine
@@ -244,7 +245,7 @@ export default function ConciliacaoBancaria() {
         };
       });
 
-      await createConciliacao.mutateAsync({
+      const result = await createConciliacao.mutateAsync({
         campo_id: campoId,
         periodo_inicio: parsedMeta.periodoInicio,
         periodo_fim: parsedMeta.periodoFim,
@@ -256,15 +257,19 @@ export default function ConciliacaoBancaria() {
 
       setParsedItems([]);
       setImportOpen(false);
-      queryClient.invalidateQueries({ queryKey: ['fin_contas_pagar'] });
-      queryClient.invalidateQueries({ queryKey: ['fin_contas_receber'] });
+
+      // Navigate to the new conciliation detail
+      if (result?.id) {
+        setSelectedId(result.id);
+        setView('detail');
+      }
     } catch (err: any) {
-      console.error(err);
-      toast.error(err.message || 'Erro ao importar');
+      console.error('[Conciliação] Erro na importação:', err);
+      toast.error('Erro ao importar: ' + (err.message || 'Falha desconhecida'));
     } finally {
       setImporting(false);
     }
-  }, [campoId, parsedItems, parsedMeta, contasPagar, contasReceber, createConciliacao, queryClient]);
+  }, [campoId, parsedItems, parsedMeta, contasPagar, contasReceber, createConciliacao]);
 
   // ── Confirm suggestion ──
   const handleConfirm = useCallback(async (item: FinExtratoItem) => {

@@ -98,13 +98,37 @@ export function useFinConciliacaoMutations() {
       const { data: { user } } = await supabase.auth.getUser();
       const { items, ...concData } = values;
 
+      // ── Deduplication: check existing items by data+valor+descricao ──
+      const { data: existingItems } = await (supabase as any)
+        .from('fin_extrato_items')
+        .select('data, valor, descricao')
+        .eq('campo_id', values.campo_id);
+
+      const existingSet = new Set(
+        (existingItems || []).map((e: any) => `${e.data}|${Number(e.valor).toFixed(2)}|${e.descricao}`)
+      );
+
+      const uniqueItems = items.filter(it => {
+        const key = `${it.data}|${Number(it.valor).toFixed(2)}|${it.descricao}`;
+        return !existingSet.has(key);
+      });
+
+      const duplicateCount = items.length - uniqueItems.length;
+
+      // Calculate totals from the actual items to insert
+      const totalConciliados = uniqueItems.filter((i: any) => i.status_conciliacao === 'conciliado').length;
+      const totalSugeridos = uniqueItems.filter((i: any) => i.status_conciliacao === 'sugerido').length;
+      const totalPendentes = uniqueItems.filter((i: any) => i.status_conciliacao === 'pendente').length;
+
       // Create conciliation session
       const { data: conc, error: e1 } = await (supabase as any)
         .from('fin_conciliacoes')
         .insert({
           ...concData,
-          total_itens: items.length,
-          total_pendentes: items.length,
+          total_itens: uniqueItems.length,
+          total_conciliados: totalConciliados,
+          total_pendentes: totalPendentes + totalSugeridos,
+          status: totalPendentes + totalSugeridos === 0 && uniqueItems.length > 0 ? 'concluida' : 'em_andamento',
           created_by: user?.id || null,
         })
         .select()
@@ -112,14 +136,31 @@ export function useFinConciliacaoMutations() {
       if (e1) throw e1;
 
       // Insert items
-      if (items.length > 0) {
-        const rows = items.map(it => ({
+      if (uniqueItems.length > 0) {
+        const rows = uniqueItems.map(it => ({
           ...it,
           conciliacao_id: conc.id,
           campo_id: values.campo_id,
         }));
         const { error: e2 } = await (supabase as any).from('fin_extrato_items').insert(rows);
         if (e2) throw e2;
+
+        // Auto-mark linked contas as paid/received for auto-conciliated items
+        const today = new Date().toISOString().split('T')[0];
+        for (const it of uniqueItems) {
+          if ((it as any).status_conciliacao === 'conciliado') {
+            if ((it as any).conta_pagar_id) {
+              await (supabase as any).from('fin_contas_pagar')
+                .update({ status: 'pago', data_pagamento: today })
+                .eq('id', (it as any).conta_pagar_id);
+            }
+            if ((it as any).conta_receber_id) {
+              await (supabase as any).from('fin_contas_receber')
+                .update({ status: 'recebido', data_recebimento: today })
+                .eq('id', (it as any).conta_receber_id);
+            }
+          }
+        }
       }
 
       // Audit
@@ -132,13 +173,37 @@ export function useFinConciliacaoMutations() {
           campo_id: values.campo_id,
           user_id: user.id,
           user_name: profile?.name || user.email,
-          detalhes: { total_itens: items.length, banco: values.banco },
+          detalhes: {
+            total_itens: uniqueItems.length,
+            duplicados_ignorados: duplicateCount,
+            conciliados_auto: totalConciliados,
+            sugeridos: totalSugeridos,
+            pendentes: totalPendentes,
+            banco: values.banco,
+          },
         });
       }
 
-      return conc as FinConciliacao;
+      return { ...conc, _stats: { total: uniqueItems.length, duplicateCount, totalConciliados, totalSugeridos, totalPendentes } };
     },
-    onSuccess: () => { invalidate(); toast.success('Extrato importado com sucesso'); },
+    onSuccess: (data: any) => {
+      invalidate();
+      qc.invalidateQueries({ queryKey: ['fin_contas_pagar'] });
+      qc.invalidateQueries({ queryKey: ['fin_contas_receber'] });
+      qc.invalidateQueries({ queryKey: ['fin_dashboard_kpis'] });
+      qc.invalidateQueries({ queryKey: ['fin_analytics'] });
+      const s = data._stats;
+      if (s) {
+        const parts = [`${s.total} transação(ões) importada(s)`];
+        if (s.duplicateCount > 0) parts.push(`${s.duplicateCount} duplicada(s) ignorada(s)`);
+        if (s.totalConciliados > 0) parts.push(`${s.totalConciliados} conciliada(s) automaticamente`);
+        if (s.totalSugeridos > 0) parts.push(`${s.totalSugeridos} sugestão(ões)`);
+        if (s.totalPendentes > 0) parts.push(`${s.totalPendentes} pendente(s)`);
+        toast.success(parts.join(' • '));
+      } else {
+        toast.success('Extrato importado com sucesso');
+      }
+    },
     onError: (e: any) => toast.error(e.message),
   });
 
