@@ -31,6 +31,8 @@ export default function ContasReceber() {
   const [periodoTo, setPeriodoTo] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
+  const [importOpen, setImportOpen] = useState(false);
+  const { campoId } = useDemoScope();
 
   const periodo = periodoFrom && periodoTo ? { from: periodoFrom, to: periodoTo } : undefined;
   const { data: contas, isLoading } = useFinContasReceber({ status: statusFilter, periodo });
