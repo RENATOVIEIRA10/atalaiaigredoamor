@@ -38,6 +38,10 @@ interface RoleContextType {
     isCentralBatismoAclamacao: boolean;
     isPastorSeniorGlobal: boolean;
     isPastorDeCampo: boolean;
+    isFinanceiroGlobal: boolean;
+    isFinanceiroCampo: boolean;
+    isSecretariaAdmin: boolean;
+    isFinanceiroAny: boolean;
 }
 
 const RoleContext = createContext<RoleContextType | undefined>(undefined);
