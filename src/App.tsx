@@ -128,6 +128,7 @@ function AppInner() {
           <Route path="/financeiro/fluxo-caixa" element={<RoleProtectedRoute><FluxoCaixa /></RoleProtectedRoute>} />
           <Route path="/financeiro/centros-custo" element={<RoleProtectedRoute><CentrosCusto /></RoleProtectedRoute>} />
           <Route path="/financeiro/fornecedores" element={<RoleProtectedRoute><FinFornecedores /></RoleProtectedRoute>} />
+          <Route path="/financeiro/conciliacao" element={<RoleProtectedRoute><ConciliacaoBancaria /></RoleProtectedRoute>} />
 
           <Route path="*" element={<NotFound />} />
         </Routes>

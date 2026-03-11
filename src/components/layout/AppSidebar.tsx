@@ -242,6 +242,7 @@ export function AppSidebar() {
                     { title: 'Fluxo de Caixa', href: '/financeiro/fluxo-caixa', icon: TrendingUp },
                     { title: 'Centros de Custo', href: '/financeiro/centros-custo', icon: FolderOpen },
                     { title: 'Fornecedores', href: '/financeiro/fornecedores', icon: Building2 },
+                    { title: 'Conciliação', href: '/financeiro/conciliacao', icon: Landmark },
                   ].map((item) => (
                     <SidebarMenuItem key={item.href}>
                       <SidebarMenuButton
