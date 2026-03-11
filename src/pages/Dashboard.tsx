@@ -55,6 +55,9 @@ export default function Dashboard() {
     if (isCentralCelulas) {
       return <Suspense fallback={suspenseFallback}><LiderRecomecoCentralDashboard /></Suspense>;
     }
+    if (isFinanceiroAny) {
+      return <Suspense fallback={suspenseFallback}><FinanceiroDashboardLazy /></Suspense>;
+    }
 
     // ── Standard scopes ──
     if (isDemoInstitucional) return <InstitutionalDashboard />;
