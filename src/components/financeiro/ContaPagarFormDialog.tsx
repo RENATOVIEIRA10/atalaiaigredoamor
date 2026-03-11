@@ -24,8 +24,8 @@ export function ContaPagarFormDialog({ open, onOpenChange, editing }: Props) {
   const { create, update } = useFinContaPagarMutations();
 
   const [form, setForm] = useState({
-    descricao: '', valor: '', data_vencimento: '', categoria_id: '', fornecedor_id: '',
-    centro_custo_id: '', campo_id: '', observacoes: '', recorrencia: '', recorrencia_fim: '',
+    descricao: '', valor: '', data_vencimento: '', categoria_id: '_none_', fornecedor_id: '_none_',
+    centro_custo_id: '_none_', campo_id: '', observacoes: '', recorrencia: '_none_', recorrencia_fim: '',
   });
 
   useEffect(() => {
@@ -34,18 +34,18 @@ export function ContaPagarFormDialog({ open, onOpenChange, editing }: Props) {
         descricao: editing.descricao,
         valor: String(editing.valor),
         data_vencimento: editing.data_vencimento,
-        categoria_id: editing.categoria_id || '',
-        fornecedor_id: editing.fornecedor_id || '',
-        centro_custo_id: editing.centro_custo_id || '',
+        categoria_id: editing.categoria_id || '_none_',
+        fornecedor_id: editing.fornecedor_id || '_none_',
+        centro_custo_id: editing.centro_custo_id || '_none_',
         campo_id: editing.campo_id || '',
         observacoes: editing.observacoes || '',
-        recorrencia: editing.recorrencia || '',
+        recorrencia: editing.recorrencia || '_none_',
         recorrencia_fim: editing.recorrencia_fim || '',
       });
     } else {
       setForm({
-        descricao: '', valor: '', data_vencimento: '', categoria_id: '', fornecedor_id: '',
-        centro_custo_id: '', campo_id: campoId || '', observacoes: '', recorrencia: '', recorrencia_fim: '',
+        descricao: '', valor: '', data_vencimento: '', categoria_id: '_none_', fornecedor_id: '_none_',
+        centro_custo_id: '_none_', campo_id: campoId || '', observacoes: '', recorrencia: '_none_', recorrencia_fim: '',
       });
     }
   }, [editing, open, campoId]);
