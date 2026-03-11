@@ -103,7 +103,7 @@ export default function CentrosCusto() {
               <Select value={form.campo_id} onValueChange={(v) => setForm({ ...form, campo_id: v })}>
                 <SelectTrigger><SelectValue placeholder="Global (todos)" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Global</SelectItem>
+                  <SelectItem value="_none_">Global</SelectItem>
                   {(campos || []).map((c: any) => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
                 </SelectContent>
               </Select>

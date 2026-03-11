@@ -123,7 +123,7 @@ export default function Fornecedores() {
               <Select value={form.campo_id} onValueChange={(v) => setForm({ ...form, campo_id: v })}>
                 <SelectTrigger><SelectValue placeholder="Nenhum (global)" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Nenhum</SelectItem>
+                  <SelectItem value="_none_">Nenhum</SelectItem>
                   {(campos || []).map((c: any) => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
                 </SelectContent>
               </Select>
