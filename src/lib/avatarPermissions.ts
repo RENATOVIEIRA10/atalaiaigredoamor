@@ -35,6 +35,7 @@ const SCOPE_RANK: Record<ScopeType, number> = {
   financeiro_global: 30,
   financeiro_campo: 25,
   secretaria_admin: 20,
+  guardioes_culto: 10,
 };
 
 // The minimum viewer rank required to edit a given entity type
