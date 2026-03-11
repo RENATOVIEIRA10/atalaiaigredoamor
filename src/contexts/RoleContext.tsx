@@ -1,8 +1,8 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-type UserRole = 'pastor' | 'admin' | 'rede_leader' | 'coordenador' | 'supervisor' | 'celula_leader' | 'demo_institucional' | 'recomeco_operador' | 'recomeco_leitura' | 'recomeco_cadastro' | 'central_celulas' | 'lider_recomeco_central' | 'lider_batismo_aclamacao' | 'central_batismo_aclamacao' | 'pastor_senior_global' | 'pastor_de_campo';
-type ScopeType = 'pastor' | 'admin' | 'rede' | 'coordenacao' | 'supervisor' | 'celula' | 'demo_institucional' | 'recomeco_operador' | 'recomeco_leitura' | 'recomeco_cadastro' | 'central_celulas' | 'lider_recomeco_central' | 'lider_batismo_aclamacao' | 'central_batismo_aclamacao' | 'pastor_senior_global' | 'pastor_de_campo';
+type UserRole = 'pastor' | 'admin' | 'rede_leader' | 'coordenador' | 'supervisor' | 'celula_leader' | 'demo_institucional' | 'recomeco_operador' | 'recomeco_leitura' | 'recomeco_cadastro' | 'central_celulas' | 'lider_recomeco_central' | 'lider_batismo_aclamacao' | 'central_batismo_aclamacao' | 'pastor_senior_global' | 'pastor_de_campo' | 'financeiro_global' | 'financeiro_campo' | 'secretaria_admin';
+type ScopeType = 'pastor' | 'admin' | 'rede' | 'coordenacao' | 'supervisor' | 'celula' | 'demo_institucional' | 'recomeco_operador' | 'recomeco_leitura' | 'recomeco_cadastro' | 'central_celulas' | 'lider_recomeco_central' | 'lider_batismo_aclamacao' | 'central_batismo_aclamacao' | 'pastor_senior_global' | 'pastor_de_campo' | 'financeiro_global' | 'financeiro_campo' | 'secretaria_admin';
 
 const SESSION_KEY = 'rede_amor_session';
 const SESSION_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
@@ -38,6 +38,10 @@ interface RoleContextType {
     isCentralBatismoAclamacao: boolean;
     isPastorSeniorGlobal: boolean;
     isPastorDeCampo: boolean;
+    isFinanceiroGlobal: boolean;
+    isFinanceiroCampo: boolean;
+    isSecretariaAdmin: boolean;
+    isFinanceiroAny: boolean;
 }
 
 const RoleContext = createContext<RoleContextType | undefined>(undefined);
@@ -60,6 +64,9 @@ function scopeTypeToRole(scopeType: ScopeType): UserRole {
     case 'central_batismo_aclamacao': return 'central_batismo_aclamacao';
     case 'pastor_senior_global': return 'pastor_senior_global';
     case 'pastor_de_campo': return 'pastor_de_campo';
+    case 'financeiro_global': return 'financeiro_global';
+    case 'financeiro_campo': return 'financeiro_campo';
+    case 'secretaria_admin': return 'secretaria_admin';
   }
 }
 
@@ -159,6 +166,10 @@ export function RoleProvider({ children }: { children: ReactNode }) {
     isCentralBatismoAclamacao: selectedRole === 'central_batismo_aclamacao',
     isPastorSeniorGlobal: selectedRole === 'pastor_senior_global',
     isPastorDeCampo: selectedRole === 'pastor_de_campo',
+    isFinanceiroGlobal: selectedRole === 'financeiro_global',
+    isFinanceiroCampo: selectedRole === 'financeiro_campo',
+    isSecretariaAdmin: selectedRole === 'secretaria_admin',
+    isFinanceiroAny: selectedRole === 'financeiro_global' || selectedRole === 'financeiro_campo' || selectedRole === 'secretaria_admin',
   };
 
   return (

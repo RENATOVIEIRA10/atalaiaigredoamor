@@ -55,6 +55,12 @@ const Radar = lazy(() => import("./pages/Radar"));
 const Glossario = lazy(() => import("./pages/Glossario"));
 const GuiaAdmin = lazy(() => import("./pages/GuiaAdmin"));
 const PulsoVivo = lazy(() => import("./pages/PulsoVivo"));
+const FinanceiroDashboard = lazy(() => import("./pages/financeiro/FinanceiroDashboard"));
+const ContasPagar = lazy(() => import("./pages/financeiro/ContasPagar"));
+const ContasReceber = lazy(() => import("./pages/financeiro/ContasReceber"));
+const FluxoCaixa = lazy(() => import("./pages/financeiro/FluxoCaixa"));
+const CentrosCusto = lazy(() => import("./pages/financeiro/CentrosCusto"));
+const FinFornecedores = lazy(() => import("./pages/financeiro/Fornecedores"));
 
 const queryClient = new QueryClient();
 
@@ -113,6 +119,14 @@ function AppInner() {
           <Route path="/glossario" element={<RoleProtectedRoute><Glossario /></RoleProtectedRoute>} />
           <Route path="/guia-admin" element={<RoleProtectedRoute><GuiaAdmin /></RoleProtectedRoute>} />
           <Route path="/pulso-vivo" element={<RoleProtectedRoute><PulsoVivo /></RoleProtectedRoute>} />
+
+          {/* Financeiro module */}
+          <Route path="/financeiro" element={<RoleProtectedRoute><FinanceiroDashboard /></RoleProtectedRoute>} />
+          <Route path="/financeiro/contas-pagar" element={<RoleProtectedRoute><ContasPagar /></RoleProtectedRoute>} />
+          <Route path="/financeiro/contas-receber" element={<RoleProtectedRoute><ContasReceber /></RoleProtectedRoute>} />
+          <Route path="/financeiro/fluxo-caixa" element={<RoleProtectedRoute><FluxoCaixa /></RoleProtectedRoute>} />
+          <Route path="/financeiro/centros-custo" element={<RoleProtectedRoute><CentrosCusto /></RoleProtectedRoute>} />
+          <Route path="/financeiro/fornecedores" element={<RoleProtectedRoute><FinFornecedores /></RoleProtectedRoute>} />
 
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -119,6 +119,9 @@ export const roleLabels: Record<string, string> = {
   central_batismo_aclamacao: 'Central do Batismo / Aclamação',
   pastor_senior_global: 'Pastor Sênior Global',
   pastor_de_campo: 'Pastor de Campo',
+  financeiro_global: 'Financeiro Global',
+  financeiro_campo: 'Financeiro de Campo',
+  secretaria_admin: 'Secretaria Administrativa',
 };
 
 // ========================================

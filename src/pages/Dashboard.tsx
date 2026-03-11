@@ -20,6 +20,7 @@ import { Loader2 } from 'lucide-react';
 const LiderRecomecoCentralDashboard = lazy(() => import('@/components/dashboard/LiderRecomecoCentralDashboard'));
 const EventLeaderDashboard = lazy(() => import('@/components/dashboard/EventLeaderDashboard'));
 const CentralBatismoDashboard = lazy(() => import('@/components/dashboard/CentralBatismoDashboard'));
+const FinanceiroDashboardLazy = lazy(() => import('@/pages/financeiro/FinanceiroDashboard'));
 
 // PWA wrappers for ministry dashboards
 const RecomecoCadastroPWA = lazy(() => import('@/pages/RecomecoCadastro'));
@@ -29,7 +30,7 @@ export default function Dashboard() {
     isAdmin, isRedeLeader, isCoordenador, isSupervisor, isPastor,
     isDemoInstitucional, isLiderRecomecoCentral, isLiderBatismoAclamacao,
     isCentralBatismoAclamacao, isPastorSeniorGlobal, isPastorDeCampo,
-    isRecomecoCadastro, isCentralCelulas,
+    isRecomecoCadastro, isCentralCelulas, isFinanceiroAny,
   } = useRole();
   const isPWA = useIsPWA();
   const isMobile = useIsMobile();
@@ -53,6 +54,9 @@ export default function Dashboard() {
     }
     if (isCentralCelulas) {
       return <Suspense fallback={suspenseFallback}><LiderRecomecoCentralDashboard /></Suspense>;
+    }
+    if (isFinanceiroAny) {
+      return <Suspense fallback={suspenseFallback}><FinanceiroDashboardLazy /></Suspense>;
     }
 
     // ── Standard scopes ──
