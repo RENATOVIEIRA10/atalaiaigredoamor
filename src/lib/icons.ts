@@ -5,7 +5,7 @@ import {
   Plus, Pencil, Trash2, ChevronDown, ChevronUp,
   Check, X, SendHorizontal, Share2,
   CheckCircle, AlertCircle, AlertTriangle, PauseCircle,
-  Network, FolderTree, ClipboardCheck, Database, Moon, Heart,
+  Network, FolderTree, ClipboardCheck, Database, Moon, Heart, Sun,
   LogOut, Search, FileDown, Loader2, Lock, UserCheck,
   type LucideIcon
 } from 'lucide-react';
@@ -132,4 +132,5 @@ export const roleLabels: Record<string, string> = {
 export const themeIcons = {
   amor: Heart,
   padrao: Moon,
+  claro: Sun,
 } as const;
