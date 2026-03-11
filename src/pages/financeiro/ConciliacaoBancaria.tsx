@@ -28,6 +28,7 @@ import {
 import * as ExcelJS from 'exceljs';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
+import { OpenFinancePanel } from '@/components/financeiro/OpenFinancePanel';
 
 function formatBRL(v: number) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
