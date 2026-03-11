@@ -26,10 +26,10 @@ export default function Fornecedores() {
     f.nome.toLowerCase().includes(search.toLowerCase()) || f.categoria?.toLowerCase().includes(search.toLowerCase())
   );
 
-  const openNew = () => { setEditing(null); setForm({ nome: '', telefone: '', email: '', categoria: '', cidade: '', observacoes: '', campo_id: '' }); setDialogOpen(true); };
+  const openNew = () => { setEditing(null); setForm({ nome: '', telefone: '', email: '', categoria: '', cidade: '', observacoes: '', campo_id: '_none_' }); setDialogOpen(true); };
   const openEdit = (f: any) => {
     setEditing(f);
-    setForm({ nome: f.nome, telefone: f.telefone || '', email: f.email || '', categoria: f.categoria || '', cidade: f.cidade || '', observacoes: f.observacoes || '', campo_id: f.campo_id || '' });
+    setForm({ nome: f.nome, telefone: f.telefone || '', email: f.email || '', categoria: f.categoria || '', cidade: f.cidade || '', observacoes: f.observacoes || '', campo_id: f.campo_id || '_none_' });
     setDialogOpen(true);
   };
 
