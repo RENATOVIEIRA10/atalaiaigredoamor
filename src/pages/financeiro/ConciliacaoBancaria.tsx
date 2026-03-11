@@ -34,6 +34,26 @@ function formatBRL(v: number) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
 }
 
+/** Smart currency parser – handles Brazilian and international formats */
+function parseCurrencyValue(raw: unknown): number {
+  if (typeof raw === 'number') return raw;
+  let str = String(raw || '0').trim().replace(/[R$\s]/g, '').replace(/^[^0-9,.\-]+|[^0-9,.]+$/g, '');
+  if (!str) return 0;
+  const dots = (str.match(/\./g) || []).length;
+  const commas = (str.match(/,/g) || []).length;
+  const lastDot = str.lastIndexOf('.');
+  const lastComma = str.lastIndexOf(',');
+  if (commas === 1 && dots === 0) str = str.replace(',', '.');
+  else if (commas === 0 && dots === 1) { /* keep */ }
+  else if (commas === 1 && dots >= 1 && lastComma > lastDot) str = str.replace(/\./g, '').replace(',', '.');
+  else if (dots === 1 && commas >= 1 && lastDot > lastComma) str = str.replace(/,/g, '');
+  else if (commas > 1 && dots === 0) str = str.replace(/,/g, '');
+  else if (dots > 1 && commas === 0) str = str.replace(/\./g, '');
+  else str = str.replace(/\./g, '').replace(',', '.');
+  const val = parseFloat(str);
+  return isNaN(val) ? 0 : val;
+}
+
 const statusIcons: Record<string, any> = {
   conciliado: <CheckCircle className="h-4 w-4 text-vida" />,
   sugerido: <Clock className="h-4 w-4 text-warning" />,
