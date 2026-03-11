@@ -181,7 +181,7 @@ export default function Auth() {
               </Button>
 
               <Button
-                onClick={() => { setAuthError(null); signInWithApple(); }}
+                onClick={async () => { setAuthError(null); try { await signInWithApple(); } catch (err: any) { setAuthError(err?.message || 'Erro ao conectar com Apple'); } }}
                 variant="outline"
                 className="w-full h-12 text-sm font-medium bg-card/50 hover:bg-card border-border/50"
               >
