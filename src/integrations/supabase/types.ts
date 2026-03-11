@@ -988,6 +988,71 @@ export type Database = {
           },
         ]
       }
+      fin_conciliacoes: {
+        Row: {
+          banco: string | null
+          campo_id: string
+          conta: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          periodo_fim: string
+          periodo_inicio: string
+          saldo_final: number
+          saldo_inicial: number
+          status: string
+          total_conciliados: number
+          total_divergentes: number
+          total_itens: number
+          total_pendentes: number
+          updated_at: string
+        }
+        Insert: {
+          banco?: string | null
+          campo_id: string
+          conta?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          periodo_fim: string
+          periodo_inicio: string
+          saldo_final?: number
+          saldo_inicial?: number
+          status?: string
+          total_conciliados?: number
+          total_divergentes?: number
+          total_itens?: number
+          total_pendentes?: number
+          updated_at?: string
+        }
+        Update: {
+          banco?: string | null
+          campo_id?: string
+          conta?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          periodo_fim?: string
+          periodo_inicio?: string
+          saldo_final?: number
+          saldo_inicial?: number
+          status?: string
+          total_conciliados?: number
+          total_divergentes?: number
+          total_itens?: number
+          total_pendentes?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fin_conciliacoes_campo_id_fkey"
+            columns: ["campo_id"]
+            isOneToOne: false
+            referencedRelation: "campos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fin_contas_pagar: {
         Row: {
           campo_id: string
@@ -1173,6 +1238,95 @@ export type Database = {
           {
             foreignKeyName: "fin_contas_receber_conta_origem_id_fkey"
             columns: ["conta_origem_id"]
+            isOneToOne: false
+            referencedRelation: "fin_contas_receber"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fin_extrato_items: {
+        Row: {
+          campo_id: string
+          conciliacao_id: string
+          conciliado_at: string | null
+          conciliado_por: string | null
+          conta_pagar_id: string | null
+          conta_receber_id: string | null
+          created_at: string
+          data: string
+          descricao: string
+          id: string
+          justificativa_ignorar: string | null
+          match_score: number | null
+          match_sugerido_label: string | null
+          saldo: number | null
+          status_conciliacao: string
+          tipo: string
+          valor: number
+        }
+        Insert: {
+          campo_id: string
+          conciliacao_id: string
+          conciliado_at?: string | null
+          conciliado_por?: string | null
+          conta_pagar_id?: string | null
+          conta_receber_id?: string | null
+          created_at?: string
+          data: string
+          descricao: string
+          id?: string
+          justificativa_ignorar?: string | null
+          match_score?: number | null
+          match_sugerido_label?: string | null
+          saldo?: number | null
+          status_conciliacao?: string
+          tipo?: string
+          valor: number
+        }
+        Update: {
+          campo_id?: string
+          conciliacao_id?: string
+          conciliado_at?: string | null
+          conciliado_por?: string | null
+          conta_pagar_id?: string | null
+          conta_receber_id?: string | null
+          created_at?: string
+          data?: string
+          descricao?: string
+          id?: string
+          justificativa_ignorar?: string | null
+          match_score?: number | null
+          match_sugerido_label?: string | null
+          saldo?: number | null
+          status_conciliacao?: string
+          tipo?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fin_extrato_items_campo_id_fkey"
+            columns: ["campo_id"]
+            isOneToOne: false
+            referencedRelation: "campos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fin_extrato_items_conciliacao_id_fkey"
+            columns: ["conciliacao_id"]
+            isOneToOne: false
+            referencedRelation: "fin_conciliacoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fin_extrato_items_conta_pagar_id_fkey"
+            columns: ["conta_pagar_id"]
+            isOneToOne: false
+            referencedRelation: "fin_contas_pagar"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fin_extrato_items_conta_receber_id_fkey"
+            columns: ["conta_receber_id"]
             isOneToOne: false
             referencedRelation: "fin_contas_receber"
             referencedColumns: ["id"]
