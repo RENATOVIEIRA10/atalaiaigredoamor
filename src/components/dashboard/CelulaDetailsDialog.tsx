@@ -24,6 +24,7 @@ import { CelulaPhotoUpload } from './cellleader/CelulaPhotoUpload';
 import { CelulaPhotoGallery } from './CelulaPhotoGallery';
 import { ReportsHistoryTable } from '@/components/reports/ReportsHistoryTable';
 import { WhatsAppShareDialog } from './cellleader/WhatsAppShareDialog';
+import { ReportFormWizard, type ReportFormData } from './cellleader/ReportFormWizard';
 import { useToast } from '@/hooks/use-toast';
 import { isSameWeek } from 'date-fns';
 
