@@ -496,6 +496,68 @@ export type Database = {
           },
         ]
       }
+      culto_contagens: {
+        Row: {
+          batismos_agendados: number
+          campo_id: string
+          created_at: string
+          culto_titulo: string | null
+          data: string
+          decisoes_espirituais: number
+          guardiao_nome: string | null
+          guardiao_user_id: string | null
+          horario: string | null
+          id: string
+          novas_vidas_count: number
+          observacoes: string | null
+          status: string
+          total_presentes: number
+          updated_at: string
+        }
+        Insert: {
+          batismos_agendados?: number
+          campo_id: string
+          created_at?: string
+          culto_titulo?: string | null
+          data: string
+          decisoes_espirituais?: number
+          guardiao_nome?: string | null
+          guardiao_user_id?: string | null
+          horario?: string | null
+          id?: string
+          novas_vidas_count?: number
+          observacoes?: string | null
+          status?: string
+          total_presentes?: number
+          updated_at?: string
+        }
+        Update: {
+          batismos_agendados?: number
+          campo_id?: string
+          created_at?: string
+          culto_titulo?: string | null
+          data?: string
+          decisoes_espirituais?: number
+          guardiao_nome?: string | null
+          guardiao_user_id?: string | null
+          horario?: string | null
+          id?: string
+          novas_vidas_count?: number
+          observacoes?: string | null
+          status?: string
+          total_presentes?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "culto_contagens_campo_id_fkey"
+            columns: ["campo_id"]
+            isOneToOne: false
+            referencedRelation: "campos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       discipulado_encontros: {
         Row: {
           campo_id: string
