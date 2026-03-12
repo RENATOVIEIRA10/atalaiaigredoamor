@@ -562,6 +562,80 @@
   50% { opacity: 0.3; transform: scale(1.06); }
 }
 
+/* ═══ SKELETON SHIMMER CLASSES ═══ */
+.sk {
+  border-radius: 6px;
+  background: linear-gradient(90deg,
+    hsl(var(--foreground) / 0.06) 0%,
+    hsl(var(--foreground) / 0.10) 40%,
+    hsl(var(--foreground) / 0.06) 80%
+  );
+  background-size: 800px 100%;
+  animation: skeleton-shimmer 1.8s ease-in-out infinite;
+}
+
+.sk-gold {
+  border-radius: 6px;
+  background: linear-gradient(90deg,
+    hsl(var(--primary) / 0.08) 0%,
+    hsl(var(--primary) / 0.20) 40%,
+    hsl(var(--primary) / 0.08) 80%
+  );
+  background-size: 800px 100%;
+  animation: skeleton-shimmer 2s ease-in-out infinite;
+}
+
+.sk-vida {
+  border-radius: 6px;
+  background: linear-gradient(90deg,
+    hsl(var(--vida) / 0.08) 0%,
+    hsl(var(--vida) / 0.20) 40%,
+    hsl(var(--vida) / 0.08) 80%
+  );
+  background-size: 800px 100%;
+  animation: skeleton-shimmer 2.2s ease-in-out infinite;
+}
+
+.theme-claro .sk {
+  background: linear-gradient(90deg,
+    hsl(var(--foreground) / 0.05) 0%,
+    hsl(var(--foreground) / 0.09) 40%,
+    hsl(var(--foreground) / 0.05) 80%
+  );
+  background-size: 800px 100%;
+}
+
+.theme-claro .sk-gold {
+  background: linear-gradient(90deg,
+    hsl(var(--primary) / 0.06) 0%,
+    hsl(var(--primary) / 0.14) 40%,
+    hsl(var(--primary) / 0.06) 80%
+  );
+  background-size: 800px 100%;
+}
+
+/* ═══ SKELETON KEYFRAMES ═══ */
+@keyframes skeleton-shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+@keyframes skeleton-bar-ghost {
+  0% { width: 20%; }
+  50% { width: 75%; }
+  100% { width: 20%; }
+}
+
+@keyframes skeleton-orbit {
+  from { transform: rotate(0deg) translateX(14px) rotate(0deg); }
+  to { transform: rotate(360deg) translateX(14px) rotate(-360deg); }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 /* ═══ KEYFRAMES ═══ */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(6px); }
