@@ -228,58 +228,13 @@ export function CelulaDetailsDialog({ open, onOpenChange, celulaId, celulaName }
 
               {/* RELATÓRIO SEMANAL */}
               <TabsContent value="relatorio">
-                <div className="space-y-6">
-                  {/* Data */}
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-muted-foreground">Data da Reunião *</Label>
-                    <Input type="date" value={meetingDate} onChange={(e) => setMeetingDate(e.target.value)} className="h-12 text-base" />
-                  </div>
-
-                  {/* Números */}
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground mb-3">Presença</p>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                      <div className="space-y-1.5">
-                        <Label className="text-sm">Membros Presentes</Label>
-                        <Input type="text" inputMode="numeric" pattern="[0-9]*" value={membersPresent} onChange={(e) => setMembersPresent(handleNumericInput(e.target.value))} onBlur={() => { if (membersPresent === '') setMembersPresent(''); }} placeholder="0" className="h-12 text-base text-center" />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label className="text-sm">Líd. em Trein.</Label>
-                        <Input type="text" inputMode="numeric" pattern="[0-9]*" value={leadersInTraining} onChange={(e) => setLeadersInTraining(handleNumericInput(e.target.value))} placeholder="0" className="h-12 text-base text-center" />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label className="text-sm">Discipulados</Label>
-                        <Input type="text" inputMode="numeric" pattern="[0-9]*" value={discipleships} onChange={(e) => setDiscipleships(handleNumericInput(e.target.value))} placeholder="0" className="h-12 text-base text-center" />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label className="text-sm">Visitantes</Label>
-                        <Input type="text" inputMode="numeric" pattern="[0-9]*" value={visitors} onChange={(e) => setVisitors(handleNumericInput(e.target.value))} placeholder="0" className="h-12 text-base text-center" />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label className="text-sm">Crianças</Label>
-                        <Input type="text" inputMode="numeric" pattern="[0-9]*" value={children} onChange={(e) => setChildren(handleNumericInput(e.target.value))} placeholder="0" className="h-12 text-base text-center" />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Observações */}
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-muted-foreground">Observações</Label>
-                    <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Notas sobre a reunião..." rows={3} className="text-base" />
-                  </div>
-
-                  <CelulaPhotoUpload photoUrl={photoUrl} onPhotoChange={setPhotoUrl} celulaId={celulaId} weekStart={meetingDate ? getWeekStartFromDate(meetingDate) : ''} />
-
-                  <div className={isPWAMobile
-                    ? 'sticky bottom-0 bg-background pt-3 border-t border-border/50'
-                    : 'sticky bottom-0 bg-background pt-3 pb-1 -mx-4 px-4 sm:-mx-6 sm:px-6 border-t border-border/50'
-                  } style={isPWAMobile ? { paddingBottom: 'calc(8px + env(safe-area-inset-bottom, 0px))' } : undefined}>
-                    <Button onClick={handleSubmitReport} disabled={createReport.isPending} className="w-full h-12 text-base font-semibold" size="lg">
-                      {createReport.isPending ? <Loader2 className="h-5 w-5 mr-2 animate-spin" /> : <Send className="h-5 w-5 mr-2" />}
-                      Enviar Relatório
-                    </Button>
-                  </div>
-                </div>
+                <ReportFormWizard
+                  celulaId={celulaId}
+                  celulaName={celulaName}
+                  celulaData={celulaData}
+                  onSubmit={handleSubmitReport}
+                  isSubmitting={createReport.isPending}
+                />
               </TabsContent>
 
               {/* HISTÓRICO */}
