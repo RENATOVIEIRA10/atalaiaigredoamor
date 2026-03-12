@@ -11,7 +11,7 @@ import { SectionLabel } from './SectionLabel';
 import { useCultoContagensRelatorio } from '@/hooks/useCultoContagensRelatorio';
 import {
   UserCheck, Users, TrendingUp, TrendingDown, Minus,
-  Heart, Droplets, BookOpen, Calendar, Clock,
+  Heart, BookOpen, Calendar, Clock,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -117,27 +117,16 @@ export function GuardioesPanel() {
         </StaggerItem>
       </StaggerContainer>
 
-      {/* Spiritual fruit summary */}
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
+      {/* Spiritual fruit summary — foco em Novas Vidas e Tendência */}
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
         <Card>
           <CardContent className="pt-5 flex items-center gap-3">
-            <div className="rounded-lg bg-primary/10 p-2.5">
-              <Heart className="h-5 w-5 text-primary" />
+            <div className="rounded-lg bg-rose-500/10 p-2.5">
+              <Heart className="h-5 w-5 text-rose-500" />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Decisões Espirituais</p>
-              <p className="text-2xl font-bold tabular-nums">{stats.totalDecisoesEspirituais}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-5 flex items-center gap-3">
-            <div className="rounded-lg bg-blue-500/10 p-2.5">
-              <Droplets className="h-5 w-5 text-blue-500" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Batismos Agendados</p>
-              <p className="text-2xl font-bold tabular-nums">{stats.totalBatismosAgendados}</p>
+              <p className="text-xs text-muted-foreground">Novas Vidas (total)</p>
+              <p className="text-2xl font-bold tabular-nums">{stats.totalNovasVidas}</p>
             </div>
           </CardContent>
         </Card>
@@ -185,20 +174,12 @@ export function GuardioesPanel() {
                       <p className="font-bold tabular-nums text-lg">{culto.total_presentes}</p>
                       <p className="text-xs text-muted-foreground">presentes</p>
                     </div>
-                    {(culto.novas_vidas_count > 0 || culto.decisoes_espirituais > 0) && (
+                    {culto.novas_vidas_count > 0 && (
                       <div className="hidden sm:flex items-center gap-2">
-                        {culto.novas_vidas_count > 0 && (
-                          <Badge variant="secondary" className="gap-1 text-xs bg-primary/10 text-primary">
-                            <Heart className="h-3 w-3" />
-                            {culto.novas_vidas_count}
-                          </Badge>
-                        )}
-                        {culto.decisoes_espirituais > 0 && (
-                          <Badge variant="secondary" className="gap-1 text-xs bg-green-500/10 text-green-600">
-                            <BookOpen className="h-3 w-3" />
-                            {culto.decisoes_espirituais}
-                          </Badge>
-                        )}
+                        <Badge variant="secondary" className="gap-1 text-xs bg-rose-500/10 text-rose-600">
+                          <Heart className="h-3 w-3" />
+                          {culto.novas_vidas_count} vidas
+                        </Badge>
                       </div>
                     )}
                   </div>

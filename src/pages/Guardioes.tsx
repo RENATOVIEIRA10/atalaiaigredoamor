@@ -1,6 +1,12 @@
 /**
  * Guardiões — Contagem Inteligente de Culto
  * Interface de contagem presencial para o ministério Guardiões.
+ *
+ * Fluxo ministerial:
+ *  1. Guardião inicia a contagem (data/horário detectados automaticamente)
+ *  2. Durante o culto: conta o público (botão +1 / +10 / −1)
+ *  3. Ao encerrar: informa Novas Vidas e observações
+ *  4. Após conclusão: pode iniciar nova contagem (novo horário do mesmo dia)
  */
 
 import { useState, useRef, useCallback, useEffect } from 'react';
@@ -28,7 +34,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import {
   Users, Plus, Minus, RotateCcw, Save, CheckCircle,
-  History, Shield, TrendingUp, Hash, Heart, Droplets,
+  History, Shield, TrendingUp, Hash, Heart, PlusCircle,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -42,6 +48,14 @@ function todayIso() {
 
 function formatDate(iso: string) {
   return format(new Date(iso + 'T12:00:00'), "EEEE, d 'de' MMMM", { locale: ptBR });
+}
+
+/** Retorna horário atual no formato "Xh" ou "Xh30" */
+function currentHorario(): string {
+  const now = new Date();
+  const h = now.getHours();
+  const m = now.getMinutes();
+  return m === 0 ? `${h}h` : `${h}h${String(m).padStart(2, '0')}`;
 }
 
 // ─── Counter Button ───────────────────────────────────────────────────────────
@@ -87,7 +101,8 @@ interface IniciarProps {
 }
 
 function IniciarContagem({ onIniciar, isLoading }: IniciarProps) {
-  const [horario, setHorario] = useState('');
+  // Pré-preenche com o horário atual para vincular automaticamente ao culto
+  const [horario, setHorario] = useState(currentHorario);
 
   return (
     <motion.div
@@ -101,15 +116,15 @@ function IniciarContagem({ onIniciar, isLoading }: IniciarProps) {
         </div>
         <h2 className="text-lg font-bold text-foreground">Iniciar Contagem</h2>
         <p className="text-sm text-muted-foreground max-w-xs">
-          Informe o horário do culto e comece a contagem de presença.
+          Horário detectado automaticamente. Ajuste se necessário e inicie a contagem.
         </p>
       </div>
 
       <div className="w-full max-w-xs space-y-2">
-        <Label htmlFor="horario">Horário do culto (opcional)</Label>
+        <Label htmlFor="horario">Horário do culto</Label>
         <Input
           id="horario"
-          placeholder="ex: 18h, 10h30, Domingo 19h"
+          placeholder="ex: 18h, 10h30"
           value={horario}
           onChange={e => setHorario(e.target.value)}
           className="text-center text-lg h-12"
@@ -129,38 +144,30 @@ function IniciarContagem({ onIniciar, isLoading }: IniciarProps) {
   );
 }
 
-// ─── Decisões Espirituais Form ─────────────────────────────────────────────────
+// ─── Novas Vidas Form (encerramento) ─────────────────────────────────────────
 
-interface DecisoesFormProps {
-  values: { novas_vidas_count: number; decisoes_espirituais: number; batismos_agendados: number; observacoes: string };
+interface NovasVidasFormProps {
+  values: { novas_vidas_count: number; observacoes: string };
   onChange: (key: string, value: number | string) => void;
 }
 
-function DecisoesForm({ values, onChange }: DecisoesFormProps) {
+function NovasVidasForm({ values, onChange }: NovasVidasFormProps) {
   return (
     <div className="space-y-4">
       <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
         <Heart className="h-4 w-4 text-rose-500" />
-        Decisões Espirituais
+        Novas Vidas
       </h3>
-      <div className="grid grid-cols-3 gap-3">
-        {[
-          { key: 'novas_vidas_count', label: 'Novas Vidas', icon: Heart, color: 'text-rose-500' },
-          { key: 'decisoes_espirituais', label: 'Decisões', icon: CheckCircle, color: 'text-emerald-500' },
-          { key: 'batismos_agendados', label: 'Batismos', icon: Droplets, color: 'text-blue-500' },
-        ].map(({ key, label, icon: Icon, color }) => (
-          <div key={key} className="flex flex-col items-center gap-1.5">
-            <Icon className={cn('h-4 w-4', color)} />
-            <span className="text-[10px] text-muted-foreground text-center leading-tight">{label}</span>
-            <Input
-              type="number"
-              min="0"
-              value={values[key as keyof typeof values] as number}
-              onChange={e => onChange(key, parseInt(e.target.value) || 0)}
-              className="text-center h-10 text-lg font-bold px-1"
-            />
-          </div>
-        ))}
+      <div className="flex flex-col items-center gap-1.5 max-w-[120px]">
+        <Heart className="h-4 w-4 text-rose-500" />
+        <span className="text-[10px] text-muted-foreground text-center leading-tight">Novas Vidas</span>
+        <Input
+          type="number"
+          min="0"
+          value={values.novas_vidas_count}
+          onChange={e => onChange('novas_vidas_count', parseInt(e.target.value) || 0)}
+          className="text-center h-12 text-2xl font-bold px-2 w-24"
+        />
       </div>
       <div>
         <Label htmlFor="observacoes" className="text-xs">Observações</Label>
@@ -189,10 +196,8 @@ interface ContadorAtivoProps {
 function ContadorAtivo({ contagem, campoId, userId, onEncerrar }: ContadorAtivoProps) {
   const [count, setCount] = useState(contagem.total_presentes);
   const [encerrandoMode, setEncerrandoMode] = useState(false);
-  const [decisoes, setDecisoes] = useState({
+  const [novasVidas, setNovasVidas] = useState({
     novas_vidas_count: contagem.novas_vidas_count,
-    decisoes_espirituais: contagem.decisoes_espirituais,
-    batismos_agendados: contagem.batismos_agendados,
     observacoes: contagem.observacoes ?? '',
   });
   const lastPressRef = useRef<number>(0);
@@ -208,9 +213,12 @@ function ContadorAtivo({ contagem, campoId, userId, onEncerrar }: ContadorAtivoP
       total_presentes: count,
       status: 'em_andamento',
       guardiao_user_id: userId,
-      ...decisoes,
+      novas_vidas_count: novasVidas.novas_vidas_count,
+      decisoes_espirituais: 0,
+      batismos_agendados: 0,
+      observacoes: novasVidas.observacoes || null,
     });
-  }, [count, campoId, contagem.data, contagem.horario, contagem.id, userId, decisoes]);
+  }, [count, campoId, contagem.data, contagem.horario, contagem.id, userId, novasVidas]);
 
   const handleCount = useCallback((delta: number) => {
     const now = Date.now();
@@ -233,7 +241,10 @@ function ContadorAtivo({ contagem, campoId, userId, onEncerrar }: ContadorAtivoP
     total_presentes: count,
     status,
     guardiao_user_id: userId,
-    ...decisoes,
+    novas_vidas_count: novasVidas.novas_vidas_count,
+    decisoes_espirituais: 0,
+    batismos_agendados: 0,
+    observacoes: novasVidas.observacoes || null,
   });
 
   const handleSalvarParcial = () => {
@@ -313,7 +324,7 @@ function ContadorAtivo({ contagem, campoId, userId, onEncerrar }: ContadorAtivoP
         </Button>
       </div>
 
-      {/* Encerramento form */}
+      {/* Encerramento form — só Novas Vidas */}
       <AnimatePresence>
         {encerrandoMode && (
           <motion.div
@@ -323,9 +334,9 @@ function ContadorAtivo({ contagem, campoId, userId, onEncerrar }: ContadorAtivoP
             className="overflow-hidden"
           >
             <Card className="p-4 space-y-4 border-emerald-500/30 bg-emerald-500/5">
-              <DecisoesForm
-                values={decisoes}
-                onChange={(key, val) => setDecisoes(prev => ({ ...prev, [key]: val }))}
+              <NovasVidasForm
+                values={novasVidas}
+                onChange={(key, val) => setNovasVidas(prev => ({ ...prev, [key]: val }))}
               />
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" onClick={() => setEncerrandoMode(false)} className="flex-1 h-10">
@@ -337,7 +348,7 @@ function ContadorAtivo({ contagem, campoId, userId, onEncerrar }: ContadorAtivoP
                   disabled={isSaving}
                   className="flex-1 h-10 bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
                 >
-                  {isSaving ? 'Salvando…' : 'Confirmar Encerramento'}
+                  {isSaving ? 'Salvando…' : 'Concluir Contagem'}
                 </Button>
               </div>
             </Card>
@@ -350,42 +361,59 @@ function ContadorAtivo({ contagem, campoId, userId, onEncerrar }: ContadorAtivoP
 
 // ─── Encerrado Banner ─────────────────────────────────────────────────────────
 
-function EncerradoBanner({ contagem }: { contagem: CultoContagem }) {
+interface EncerradoBannerProps {
+  contagem: CultoContagem;
+  onNovaContagem?: () => void;
+}
+
+function EncerradoBanner({ contagem, onNovaContagem }: EncerradoBannerProps) {
   return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
       <Card className="p-5 border-emerald-500/30 bg-emerald-500/5 space-y-4">
         <div className="flex items-center gap-3">
           <div className="rounded-full bg-emerald-500/15 p-2">
             <CheckCircle className="h-5 w-5 text-emerald-500" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-foreground">Culto encerrado</p>
-            <p className="text-xs text-muted-foreground capitalize">{formatDate(contagem.data)}</p>
+            <p className="text-sm font-semibold text-foreground">Contagem concluída</p>
+            <p className="text-xs text-muted-foreground capitalize">
+              {formatDate(contagem.data)}{contagem.horario ? ` · ${contagem.horario}` : ''}
+            </p>
           </div>
         </div>
+
         <div className="grid grid-cols-2 gap-3 text-center">
+          {/* Público */}
           <div className="rounded-xl bg-background/60 py-3 px-2">
             <p className="text-3xl font-black text-foreground">{contagem.total_presentes.toLocaleString('pt-BR')}</p>
             <p className="text-[10px] text-muted-foreground">presentes</p>
           </div>
-          <div className="grid grid-rows-3 gap-1 text-left">
-            {[
-              { icon: Heart, label: 'Novas vidas', val: contagem.novas_vidas_count, color: 'text-rose-500' },
-              { icon: CheckCircle, label: 'Decisões', val: contagem.decisoes_espirituais, color: 'text-emerald-500' },
-              { icon: Droplets, label: 'Batismos', val: contagem.batismos_agendados, color: 'text-blue-500' },
-            ].map(({ icon: Icon, label, val, color }) => (
-              <div key={label} className="flex items-center gap-1.5 text-xs">
-                <Icon className={cn('h-3 w-3 shrink-0', color)} />
-                <span className="text-muted-foreground">{label}:</span>
-                <span className="font-bold text-foreground">{val}</span>
-              </div>
-            ))}
+          {/* Novas Vidas */}
+          <div className="rounded-xl bg-rose-500/5 border border-rose-500/20 py-3 px-2">
+            <div className="flex justify-center mb-1">
+              <Heart className="h-4 w-4 text-rose-500" />
+            </div>
+            <p className="text-3xl font-black text-rose-500">{contagem.novas_vidas_count}</p>
+            <p className="text-[10px] text-muted-foreground">novas vidas</p>
           </div>
         </div>
+
         {contagem.observacoes && (
           <p className="text-xs text-muted-foreground italic">{contagem.observacoes}</p>
         )}
       </Card>
+
+      {/* Botão para iniciar nova contagem (novo horário) */}
+      {onNovaContagem && (
+        <Button
+          variant="outline"
+          className="w-full h-11 gap-2 font-semibold border-primary/30 text-primary hover:bg-primary/5"
+          onClick={onNovaContagem}
+        >
+          <PlusCircle className="h-4 w-4" />
+          Iniciar nova contagem
+        </Button>
+      )}
     </motion.div>
   );
 }
@@ -447,23 +475,11 @@ function HistoricoTab() {
                 <p className="text-[10px] text-muted-foreground">presentes</p>
               </div>
             </div>
-            {(c.novas_vidas_count > 0 || c.decisoes_espirituais > 0 || c.batismos_agendados > 0) && (
+            {c.novas_vidas_count > 0 && (
               <div className="flex gap-3 mt-2 pt-2 border-t border-border/40">
-                {c.novas_vidas_count > 0 && (
-                  <span className="flex items-center gap-1 text-[10px] text-rose-500">
-                    <Heart className="h-3 w-3" />{c.novas_vidas_count} vidas
-                  </span>
-                )}
-                {c.decisoes_espirituais > 0 && (
-                  <span className="flex items-center gap-1 text-[10px] text-emerald-500">
-                    <CheckCircle className="h-3 w-3" />{c.decisoes_espirituais} decisões
-                  </span>
-                )}
-                {c.batismos_agendados > 0 && (
-                  <span className="flex items-center gap-1 text-[10px] text-blue-500">
-                    <Droplets className="h-3 w-3" />{c.batismos_agendados} batismos
-                  </span>
-                )}
+                <span className="flex items-center gap-1 text-[10px] text-rose-500">
+                  <Heart className="h-3 w-3" />{c.novas_vidas_count} novas vidas
+                </span>
               </div>
             )}
           </Card>
@@ -484,9 +500,13 @@ export default function Guardioes() {
 
   const { data: contagemHoje, isLoading } = useContagemHoje();
   const { mutate: save, isPending: isCreating } = useSaveContagem();
-  const [encerrado, setEncerrado] = useState<CultoContagem | null>(null);
 
-  // Role guard: only guardiões (and pastors/admin for visibility) can access
+  // Sessão encerrada neste ciclo de UI (para exibir EncerradoBanner imediato)
+  const [encerrado, setEncerrado] = useState<CultoContagem | null>(null);
+  // Forçar início de nova contagem (mesmo com encerrado hoje)
+  const [forceNovaContagem, setForceNovaContagem] = useState(false);
+
+  // Role guard
   const hasAccess = isGuardioesCulto || isPastor || isPastorDeCampo || isPastorSeniorGlobal || isAdmin;
   if (!hasAccess) return <Navigate to="/home" replace />;
 
@@ -494,7 +514,6 @@ export default function Guardioes() {
 
   const handleIniciar = (horario: string) => {
     if (!activeCampoId) return;
-    // Check offline cache first
     const offline = loadOfflineSession(activeCampoId, today);
     save({
       campo_id: activeCampoId,
@@ -507,10 +526,24 @@ export default function Guardioes() {
       decisoes_espirituais: 0,
       batismos_agendados: 0,
       observacoes: null,
+    }, {
+      onSuccess: () => {
+        setForceNovaContagem(false);
+        setEncerrado(null);
+      },
     });
   };
 
+  const handleNovaContagem = () => {
+    setEncerrado(null);
+    setForceNovaContagem(true);
+  };
+
+  // Deriva o estado da contagem
   const activeContagem = encerrado ?? contagemHoje;
+  const showIniciar = forceNovaContagem || (!isLoading && !activeContagem);
+  const showEncerrado = !forceNovaContagem && (encerrado || activeContagem?.status === 'encerrado');
+  const showContador = !forceNovaContagem && !encerrado && activeContagem?.status === 'em_andamento';
 
   return (
     <AppLayout title="Guardiões">
@@ -559,29 +592,21 @@ export default function Guardioes() {
                 <Skeleton className="h-24 w-full" />
                 <Skeleton className="h-16 w-full" />
               </div>
-            ) : encerrado ? (
-              // Just encerrado this session
-              <EncerradoBanner contagem={encerrado} />
-            ) : activeContagem?.status === 'encerrado' ? (
-              // Already encerrado today
-              <div className="space-y-4">
-                <EncerradoBanner contagem={activeContagem} />
-                <p className="text-xs text-center text-muted-foreground">
-                  Culto de hoje já encerrado. Veja o histórico para detalhes.
-                </p>
-              </div>
-            ) : activeContagem?.status === 'em_andamento' ? (
-              // Active counter
+            ) : showEncerrado ? (
+              <EncerradoBanner
+                contagem={(encerrado ?? activeContagem) as CultoContagem}
+                onNovaContagem={handleNovaContagem}
+              />
+            ) : showContador ? (
               <ContadorAtivo
-                contagem={activeContagem}
+                contagem={activeContagem as CultoContagem}
                 campoId={activeCampoId!}
                 userId={user?.id ?? null}
                 onEncerrar={setEncerrado}
               />
-            ) : (
-              // No contagem yet today
+            ) : showIniciar ? (
               <IniciarContagem onIniciar={handleIniciar} isLoading={isCreating} />
-            )}
+            ) : null}
           </Card>
         )}
       </div>
