@@ -5,75 +5,23 @@ import { useCampo } from '@/contexts/CampoContext';
 import { useRede } from '@/contexts/RedeContext';
 import { supabase } from '@/integrations/supabase/client';
 import { POLICY_VERSION } from '@/lib/policyVersion';
-import { roleLabels } from '@/lib/icons';
-import { Button } from '@/components/ui/button';
-import { Loader2, ShieldCheck, Eye, KeyRound, Sparkles, MapPin } from 'lucide-react';
-import { motion } from 'framer-motion';
-
-/* ── helpers ── */
-function scopeTypeToRoleKey(st: string) {
-  const map: Record<string, string> = {
-    pastor: 'pastor', admin: 'admin', rede: 'rede_leader',
-    coordenacao: 'coordenador', supervisor: 'supervisor',
-    celula: 'celula_leader', demo_institucional: 'demo_institucional',
-    recomeco_operador: 'recomeco_operador', recomeco_leitura: 'recomeco_leitura',
-    recomeco_cadastro: 'recomeco_cadastro', central_celulas: 'central_celulas',
-    lider_recomeco_central: 'lider_recomeco_central',
-    lider_batismo_aclamacao: 'lider_batismo_aclamacao',
-    central_batismo_aclamacao: 'central_batismo_aclamacao',
-    pastor_senior_global: 'pastor_senior_global',
-    pastor_de_campo: 'pastor_de_campo',
-  };
-  return map[st] || st;
-}
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: { delay: i * 0.12, duration: 0.55, ease: [0.22, 1, 0.36, 1] as const },
-  }),
-};
-
-const principles = [
-  {
-    icon: ShieldCheck,
-    title: 'Cuidado com as informações',
-    text: 'Use as informações com zelo, amor e responsabilidade — elas existem para cuidar de vidas.',
-  },
-  {
-    icon: Eye,
-    title: 'Cada um vê o que precisa ver',
-    text: 'Você verá apenas o que está ligado à sua função e ao seu campo de atuação.',
-  },
-  {
-    icon: KeyRound,
-    title: 'Acesso pessoal e intransferível',
-    text: 'Seu código define seu nível de acesso. Não compartilhe com ninguém.',
-  },
-];
+import { Loader2 } from 'lucide-react';
+import { getOnboardingRole } from '@/components/onboarding/onboardingRoles';
+import { OnboardingSlides } from '@/components/onboarding/OnboardingSlides';
+import { EnteredView } from '@/components/onboarding/EnteredView';
 
 export default function Onboarding() {
   const navigate = useNavigate();
-  const { scopeType, accessKeyId, selectedRole } = useRole();
+  const { scopeType, accessKeyId } = useRole();
   const { activeCampo } = useCampo();
   const { activeRede } = useRede();
   const [isLoading, setIsLoading] = useState(true);
   const [isAccepting, setIsAccepting] = useState(false);
-  const [alreadyAccepted, setAlreadyAccepted] = useState(false);
-  const [scopeNames, setScopeNames] = useState<{ rede?: string; coordenacao?: string }>({});
+  const [phase, setPhase] = useState<'onboarding' | 'done'>('onboarding');
 
   const hasSession = !!scopeType && !!accessKeyId;
-  const roleName = selectedRole ? (roleLabels[selectedRole] || selectedRole) : '';
-  const campoName = activeCampo?.nome;
-
-  // Resolve scope entity names
-  useEffect(() => {
-    if (!hasSession || !scopeType) return;
-    // Only resolve for scopes that have a scopeId pointing to a coordenação or similar
-    // The rede context already provides activeRede
-  }, [hasSession, scopeType]);
+  const role = getOnboardingRole(scopeType || '');
+  const accentVar = `var(--${role.accentToken})`;
 
   useEffect(() => {
     if (hasSession) checkAcceptance();
@@ -91,7 +39,6 @@ export default function Onboarding() {
         .maybeSingle();
 
       if (data) {
-        setAlreadyAccepted(true);
         navigate('/dashboard', { replace: true });
         return;
       }
@@ -111,15 +58,14 @@ export default function Onboarding() {
           { access_key_id: accessKeyId, policy_version: POLICY_VERSION },
           { onConflict: 'access_key_id,policy_version' }
         );
-      navigate('/dashboard', { replace: true });
+      setPhase('done');
+      setTimeout(() => navigate('/dashboard', { replace: true }), 1200);
     } catch {
-      // retry
-    } finally {
       setIsAccepting(false);
     }
   }
 
-  if (isLoading || alreadyAccepted) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -127,151 +73,110 @@ export default function Onboarding() {
     );
   }
 
-  const redeName = activeRede?.name;
-
   return (
     <div
-      className="flex flex-col items-center justify-start relative bg-background"
+      className="flex flex-col items-center justify-center relative bg-background overflow-auto"
       style={{
         minHeight: '100dvh',
-        overflowY: 'auto',
         WebkitOverflowScrolling: 'touch',
-        paddingBottom: 'calc(24px + env(safe-area-inset-bottom, 0px))',
       }}
     >
-      {/* Ambient glow */}
-      <div
-        className="absolute inset-0 pointer-events-none"
+      {/* Grain overlay */}
+      <div className="fixed inset-0 pointer-events-none z-[9999] opacity-[0.022]"
         style={{
-          background:
-            'radial-gradient(ellipse 80% 40% at 50% -5%, hsl(var(--primary) / 0.12) 0%, transparent 70%), radial-gradient(ellipse 60% 50% at 50% 105%, hsl(var(--primary) / 0.06) 0%, transparent 60%)',
+          backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
+          inset: '-50%', width: '200%', height: '200%',
+          animation: 'grain 0.5s steps(1) infinite',
         }}
       />
 
-      <div className="relative z-10 w-full max-w-lg px-5 py-12 sm:py-20 flex flex-col items-center">
-        {/* Spark icon */}
-        <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible" className="mb-6">
-          <div className="relative h-16 w-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center shadow-[0_0_40px_hsl(var(--primary)/0.15)]">
-            <Sparkles className="h-7 w-7 text-primary" />
-          </div>
-        </motion.div>
+      {/* Ambient glows */}
+      <div
+        className="fixed pointer-events-none animate-[breathe-vis_5s_ease-in-out_infinite]"
+        style={{
+          top: -100, left: -100, width: 600, height: 600,
+          borderRadius: '50%',
+          background: `radial-gradient(circle, hsl(${accentVar} / 0.08) 0%, transparent 65%)`,
+          transition: 'background 0.8s ease',
+        }}
+      />
+      <div
+        className="fixed pointer-events-none animate-[breathe-vis_6s_ease-in-out_infinite_2s]"
+        style={{
+          bottom: -80, right: -80, width: 400, height: 400,
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, hsl(var(--vida) / 0.05) 0%, transparent 65%)',
+        }}
+      />
 
-        {/* Header */}
-        <motion.div custom={1} variants={fadeUp} initial="hidden" animate="visible" className="text-center mb-2">
-          <h1 className="font-display text-3xl sm:text-4xl font-bold text-foreground tracking-tight leading-tight">
-            Bem-vindo ao Atalaia
-          </h1>
-        </motion.div>
+      {/* Dot grid background */}
+      <div className="fixed inset-0 pointer-events-none opacity-[0.04]"
+        style={{
+          backgroundImage: 'radial-gradient(circle, hsl(var(--gold) / 0.8) 1px, transparent 1px)',
+          backgroundSize: '32px 32px',
+        }}
+      />
 
-        <motion.p
-          custom={2}
-          variants={fadeUp}
-          initial="hidden"
-          animate="visible"
-          className="text-sm sm:text-base text-center max-w-sm mb-8 text-muted-foreground leading-relaxed"
-        >
-          Cuidando de vidas. Fortalecendo líderes. Servindo o Reino.
-        </motion.p>
-
-        {/* Scope confirmation card */}
-        {(roleName || campoName) && (
-          <motion.div
-            custom={3}
-            variants={fadeUp}
-            initial="hidden"
-            animate="visible"
-            className="w-full rounded-2xl p-5 mb-6 border border-primary/20 bg-primary/5 backdrop-blur-md text-center space-y-1.5"
-          >
-            <p className="text-xs uppercase tracking-[0.15em] text-muted-foreground font-medium">
-              Você está entrando como
-            </p>
-            <p className="text-base sm:text-lg font-semibold text-foreground">
-              {roleName}
-              {campoName && (
-                <span className="text-muted-foreground font-normal"> — {campoName}</span>
-              )}
-            </p>
-            {(redeName) && (
-              <p className="text-sm text-muted-foreground flex items-center justify-center gap-1.5">
-                <MapPin className="h-3 w-3" />
-                {[redeName].filter(Boolean).join(' • ')}
-              </p>
-            )}
-          </motion.div>
-        )}
-
-        {/* Mission block */}
-        <motion.div
-          custom={4}
-          variants={fadeUp}
-          initial="hidden"
-          animate="visible"
-          className="w-full rounded-2xl p-6 sm:p-8 mb-6 border border-border/40 bg-card/60 backdrop-blur-md text-center"
-        >
-          <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-            Este sistema foi preparado para apoiar seu chamado,
-            <br className="hidden sm:block" />{' '}
-            organizar o cuidado pastoral
-            <br className="hidden sm:block" />{' '}
-            e fortalecer a missão da nossa igreja.
-          </p>
-        </motion.div>
-
-        {/* Principles */}
-        <motion.div
-          custom={5}
-          variants={fadeUp}
-          initial="hidden"
-          animate="visible"
-          className="w-full rounded-2xl p-6 sm:p-8 space-y-5 border border-border/40 bg-card/60 backdrop-blur-md"
-        >
-          {principles.map((s, i) => (
-            <motion.div
-              key={s.title}
-              custom={6 + i}
-              variants={fadeUp}
-              initial="hidden"
-              animate="visible"
-              className="flex gap-4"
-            >
-              <div className="shrink-0 mt-0.5 h-9 w-9 rounded-xl bg-primary/10 border border-primary/15 flex items-center justify-center">
-                <s.icon className="h-4 w-4 text-primary" />
-              </div>
-              <div className="space-y-0.5">
-                <h2 className="text-sm font-semibold text-foreground">{s.title}</h2>
-                <p className="text-sm text-muted-foreground leading-relaxed">{s.text}</p>
-              </div>
-            </motion.div>
-          ))}
-
-          {/* CTA */}
-          <motion.div custom={9} variants={fadeUp} initial="hidden" animate="visible">
-            <Button
-              onClick={handleAccept}
-              disabled={isAccepting}
-              className="w-full h-12 text-base font-semibold tracking-wide mt-3"
-            >
-              {isAccepting && <Loader2 className="h-5 w-5 animate-spin mr-2" />}
-              Entrar e começar a servir
-            </Button>
-          </motion.div>
-        </motion.div>
-
-        {/* Verse */}
-        <motion.div custom={10} variants={fadeUp} initial="hidden" animate="visible" className="mt-10 text-center space-y-0.5">
-          <p className="text-xs italic text-primary/30 font-display">
-            "Tudo seja feito com amor."
-          </p>
-          <p className="text-[10px] text-muted-foreground/40">
-            1 Coríntios 16:14
-          </p>
-        </motion.div>
-
-        {/* Policy version */}
-        <motion.p custom={11} variants={fadeUp} initial="hidden" animate="visible" className="mt-4 text-[10px] text-muted-foreground/25">
-          Versão da política: {POLICY_VERSION}
-        </motion.p>
+      {/* Logo header */}
+      <div className="flex items-center gap-2 mb-8 animate-[fade-in_0.5s_ease_both] z-10">
+        <svg width="20" height="20" viewBox="0 0 100 100" fill="none">
+          <path d="M20 80C20 80 28 40 50 15C72 40 80 80 80 80"
+            stroke="hsl(var(--gold))" strokeWidth="12" strokeLinecap="round" />
+          <path d="M35 60C40 57 60 57 65 60"
+            stroke="hsl(var(--gold))" strokeWidth="9" strokeLinecap="round" />
+          <circle cx="50" cy="8" r="9" fill="hsl(var(--gold))" />
+        </svg>
+        <span className="font-mono text-[10px] tracking-[0.18em] text-primary">
+          ATALAIA OS
+        </span>
       </div>
+
+      {/* Main card */}
+      <div
+        className="w-full max-w-[420px] rounded-3xl backdrop-blur-[24px] relative overflow-hidden z-10"
+        style={{
+          background: 'hsl(214 49% 20% / 0.55)',
+          border: '1px solid hsl(var(--border) / 0.4)',
+          padding: '32px 28px',
+        }}
+      >
+        {/* Top accent line */}
+        <div
+          className="absolute top-0 left-0 right-0 h-0.5 transition-all duration-700"
+          style={{
+            background: `linear-gradient(90deg, transparent, hsl(${accentVar} / 0.5), transparent)`,
+          }}
+        />
+
+        {/* Internal glass reflection */}
+        <div className="absolute top-0 left-0 right-0 h-[45%] rounded-t-3xl pointer-events-none"
+          style={{ background: 'linear-gradient(180deg, hsl(var(--foreground) / 0.015) 0%, transparent 100%)' }}
+        />
+
+        <div className="relative z-[2]">
+          {phase === 'onboarding' && (
+            <OnboardingSlides
+              role={role}
+              accentVar={accentVar}
+              onEnter={handleAccept}
+              isAccepting={isAccepting}
+            />
+          )}
+          {phase === 'done' && (
+            <EnteredView role={role} accentVar={accentVar} />
+          )}
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="mt-5 font-mono text-[9.5px] tracking-[0.08em] text-muted-foreground/50 animate-[fade-in_0.5s_ease_0.5s_both] z-10">
+        Igreja do Amor · Rede Amor a 2 · {new Date().getFullYear()}
+      </div>
+
+      {/* Policy version */}
+      <p className="mt-2 text-[10px] text-muted-foreground/20 z-10">
+        Versão da política: {POLICY_VERSION}
+      </p>
     </div>
   );
 }
