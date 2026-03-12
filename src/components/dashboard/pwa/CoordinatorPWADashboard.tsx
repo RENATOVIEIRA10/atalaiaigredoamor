@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -43,9 +43,11 @@ export function CoordinatorPWADashboard() {
 
   const [selectedCoordenacao, setSelectedCoordenacao] = useState<string>('');
 
-  if (scopeType === 'coordenacao' && scopeId && !selectedCoordenacao && userCoordenacoes.length > 0) {
-    setSelectedCoordenacao(scopeId);
-  }
+  useEffect(() => {
+    if (scopeType === 'coordenacao' && scopeId && !selectedCoordenacao && userCoordenacoes.length > 0) {
+      setSelectedCoordenacao(scopeId);
+    }
+  }, [scopeId, scopeType, userCoordenacoes.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (coordLoading) {
     return <div className="flex items-center justify-center h-64"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -37,13 +37,15 @@ export function SupervisorPWADashboard() {
   const [selectedCoordenacao, setSelectedCoordenacao] = useState<string>(autoSupervisor?.coordenacao_id || '');
   const [selectedSupervisor, setSelectedSupervisor] = useState<string>(autoSupervisor?.id || '');
 
-  if (scopeType === 'supervisor' && scopeId && !selectedSupervisor && supervisores) {
-    const sup = supervisores.find(s => s.id === scopeId);
-    if (sup) {
-      setSelectedCoordenacao(sup.coordenacao_id);
-      setSelectedSupervisor(sup.id);
+  useEffect(() => {
+    if (scopeType === 'supervisor' && scopeId && supervisores && !selectedSupervisor) {
+      const sup = supervisores.find(s => s.id === scopeId);
+      if (sup) {
+        setSelectedCoordenacao(sup.coordenacao_id);
+        setSelectedSupervisor(sup.id);
+      }
     }
-  }
+  }, [supervisores, scopeId, scopeType]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const { data: celulas } = useCelulas();
   const { data: supervisoes, isLoading: supervisoesLoading } = useSupervisoesBySupervisor(selectedSupervisor);
@@ -248,11 +250,37 @@ function SupervisorInicioTab({
 
       {/* ── BLOCO 3 — Saúde e Cuidado ── */}
       <MissionBlock icon={HeartPulse} title="Saúde e Cuidado">
-        <Card>
-          <CardContent className="p-4 text-sm text-muted-foreground text-center">
-            Acesse a aba <strong>Planejamento</strong> para ver a saúde das suas células
-          </CardContent>
-        </Card>
+        {celulasPendentes.length > 0 ? (
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-muted-foreground px-1">Células aguardando supervisão</p>
+            {celulasPendentes.slice(0, 3).map(c => (
+              <Card key={c.id} className="border-l-4 border-l-amber-500/60">
+                <CardContent className="p-3 flex items-center gap-3">
+                  <div className="h-8 w-8 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-600 text-xs font-bold shrink-0">
+                    {c.name.charAt(0)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{c.name}</p>
+                    {c.leadership_couple && (
+                      <p className="text-xs text-muted-foreground truncate">
+                        {c.leadership_couple.spouse1?.name?.split(' ')[0]} & {c.leadership_couple.spouse2?.name?.split(' ')[0]}
+                      </p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+            {celulasPendentes.length > 3 && (
+              <p className="text-xs text-muted-foreground text-center">+{celulasPendentes.length - 3} mais</p>
+            )}
+          </div>
+        ) : (
+          <Card>
+            <CardContent className="p-4 text-sm text-muted-foreground text-center">
+              ✅ Todas as células supervisionadas este período
+            </CardContent>
+          </Card>
+        )}
       </MissionBlock>
 
       <SupervisaoFormDialog open={isFormOpen} onOpenChange={setIsFormOpen} supervisorId={selectedSupervisor} celulas={filteredCelulas} />

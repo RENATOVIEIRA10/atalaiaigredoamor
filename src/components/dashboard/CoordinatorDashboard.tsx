@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -37,7 +37,6 @@ import { RecomecoCoordTab } from './recomeco/RecomecoCoordTab';
 import { DiscipuladoCoordView } from './discipulado/DiscipuladoCoordView';
 import { RevelaShortcut } from './RevelaShortcut';
 import { DashboardScopeBanner } from './DashboardScopeBanner';
-import { InitialViewGate } from './InitialViewGate';
 import { SectionLabel } from './SectionLabel';
 import { useMembers } from '@/hooks/useMembers';
 import { PotenciaisServirCard } from './PotenciaisServirCard';
@@ -100,9 +99,11 @@ export function CoordinatorDashboard() {
     ? (coordenacoes || []).filter(c => c.id === scopeId)
     : coordenacoes || [];
   
-  if (scopeType === 'coordenacao' && scopeId && !selectedCoordenacao && userCoordenacoes.length > 0) {
-    setSelectedCoordenacao(scopeId);
-  }
+  useEffect(() => {
+    if (scopeType === 'coordenacao' && scopeId && !selectedCoordenacao && userCoordenacoes.length > 0) {
+      setSelectedCoordenacao(scopeId);
+    }
+  }, [scopeId, scopeType, userCoordenacoes.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const selectedCoordData = userCoordenacoes.find(c => c.id === selectedCoordenacao);
   const currentReports = reports || [];
@@ -315,7 +316,6 @@ export function CoordinatorDashboard() {
             </TabsContent>
 
             <TabsContent value="analises" className="space-y-4">
-              <InitialViewGate>
                 <Tabs defaultValue={urlTab === 'pulso' ? 'pulso' : 'planejamento'} className="space-y-4">
               <TabsList className="flex flex-wrap h-auto gap-1">
                 <TabsTrigger value="planejamento" className="gap-1.5"><Calendar className="h-4 w-4" />Planejamento</TabsTrigger>
@@ -355,7 +355,6 @@ export function CoordinatorDashboard() {
                 </div>
               </TabsContent>
                 </Tabs>
-              </InitialViewGate>
             </TabsContent>
           </Tabs>
         </div>

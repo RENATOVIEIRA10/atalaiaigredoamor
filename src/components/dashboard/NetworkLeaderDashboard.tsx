@@ -31,7 +31,6 @@ import { ptBR } from 'date-fns/locale';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatCard } from '@/components/ui/stat-card';
 import { MissionVerse } from './MissionVerse';
-import { InitialViewGate } from './InitialViewGate';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PulsoRedeSection } from './PulsoRedeSection';
 import { RedeEmailReportDialog } from './RedeEmailReportDialog';
@@ -395,7 +394,6 @@ export function NetworkLeaderDashboard({ initialRedeId, overrideCampoId, onBack,
             </TabsContent>
 
             <TabsContent value="analises" className="space-y-4">
-              <InitialViewGate>
                 <Tabs defaultValue="atencao" className="space-y-4">
               <TabsList className="flex flex-wrap h-auto gap-1">
                 <TabsTrigger value="atencao" className="gap-1.5"><Activity className="h-4 w-4" />Visão Pastoral</TabsTrigger>
@@ -424,7 +422,6 @@ export function NetworkLeaderDashboard({ initialRedeId, overrideCampoId, onBack,
               </TabsContent>
               <TabsContent value="fotos"><CelulaPhotoGallery reports={currentReports} /></TabsContent>
                 </Tabs>
-              </InitialViewGate>
             </TabsContent>
           </Tabs>
         </>
