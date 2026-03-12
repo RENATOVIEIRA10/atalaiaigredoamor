@@ -15,9 +15,10 @@ interface Props {
   name: string;
   size?: number;
   className?: string;
+  style?: React.CSSProperties;
 }
 
-export function OnboardingIcon({ name, size = 18, className }: Props) {
+export function OnboardingIcon({ name, size = 18, className, style }: Props) {
   const Icon = iconMap[name] || Heart;
-  return <Icon size={size} className={className} strokeWidth={1.6} />;
+  return <Icon size={size} className={className} style={style} strokeWidth={1.6} />;
 }
