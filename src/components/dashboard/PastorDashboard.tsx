@@ -47,6 +47,7 @@ import { LeadershipRecommendationsSection } from './LeadershipRecommendationsSec
 import { CuidadoEspiritualConsolidado } from './CuidadoEspiritualPanel';
 import { VitalidadeCascataPanel } from './VitalidadeRelacionalPanel';
 import { GuardioesPanel } from './GuardioesPanel';
+import { PipelineConversaoPanel } from './PipelineConversaoPanel';
 
 export function PastorDashboard() {
   const { isPastorSeniorGlobal } = useRole();
@@ -339,6 +340,10 @@ function CampoPastorDashboard() {
         </TabsContent>
 
         <TabsContent value="cultos" className="space-y-6">
+          <PipelineConversaoPanel
+            title="Pipeline de Conversão do Culto"
+            subtitle="Do culto ao membro — visão completa do fluxo pastoral"
+          />
           <GuardioesPanel />
         </TabsContent>
       </Tabs>
