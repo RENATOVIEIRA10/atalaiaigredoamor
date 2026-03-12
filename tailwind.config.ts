@@ -13,9 +13,10 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ["Manrope", "Inter", "system-ui", "sans-serif"],
-        sans: ["Inter", "system-ui", "-apple-system", "sans-serif"],
-        editorial: ["Playfair Display", "Manrope", "serif"],
+        display: ["DM Sans", "system-ui", "sans-serif"],
+        sans: ["DM Sans", "-apple-system", "system-ui", "sans-serif"],
+        editorial: ["Cormorant Garamond", "DM Sans", "serif"],
+        mono: ["DM Mono", "monospace"],
       },
       colors: {
         border: "hsl(var(--border))",
