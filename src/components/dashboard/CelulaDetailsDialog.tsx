@@ -99,56 +99,31 @@ export function CelulaDetailsDialog({ open, onOpenChange, celulaId, celulaName }
   casais?.forEach(casal => { membersInCouples.add(casal.member1_id); membersInCouples.add(casal.member2_id); });
   const availableMembers = members?.filter(m => !membersInCouples.has(m.id)) || [];
 
-  const handleSubmitReport = async () => {
-    if (!meetingDate) { toast({ title: 'Informe a data da reunião', variant: 'destructive' }); return; }
-    try {
-      const weekStart = getWeekStartFromDate(meetingDate);
-      const mpInt = toInt(membersPresent);
-      const ltInt = toInt(leadersInTraining);
-      const dInt = toInt(discipleships);
-      const vInt = toInt(visitors);
-      const cInt = toInt(children);
-      await createReport.mutateAsync({
-        celula_id: celulaId, week_start: weekStart, meeting_date: meetingDate,
-        members_present: mpInt, leaders_in_training: ltInt,
-        discipleships: dInt, visitors: vInt, children: cInt, notes: notes || undefined, photo_url: photoUrl,
-        mensagem_whatsapp: mensagemWa || undefined,
-        paixao_whatsapp: paixaoWa || undefined,
-        cultura_whatsapp: culturaWa || undefined,
-      });
-      toast({ title: 'Relatório enviado com sucesso!' });
-      
-      // Prepare WhatsApp share data
-      const cel = celulaData as any;
-      setLastReportData({
-        celula_name: celulaName,
-        lider1_name: cel?.leadership_couple?.spouse1?.name || '',
-        lider2_name: cel?.leadership_couple?.spouse2?.name || '',
-        meeting_day: cel?.meeting_day || '',
-        meeting_time: cel?.meeting_time || '',
-        address: cel?.address || '',
-        bairro: cel?.bairro || '',
-        cidade: cel?.cidade || '',
-        instagram_lider1: cel?.instagram_lider1 || '',
-        instagram_lider2: cel?.instagram_lider2 || '',
-        instagram_celula: cel?.instagram_celula || '',
-        meeting_date: meetingDate,
-        members_present: mpInt,
-        visitors: vInt,
-        children: cInt,
-        leaders_in_training: ltInt,
-        discipleships: dInt,
-        mensagem: mensagemWa,
-        paixao: 'PESSOAS',
-        cultura: 'AMOR',
-        photo_url: photoUrl,
-      });
-      setWhatsappDialogOpen(true);
-      
-      setMeetingDate(''); setMembersPresent(''); setLeadersInTraining('');
-      setDiscipleships(''); setVisitors(''); setChildren(''); setNotes(''); setPhotoUrl(null);
-      setMensagemWa(''); setPaixaoWa(''); setCulturaWa('');
-    } catch { toast({ title: 'Erro ao enviar relatório', variant: 'destructive' }); }
+  const handleSubmitReport = async (formData: ReportFormData) => {
+    const weekStart = getWeekStartFromDate(formData.meetingDate);
+    await createReport.mutateAsync({
+      celula_id: celulaId, week_start: weekStart, meeting_date: formData.meetingDate,
+      members_present: formData.membersPresent, leaders_in_training: formData.leadersInTraining,
+      discipleships: formData.discipleships, visitors: formData.visitors, children: formData.children,
+      notes: formData.notes || undefined, photo_url: formData.photoUrl,
+    });
+    toast({ title: 'Relatório enviado com sucesso!' });
+
+    const cel = celulaData as any;
+    setLastReportData({
+      celula_name: celulaName,
+      lider1_name: cel?.leadership_couple?.spouse1?.name || '',
+      lider2_name: cel?.leadership_couple?.spouse2?.name || '',
+      meeting_day: cel?.meeting_day || '', meeting_time: cel?.meeting_time || '',
+      address: cel?.address || '', bairro: cel?.bairro || '', cidade: cel?.cidade || '',
+      instagram_lider1: cel?.instagram_lider1 || '', instagram_lider2: cel?.instagram_lider2 || '',
+      instagram_celula: cel?.instagram_celula || '',
+      meeting_date: formData.meetingDate, members_present: formData.membersPresent,
+      visitors: formData.visitors, children: formData.children,
+      leaders_in_training: formData.leadersInTraining, discipleships: formData.discipleships,
+      mensagem: '', paixao: 'PESSOAS', cultura: 'AMOR', photo_url: formData.photoUrl,
+    });
+    setWhatsappDialogOpen(true);
   };
 
   const handleEditReport = (data: { id: string; members_present: number; leaders_in_training: number; discipleships: number; visitors: number; children: number; notes: string | null; }) => {
