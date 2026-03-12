@@ -540,6 +540,28 @@
   }
 }
 
+/* ═══ EMPTY STATE KEYFRAMES ═══ */
+@keyframes emptyGlyphDash {
+  to { stroke-dashoffset: 0; }
+}
+@keyframes emptyGlyphIn {
+  0% { opacity: 0; transform: scale(0.7) translateY(10px); }
+  60% { transform: scale(1.04) translateY(-2px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes emptyGlyphEntry {
+  0% { opacity: 0; transform: scale(0.8) translateY(12px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes emptyRipple {
+  0% { transform: scale(0.8); opacity: 0.6; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+@keyframes emptyBreathe {
+  0%, 100% { opacity: 0.15; transform: scale(1); }
+  50% { opacity: 0.3; transform: scale(1.06); }
+}
+
 /* ═══ KEYFRAMES ═══ */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(6px); }
