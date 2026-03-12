@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, ClipboardCheck, Plus, Eye, Calendar, Users, ChevronRight, AlertTriangle, Heart, Sprout, HeartPulse } from 'lucide-react';
+import { SkPWA } from '@/components/ui/skeleton';
 import { usePlanejamentoBimestral } from '@/hooks/usePlanejamentoBimestral';
 import { ProgressoCuidadoBar } from '../supervisor/ProgressoCuidadoBar';
 import { PlanejamentoBimestralPanel } from '../supervisor/PlanejamentoBimestralPanel';
@@ -57,7 +58,7 @@ export function SupervisorPWADashboard() {
   const [selectedSupervisao, setSelectedSupervisao] = useState<Supervisao | null>(null);
 
   if (coordLoading || supLoading) {
-    return <div className="flex items-center justify-center h-64"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+    return <SkPWA />;
   }
 
   const currentSup = supervisores?.find(s => s.id === selectedSupervisor);

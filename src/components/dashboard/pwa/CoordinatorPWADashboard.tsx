@@ -6,7 +6,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Loader2, Users, FileText, Cake, AlertTriangle, MessageSquare, ClipboardCheck, Eye, ChevronRight, Calendar, Sprout, HeartPulse, Heart, Home, UserCheck } from 'lucide-react';
+import { Users, FileText, Cake, AlertTriangle, MessageSquare, ClipboardCheck, Eye, ChevronRight, Calendar, Sprout, HeartPulse, Heart, Home, UserCheck, Loader2 } from 'lucide-react';
+import { AtalaiaLoader, SkPWA } from '@/components/ui/skeleton';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useCoordenacoes } from '@/hooks/useCoordenacoes';
@@ -50,7 +51,7 @@ export function CoordinatorPWADashboard() {
   }, [scopeId, scopeType, userCoordenacoes.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (coordLoading) {
-    return <div className="flex items-center justify-center h-64"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+    return <SkPWA />;
   }
 
   const selectedCoordData = userCoordenacoes.find(c => c.id === selectedCoordenacao);

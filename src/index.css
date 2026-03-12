@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -541,4 +541,120 @@
       padding-top: env(safe-area-inset-top, 0px);
     }
   }
+}
+
+/* ═══ DESIGN SYSTEM — SHIMMER SKELETONS ═══ */
+@keyframes shimmer-gold {
+  0%   { background-position: -800px 0; }
+  100% { background-position:  800px 0; }
+}
+@keyframes shimmer-vida {
+  0%   { background-position: -800px 0; }
+  100% { background-position:  800px 0; }
+}
+@keyframes bar-grow {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+@keyframes breathe-glow {
+  0%, 100% { opacity: 0.18; }
+  50%       { opacity: 0.38; }
+}
+@keyframes glyph-in {
+  0%   { opacity: 0; transform: scale(0.72) translateY(10px); }
+  60%  { transform: scale(1.04) translateY(-2px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes line-draw {
+  from { stroke-dashoffset: var(--line-len, 300); }
+  to   { stroke-dashoffset: 0; }
+}
+@keyframes pulse-ring {
+  0%   { transform: scale(1);   opacity: 0.5; }
+  100% { transform: scale(1.9); opacity: 0;   }
+}
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1;    }
+  50%       { opacity: 0.5; }
+}
+
+/* Shimmer utility classes */
+.sk {
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    hsl(var(--muted))       0%,
+    hsl(var(--border))      40%,
+    hsl(var(--muted))       80%
+  );
+  background-size: 800px 100%;
+  animation: shimmer 1.8s ease-in-out infinite;
+}
+.sk-gold {
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    hsl(var(--gold) / 0.08) 0%,
+    hsl(var(--gold) / 0.22) 40%,
+    hsl(var(--gold) / 0.08) 80%
+  );
+  background-size: 800px 100%;
+  animation: shimmer-gold 2s ease-in-out infinite;
+}
+.sk-vida {
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    hsl(var(--vida) / 0.08) 0%,
+    hsl(var(--vida) / 0.22) 40%,
+    hsl(var(--vida) / 0.08) 80%
+  );
+  background-size: 800px 100%;
+  animation: shimmer-vida 2.2s ease-in-out infinite;
+}
+
+/* Atalaia orbital loader ring */
+.atalaia-ring {
+  border: 1.5px solid hsl(var(--gold) / 0.2);
+  border-top-color: hsl(var(--gold));
+  border-radius: 50%;
+  animation: spin-slow 1.4s linear infinite;
+}
+
+/* Bar grow — animated progress bar fill */
+.bar-grow {
+  transform-origin: left center;
+  animation: bar-grow 1s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* SVG glyph entrance */
+.glyph-in {
+  animation: glyph-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* SVG line draw */
+.line-draw {
+  animation: line-draw 1s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
+}
+
+/* Section label — monospace uppercase */
+.label-mono {
+  font-family: 'DM Mono', 'JetBrains Mono', monospace;
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+
+/* Metric number — editorial serif light */
+.metric-number {
+  font-family: 'Playfair Display', serif;
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  line-height: 1;
 }

@@ -16,6 +16,7 @@ export default {
         display: ["Manrope", "Inter", "system-ui", "sans-serif"],
         sans: ["Inter", "system-ui", "-apple-system", "sans-serif"],
         editorial: ["Playfair Display", "Manrope", "serif"],
+        mono: ["DM Mono", "JetBrains Mono", "Menlo", "monospace"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -124,6 +125,31 @@ export default {
           "0%, 100%": { transform: "translateY(0px)" },
           "50%": { transform: "translateY(-4px)" },
         },
+        "bar-grow": {
+          from: { transform: "scaleX(0)" },
+          to: { transform: "scaleX(1)" },
+        },
+        "breathe-glow": {
+          "0%, 100%": { opacity: "0.18" },
+          "50%": { opacity: "0.38" },
+        },
+        "glyph-in": {
+          "0%": { opacity: "0", transform: "scale(0.72) translateY(10px)" },
+          "60%": { transform: "scale(1.04) translateY(-2px)" },
+          "100%": { opacity: "1", transform: "scale(1) translateY(0)" },
+        },
+        "pulse-ring": {
+          "0%": { transform: "scale(1)", opacity: "0.5" },
+          "100%": { transform: "scale(1.9)", opacity: "0" },
+        },
+        "spin-slow": {
+          from: { transform: "rotate(0deg)" },
+          to: { transform: "rotate(360deg)" },
+        },
+        "pulse-soft": {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.5" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -135,6 +161,12 @@ export default {
         "glow-pulse": "glow-pulse 3s ease-in-out infinite",
         "shimmer": "shimmer 2s linear infinite",
         "float": "float 6s ease-in-out infinite",
+        "bar-grow": "bar-grow 1s cubic-bezier(0.16,1,0.3,1) both",
+        "breathe-glow": "breathe-glow 4s ease-in-out infinite",
+        "glyph-in": "glyph-in 0.7s cubic-bezier(0.16,1,0.3,1) both",
+        "pulse-ring": "pulse-ring 2.5s ease-out infinite",
+        "spin-slow": "spin-slow 1.4s linear infinite",
+        "pulse-soft": "pulse-soft 2s ease-in-out infinite",
       },
     },
   },
