@@ -3,6 +3,7 @@ import { GlobalValidationPanel } from '../GlobalValidationPanel';
 import { IntegrityAuditPanel } from '../IntegrityAuditPanel';
 import { Loader2, Globe, Church, Users, Home, GitBranch, Heart, Network, Sparkles, ShieldAlert, TrendingUp, ArrowRight, MessageSquare, RefreshCw, X, Calendar, BookOpen, Footprints } from 'lucide-react';
 import { AltarCelulaPanel } from '../AltarCelulaPanel';
+import { PipelineConversaoPanel } from '../PipelineConversaoPanel';
 import { useGlobalKingdomData, CampusKPI } from '@/hooks/useGlobalKingdomData';
 
 import { useConversionsMetrics } from '@/hooks/useConversionsMetrics';
@@ -146,6 +147,11 @@ function KingdomView({ campusData, onSelectCampus }: { campusData: CampusKPI[]; 
             </CardContent>
           </Card>
 
+          <PipelineConversaoPanel
+            overrideCampoId={null}
+            title="Pipeline de Conversão — Global"
+            subtitle="Do culto ao membro · todos os campos"
+          />
           <AltarCelulaPanel campoId={null} title="Do Altar à Célula — Global" />
         </TabsContent>
 
