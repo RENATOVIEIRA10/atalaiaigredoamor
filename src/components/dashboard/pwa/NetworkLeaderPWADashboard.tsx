@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -37,9 +37,11 @@ export function NetworkLeaderPWADashboard() {
   const userRedes = redes || [];
   const [selectedRede, setSelectedRede] = useState<string>('');
 
-  if (scopeType === 'rede' && scopeId && !selectedRede && userRedes.length > 0) {
-    setSelectedRede(scopeId);
-  }
+  useEffect(() => {
+    if (scopeType === 'rede' && scopeId && !selectedRede && userRedes.length > 0) {
+      setSelectedRede(scopeId);
+    }
+  }, [scopeId, scopeType, userRedes.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (redesLoading) {
     return <div className="flex items-center justify-center h-64"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;

@@ -22,7 +22,7 @@ import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export function CellLeaderPWADashboard() {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = searchParams.get('tab') || 'inicio';
   const { scopeId } = useRole();
   const { data: celulas, isLoading: celulasLoading } = useCelulas();
@@ -109,13 +109,7 @@ export function CellLeaderPWADashboard() {
         {activeNovasVidas.length > 0 && (
           <Card
             className="border-primary/30 cursor-pointer card-hover active:scale-[0.98] transition-all"
-            onClick={() => {
-              const url = new URL(window.location.href);
-              url.searchParams.set('tab', 'acoes');
-              url.searchParams.set('view', 'novas-vidas');
-              window.history.pushState({}, '', url.toString());
-              window.dispatchEvent(new PopStateEvent('popstate'));
-            }}
+            onClick={() => setSearchParams({ tab: 'acoes', view: 'novas-vidas' })}
           >
             <CardContent className="p-4 flex items-center gap-4">
               <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
@@ -167,12 +161,7 @@ export function CellLeaderPWADashboard() {
         <Button
           variant="outline"
           className="w-full h-12"
-          onClick={() => {
-            const url = new URL(window.location.href);
-            url.searchParams.set('tab', 'acoes');
-            window.history.pushState({}, '', url.toString());
-            window.dispatchEvent(new PopStateEvent('popstate'));
-          }}
+          onClick={() => setSearchParams({ tab: 'acoes' })}
         >
           <Users className="h-4 w-4 mr-2" />
           Ver membros e aniversariantes
