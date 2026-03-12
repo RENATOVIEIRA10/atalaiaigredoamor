@@ -24,6 +24,7 @@ import { CelulaPhotoUpload } from './cellleader/CelulaPhotoUpload';
 import { CelulaPhotoGallery } from './CelulaPhotoGallery';
 import { ReportsHistoryTable } from '@/components/reports/ReportsHistoryTable';
 import { WhatsAppShareDialog } from './cellleader/WhatsAppShareDialog';
+import { ReportFormWizard, type ReportFormData } from './cellleader/ReportFormWizard';
 import { useToast } from '@/hooks/use-toast';
 import { isSameWeek } from 'date-fns';
 
@@ -67,29 +68,8 @@ export function CelulaDetailsDialog({ open, onOpenChange, celulaId, celulaName }
   const [whatsappDialogOpen, setWhatsappDialogOpen] = useState(false);
   const [lastReportData, setLastReportData] = useState<any>(null);
 
-  // week_start is now derived from meetingDate at submission time
-  const [meetingDate, setMeetingDate] = useState('');
-  // PWA: use string state for numeric fields to allow empty initial state (avoids "01" bug)
-  const [membersPresent, setMembersPresent] = useState('');
-  const [leadersInTraining, setLeadersInTraining] = useState('');
-  const [discipleships, setDiscipleships] = useState('');
-  const [visitors, setVisitors] = useState('');
-  const [children, setChildren] = useState('');
-  const [notes, setNotes] = useState('');
-  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
-  const [mensagemWa, setMensagemWa] = useState('');
-  const [paixaoWa, setPaixaoWa] = useState('');
-  const [culturaWa, setCulturaWa] = useState('');
 
   const isLoading = membersLoading || casaisLoading;
-
-  // Helper: parse string to safe int
-  const toInt = (val: string) => { const n = parseInt(val, 10); return isNaN(n) || n < 0 ? 0 : n; };
-  // Helper: sanitize numeric input (strip non-digits, remove leading zeros)
-  const handleNumericInput = (value: string) => {
-    const sanitized = value.replace(/[^0-9]/g, '');
-    return sanitized === '' ? '' : String(parseInt(sanitized, 10));
-  };
 
   const toggleExpanded = (memberId: string) => {
     setExpandedMembers(prev => { const next = new Set(prev); if (next.has(memberId)) next.delete(memberId); else next.add(memberId); return next; });
@@ -119,56 +99,31 @@ export function CelulaDetailsDialog({ open, onOpenChange, celulaId, celulaName }
   casais?.forEach(casal => { membersInCouples.add(casal.member1_id); membersInCouples.add(casal.member2_id); });
   const availableMembers = members?.filter(m => !membersInCouples.has(m.id)) || [];
 
-  const handleSubmitReport = async () => {
-    if (!meetingDate) { toast({ title: 'Informe a data da reunião', variant: 'destructive' }); return; }
-    try {
-      const weekStart = getWeekStartFromDate(meetingDate);
-      const mpInt = toInt(membersPresent);
-      const ltInt = toInt(leadersInTraining);
-      const dInt = toInt(discipleships);
-      const vInt = toInt(visitors);
-      const cInt = toInt(children);
-      await createReport.mutateAsync({
-        celula_id: celulaId, week_start: weekStart, meeting_date: meetingDate,
-        members_present: mpInt, leaders_in_training: ltInt,
-        discipleships: dInt, visitors: vInt, children: cInt, notes: notes || undefined, photo_url: photoUrl,
-        mensagem_whatsapp: mensagemWa || undefined,
-        paixao_whatsapp: paixaoWa || undefined,
-        cultura_whatsapp: culturaWa || undefined,
-      });
-      toast({ title: 'Relatório enviado com sucesso!' });
-      
-      // Prepare WhatsApp share data
-      const cel = celulaData as any;
-      setLastReportData({
-        celula_name: celulaName,
-        lider1_name: cel?.leadership_couple?.spouse1?.name || '',
-        lider2_name: cel?.leadership_couple?.spouse2?.name || '',
-        meeting_day: cel?.meeting_day || '',
-        meeting_time: cel?.meeting_time || '',
-        address: cel?.address || '',
-        bairro: cel?.bairro || '',
-        cidade: cel?.cidade || '',
-        instagram_lider1: cel?.instagram_lider1 || '',
-        instagram_lider2: cel?.instagram_lider2 || '',
-        instagram_celula: cel?.instagram_celula || '',
-        meeting_date: meetingDate,
-        members_present: mpInt,
-        visitors: vInt,
-        children: cInt,
-        leaders_in_training: ltInt,
-        discipleships: dInt,
-        mensagem: mensagemWa,
-        paixao: 'PESSOAS',
-        cultura: 'AMOR',
-        photo_url: photoUrl,
-      });
-      setWhatsappDialogOpen(true);
-      
-      setMeetingDate(''); setMembersPresent(''); setLeadersInTraining('');
-      setDiscipleships(''); setVisitors(''); setChildren(''); setNotes(''); setPhotoUrl(null);
-      setMensagemWa(''); setPaixaoWa(''); setCulturaWa('');
-    } catch { toast({ title: 'Erro ao enviar relatório', variant: 'destructive' }); }
+  const handleSubmitReport = async (formData: ReportFormData) => {
+    const weekStart = getWeekStartFromDate(formData.meetingDate);
+    await createReport.mutateAsync({
+      celula_id: celulaId, week_start: weekStart, meeting_date: formData.meetingDate,
+      members_present: formData.membersPresent, leaders_in_training: formData.leadersInTraining,
+      discipleships: formData.discipleships, visitors: formData.visitors, children: formData.children,
+      notes: formData.notes || undefined, photo_url: formData.photoUrl,
+    });
+    toast({ title: 'Relatório enviado com sucesso!' });
+
+    const cel = celulaData as any;
+    setLastReportData({
+      celula_name: celulaName,
+      lider1_name: cel?.leadership_couple?.spouse1?.name || '',
+      lider2_name: cel?.leadership_couple?.spouse2?.name || '',
+      meeting_day: cel?.meeting_day || '', meeting_time: cel?.meeting_time || '',
+      address: cel?.address || '', bairro: cel?.bairro || '', cidade: cel?.cidade || '',
+      instagram_lider1: cel?.instagram_lider1 || '', instagram_lider2: cel?.instagram_lider2 || '',
+      instagram_celula: cel?.instagram_celula || '',
+      meeting_date: formData.meetingDate, members_present: formData.membersPresent,
+      visitors: formData.visitors, children: formData.children,
+      leaders_in_training: formData.leadersInTraining, discipleships: formData.discipleships,
+      mensagem: '', paixao: 'PESSOAS', cultura: 'AMOR', photo_url: formData.photoUrl,
+    });
+    setWhatsappDialogOpen(true);
   };
 
   const handleEditReport = (data: { id: string; members_present: number; leaders_in_training: number; discipleships: number; visitors: number; children: number; notes: string | null; }) => {
@@ -273,58 +228,13 @@ export function CelulaDetailsDialog({ open, onOpenChange, celulaId, celulaName }
 
               {/* RELATÓRIO SEMANAL */}
               <TabsContent value="relatorio">
-                <div className="space-y-6">
-                  {/* Data */}
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-muted-foreground">Data da Reunião *</Label>
-                    <Input type="date" value={meetingDate} onChange={(e) => setMeetingDate(e.target.value)} className="h-12 text-base" />
-                  </div>
-
-                  {/* Números */}
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground mb-3">Presença</p>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                      <div className="space-y-1.5">
-                        <Label className="text-sm">Membros Presentes</Label>
-                        <Input type="text" inputMode="numeric" pattern="[0-9]*" value={membersPresent} onChange={(e) => setMembersPresent(handleNumericInput(e.target.value))} onBlur={() => { if (membersPresent === '') setMembersPresent(''); }} placeholder="0" className="h-12 text-base text-center" />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label className="text-sm">Líd. em Trein.</Label>
-                        <Input type="text" inputMode="numeric" pattern="[0-9]*" value={leadersInTraining} onChange={(e) => setLeadersInTraining(handleNumericInput(e.target.value))} placeholder="0" className="h-12 text-base text-center" />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label className="text-sm">Discipulados</Label>
-                        <Input type="text" inputMode="numeric" pattern="[0-9]*" value={discipleships} onChange={(e) => setDiscipleships(handleNumericInput(e.target.value))} placeholder="0" className="h-12 text-base text-center" />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label className="text-sm">Visitantes</Label>
-                        <Input type="text" inputMode="numeric" pattern="[0-9]*" value={visitors} onChange={(e) => setVisitors(handleNumericInput(e.target.value))} placeholder="0" className="h-12 text-base text-center" />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label className="text-sm">Crianças</Label>
-                        <Input type="text" inputMode="numeric" pattern="[0-9]*" value={children} onChange={(e) => setChildren(handleNumericInput(e.target.value))} placeholder="0" className="h-12 text-base text-center" />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Observações */}
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-muted-foreground">Observações</Label>
-                    <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Notas sobre a reunião..." rows={3} className="text-base" />
-                  </div>
-
-                  <CelulaPhotoUpload photoUrl={photoUrl} onPhotoChange={setPhotoUrl} celulaId={celulaId} weekStart={meetingDate ? getWeekStartFromDate(meetingDate) : ''} />
-
-                  <div className={isPWAMobile
-                    ? 'sticky bottom-0 bg-background pt-3 border-t border-border/50'
-                    : 'sticky bottom-0 bg-background pt-3 pb-1 -mx-4 px-4 sm:-mx-6 sm:px-6 border-t border-border/50'
-                  } style={isPWAMobile ? { paddingBottom: 'calc(8px + env(safe-area-inset-bottom, 0px))' } : undefined}>
-                    <Button onClick={handleSubmitReport} disabled={createReport.isPending} className="w-full h-12 text-base font-semibold" size="lg">
-                      {createReport.isPending ? <Loader2 className="h-5 w-5 mr-2 animate-spin" /> : <Send className="h-5 w-5 mr-2" />}
-                      Enviar Relatório
-                    </Button>
-                  </div>
-                </div>
+                <ReportFormWizard
+                  celulaId={celulaId}
+                  celulaName={celulaName}
+                  celulaData={celulaData}
+                  onSubmit={handleSubmitReport}
+                  isSubmitting={createReport.isPending}
+                />
               </TabsContent>
 
               {/* HISTÓRICO */}
