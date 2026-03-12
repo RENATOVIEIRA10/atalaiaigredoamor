@@ -68,29 +68,8 @@ export function CelulaDetailsDialog({ open, onOpenChange, celulaId, celulaName }
   const [whatsappDialogOpen, setWhatsappDialogOpen] = useState(false);
   const [lastReportData, setLastReportData] = useState<any>(null);
 
-  // week_start is now derived from meetingDate at submission time
-  const [meetingDate, setMeetingDate] = useState('');
-  // PWA: use string state for numeric fields to allow empty initial state (avoids "01" bug)
-  const [membersPresent, setMembersPresent] = useState('');
-  const [leadersInTraining, setLeadersInTraining] = useState('');
-  const [discipleships, setDiscipleships] = useState('');
-  const [visitors, setVisitors] = useState('');
-  const [children, setChildren] = useState('');
-  const [notes, setNotes] = useState('');
-  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
-  const [mensagemWa, setMensagemWa] = useState('');
-  const [paixaoWa, setPaixaoWa] = useState('');
-  const [culturaWa, setCulturaWa] = useState('');
 
   const isLoading = membersLoading || casaisLoading;
-
-  // Helper: parse string to safe int
-  const toInt = (val: string) => { const n = parseInt(val, 10); return isNaN(n) || n < 0 ? 0 : n; };
-  // Helper: sanitize numeric input (strip non-digits, remove leading zeros)
-  const handleNumericInput = (value: string) => {
-    const sanitized = value.replace(/[^0-9]/g, '');
-    return sanitized === '' ? '' : String(parseInt(sanitized, 10));
-  };
 
   const toggleExpanded = (memberId: string) => {
     setExpandedMembers(prev => { const next = new Set(prev); if (next.has(memberId)) next.delete(memberId); else next.add(memberId); return next; });
