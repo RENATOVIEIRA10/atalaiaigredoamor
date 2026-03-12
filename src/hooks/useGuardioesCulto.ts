@@ -2,6 +2,18 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useCampo } from '@/contexts/CampoContext';
 
+/**
+ * Retorna data LOCAL no formato YYYY-MM-DD.
+ * toISOString() retorna UTC e pode deslocar um dia em fusos negativos
+ * (Brasil UTC-3: às 22h local o UTC já é dia seguinte).
+ */
+function localDateIso(d: Date = new Date()): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
 export interface CultoContagem {
   id: string;
   campo_id: string;
@@ -60,7 +72,7 @@ export function clearOfflineSession(campoId: string, data: string) {
 // ─── Fetch active or today's contagem ─────────────────────────────────────────
 export function useContagemHoje() {
   const { activeCampoId } = useCampo();
-  const today = new Date().toISOString().split('T')[0];
+  const today = localDateIso();
 
   return useQuery({
     queryKey: ['culto-contagem-hoje', activeCampoId, today],
@@ -129,7 +141,7 @@ export function useSaveContagem() {
       }
     },
     onSuccess: (saved: CultoContagem) => {
-      const today = new Date().toISOString().split('T')[0];
+      const today = localDateIso();
       qc.invalidateQueries({ queryKey: ['culto-contagem-hoje', activeCampoId, today] });
       qc.invalidateQueries({ queryKey: ['culto-contagem-historico', activeCampoId] });
       if (saved.status === 'encerrado' && activeCampoId) {

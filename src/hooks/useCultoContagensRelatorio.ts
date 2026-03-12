@@ -10,6 +10,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { useCampo } from '@/contexts/CampoContext';
 import { CultoContagem } from './useGuardioesCulto';
 
+/** Data LOCAL no formato YYYY-MM-DD — evita deslocamento de fuso do toISOString(). */
+function localDateIso(d: Date = new Date()): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
 export interface CultoStats {
   totalCultos: number;
   mediaPresentes: number;
@@ -33,7 +41,7 @@ export function useCultoContagensRelatorio(days = 90) {
     queryFn: async (): Promise<CultoStats> => {
       const from = new Date();
       from.setDate(from.getDate() - days);
-      const fromStr = from.toISOString().split('T')[0];
+      const fromStr = localDateIso(from);
 
       const { data } = await (supabase as any)
         .from('culto_contagens')

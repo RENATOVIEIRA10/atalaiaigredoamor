@@ -42,8 +42,21 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
+/**
+ * Retorna a data LOCAL no formato YYYY-MM-DD.
+ * Evita o bug de fuso horário do toISOString() que retorna UTC e pode
+ * adiantar o dia em fusos negativos (ex: Brasil UTC-3 após 21h local =
+ * dia seguinte em UTC).
+ */
+function localDateIso(d: Date = new Date()): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
 function todayIso() {
-  return new Date().toISOString().split('T')[0];
+  return localDateIso();
 }
 
 function formatDate(iso: string) {
