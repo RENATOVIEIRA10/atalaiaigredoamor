@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle
 } from '@/components/ui/sheet';
-import { GitBranch, Settings, Network, FolderTree, LogOut, Moon, Heart, Eye, Home, FlaskConical, RefreshCw, PlayCircle, Repeat, HelpCircle } from 'lucide-react';
+import { GitBranch, Settings, Network, FolderTree, LogOut, Moon, Heart, Eye, Home, FlaskConical, RefreshCw, PlayCircle, Repeat, HelpCircle, ClipboardCheck } from 'lucide-react';
 import { useServiceWorkerUpdate } from '@/hooks/useServiceWorkerUpdate';
 import { useRole } from '@/contexts/RoleContext';
 import { useDemoMode } from '@/contexts/DemoModeContext';
@@ -104,8 +104,9 @@ export function MobileMenuSheet({ open, onOpenChange }: MobileMenuSheetProps) {
                 <MenuButton icon={GitBranch} label="Organograma" onClick={() => goTo('/organograma')} />
               </>
             ) : (isCoordenador || isRedeLeader) ? (
-              // Coord / Rede leader PWA: organograma + células allowed
+              // Coord / Rede leader PWA: organograma + células + radar
               <>
+                <MenuButton icon={ClipboardCheck} label="Radar de Saúde" onClick={() => goTo('/radar')} />
                 <MenuButton icon={GitBranch} label="Organograma" onClick={() => goTo('/organograma')} />
                 <MenuButton icon={Home} label="Células" onClick={() => goTo('/celulas')} />
               </>

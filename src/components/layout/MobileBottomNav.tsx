@@ -85,11 +85,19 @@ export function MobileBottomNav() {
       { label: 'Plano', icon: Calendar, path: '/dashboard?tab=plano' },
       { label: 'Ações', icon: Zap, path: '/dashboard?tab=acoes' },
     ];
-  } else if (isCoordenador || isRedeLeader) {
+  } else if (isRedeLeader) {
     navItems = [
       { label: 'Início', icon: LayoutDashboard, path: '/home' },
       { label: 'Visão', icon: Heart, path: '/dashboard' },
-      { label: 'Radar', icon: ClipboardCheck, path: '/radar' },
+      { label: 'Pulso', icon: Eye, path: '/dashboard?tab=pulso' },
+      { label: 'Ações', icon: Zap, path: '/dashboard?tab=acoes' },
+    ];
+  } else if (isCoordenador) {
+    navItems = [
+      { label: 'Início', icon: LayoutDashboard, path: '/home' },
+      { label: 'Visão', icon: Heart, path: '/dashboard' },
+      { label: 'Pulso', icon: Eye, path: '/dashboard?tab=pulso' },
+      { label: 'Ações', icon: Zap, path: '/dashboard?tab=acoes' },
     ];
   } else {
     navItems = [

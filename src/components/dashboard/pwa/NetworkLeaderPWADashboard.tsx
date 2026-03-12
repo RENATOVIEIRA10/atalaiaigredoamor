@@ -38,8 +38,11 @@ export function NetworkLeaderPWADashboard() {
   const [selectedRede, setSelectedRede] = useState<string>('');
 
   useEffect(() => {
-    if (scopeType === 'rede' && scopeId && !selectedRede && userRedes.length > 0) {
+    if (userRedes.length === 0 || selectedRede) return;
+    if (scopeType === 'rede' && scopeId) {
       setSelectedRede(scopeId);
+    } else if (userRedes.length === 1) {
+      setSelectedRede(userRedes[0].id);
     }
   }, [scopeId, scopeType, userRedes.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -59,9 +62,17 @@ export function NetworkLeaderPWADashboard() {
                 <SelectValue placeholder="Selecione uma rede" />
               </SelectTrigger>
               <SelectContent>
-                {userRedes.map((r) => (
-                  <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
-                ))}
+                {userRedes.map((r) => {
+                  const coupleNames = r.leadership_couple?.spouse1?.name
+                    ? `${r.leadership_couple.spouse1.name}${r.leadership_couple?.spouse2?.name ? ` & ${r.leadership_couple.spouse2.name}` : ''}`
+                    : null;
+                  return (
+                    <SelectItem key={r.id} value={r.id}>
+                      <span>{r.name}</span>
+                      {coupleNames && <span className="text-muted-foreground ml-1 text-xs">— {coupleNames}</span>}
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
           </CardContent>
