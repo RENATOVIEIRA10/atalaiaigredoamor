@@ -1128,7 +1128,7 @@ function StepConclusao({ onRestart }: { onRestart: () => void }) {
       <div className="text-center space-y-4">
         <p className="text-xs" style={{ color: tMuted }}>
           Demonstração preparada com carinho para<br />
-          <strong style={{ color: tBody }}>Pastor Arthur & Pastora Talita</strong>
+          <strong style={{ color: tBody }}>Pastor Arthur & Pastora Talitha</strong>
         </p>
         <Button onClick={onRestart} variant="ghost" size="sm"
           className="gap-2 rounded-full px-6 mx-auto"
