@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Heart, ShieldCheck, Eye, AlertTriangle, HelpCircle, TrendingUp, TrendingDown, Minus, Activity } from 'lucide-react';
+import { HelpTooltip } from '@/components/ui/help-tooltip';
 import { useRadarSaude, CelulaSaude } from '@/hooks/useRadarSaude';
 import { HealthLegend } from '@/components/health/HealthLegend';
 import { format, parseISO, differenceInDays } from 'date-fns';
@@ -60,7 +61,13 @@ export function RadarSaudePanel({ scopeType, scopeId, campoId, title = 'Saúde d
       {/* Header — editorial + critical badge */}
       <div className="flex items-start justify-between">
         <div>
-          <p className="label-mono mb-1">{title}</p>
+          <div className="flex items-center gap-1.5 mb-1">
+            <p className="label-mono">{title}</p>
+            <HelpTooltip
+              text="O Radar classifica cada célula em Saudável / Acompanhamento / Crítica com base nas avaliações de supervisão bimestral e frequência de relatórios semanais."
+              size={12}
+            />
+          </div>
           <h2 className="font-editorial font-light text-2xl text-foreground leading-tight" style={{ letterSpacing: '-0.01em' }}>
             {data.totalCelulas} <span className="text-muted-foreground text-lg">células em análise</span>
           </h2>
@@ -79,10 +86,38 @@ export function RadarSaudePanel({ scopeType, scopeId, campoId, title = 'Saúde d
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <StatCard icon={ShieldCheck} label="Saudáveis"     value={data.saudaveis}       color="vida" className="border-[hsl(var(--vida)/0.2)]" />
-        <StatCard icon={Eye}         label="Acompanhamento" value={data.emAcompanhamento} color={data.emAcompanhamento > 0 ? 'gold' : undefined} />
-        <StatCard icon={AlertTriangle} label="Críticas"    value={data.criticas}         color={data.criticas > 0 ? 'ruby' : undefined} />
-        <StatCard icon={HelpCircle}  label="Sem avaliação" value={data.semAvaliacao} />
+        <StatCard
+          icon={ShieldCheck}
+          label="Saudáveis"
+          value={data.saudaveis}
+          color="vida"
+          className="border-[hsl(var(--vida)/0.2)]"
+          help="Células com pontuação ≥ 4.0 nas últimas supervisões. Engajamento e relatórios em dia."
+          origin="Supervisor + relatórios"
+        />
+        <StatCard
+          icon={Eye}
+          label="Acompanhamento"
+          value={data.emAcompanhamento}
+          color={data.emAcompanhamento > 0 ? 'gold' : undefined}
+          help="Células com pontuação entre 3.0 e 3.9. Requerem atenção e acompanhamento próximo do supervisor."
+          origin="Avaliações de supervisão"
+        />
+        <StatCard
+          icon={AlertTriangle}
+          label="Críticas"
+          value={data.criticas}
+          color={data.criticas > 0 ? 'ruby' : undefined}
+          help="Células com pontuação abaixo de 3.0. Necessitam intervenção pastoral urgente — contato imediato."
+          origin="Avaliações de supervisão"
+        />
+        <StatCard
+          icon={HelpCircle}
+          label="Sem avaliação"
+          value={data.semAvaliacao}
+          help="Células que ainda não foram supervisionadas neste bimestre. Não é possível calcular a saúde."
+          origin="Registros bimestrais"
+        />
       </div>
 
       {/* Critical cells list */}

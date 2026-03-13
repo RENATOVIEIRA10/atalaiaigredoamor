@@ -19,6 +19,7 @@ import { DiscipuladoCellLeaderTab } from '../discipulado/DiscipuladoCellLeaderTa
 import { MissionVerse } from '../MissionVerse';
 import { MissionBlock } from '@/components/dashboard/MissionBlock';
 import { EmptyState } from '@/components/ui/empty-state';
+import { HelpTooltip } from '@/components/ui/help-tooltip';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -86,7 +87,10 @@ export function CellLeaderPWADashboard() {
               ) : (
                 <AlertTriangle className="h-4 w-4 text-amber-500 mb-1" />
               )}
-              <span className="text-xs text-muted-foreground">Relatório da semana</span>
+              <div className="flex items-center gap-1">
+                <span className="text-xs text-muted-foreground">Relatório da semana</span>
+                <HelpTooltip text="Relatório semanal da sua célula. Deve ser enviado toda semana com presença, visitantes e observações pastorais." size={11} />
+              </div>
               <Badge variant={thisWeekReport ? 'default' : 'secondary'} className="text-xs mt-0.5">
                 {thisWeekReport ? 'Enviado ✓' : 'Pendente'}
               </Badge>
@@ -95,7 +99,10 @@ export function CellLeaderPWADashboard() {
           <Card>
             <CardContent className="p-3 flex flex-col items-center text-center">
               <Clock className="h-4 w-4 text-muted-foreground mb-1" />
-              <span className="text-xs text-muted-foreground">Último envio</span>
+              <div className="flex items-center gap-1">
+                <span className="text-xs text-muted-foreground">Último envio</span>
+                <HelpTooltip text="Data do último relatório enviado. Frequência semanal garante que seu supervisor acompanhe a célula." size={11} />
+              </div>
               <span className="text-sm font-semibold mt-0.5">
                 {lastReport?.meeting_date
                   ? format(parseISO(lastReport.meeting_date), 'dd/MM', { locale: ptBR })
@@ -143,15 +150,23 @@ export function CellLeaderPWADashboard() {
           <Card>
             <CardContent className="p-3 flex flex-col items-center text-center">
               <Users className="h-4 w-4 text-primary mb-1" />
-              <span className="text-xs text-muted-foreground">Membros ativos</span>
+              <div className="flex items-center gap-1">
+                <span className="text-xs text-muted-foreground">Membros ativos</span>
+                <HelpTooltip text="Total de membros com status ativo na sua célula. Membros inativos não entram nessa contagem." size={11} />
+              </div>
               <span className="text-lg font-bold">{activeMembers.length}</span>
+              <span className="label-mono text-[9px] text-muted-foreground/40 mt-0.5">Cadastro da célula</span>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-3 flex flex-col items-center text-center">
               <Heart className="h-4 w-4 text-primary mb-1" />
-              <span className="text-xs text-muted-foreground">Novas vidas</span>
+              <div className="flex items-center gap-1">
+                <span className="text-xs text-muted-foreground">Novas vidas</span>
+                <HelpTooltip text="Pessoas encaminhadas para sua célula pelo ministério Recomeço ou Central de Células. Precisam de acompanhamento ativo." size={11} />
+              </div>
               <span className="text-lg font-bold">{activeNovasVidas.length}</span>
+              <span className="label-mono text-[9px] text-muted-foreground/40 mt-0.5">Pipeline Recomeço</span>
             </CardContent>
           </Card>
         </div>
@@ -159,6 +174,7 @@ export function CellLeaderPWADashboard() {
 
       {/* ── BLOCO 3 — Saúde e Cuidado ── */}
       <MissionBlock icon={HeartPulse} title="Saúde e Cuidado">
+        <p className="text-xs text-muted-foreground -mt-1 mb-2">Cuide das pessoas, não só dos números.</p>
         <Button
           variant="outline"
           className="w-full h-12"
@@ -260,7 +276,7 @@ function AcoesTab({ celulaId, celulaName, coupleNames, onOpenReport, novasVidasC
             </div>
             <div className="flex-1">
               <h3 className="font-semibold">Fazer Relatório</h3>
-              <p className="text-xs text-muted-foreground">Preencher e enviar no WhatsApp</p>
+              <p className="text-xs text-muted-foreground">Preencher e enviar — dados salvos automaticamente</p>
             </div>
             <ChevronRight className="h-5 w-5 text-muted-foreground" />
           </CardContent>

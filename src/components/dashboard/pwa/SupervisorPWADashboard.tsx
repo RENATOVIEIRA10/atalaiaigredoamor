@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, ClipboardCheck, Plus, Eye, Calendar, Users, ChevronRight, AlertTriangle, Heart, Sprout, HeartPulse } from 'lucide-react';
+import { HelpTooltip } from '@/components/ui/help-tooltip';
 import { SkPWA } from '@/components/ui/skeleton';
 import { usePlanejamentoBimestral } from '@/hooks/usePlanejamentoBimestral';
 import { ProgressoCuidadoBar } from '../supervisor/ProgressoCuidadoBar';
@@ -197,7 +198,10 @@ function SupervisorInicioTab({
         {celulasPendentes.length > 0 ? (
           <Card className="border-l-4 border-l-amber-500/50">
             <CardContent className="py-3 px-4">
-              <p className="text-sm font-medium">{celulasPendentes.length} célula(s) sem supervisão</p>
+              <div className="flex items-center gap-1">
+                <p className="text-sm font-medium">{celulasPendentes.length} célula(s) sem supervisão</p>
+                <HelpTooltip text="Células no seu escopo que ainda não receberam supervisão presencial neste bimestre. Supervisão = visita registrada no sistema." size={12} />
+              </div>
               <p className="text-xs text-muted-foreground">{celulasPendentes.map(c => c.name).join(', ')}</p>
             </CardContent>
           </Card>
@@ -213,6 +217,7 @@ function SupervisorInicioTab({
           <Plus className="h-5 w-5 mr-2" />
           Registrar Supervisão
         </Button>
+        <p className="text-xs text-muted-foreground text-center -mt-1">Registra a visita presencial à célula e salva no histórico bimestral</p>
       </MissionBlock>
 
       {/* ── BLOCO 2 — Movimento do Reino ── */}
@@ -229,21 +234,30 @@ function SupervisorInicioTab({
             <CardContent className="p-3 flex flex-col items-center text-center">
               <ClipboardCheck className="h-4 w-4 text-primary mb-1" />
               <span className="text-lg font-bold">{supervisoesThisMonth.length}</span>
-              <span className="text-xs text-muted-foreground">No mês</span>
+              <div className="flex items-center gap-0.5">
+                <span className="text-xs text-muted-foreground">No mês</span>
+                <HelpTooltip text="Supervisões presenciais realizadas e registradas neste mês calendário." size={10} />
+              </div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-3 flex flex-col items-center text-center">
               <Users className="h-4 w-4 text-primary mb-1" />
               <span className="text-lg font-bold">{celulasNoEscopo}</span>
-              <span className="text-xs text-muted-foreground">Células</span>
+              <div className="flex items-center gap-0.5">
+                <span className="text-xs text-muted-foreground">Células</span>
+                <HelpTooltip text="Total de células na coordenação sob sua responsabilidade de supervisão." size={10} />
+              </div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-3 flex flex-col items-center text-center">
               <Calendar className="h-4 w-4 text-muted-foreground mb-1" />
               <span className="text-lg font-bold">{supervisoes.length}</span>
-              <span className="text-xs text-muted-foreground">Total geral</span>
+              <div className="flex items-center gap-0.5">
+                <span className="text-xs text-muted-foreground">Total geral</span>
+                <HelpTooltip text="Todas as supervisões registradas por você no histórico completo." size={10} />
+              </div>
             </CardContent>
           </Card>
         </div>

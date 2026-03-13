@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Users, FileText, Cake, AlertTriangle, MessageSquare, Network, ChevronRight, ClipboardCheck, Calendar, Eye, ExternalLink, Heart, GitBranch } from 'lucide-react';
+import { HelpTooltip } from '@/components/ui/help-tooltip';
 import { AtalaiaLoader, SkPWA } from '@/components/ui/skeleton';
 import { useRedes } from '@/hooks/useRedes';
 import { useCoordenacoes } from '@/hooks/useCoordenacoes';
@@ -160,10 +161,24 @@ function RedeInicio({ redeId, redeData }: { redeId: string; redeData: any }) {
       <MissionBlock icon={AlertTriangle} title="O que precisa da minha atenção">
         <div className="grid grid-cols-2 gap-3">
           <div onClick={() => setDrillDown('pendentes')} className="cursor-pointer active:scale-[0.97] transition-transform touch-manipulation">
-            <StatCard icon={FileText} label="Pendentes" value={pendentes} className={pendentes > 0 ? 'border-amber-500/30' : ''} />
+            <StatCard
+              icon={FileText}
+              label="Pendentes"
+              value={pendentes}
+              className={pendentes > 0 ? 'border-amber-500/30' : ''}
+              help="Células que ainda não enviaram o relatório desta semana. Toque para ver quais são e enviar cobrança."
+              origin="Relatórios semanais"
+              color={pendentes > 0 ? 'ruby' : undefined}
+            />
           </div>
           <div onClick={() => setDrillDown('aniversariantes')} className="cursor-pointer active:scale-[0.97] transition-transform touch-manipulation">
-            <StatCard icon={Cake} label="Aniversários" value={aniversariantes?.length || 0} />
+            <StatCard
+              icon={Cake}
+              label="Aniversários"
+              value={aniversariantes?.length || 0}
+              help="Membros de todas as células da rede que fazem aniversário nesta semana. Toque para ver a lista."
+              origin="Cadastro de membros"
+            />
           </div>
         </div>
 
@@ -199,8 +214,21 @@ function RedeInicio({ redeId, redeData }: { redeId: string; redeData: any }) {
       {/* BLOCO 2 — Movimento do Reino */}
       <MissionBlock icon={GitBranch} title="Movimento do Reino">
         <div className="grid grid-cols-2 gap-3">
-          <StatCard icon={Network} label="Coordenações" value={redeCoordenacoes.length} />
-          <StatCard icon={Users} label="Células" value={totalCelulas} />
+          <StatCard
+            icon={Network}
+            label="Coordenações"
+            value={redeCoordenacoes.length}
+            help="Total de coordenações dentro da sua rede. Cada coordenação agrupa supervisores e células."
+            origin="Estrutura da rede"
+          />
+          <StatCard
+            icon={Users}
+            label="Células"
+            value={totalCelulas}
+            help="Total de células ativas vinculadas à sua rede neste campus."
+            origin="Cadastro de células"
+            color="vida"
+          />
         </div>
       </MissionBlock>
 
@@ -208,7 +236,10 @@ function RedeInicio({ redeId, redeData }: { redeId: string; redeData: any }) {
       <MissionBlock icon={Heart} title="Saúde e Cuidado">
         <Card>
           <CardHeader className="pb-2 pt-4 px-4">
-            <CardTitle className="text-sm text-muted-foreground">📡 Radar</CardTitle>
+            <CardTitle className="text-sm text-muted-foreground flex items-center gap-1.5">
+              📡 Radar de Saúde
+              <HelpTooltip text="Indicadores de saúde calculados a partir dos relatórios semanais e registros de supervisão das células da sua rede." size={12} />
+            </CardTitle>
           </CardHeader>
           <CardContent className="px-4 pb-4 space-y-3">
             <div
@@ -219,17 +250,20 @@ function RedeInicio({ redeId, redeData }: { redeId: string; redeData: any }) {
                 label="Células 3+ sem relatório"
                 value={pulso?.celulasAlerta3Semanas?.length || 0}
                 variant={pulso?.celulasAlerta3Semanas?.length ? 'danger' : 'ok'}
+                help="Células que ficaram 3 semanas ou mais sem enviar relatório — alto risco pastoral. Toque para ver quais são."
               />
             </div>
             <RadarItem
               label="Multiplicações (90 dias)"
               value={recentMultiplicacoes}
               variant="neutral"
+              help="Novas células abertas nos últimos 90 dias. Multiplicação é o principal indicador de crescimento."
             />
             <RadarItem
               label="Engajamento semanal"
               value={`${pulso?.percentualEngajamento || 0}%`}
               variant={pulso?.percentualEngajamento && pulso.percentualEngajamento < 50 ? 'danger' : 'ok'}
+              help="% de células que enviaram relatório na semana atual. Abaixo de 50% indica problema de engajamento."
             />
           </CardContent>
         </Card>
@@ -506,12 +540,15 @@ function TappableRow({ label, value, onClick, variant, extra }: { label: string;
   );
 }
 
-function RadarItem({ label, value, variant }: { label: string; value: string | number; variant: 'ok' | 'danger' | 'neutral' }) {
+function RadarItem({ label, value, variant, help }: { label: string; value: string | number; variant: 'ok' | 'danger' | 'neutral'; help?: string }) {
   const colorClass = variant === 'danger' ? 'text-destructive' : variant === 'ok' ? 'text-green-600' : 'text-muted-foreground';
   return (
     <div className="flex items-center justify-between p-2.5 rounded-lg bg-muted/30">
-      <span className="text-sm">{label}</span>
-      <Badge variant="outline" className={`text-xs ${colorClass}`}>{value}</Badge>
+      <div className="flex items-center gap-1 min-w-0">
+        <span className="text-sm">{label}</span>
+        {help && <HelpTooltip text={help} size={11} />}
+      </div>
+      <Badge variant="outline" className={`text-xs shrink-0 ${colorClass}`}>{value}</Badge>
     </div>
   );
 }
