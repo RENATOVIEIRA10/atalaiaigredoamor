@@ -6,7 +6,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Loader2, Users, FileText, Cake, AlertTriangle, MessageSquare, Network, ChevronRight, ClipboardCheck, Calendar, Eye, ExternalLink, Heart, GitBranch } from 'lucide-react';
+import { Users, FileText, Cake, AlertTriangle, MessageSquare, Network, ChevronRight, ClipboardCheck, Calendar, Eye, ExternalLink, Heart, GitBranch } from 'lucide-react';
+import { AtalaiaLoader, SkPWA } from '@/components/ui/skeleton';
 import { useRedes } from '@/hooks/useRedes';
 import { useCoordenacoes } from '@/hooks/useCoordenacoes';
 import { useCelulas } from '@/hooks/useCelulas';
@@ -47,7 +48,7 @@ export function NetworkLeaderPWADashboard() {
   }, [scopeId, scopeType, userRedes.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (redesLoading) {
-    return <div className="flex items-center justify-center h-64"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+    return <SkPWA />;
   }
 
   const selectedRedeData = userRedes.find(r => r.id === selectedRede);

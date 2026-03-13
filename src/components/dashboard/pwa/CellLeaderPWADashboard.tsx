@@ -3,7 +3,8 @@ import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, FileText, Users, Cake, Zap, Clock, CheckCircle, AlertTriangle, ChevronRight, Heart, History, Settings2, BookOpen, Sprout, HeartPulse } from 'lucide-react';
+import { FileText, Users, Cake, Zap, Clock, CheckCircle, AlertTriangle, ChevronRight, Heart, History, Settings2, BookOpen, Sprout, HeartPulse, Loader2 } from 'lucide-react';
+import { SkPWA } from '@/components/ui/skeleton';
 import { useCelulas } from '@/hooks/useCelulas';
 import { useWeeklyReports, getCurrentWeekStart } from '@/hooks/useWeeklyReports';
 import { useMembers } from '@/hooks/useMembers';
@@ -37,7 +38,7 @@ export function CellLeaderPWADashboard() {
   const [reportFilter, setReportFilter] = useState<number>(30);
 
   if (celulasLoading) {
-    return <div className="flex items-center justify-center h-64"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+    return <SkPWA />;
   }
 
   if (!celula) {
