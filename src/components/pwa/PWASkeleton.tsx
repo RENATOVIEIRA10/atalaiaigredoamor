@@ -1,5 +1,5 @@
 import { Skeleton } from '@/components/ui/skeleton';
-import { SkeletonDashboard, SkeletonConcierge, SkeletonMetricCard } from '@/components/ui/skeletons';
+import { SkeletonConcierge, SkeletonMetricCard } from '@/components/ui/skeletons';
 
 /** Full-screen skeleton for PWA loading states */
 export function PWAPageSkeleton() {
