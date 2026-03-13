@@ -1,5 +1,5 @@
 /**
- * Demo Guiada Premium — Pastor Arthur & Pastora Talita
+ * Demo Guiada Premium — Pastor Arthur & Pastora Talitha
  * Rota pública: /demo/pastor-arthur
  *
  * Narrativa: A jornada de Fernanda Costa — do culto ao discipulado.
