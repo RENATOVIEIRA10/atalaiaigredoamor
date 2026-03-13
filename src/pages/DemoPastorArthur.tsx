@@ -177,7 +177,7 @@ function StepBemVindo({ onNext, onFree }: { onNext: () => void; onFree: () => vo
         <div className="rounded-2xl p-6 space-y-3"
           style={{ background: `${gold}0C`, border: `1px solid ${gold}28` }}>
           <p className="text-base font-semibold" style={{ color: gold, fontFamily: serif }}>
-            Graça e paz, Pastor Arthur e Pastora Talita.
+            Graça e paz, Pastor Arthur e Pastora Talitha.
           </p>
           <p className="text-sm leading-relaxed" style={{ color: tBody }}>
             Esta demonstração foi preparada especialmente para vocês, mostrando como o Atalaia acompanha cada vida — do primeiro culto ao discipulado.
