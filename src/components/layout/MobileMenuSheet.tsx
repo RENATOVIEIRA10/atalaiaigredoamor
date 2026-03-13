@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle
 } from '@/components/ui/sheet';
-import { GitBranch, Settings, Network, FolderTree, LogOut, Moon, Heart, Eye, Home, FlaskConical, RefreshCw, PlayCircle, Repeat, HelpCircle, ClipboardCheck } from 'lucide-react';
+import { GitBranch, Settings, Network, FolderTree, LogOut, Moon, Sun, Heart, Eye, Home, FlaskConical, RefreshCw, PlayCircle, Repeat, HelpCircle, ClipboardCheck, Palette } from 'lucide-react';
 import { useServiceWorkerUpdate } from '@/hooks/useServiceWorkerUpdate';
 import { useRole } from '@/contexts/RoleContext';
 import { useDemoMode } from '@/contexts/DemoModeContext';
