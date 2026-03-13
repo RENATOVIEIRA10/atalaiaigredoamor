@@ -42,9 +42,9 @@ export default defineConfig(({ mode }) => ({
         globIgnores: ["version.json", "**/index.html"],
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         // Never cache OAuth redirects or Supabase / API calls
-        navigateFallbackDenylist: [/^\/~oauth/, /^\/rest/, /^\/auth/],
-        // Don't use navigateFallback so index.html is always fetched from network
-        navigateFallback: undefined,
+        navigateFallbackDenylist: [/^\/~oauth/, /^\/rest/, /^\/auth/, /^\/version\.json/],
+        // Serve index.html for all navigation requests (SPA fallback)
+        navigateFallback: 'index.html',
         // Clean old caches on new SW activation
         cleanupOutdatedCaches: true,
         // Force immediate activation of new SW

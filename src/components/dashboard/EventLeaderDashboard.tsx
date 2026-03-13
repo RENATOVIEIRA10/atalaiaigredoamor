@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { EmptyState } from '@/components/ui/empty-state';
-import { StatCard } from '@/components/ui/stat-card';
+import { StatCard as UiStatCard } from '@/components/ui/stat-card';
 import {
   Loader2, ChevronLeft, Droplets, Star, Plus, Users, CheckCircle,
   Clock, XCircle, FileDown, MoreVertical,
