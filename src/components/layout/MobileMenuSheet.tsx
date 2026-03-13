@@ -22,7 +22,7 @@ export function MobileMenuSheet({ open, onOpenChange }: MobileMenuSheetProps) {
   const navigate = useNavigate();
   const { clearAccess, isAdmin, isRedeLeader, isCoordenador, isCelulaLeader, isSupervisor, isPastor, isPastorSeniorGlobal, isPastorDeCampo } = useRole();
   const { isDemoActive, deactivateDemo } = useDemoMode();
-  const { theme, toggleTheme } = useTheme();
+  const { theme, setTheme, toggleTheme } = useTheme();
   const { checkForUpdate, applyUpdate } = useServiceWorkerUpdate();
   const [checking, setChecking] = useState(false);
   const [showAdminPanel, setShowAdminPanel] = useState(false);
