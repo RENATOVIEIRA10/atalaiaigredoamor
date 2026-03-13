@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { EmptyState } from '@/components/ui/empty-state';
+import { StatCard } from '@/components/ui/stat-card';
 import {
   Loader2, ChevronLeft, Droplets, Star, Plus, Users, CheckCircle,
   Clock, XCircle, FileDown, MoreVertical,
@@ -183,9 +184,9 @@ export default function EventLeaderDashboard() {
           {/* Stats */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <StatCard icon={Users} label="Total" value={stats.total} />
-            <StatCard icon={Clock} label="Inscritos" value={stats.inscritos} color="text-blue-500" />
-            <StatCard icon={CheckCircle} label="Realizados" value={stats.realizados} color="text-green-500" />
-            <StatCard icon={XCircle} label="Recusados" value={stats.recusados} color="text-red-500" />
+            <StatCard icon={Clock} label="Inscritos" value={stats.inscritos} />
+            <StatCard icon={CheckCircle} label="Realizados" value={stats.realizados} />
+            <StatCard icon={XCircle} label="Recusados" value={stats.recusados} />
           </div>
 
           {/* Search + Export */}
