@@ -28,6 +28,19 @@ interface EmptyStateProps {
   className?: string;
 }
 
+// ─── Background map (Bg* functions are hoisted — safe to reference here) ────
+
+// eslint-disable-next-line @typescript-eslint/no-use-before-define
+const bgMap: Record<string, () => JSX.Element> = {
+  relatorio:   BgDots,
+  membros:     BgOrganic,
+  recomeco:    BgRings,
+  supervisoes: BgDots,
+  financeiro:  BgGrid,
+  celulas:     BgDots,
+  default:     BgDots,
+};
+
 // ─── Component ──────────────────────────────────────────────────────────────
 
 export function EmptyState({

@@ -37,7 +37,7 @@ export function SkeletonMetricCard({ accentGold = false, className }: { accentGo
       {/* Tag */}
       <Skeleton className="h-2.5 w-16" />
       {/* Número */}
-      <Skeleton variant={accentGold ? 'gold' : 'base'} className="h-9 w-20 rounded-lg" />
+      <Skeleton variant={accentGold ? 'gold' : 'default'} className="h-9 w-20 rounded-lg" />
       {/* Subtítulo */}
       <Skeleton className="h-2 w-24" />
       {/* Barra de progresso */}
@@ -148,7 +148,7 @@ export function SkeletonRhythm({ className }: { className?: string }) {
       <div className="flex items-end gap-2 pt-2" style={{ height: 100 }}>
         {heights.map((h, i) => (
           <div key={i} className="flex-1 flex flex-col items-center gap-1.5">
-            <Skeleton variant={i === 4 ? 'gold' : 'base'} className="w-full rounded-sm" style={{ height: h }} />
+            <Skeleton variant={i === 4 ? 'gold' : 'default'} className="w-full rounded-sm" style={{ height: h }} />
             <Skeleton className="h-2 w-5" />
           </div>
         ))}
