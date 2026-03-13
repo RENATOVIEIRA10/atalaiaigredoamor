@@ -1,6 +1,7 @@
 import { LucideIcon } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { HoverLift } from '@/components/ui/animations';
+import { HelpTooltip } from '@/components/ui/help-tooltip';
 import { cn } from '@/lib/utils';
 
 // ─── Semantic color tokens ────────────────────────────────────────────────────
@@ -43,6 +44,10 @@ interface StatCardProps {
   onClick?: () => void;
   /** Animate entrance — pass stagger index (0, 1, 2 …) */
   delay?: number;
+  /** Tooltip explicativo (ℹ) — aparece ao lado do label */
+  help?: string;
+  /** Fonte dos dados, exibida abaixo do valor em label-mono mínimo */
+  origin?: string;
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -59,6 +64,8 @@ export function StatCard({
   className,
   onClick,
   delay = 0,
+  help,
+  origin,
 }: StatCardProps) {
   const col = color ? COLOR_CLASSES[color] : null;
 
@@ -72,7 +79,10 @@ export function StatCard({
       <CardContent className="p-5">
         {/* Label + icon row */}
         <div className="flex items-start justify-between mb-1">
-          <p className="label-mono">{label}</p>
+          <div className="flex items-center gap-1">
+            <p className="label-mono">{label}</p>
+            {help && <HelpTooltip text={help} size={12} />}
+          </div>
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 ring-1 ring-primary/20 transition-all duration-300 group-hover:bg-primary/15 group-hover:ring-primary/30 group-hover:shadow-[0_0_16px_hsl(var(--primary)/0.15)]">
             <Icon className="h-4.5 w-4.5 text-primary transition-transform duration-300 group-hover:scale-110" />
           </div>
@@ -92,6 +102,10 @@ export function StatCard({
 
         {subtitle && (
           <p className="text-xs text-muted-foreground leading-snug mb-2">{subtitle}</p>
+        )}
+
+        {origin && (
+          <p className="label-mono text-[9px] text-muted-foreground/40 mb-1">{origin}</p>
         )}
 
         {/* Trend badge */}

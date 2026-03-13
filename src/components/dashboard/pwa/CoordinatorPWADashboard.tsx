@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Users, FileText, Cake, AlertTriangle, MessageSquare, ClipboardCheck, Eye, ChevronRight, Calendar, Sprout, HeartPulse, Heart, Home, UserCheck, Loader2 } from 'lucide-react';
+import { HelpTooltip } from '@/components/ui/help-tooltip';
 import { AtalaiaLoader, SkPWA } from '@/components/ui/skeleton';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -162,11 +163,13 @@ function CoordInicio({ coordId, coordData }: { coordId: string; coordData: any }
               value={pendentes}
               variant={pendentes > 0 ? 'warning' : 'ok'}
               onClick={() => setDrillDown('pendentes')}
+              help="Células da sua coordenação que não enviaram relatório nesta semana. Toque para ver a lista."
             />
             <TappableRow
               label="Cuidado e Supervisão desta semana"
               value={supervisoesSemana.length}
               onClick={() => setDrillDown('supervisoes_semana')}
+              help="Visitas de supervisão presencial registradas pelos supervisores nesta semana. Toque para detalhar."
             />
           </CardContent>
         </Card>
@@ -175,15 +178,34 @@ function CoordInicio({ coordId, coordData }: { coordId: string; coordData: any }
       {/* ── BLOCO 2 — Movimento ── */}
       <MissionBlock icon={Sprout} title="Movimento do Reino">
         <div className="grid grid-cols-2 gap-3">
-          <StatCard icon={Users} label="Células" value={totalCelulas} />
-          <StatCard icon={ClipboardCheck} label="Cuidado e Supervisão" value={supervisoes?.length || 0} />
+          <StatCard
+            icon={Users}
+            label="Células"
+            value={totalCelulas}
+            help="Total de células ativas na sua coordenação."
+            origin="Cadastro de células"
+            color="vida"
+          />
+          <StatCard
+            icon={ClipboardCheck}
+            label="Cuidado e Supervisão"
+            value={supervisoes?.length || 0}
+            help="Total de supervisões presenciais registradas por todos os supervisores da coordenação (histórico completo)."
+            origin="Registros de supervisão"
+          />
         </div>
       </MissionBlock>
 
       {/* ── BLOCO 3 — Saúde e Cuidado ── */}
       <MissionBlock icon={HeartPulse} title="Saúde e Cuidado">
         <div onClick={() => setDrillDown('aniversariantes')} className="cursor-pointer active:scale-[0.97] transition-transform touch-manipulation">
-          <StatCard icon={Cake} label="Aniversariantes" value={aniversariantes?.length || 0} />
+          <StatCard
+            icon={Cake}
+            label="Aniversariantes"
+            value={aniversariantes?.length || 0}
+            help="Membros de células da sua coordenação que fazem aniversário nesta semana. Toque para ver e enviar parabéns."
+            origin="Cadastro de membros"
+          />
         </div>
       </MissionBlock>
     </div>
@@ -491,18 +513,22 @@ function DrillDownContainer({ title, onBack, children }: { title: string; onBack
   );
 }
 
-function TappableRow({ label, value, variant, onClick }: {
+function TappableRow({ label, value, variant, onClick, help }: {
   label: string;
   value: number | string;
   variant?: 'warning' | 'ok';
   onClick: () => void;
+  help?: string;
 }) {
   return (
     <div
       className="flex items-center justify-between p-3 rounded-lg bg-muted/40 cursor-pointer active:bg-accent/50 touch-manipulation transition-colors"
       onClick={onClick}
     >
-      <span className="text-sm">{label}</span>
+      <div className="flex items-center gap-1 min-w-0">
+        <span className="text-sm">{label}</span>
+        {help && <HelpTooltip text={help} size={11} />}
+      </div>
       <div className="flex items-center gap-2 shrink-0">
         <Badge variant="outline" className={
           variant === 'warning' ? 'border-amber-500/50 text-amber-600' :
@@ -511,7 +537,7 @@ function TappableRow({ label, value, variant, onClick }: {
         }>
           {value}
         </Badge>
-        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+        <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
       </div>
     </div>
   );
