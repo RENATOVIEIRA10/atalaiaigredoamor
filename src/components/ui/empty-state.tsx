@@ -1,32 +1,122 @@
 import { LucideIcon } from 'lucide-react';
-import { ReactNode } from 'react';
+import { ReactNode, ComponentType } from 'react';
 import { cn } from '@/lib/utils';
 
 // ─────────────────────────────────────────────────────────────
 // ORIGINAL EmptyState — backward compatible
 // ─────────────────────────────────────────────────────────────
 interface EmptyStateProps {
-  icon: LucideIcon;
+  /** Lucide icon (backward compat) */
+  icon?: LucideIcon;
+  /** Custom SVG glyph component (premium) */
+  glyph?: ComponentType;
+  /** Context key for background selection */
+  context?: 'relatorio' | 'membros' | 'recomeco' | 'supervisoes' | 'financeiro' | 'celulas';
+  /** DM Mono tag label */
+  tag?: string;
   title: string;
+  /** Alias for description (backward compat) */
   description?: string;
+  subtitle?: string;
+  /** CTA label */
+  ctaLabel?: string;
+  onCta?: () => void;
+  /** ReactNode action (backward compat) */
   action?: ReactNode;
+  /** Compact mode for inline usage */
+  compact?: boolean;
   className?: string;
 }
 
-export function EmptyState({ icon: Icon, title, description, action, className }: EmptyStateProps) {
+// ─── Component ──────────────────────────────────────────────────────────────
+
+export function EmptyState({
+  icon: Icon,
+  glyph: Glyph,
+  context,
+  tag,
+  title,
+  description,
+  subtitle,
+  ctaLabel,
+  onCta,
+  action,
+  compact = false,
+  className,
+}: EmptyStateProps) {
+  const desc = subtitle || description;
+  const BgComponent = bgMap[context || 'default'] || BgDots;
+
   return (
-    <div className={cn(
-      "flex flex-col items-center justify-center py-12 px-6 text-center glass-card rounded-2xl border border-dashed border-border/40",
-      className,
-    )}>
-      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-muted/50 ring-1 ring-border/30 mb-4">
-        <Icon className="h-7 w-7 text-muted-foreground/50" />
-      </div>
-      <h3 className="text-base font-display font-semibold text-foreground tracking-tight">{title}</h3>
-      {description && (
-        <p className="mt-1.5 text-sm text-muted-foreground max-w-xs leading-relaxed">{description}</p>
+    <div
+      className={cn(
+        'relative glass-card rounded-2xl overflow-hidden transition-colors duration-300',
+        'hover:border-primary/20',
+        compact ? 'py-8 px-5' : 'py-0 px-0',
+        className,
       )}
-      {action && <div className="mt-4">{action}</div>}
+    >
+      {/* Ambient background */}
+      <BgComponent />
+
+      {/* Content */}
+      <div className={cn(
+        'relative z-[2] flex flex-col items-center text-center',
+        compact ? '' : 'py-12 px-9',
+      )}>
+        {/* Glyph or Icon */}
+        {Glyph ? (
+          <div className="w-20 h-20 mb-4" style={{ animation: 'emptyGlyphEntry 0.8s cubic-bezier(0.16,1,0.3,1) both' }}>
+            <Glyph />
+          </div>
+        ) : Icon ? (
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-muted/50 ring-1 ring-border/30 mb-4 fade-up fade-up-1">
+            <Icon className="h-7 w-7 text-muted-foreground/50" />
+          </div>
+        ) : null}
+
+        {/* Tag */}
+        {tag && (
+          <p className="mono-label text-muted-foreground/40 mb-5 fade-up fade-up-1">{tag}</p>
+        )}
+
+        {/* Title */}
+        <h3 className={cn(
+          'tracking-tight text-foreground fade-up fade-up-2',
+          Glyph
+            ? 'font-editorial text-2xl font-light italic leading-snug'
+            : 'text-base font-display font-semibold',
+        )}>
+          {title}
+        </h3>
+
+        {/* Description */}
+        {desc && (
+          <p className="mt-2.5 text-[13px] text-muted-foreground max-w-[260px] leading-relaxed fade-up fade-up-3">
+            {desc}
+          </p>
+        )}
+
+        {/* CTA Button */}
+        {ctaLabel && onCta && (
+          <button
+            onClick={onCta}
+            className={cn(
+              'mt-6 px-5 py-2 rounded-[10px] text-[12.5px] font-medium',
+              'border border-primary/25 bg-primary/10 text-primary',
+              'hover:bg-primary/20 hover:border-primary/40 hover:-translate-y-px',
+              'hover:shadow-[0_8px_24px_hsl(var(--primary)/0.15)]',
+              'transition-all duration-200 ease-out',
+              'fade-up fade-up-4',
+            )}
+          >
+            {ctaLabel}
+          </button>
+        )}
+
+        {/* Legacy action slot */}
+        {action && <div className="mt-4 fade-up fade-up-4">{action}</div>}
+      </div>
     </div>
   );
 }

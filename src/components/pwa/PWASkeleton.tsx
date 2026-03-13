@@ -1,11 +1,12 @@
 import { Skeleton } from '@/components/ui/skeleton';
+import { SkeletonDashboard, SkeletonConcierge, SkeletonMetricCard } from '@/components/ui/skeletons';
 
 /** Full-screen skeleton for PWA loading states */
 export function PWAPageSkeleton() {
   return (
     <div className="space-y-4 p-1 animate-fade-in">
       {/* Hero skeleton */}
-      <Skeleton className="h-28 w-full rounded-2xl" />
+      <SkeletonConcierge />
       
       {/* Quick actions */}
       <div className="flex gap-3">
@@ -15,10 +16,9 @@ export function PWAPageSkeleton() {
       </div>
 
       {/* Cards */}
-      <div className="space-y-3">
-        <Skeleton className="h-20 w-full rounded-xl" />
-        <Skeleton className="h-20 w-full rounded-xl" />
-        <Skeleton className="h-16 w-full rounded-xl" />
+      <div className="grid grid-cols-2 gap-3">
+        <SkeletonMetricCard accentGold />
+        <SkeletonMetricCard />
       </div>
     </div>
   );

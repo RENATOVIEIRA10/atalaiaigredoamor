@@ -72,6 +72,14 @@ export default {
           DEFAULT: "hsl(var(--vida))",
           foreground: "hsl(var(--vida-foreground))",
         },
+        wa: {
+          DEFAULT: "hsl(var(--wa))",
+          foreground: "hsl(var(--wa-foreground))",
+        },
+        "blue-soft": {
+          DEFAULT: "hsl(var(--blue-soft))",
+          foreground: "hsl(var(--blue-soft-foreground))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
