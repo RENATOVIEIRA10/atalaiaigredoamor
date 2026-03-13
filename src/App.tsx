@@ -51,6 +51,7 @@ const TrocarFuncao = lazy(() => import("./pages/TrocarFuncao"));
 const RecomecoCadastro = lazy(() => import("./pages/RecomecoCadastro"));
 const CentralCelulas = lazy(() => import("./pages/CentralCelulas"));
 const DemoPastoral = lazy(() => import("./pages/DemoPastoral"));
+const DemoPastorArthur = lazy(() => import("./pages/DemoPastorArthur"));
 const HomeConcierge = lazy(() => import("./pages/HomeConcierge"));
 const Radar = lazy(() => import("./pages/Radar"));
 const Glossario = lazy(() => import("./pages/Glossario"));
@@ -120,6 +121,7 @@ function AppInner() {
           <Route path="/manual-usuario" element={<ManualUsuario />} />
           <Route path="/testemunho" element={<TestemunhoAtalaia />} />
           <Route path="/demo-pastoral" element={<DemoPastoral />} />
+          <Route path="/demo/pastor-arthur" element={<DemoPastorArthur />} />
           <Route path="/glossario" element={<RoleProtectedRoute><Glossario /></RoleProtectedRoute>} />
           <Route path="/guia-admin" element={<RoleProtectedRoute><GuiaAdmin /></RoleProtectedRoute>} />
           <Route path="/pulso-vivo" element={<RoleProtectedRoute><PulsoVivo /></RoleProtectedRoute>} />
