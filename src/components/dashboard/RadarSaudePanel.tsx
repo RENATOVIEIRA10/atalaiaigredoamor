@@ -1,10 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Heart, ShieldCheck, Eye, AlertTriangle, HelpCircle, TrendingUp, TrendingDown, Minus, Activity } from 'lucide-react';
 import { useRadarSaude, CelulaSaude } from '@/hooks/useRadarSaude';
-import { HealthLegend, HealthReason } from '@/components/health/HealthLegend';
+import { HealthLegend } from '@/components/health/HealthLegend';
 import { format, parseISO, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { StatCard } from '@/components/ui/stat-card';
@@ -58,18 +57,32 @@ export function RadarSaudePanel({ scopeType, scopeId, campoId, title = 'Saúde d
 
   return (
     <div className="space-y-4">
-      <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-        <Activity className="h-4 w-4" /> {title}
-      </h2>
+      {/* Header — editorial + critical badge */}
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="label-mono mb-1">{title}</p>
+          <h2 className="font-editorial font-light text-2xl text-foreground leading-tight" style={{ letterSpacing: '-0.01em' }}>
+            {data.totalCelulas} <span className="text-muted-foreground text-lg">células em análise</span>
+          </h2>
+        </div>
+        {data.criticas > 0 && (
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[hsl(var(--ruby)/0.1)] border border-[hsl(var(--ruby)/0.25)]">
+            <span className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--ruby))] shrink-0" />
+            <span className="label-mono text-[10px] text-[hsl(var(--ruby))]">
+              {data.criticas} CRÍTICAS
+            </span>
+          </div>
+        )}
+      </div>
 
       <HealthLegend preset="supervisor" />
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <StatCard icon={ShieldCheck} label="Saudáveis" value={data.saudaveis} className="border-green-500/20" />
-        <StatCard icon={Eye} label="Acompanhamento" value={data.emAcompanhamento} className={data.emAcompanhamento > 0 ? 'border-amber-500/20' : ''} />
-        <StatCard icon={AlertTriangle} label="Críticas" value={data.criticas} className={data.criticas > 0 ? 'border-destructive/20' : ''} />
-        <StatCard icon={HelpCircle} label="Sem avaliação" value={data.semAvaliacao} />
+        <StatCard icon={ShieldCheck} label="Saudáveis"     value={data.saudaveis}       color="vida" className="border-[hsl(var(--vida)/0.2)]" />
+        <StatCard icon={Eye}         label="Acompanhamento" value={data.emAcompanhamento} color={data.emAcompanhamento > 0 ? 'gold' : undefined} />
+        <StatCard icon={AlertTriangle} label="Críticas"    value={data.criticas}         color={data.criticas > 0 ? 'ruby' : undefined} />
+        <StatCard icon={HelpCircle}  label="Sem avaliação" value={data.semAvaliacao} />
       </div>
 
       {/* Critical cells list */}
@@ -210,31 +223,56 @@ function CelulaHealthRow({ celula, compact = false }: { celula: CelulaSaude; com
     ? differenceInDays(new Date(), parseISO(celula.ultima_supervisao))
     : null;
 
+  const dateLabel = celula.ultima_supervisao
+    ? `${format(parseISO(celula.ultima_supervisao), "dd/MM", { locale: ptBR })} · ${daysAgo}d`
+    : '—';
+
   return (
-    <div className={`flex items-center gap-3 p-2.5 rounded-lg ${cfg.bg} border ${cfg.border}`}>
-      <span className="text-lg shrink-0">{cfg.emoji}</span>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium truncate">{celula.celula_name}</p>
-        {!compact && <p className="text-xs text-muted-foreground truncate">{celula.coordenacao_name}</p>}
-        <p className="text-xs text-muted-foreground">
-          {celula.ultima_supervisao
-            ? `Última: ${format(parseISO(celula.ultima_supervisao), "dd/MM", { locale: ptBR })} (${daysAgo}d atrás)`
-            : 'Sem supervisão registrada'}
+    <div
+      className={`
+        grid items-center gap-3 px-3 py-2.5 rounded-xl
+        border transition-colors duration-150 hover:bg-muted/30
+        ${cfg.bg} ${cfg.border}
+      `}
+      style={{ gridTemplateColumns: '1fr auto auto' }}
+    >
+      {/* Col 1 — name + cell / coordenação */}
+      <div className="min-w-0">
+        <p className="text-sm font-medium text-foreground truncate leading-tight">
+          {celula.celula_name}
         </p>
-        <HealthReason reason={
-          celula.status === 'critica' ? 'Pontuação abaixo de 3.0 — cuidado pastoral necessário'
-          : celula.status === 'acompanhamento' ? 'Pontuação entre 3.0 e 3.9 — pontos a acompanhar'
-          : celula.status === 'sem_avaliacao' ? 'Sem supervisões registradas para avaliação'
-          : 'Supervisões em dia com boa pontuação'
-        } />
-      </div>
-      <div className="flex items-center gap-2 shrink-0">
-        {celula.media !== null && (
-          <Badge variant="outline" className={`${cfg.color} text-xs font-bold`}>
-            {celula.media.toFixed(1)}
-          </Badge>
+        {!compact && (
+          <p className="label-mono text-[10px] text-muted-foreground truncate mt-0.5">
+            {celula.coordenacao_name}
+          </p>
         )}
-        {celula.tendencia && <TendenciaIcon tendencia={celula.tendencia} />}
+        {!compact && (
+          <p className="text-[11px] text-muted-foreground mt-0.5">{dateLabel}</p>
+        )}
+      </div>
+
+      {/* Col 2 — score */}
+      <div className="text-right">
+        {celula.media !== null ? (
+          <span className="metric-number text-lg leading-none text-foreground">
+            {celula.media.toFixed(1)}
+          </span>
+        ) : (
+          <span className="label-mono text-[10px] text-muted-foreground">—</span>
+        )}
+        {celula.tendencia && !compact && (
+          <div className="flex justify-end mt-0.5">
+            <TendenciaIcon tendencia={celula.tendencia} />
+          </div>
+        )}
+      </div>
+
+      {/* Col 3 — status badge */}
+      <div className={`
+        px-2 py-1 rounded-md border text-[9px] font-mono font-semibold tracking-wide whitespace-nowrap
+        ${cfg.color} ${cfg.bg} ${cfg.border}
+      `}>
+        {cfg.label.toUpperCase()}
       </div>
     </div>
   );
@@ -250,9 +288,9 @@ function MiniStat({ emoji, value, label }: { emoji: string; value: number; label
   return (
     <Card>
       <CardContent className="p-3 text-center">
-        <span className="text-base">{emoji}</span>
-        <p className="text-xl font-bold">{value}</p>
-        <p className="text-[10px] text-muted-foreground leading-tight">{label}</p>
+        <span className="text-base leading-none">{emoji}</span>
+        <p className="metric-number text-2xl text-foreground mt-1">{value}</p>
+        <p className="label-mono text-[9px] mt-0.5 leading-tight">{label}</p>
       </CardContent>
     </Card>
   );
