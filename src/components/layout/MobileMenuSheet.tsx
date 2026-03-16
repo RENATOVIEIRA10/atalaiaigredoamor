@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle
 } from '@/components/ui/sheet';
-import { GitBranch, Settings, Network, FolderTree, LogOut, Moon, Heart, Eye, Home, FlaskConical, RefreshCw, PlayCircle, Repeat, HelpCircle, ClipboardCheck } from 'lucide-react';
+import { GitBranch, Settings, Network, FolderTree, LogOut, Moon, Sun, Heart, Eye, Home, FlaskConical, RefreshCw, PlayCircle, Repeat, HelpCircle, ClipboardCheck, Palette } from 'lucide-react';
 import { useServiceWorkerUpdate } from '@/hooks/useServiceWorkerUpdate';
 import { useRole } from '@/contexts/RoleContext';
 import { useDemoMode } from '@/contexts/DemoModeContext';
@@ -22,7 +22,7 @@ export function MobileMenuSheet({ open, onOpenChange }: MobileMenuSheetProps) {
   const navigate = useNavigate();
   const { clearAccess, isAdmin, isRedeLeader, isCoordenador, isCelulaLeader, isSupervisor, isPastor, isPastorSeniorGlobal, isPastorDeCampo } = useRole();
   const { isDemoActive, deactivateDemo } = useDemoMode();
-  const { theme, toggleTheme } = useTheme();
+  const { theme, setTheme, toggleTheme } = useTheme();
   const { checkForUpdate, applyUpdate } = useServiceWorkerUpdate();
   const [checking, setChecking] = useState(false);
   const [showAdminPanel, setShowAdminPanel] = useState(false);
@@ -149,11 +149,33 @@ export function MobileMenuSheet({ open, onOpenChange }: MobileMenuSheetProps) {
               />
             )}
 
-            <MenuButton
-              icon={theme === 'padrao' ? Heart : Moon}
-              label={theme === 'padrao' ? 'Tema Amor' : 'Tema Padrão'}
-              onClick={() => { toggleTheme(); onOpenChange(false); }}
-            />
+            {/* Theme selector */}
+            <div className="px-3 py-2">
+              <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1.5">
+                <Palette className="h-3.5 w-3.5" /> Tema
+              </p>
+              <div className="flex gap-2">
+                {([
+                  { key: 'padrao' as const, label: 'Padrão', icon: Moon, desc: 'Escuro azul' },
+                  { key: 'amor' as const, label: 'Amor', icon: Heart, desc: 'Verde' },
+                  { key: 'claro' as const, label: 'Claro', icon: Sun, desc: 'Light' },
+                ]).map(t => (
+                  <button
+                    key={t.key}
+                    onClick={() => { setTheme(t.key); onOpenChange(false); }}
+                    className={cn(
+                      'flex-1 flex flex-col items-center gap-1 py-2.5 rounded-xl border text-xs font-medium transition-all touch-manipulation active:scale-95',
+                      theme === t.key
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : 'border-border/40 text-muted-foreground'
+                    )}
+                  >
+                    <t.icon className="h-4 w-4" />
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+            </div>
 
             <MenuButton
               icon={RefreshCw}
