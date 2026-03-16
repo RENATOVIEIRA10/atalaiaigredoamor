@@ -36,7 +36,7 @@ function PolicyPage({ onBack }: { onBack: () => void }) {
   return (
     <div style={{ minHeight: "100vh", background: C.deep, padding: "0 0 60px" }}>
       <div style={{ background: C.navy, borderBottom: "1px solid rgba(197,160,89,0.15)", padding: "16px 24px", display: "flex", alignItems: "center", gap: 12 }}>
-        <button onClick={onBack} style={{ background: "none", border: "none", color: C.gold, fontSize: 13, fontFamily: "sans-serif", cursor: "pointer", padding: "6px 12px", borderRadius: 8, border: "1px solid " + C.goldMid }}>
+        <button onClick={onBack} style={{ background: "none", color: C.gold, fontSize: 13, fontFamily: "sans-serif", cursor: "pointer", padding: "6px 12px", borderRadius: 8, border: "1px solid " + C.goldMid }}>
           ← Voltar
         </button>
         <span style={{ fontSize: 14, color: C.white, fontFamily: "Georgia, serif", fontWeight: 600 }}>Política de Privacidade</span>
