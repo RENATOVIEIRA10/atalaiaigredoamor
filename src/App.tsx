@@ -55,6 +55,7 @@ const DemoPastorArthur = lazy(() => import("./pages/DemoPastorArthur"));
 const AtalaiaLGPD = lazy(() => import("./pages/AtalaiaLGPD"));
 const LGPDFlow = lazy(() => import("./pages/LGPDFlow"));
 const AtalaiaArquitetura = lazy(() => import("./pages/AtalaiaArquitetura"));
+const IntentSearchDemo = lazy(() => import("./pages/IntentSearchDemo"));
 const HomeConcierge = lazy(() => import("./pages/HomeConcierge"));
 const Radar = lazy(() => import("./pages/Radar"));
 const Glossario = lazy(() => import("./pages/Glossario"));
@@ -128,6 +129,7 @@ function AppInner() {
           <Route path="/lgpd" element={<AtalaiaLGPD />} />
           <Route path="/lgpd-consent" element={<LGPDFlow />} />
           <Route path="/arquitetura" element={<AtalaiaArquitetura />} />
+          <Route path="/intent-search" element={<IntentSearchDemo />} />
           <Route path="/glossario" element={<RoleProtectedRoute><Glossario /></RoleProtectedRoute>} />
           <Route path="/guia-admin" element={<RoleProtectedRoute><GuiaAdmin /></RoleProtectedRoute>} />
           <Route path="/pulso-vivo" element={<RoleProtectedRoute><PulsoVivo /></RoleProtectedRoute>} />
