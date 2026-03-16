@@ -53,6 +53,7 @@ const CentralCelulas = lazy(() => import("./pages/CentralCelulas"));
 const DemoPastoral = lazy(() => import("./pages/DemoPastoral"));
 const DemoPastorArthur = lazy(() => import("./pages/DemoPastorArthur"));
 const AtalaiaLGPD = lazy(() => import("./pages/AtalaiaLGPD"));
+const LGPDFlow = lazy(() => import("./pages/LGPDFlow"));
 const HomeConcierge = lazy(() => import("./pages/HomeConcierge"));
 const Radar = lazy(() => import("./pages/Radar"));
 const Glossario = lazy(() => import("./pages/Glossario"));
@@ -124,6 +125,7 @@ function AppInner() {
           <Route path="/demo-pastoral" element={<DemoPastoral />} />
           <Route path="/demo/pastor-arthur" element={<DemoPastorArthur />} />
           <Route path="/lgpd" element={<AtalaiaLGPD />} />
+          <Route path="/lgpd-consent" element={<LGPDFlow />} />
           <Route path="/glossario" element={<RoleProtectedRoute><Glossario /></RoleProtectedRoute>} />
           <Route path="/guia-admin" element={<RoleProtectedRoute><GuiaAdmin /></RoleProtectedRoute>} />
           <Route path="/pulso-vivo" element={<RoleProtectedRoute><PulsoVivo /></RoleProtectedRoute>} />
