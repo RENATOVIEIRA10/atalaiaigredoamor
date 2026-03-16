@@ -12,34 +12,64 @@ import {
 import {
   LayoutDashboard, Heart, Users, Home, ClipboardCheck,
   GitBranch, Activity, BookOpen, Network, Settings, Eye,
-  Layers, BarChart3, Map, Radar, Search,
+  Layers, BarChart3, Map, Radar, Search, ShieldCheck,
 } from 'lucide-react';
 import { useRole } from '@/contexts/RoleContext';
-import { ADMIN_PRODUCT_MAP } from '@/lib/appMap';
 import { cn } from '@/lib/utils';
 
-const ICON_MAP: Record<string, any> = {
-  '/home': LayoutDashboard,
-  '/dashboard': ClipboardCheck,
-  '/celulas': Home,
-  '/membros': Users,
-  '/redes': Network,
-  '/coordenacoes': Layers,
-  '/radar': Activity,
-  '/organograma': GitBranch,
-  '/dados': BarChart3,
-  '/configuracoes': Settings,
-  '/recomeco-cadastro': Heart,
-  '/pulso-vivo': Map,
-  '/glossario': BookOpen,
+// ── Nível hierárquico por scopeType ──────────────────────
+const SCOPE_LEVEL: Record<string, number> = {
+  celula: 1,
+  supervisor: 2,
+  coordenacao: 3,
+  rede: 4,
+  pastor: 5,
+  pastor_de_campo: 5,
+  pastor_senior_global: 6,
+  admin: 6,
+  // Ministérios especializados — nível 3 (equivalente a coordenador)
+  recomeco_operador: 3,
+  recomeco_leitura: 3,
+  recomeco_cadastro: 2,
+  central_celulas: 3,
+  lider_recomeco_central: 4,
+  lider_batismo_aclamacao: 3,
+  central_batismo_aclamacao: 3,
+  financeiro_global: 6,
+  financeiro_campo: 5,
+  secretaria_admin: 6,
+  guardioes_culto: 1,
+  demo_institucional: 0,
 };
 
-const QUICK_ACTIONS = [
-  { label: 'Registrar Presença', path: '/dashboard?tab=acoes', icon: ClipboardCheck },
-  { label: 'Nova Vida', path: '/recomeco-cadastro', icon: Heart },
-  { label: 'Ver Relatório', path: '/dashboard?tab=historico', icon: BarChart3 },
-  { label: 'Radar de Saúde', path: '/radar', icon: Radar },
-  { label: 'Pulso Vivo', path: '/pulso-vivo', icon: Eye },
+// ── Catálogo de ações filtradas por nível ─────────────────
+interface CmdAction {
+  label: string;
+  path: string;
+  icon: React.ElementType;
+  category: 'quick' | 'page';
+  minLevel: number;
+}
+
+const ALL_ACTIONS: CmdAction[] = [
+  // Ações rápidas
+  { label: 'Registrar Presença',    path: '/dashboard?tab=acoes',    icon: ClipboardCheck, category: 'quick', minLevel: 1 },
+  { label: 'Nova Vida',             path: '/recomeco-cadastro',      icon: Heart,          category: 'quick', minLevel: 1 },
+  { label: 'Ver Relatório',         path: '/dashboard?tab=historico',icon: BarChart3,      category: 'quick', minLevel: 1 },
+  { label: 'Radar de Saúde',        path: '/radar',                  icon: Radar,          category: 'quick', minLevel: 2 },
+  { label: 'Pulso Vivo',            path: '/pulso-vivo',             icon: Eye,            category: 'quick', minLevel: 3 },
+
+  // Páginas
+  { label: 'Início',                path: '/home',                   icon: LayoutDashboard, category: 'page', minLevel: 1 },
+  { label: 'Dashboard',             path: '/dashboard',              icon: ClipboardCheck,  category: 'page', minLevel: 1 },
+  { label: 'Glossário',             path: '/glossario',              icon: BookOpen,        category: 'page', minLevel: 1 },
+  { label: 'Células',               path: '/celulas',                icon: Home,            category: 'page', minLevel: 2 },
+  { label: 'Membros',               path: '/membros',                icon: Users,           category: 'page', minLevel: 2 },
+  { label: 'Organograma',           path: '/organograma',            icon: GitBranch,       category: 'page', minLevel: 3 },
+  { label: 'Coordenações',          path: '/coordenacoes',           icon: Layers,          category: 'page', minLevel: 3 },
+  { label: 'Redes',                 path: '/redes',                  icon: Network,         category: 'page', minLevel: 4 },
+  { label: 'Dados',                 path: '/dados',                  icon: BarChart3,       category: 'page', minLevel: 4 },
+  { label: 'Configurações',         path: '/configuracoes',          icon: Settings,        category: 'page', minLevel: 6 },
 ];
 
 export function CommandBar() {
@@ -47,72 +77,80 @@ export function CommandBar() {
   const navigate = useNavigate();
   const { scopeType } = useRole();
 
+  const userLevel = SCOPE_LEVEL[scopeType ?? ''] ?? 0;
+
+  // Busca por intenção SÓ ativa para nível >= 3 (coordenador+)
+  const searchEnabled = userLevel >= 3;
+
   // ⌘K / Ctrl+K shortcut
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
-        setOpen((o) => !o);
+        if (searchEnabled) setOpen((o) => !o);
       }
     };
     document.addEventListener('keydown', down);
     return () => document.removeEventListener('keydown', down);
-  }, []);
+  }, [searchEnabled]);
 
-  const pages = useMemo(() =>
-    ADMIN_PRODUCT_MAP.map((m) => ({
-      label: m.name,
-      path: m.path,
-      description: m.description,
-      Icon: ICON_MAP[m.path] || LayoutDashboard,
-    })),
-    []
+  const filteredActions = useMemo(() =>
+    ALL_ACTIONS.filter(a => a.minLevel <= userLevel),
+    [userLevel]
   );
+
+  const quickActions = filteredActions.filter(a => a.category === 'quick');
+  const pages = filteredActions.filter(a => a.category === 'page');
 
   const go = (path: string) => {
     setOpen(false);
     navigate(path);
   };
 
+  if (!searchEnabled) return null;
+
   return (
     <CommandDialog open={open} onOpenChange={setOpen}>
-      <CommandInput placeholder="Navegar por intenção… (ex: Nova Vida, Relatório, João)" />
+      <CommandInput placeholder="Navegar por intenção… (ex: Nova Vida, Relatório)" />
       <CommandList>
         <CommandEmpty>Nenhum resultado encontrado.</CommandEmpty>
 
-        <CommandGroup heading="Ações Rápidas">
-          {QUICK_ACTIONS.map((a) => (
-            <CommandItem key={a.path} onSelect={() => go(a.path)} className="gap-3 py-2.5">
-              <a.icon className="h-4 w-4 text-primary shrink-0" />
-              <span>{a.label}</span>
-            </CommandItem>
-          ))}
-        </CommandGroup>
+        {quickActions.length > 0 && (
+          <CommandGroup heading="Ações Rápidas">
+            {quickActions.map((a) => (
+              <CommandItem key={a.path} onSelect={() => go(a.path)} className="gap-3 py-2.5">
+                <a.icon className="h-4 w-4 text-primary shrink-0" />
+                <span>{a.label}</span>
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        )}
 
-        <CommandSeparator />
+        {quickActions.length > 0 && pages.length > 0 && <CommandSeparator />}
 
-        <CommandGroup heading="Páginas">
-          {pages.map((p) => (
-            <CommandItem key={p.path} onSelect={() => go(p.path)} className="gap-3 py-2.5">
-              <p.Icon className="h-4 w-4 text-muted-foreground shrink-0" />
-              <div className="flex flex-col">
+        {pages.length > 0 && (
+          <CommandGroup heading="Páginas">
+            {pages.map((p) => (
+              <CommandItem key={p.path} onSelect={() => go(p.path)} className="gap-3 py-2.5">
+                <p.icon className="h-4 w-4 text-muted-foreground shrink-0" />
                 <span className="text-sm font-medium">{p.label}</span>
-                <span className="text-xs text-muted-foreground line-clamp-1">{p.description}</span>
-              </div>
-            </CommandItem>
-          ))}
-        </CommandGroup>
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        )}
       </CommandList>
     </CommandDialog>
   );
 }
 
-/** Floating search trigger for mobile */
+/** Floating search trigger for mobile — only shows for level >= 3 */
 export function CommandBarTrigger({ className }: { className?: string }) {
-  const [, setOpen] = useState(false);
+  const { scopeType } = useRole();
+  const userLevel = SCOPE_LEVEL[scopeType ?? ''] ?? 0;
+
+  if (userLevel < 3) return null;
 
   const openBar = () => {
-    // Dispatch the same keyboard event to open the dialog
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }));
   };
 
