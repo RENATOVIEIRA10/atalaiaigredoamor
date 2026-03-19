@@ -13,7 +13,7 @@ const VERSION_KEY = 'app_version_seen';
 const SESSION_KEY = 'rede_amor_session';
 
 export function useVersionGate() {
-  const navigate = useNavigate();
+  const didRun = useRef(false);
   const didRun = useRef(false);
 
   useEffect(() => {
