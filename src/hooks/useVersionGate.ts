@@ -3,7 +3,6 @@
  * the deployed build changes. Works on Desktop, Mobile, and PWA.
  */
 import { useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
