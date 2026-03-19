@@ -14,7 +14,6 @@ const SESSION_KEY = 'rede_amor_session';
 
 export function useVersionGate() {
   const didRun = useRef(false);
-  const didRun = useRef(false);
 
   useEffect(() => {
     if (didRun.current) return;
@@ -39,23 +38,12 @@ export function useVersionGate() {
 
     (async () => {
       try {
-        // 1. Sign out from Supabase
         await supabase.auth.signOut().catch(() => {});
-
-        // 2. Clear app-specific localStorage keys
         const keysToRemove = [SESSION_KEY, 'lastRoute', 'lastScope', 'access_code_cache'];
         keysToRemove.forEach(k => localStorage.removeItem(k));
-
-        // 3. Clear sessionStorage
         sessionStorage.clear();
-
-        // 4. Update stored version
         localStorage.setItem(VERSION_KEY, BUILD_ID);
-
-        // 5. Show toast and redirect
         toast.info('Atualização aplicada. Por segurança, faça login novamente.');
-
-        // 6. Hard redirect to /auth
         window.location.replace('/auth');
       } catch (err) {
         console.error('[VersionGate] Error during forced logout:', err);
@@ -63,5 +51,5 @@ export function useVersionGate() {
         window.location.replace('/auth');
       }
     })();
-  }, [navigate]);
+  }, []);
 }
