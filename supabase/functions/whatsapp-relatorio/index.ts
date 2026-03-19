@@ -105,7 +105,7 @@ serve(async (req) => {
 
   } catch (err) {
     return new Response(
-      JSON.stringify({ error: "Erro interno", detalhes: err.message }),
+      JSON.stringify({ error: "Erro interno", detalhes: (err as Error).message }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
