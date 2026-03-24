@@ -38,6 +38,15 @@ export function ReportsHistoryTable({
 }: ReportsHistoryTableProps) {
   const [editingReport, setEditingReport] = useState<WeeklyReport | null>(null);
   const [deletingReport, setDeletingReport] = useState<WeeklyReport | null>(null);
+  const wasDeleting = useRef(false);
+
+  // Close delete dialog when mutation completes (isDeleting goes from true to false)
+  useEffect(() => {
+    if (wasDeleting.current && !isDeleting) {
+      setDeletingReport(null);
+    }
+    wasDeleting.current = !!isDeleting;
+  }, [isDeleting]);
 
   const handleEdit = (data: Parameters<typeof onEdit>[0]) => {
     onEdit(data);
