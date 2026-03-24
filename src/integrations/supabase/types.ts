@@ -3072,6 +3072,36 @@ export type Database = {
           },
         ]
       }
+      whatsapp_sessions: {
+        Row: {
+          access_key_code: string
+          created_at: string
+          phone: string
+          scope_id: string | null
+          scope_name: string | null
+          scope_type: string
+          updated_at: string
+        }
+        Insert: {
+          access_key_code: string
+          created_at?: string
+          phone: string
+          scope_id?: string | null
+          scope_name?: string | null
+          scope_type: string
+          updated_at?: string
+        }
+        Update: {
+          access_key_code?: string
+          created_at?: string
+          phone?: string
+          scope_id?: string | null
+          scope_name?: string | null
+          scope_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
