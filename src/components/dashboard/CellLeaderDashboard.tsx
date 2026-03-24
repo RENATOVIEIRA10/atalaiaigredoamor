@@ -185,6 +185,10 @@ export function CellLeaderDashboard() {
                 <CellLeaderMembrosTab celulaId={singleCell.id} celulaName={singleCell.name} />
               </TabsContent>
 
+              <TabsContent value="jornada">
+                <ProximosPassosPanel celulaId={singleCell.id} celulaName={singleCell.name} />
+              </TabsContent>
+
               <TabsContent value="discipulado">
                 <DiscipuladoCellLeaderTab celulaId={singleCell.id} celulaName={singleCell.name} redeId={singleCell.rede_id} />
               </TabsContent>
