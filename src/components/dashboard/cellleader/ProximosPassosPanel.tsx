@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Compass, ChevronRight, CheckCircle2, Sparkles, MessageCircle } from 'lucide-react';
+import { Compass, ChevronRight, CheckCircle2, Sparkles, MessageCircle, Users } from 'lucide-react';
 import { useMembers } from '@/hooks/useMembers';
 import { useProximosPassos, ProximoPasso } from '@/hooks/useProximosPassos';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -108,10 +108,10 @@ export function ProximosPassosPanel({ celulaId, celulaName }: ProximosPassosPane
         {/* Summary cards */}
         {summary && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <StatCard title="Total de Membros" value={summary.total} icon={Users} />
-            <StatCard title="Precisam Avançar" value={summary.needAttention} icon={Compass} className="border-gold/30" />
-            <StatCard title="Jornada Completa" value={summary.fullyComplete} icon={CheckCircle2} className="border-vida/30" />
-            <StatCard title="Conclusão Média" value={`${summary.avgCompletion}%`} icon={Sparkles} />
+            <StatCard label="Total de Membros" value={summary.total} icon={Users} />
+            <StatCard label="Precisam Avançar" value={summary.needAttention} icon={Compass} className="border-gold/30" />
+            <StatCard label="Jornada Completa" value={summary.fullyComplete} icon={CheckCircle2} className="border-vida/30" />
+            <StatCard label="Conclusão Média" value={`${summary.avgCompletion}%`} icon={Sparkles} />
           </div>
         )}
 
