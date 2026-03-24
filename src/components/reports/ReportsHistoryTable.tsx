@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -38,6 +38,15 @@ export function ReportsHistoryTable({
 }: ReportsHistoryTableProps) {
   const [editingReport, setEditingReport] = useState<WeeklyReport | null>(null);
   const [deletingReport, setDeletingReport] = useState<WeeklyReport | null>(null);
+  const wasDeleting = useRef(false);
+
+  // Close delete dialog when mutation completes (isDeleting goes from true to false)
+  useEffect(() => {
+    if (wasDeleting.current && !isDeleting) {
+      setDeletingReport(null);
+    }
+    wasDeleting.current = !!isDeleting;
+  }, [isDeleting]);
 
   const handleEdit = (data: Parameters<typeof onEdit>[0]) => {
     onEdit(data);
@@ -46,7 +55,6 @@ export function ReportsHistoryTable({
 
   const handleDelete = (id: string) => {
     onDelete(id);
-    setDeletingReport(null);
   };
 
   if (reports.length === 0) {

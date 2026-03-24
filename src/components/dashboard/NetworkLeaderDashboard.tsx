@@ -111,7 +111,7 @@ export function NetworkLeaderDashboard({ initialRedeId, overrideCampoId, onBack,
   const handleDeleteReport = (id: string) => {
     deleteReport.mutate(id, {
       onSuccess: () => toast({ title: 'Sucesso!', description: 'Relatório excluído' }),
-      onError: () => toast({ title: 'Erro', description: 'Não foi possível excluir', variant: 'destructive' }),
+      onError: (err) => toast({ title: 'Erro', description: `Não foi possível excluir: ${err?.message || 'erro desconhecido'}`, variant: 'destructive' }),
     });
   };
 
@@ -411,7 +411,7 @@ export function NetworkLeaderDashboard({ initialRedeId, overrideCampoId, onBack,
               <TabsContent value="saude"><RadarSaudePanel scopeType="rede" scopeId={selectedRede} title="Saúde da Rede" /></TabsContent>
               <TabsContent value="planejamento"><PlanejamentoRedePanel redeId={selectedRede} /></TabsContent>
               <TabsContent value="supervisoes-historico"><SupervisoesRedeHistoryPanel redeId={selectedRede} /></TabsContent>
-              <TabsContent value="historico"><ReportsHistoryTable reports={currentReports} onEdit={handleEditReport} onDelete={handleDeleteReport} /></TabsContent>
+              <TabsContent value="historico"><ReportsHistoryTable reports={currentReports} onEdit={handleEditReport} onDelete={handleDeleteReport} isUpdating={updateReport.isPending} isDeleting={deleteReport.isPending} /></TabsContent>
               <TabsContent value="insights"><AIInsightsPanel reports={currentReports} periodLabel={formatDateRangeDisplay()} context="rede" /></TabsContent>
               <TabsContent value="cuidado-espiritual"><CuidadoEspiritualConsolidado redeId={selectedRede} groupBy="coordenacao" /></TabsContent>
               <TabsContent value="vitalidade">
