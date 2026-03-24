@@ -46,7 +46,6 @@ export function ReportsHistoryTable({
 
   const handleDelete = (id: string) => {
     onDelete(id);
-    setDeletingReport(null);
   };
 
   if (reports.length === 0) {
