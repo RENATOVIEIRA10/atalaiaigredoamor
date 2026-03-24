@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, UserCheck, Heart, UserPlus, Baby, Loader2, Network, FileSpreadsheet, ChevronDown, ChevronUp, Eye, ClipboardCheck, Image, Sparkles, History, GitBranch, User, Activity, Mail, Calendar, DoorOpen, BookOpen, ArrowLeft, AlertTriangle, Home, Sprout, HeartPulse } from 'lucide-react';
+import { Users, UserCheck, Heart, UserPlus, Baby, Loader2, Network, FileSpreadsheet, ChevronDown, ChevronUp, Eye, ClipboardCheck, Image, Sparkles, History, GitBranch, User, Activity, Mail, Calendar, DoorOpen, BookOpen, ArrowLeft, AlertTriangle, Home, Sprout, HeartPulse, TrendingUp } from 'lucide-react';
 import { FadeIn, StaggerContainer, StaggerItem, SkeletonBreathe } from '@/components/ui/animations';
 import { useRedesScoped } from '@/hooks/useRedes';
 import { useCoordenacoes } from '@/hooks/useCoordenacoes';
@@ -47,6 +47,7 @@ import { LeadershipRecommendationDialog } from './LeadershipRecommendationDialog
 import { LeadershipRecommendationsSection } from './LeadershipRecommendationsSection';
 import { CuidadoEspiritualConsolidado } from './CuidadoEspiritualPanel';
 import { VitalidadeCascataPanel } from './VitalidadeRelacionalPanel';
+import { FunilFormacaoPanel } from './FunilFormacaoPanel';
 
 interface NetworkLeaderDashboardProps {
   initialRedeId?: string;
@@ -403,6 +404,7 @@ export function NetworkLeaderDashboard({ initialRedeId, overrideCampoId, onBack,
                 <TabsTrigger value="historico" className="gap-1.5"><History className="h-4 w-4" />Histórico</TabsTrigger>
                 <TabsTrigger value="insights" className="gap-1.5"><Sparkles className="h-4 w-4" />IA</TabsTrigger>
                 <TabsTrigger value="cuidado-espiritual" className="gap-1.5"><HeartPulse className="h-4 w-4" />Cuidado Espiritual</TabsTrigger>
+                <TabsTrigger value="funil-formacao" className="gap-1.5"><TrendingUp className="h-4 w-4" />Funil de Formação</TabsTrigger>
                 <TabsTrigger value="vitalidade" className="gap-1.5"><Activity className="h-4 w-4" />Vitalidade</TabsTrigger>
                 <TabsTrigger value="fotos" className="gap-1.5"><Image className="h-4 w-4" />Fotos</TabsTrigger>
               </TabsList>
@@ -414,6 +416,7 @@ export function NetworkLeaderDashboard({ initialRedeId, overrideCampoId, onBack,
               <TabsContent value="historico"><ReportsHistoryTable reports={currentReports} onEdit={handleEditReport} onDelete={handleDeleteReport} isUpdating={updateReport.isPending} isDeleting={deleteReport.isPending} /></TabsContent>
               <TabsContent value="insights"><AIInsightsPanel reports={currentReports} periodLabel={formatDateRangeDisplay()} context="rede" /></TabsContent>
               <TabsContent value="cuidado-espiritual"><CuidadoEspiritualConsolidado redeId={selectedRede} groupBy="coordenacao" /></TabsContent>
+              <TabsContent value="funil-formacao"><FunilFormacaoPanel redeId={selectedRede} title="Funil de Formação da Rede" /></TabsContent>
               <TabsContent value="vitalidade">
                 <div className="space-y-6">
                   <VitalidadeCascataPanel mode="membros" redeId={selectedRede} title="Vitalidade Relacional — Membros" description="Saúde relacional de toda a rede" />
