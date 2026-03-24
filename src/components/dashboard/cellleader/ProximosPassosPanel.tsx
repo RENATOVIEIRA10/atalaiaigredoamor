@@ -108,10 +108,10 @@ export function ProximosPassosPanel({ celulaId, celulaName }: ProximosPassosPane
         {/* Summary cards */}
         {summary && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <StatCard title="Total de Membros" value={summary.total} icon={<Sparkles className="h-4 w-4" />} />
-            <StatCard title="Precisam Avançar" value={summary.needAttention} icon={<Compass className="h-4 w-4" />} className="border-gold/30" />
-            <StatCard title="Jornada Completa" value={summary.fullyComplete} icon={<CheckCircle2 className="h-4 w-4" />} className="border-vida/30" />
-            <StatCard title="Conclusão Média" value={`${summary.avgCompletion}%`} icon={<Progress value={summary.avgCompletion} className="h-2 w-12" />} />
+            <StatCard title="Total de Membros" value={summary.total} icon={Users} />
+            <StatCard title="Precisam Avançar" value={summary.needAttention} icon={Compass} className="border-gold/30" />
+            <StatCard title="Jornada Completa" value={summary.fullyComplete} icon={CheckCircle2} className="border-vida/30" />
+            <StatCard title="Conclusão Média" value={`${summary.avgCompletion}%`} icon={Sparkles} />
           </div>
         )}
 
