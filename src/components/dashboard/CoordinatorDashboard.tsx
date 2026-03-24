@@ -43,6 +43,7 @@ import { PotenciaisServirCard } from './PotenciaisServirCard';
 import { LeadershipRecommendationDialog } from './LeadershipRecommendationDialog';
 import { CuidadoEspiritualConsolidado } from './CuidadoEspiritualPanel';
 import { VitalidadeCascataPanel } from './VitalidadeRelacionalPanel';
+import { FunilFormacaoPanel } from './FunilFormacaoPanel';
 
 export function CoordinatorDashboard() {
   const [searchParams] = useSearchParams();
