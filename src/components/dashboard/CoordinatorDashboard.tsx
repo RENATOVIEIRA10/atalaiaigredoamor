@@ -81,7 +81,7 @@ export function CoordinatorDashboard() {
   const handleDeleteReport = (id: string) => {
     deleteReport.mutate(id, {
       onSuccess: () => toast({ title: 'Sucesso!', description: 'Relatório excluído' }),
-      onError: () => toast({ title: 'Erro', description: 'Não foi possível excluir', variant: 'destructive' }),
+      onError: (err) => toast({ title: 'Erro', description: `Não foi possível excluir: ${err?.message || 'erro desconhecido'}`, variant: 'destructive' }),
     });
   };
 
@@ -332,7 +332,7 @@ export function CoordinatorDashboard() {
               <TabsContent value="planejamento"><PlanejamentoCoordenadorPanel coordenacaoId={selectedCoordenacao} /></TabsContent>
               <TabsContent value="pulso"><PulsoRedeSection scopeType="coordenacao" scopeId={selectedCoordenacao} title="Visão Pastoral da Coordenação" /></TabsContent>
               <TabsContent value="saude"><RadarSaudePanel scopeType="coordenacao" scopeId={selectedCoordenacao} title="Saúde da Rede" /></TabsContent>
-              <TabsContent value="historico"><ReportsHistoryTable reports={currentReports} onEdit={handleEditReport} onDelete={handleDeleteReport} /></TabsContent>
+              <TabsContent value="historico"><ReportsHistoryTable reports={currentReports} onEdit={handleEditReport} onDelete={handleDeleteReport} isUpdating={updateReport.isPending} isDeleting={deleteReport.isPending} /></TabsContent>
               <TabsContent value="insights"><AIInsightsPanel reports={currentReports} periodLabel={formatDateRangeDisplay()} context="coordenacao" /></TabsContent>
               <TabsContent value="fotos"><CelulaPhotoGallery reports={currentReports} /></TabsContent>
               <TabsContent value="cuidado-espiritual"><CuidadoEspiritualConsolidado coordenacaoId={selectedCoordenacao} groupBy="celula" /></TabsContent>
