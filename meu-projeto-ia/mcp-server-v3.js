@@ -103,6 +103,7 @@ const LOG_FILE = path.join(LOG_DIR, "tokens-v3.jsonl");
 const PRECOS = {
   // Gemini
   "gemini-2.5-flash-lite":  { input: 0.10,  output: 0.40  },
+  "gemini-2.5-flash-lite-preview-06-17": { input: 0.10, output: 0.40 },
   "gemini-2.5-flash":       { input: 0.30,  output: 2.50  },
   "gemini-2.5-pro":         { input: 1.25,  output: 10.00 },
   // OpenAI
@@ -220,7 +221,7 @@ server.tool(
         { role: "system", content: "Você é um assistente eficiente. Responda de forma clara e directa em português." },
         { role: "user",   content: contexto ? `Contexto: ${contexto}\n\nTarefa: ${tarefa}` : tarefa },
       ];
-      const resposta = await chamarIA(gemini, "gemini-2.5-flash-lite-preview-06-17", msgs, "ia_rapida");
+      const resposta = await chamarIA(gemini, "gemini-2.5-flash", msgs, "ia_rapida");
       return { content: [{ type: "text", text: resposta }] };
     } catch (erro) {
       // Fallback para GPT-4o-mini se Gemini falhar
@@ -411,7 +412,7 @@ server.tool(
   async ({ pergunta }) => {
     if (!VAULT) return { content: [{ type: "text", text: "❌ OBSIDIAN_PATH não configurado no .env" }], isError: true };
     const clienteIA = gemini || openai;
-    const modeloIA  = gemini ? "gemini-2.5-flash-lite-preview-06-17" : "gpt-4o-mini";
+    const modeloIA  = gemini ? "gemini-2.5-flash" : "gpt-4o-mini";
     if (!clienteIA) return semIA("Gemini ou OpenAI", "GEMINI_API_KEY");
     try {
       const notas = lerTodasNotas(VAULT);
