@@ -1,22 +1,13 @@
 /**
  * SERVIDOR MCP — Conecta o teu projecto de IA ao Claude Code (terminal)
  *
- * Após registar este servidor no Claude Code com o comando abaixo,
- * o Claude vai ter acesso a todas as ferramentas deste projecto
- * directamente nas tuas conversas no terminal.
+ * COMO REGISTAR (corre UMA VEZ):
+ *   Execute o ficheiro registar-mcp.ps1 no PowerShell
+ *   OU manualmente:
+ *   claude mcp add meu-projeto-ia -- node "CAMINHO_COMPLETO\mcp-server.js"
  *
- * COMANDO PARA REGISTAR (corre UMA VEZ no terminal):
- *
- *   claude mcp add meu-projeto-ia -- node C:\Users\R E N A T O\meu-projeto-ia\mcp-server.js
- *
- * FERRAMENTAS DISPONÍVEIS PARA O CLAUDE:
- *   - perguntar_openai   → Consulta o GPT-4o e retorna a resposta
- *   - criar_ficheiro     → Cria um ficheiro com código ou texto
- *   - ler_ficheiro       → Lê o conteúdo de um ficheiro
- *   - listar_ficheiros   → Lista os ficheiros da pasta do projecto
- *   - guardar_nota       → Guarda uma nota em Markdown
- *   - ler_obsidian       → Lê as notas da tua vault do Obsidian
- *   - executar_agente    → Executa o agente autónomo com GPT-4o
+ * VERIFICAR SE ESTÁ ACTIVO (dentro do Claude Code):
+ *   /mcp
  */
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -28,11 +19,22 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 
-// Carrega o .env do directório onde este ficheiro está
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+// Resolve o directório deste ficheiro de forma robusta
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Carrega o .env da mesma pasta que este ficheiro
 dotenv.config({ path: path.join(__dirname, ".env") });
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+// Inicializa o cliente OpenAI (só falha quando a ferramenta é chamada, não no arranque)
+let openai = null;
+try {
+  if (process.env.OPENAI_API_KEY && !process.env.OPENAI_API_KEY.includes("COLE_SUA")) {
+    openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  }
+} catch (e) {
+  // Continua sem OpenAI — o servidor MCP ainda arranca
+}
 
 // ─── CRIAR SERVIDOR MCP ────────────────────────────────────────────────────
 
@@ -45,35 +47,29 @@ const server = new McpServer({
 
 server.tool(
   "perguntar_openai",
-  "Faz uma pergunta ao GPT-4o da OpenAI. Use para obter uma segunda opinião, comparar respostas ou quando precisar de uma resposta rápida.",
+  "Faz uma pergunta ao GPT-4o da OpenAI. Use para obter uma segunda opinião ou comparar respostas.",
   {
     pergunta: z.string().describe("A pergunta ou tarefa para o GPT-4o"),
     contexto: z.string().optional().describe("Contexto adicional opcional"),
   },
   async ({ pergunta, contexto }) => {
+    if (!openai) {
+      return {
+        content: [{ type: "text", text: "❌ Chave OPENAI_API_KEY não configurada no ficheiro .env" }],
+        isError: true,
+      };
+    }
     try {
       const resposta = await openai.chat.completions.create({
         model: "gpt-4o",
         messages: [
-          {
-            role: "system",
-            content: "Você é um assistente especialista em programação e produtividade. Responda em português de forma clara e directa.",
-          },
-          {
-            role: "user",
-            content: contexto ? `Contexto: ${contexto}\n\nPergunta: ${pergunta}` : pergunta,
-          },
+          { role: "system", content: "Você é um assistente especialista em programação e produtividade. Responda em português de forma clara e directa." },
+          { role: "user", content: contexto ? `Contexto: ${contexto}\n\nPergunta: ${pergunta}` : pergunta },
         ],
         temperature: 0.7,
       });
-
       return {
-        content: [
-          {
-            type: "text",
-            text: `**GPT-4o responde:**\n\n${resposta.choices[0].message.content}`,
-          },
-        ],
+        content: [{ type: "text", text: `**GPT-4o responde:**\n\n${resposta.choices[0].message.content}` }],
       };
     } catch (erro) {
       return {
@@ -88,22 +84,21 @@ server.tool(
 
 server.tool(
   "criar_ficheiro",
-  "Cria um ficheiro com o nome e conteúdo especificados na pasta do projecto de IA. Ideal para guardar código gerado.",
+  "Cria um ficheiro com o nome e conteúdo especificados na pasta do projecto de IA.",
   {
     nome: z.string().describe("Nome do ficheiro, ex: app.js, script.py, notas.md"),
     conteudo: z.string().describe("Conteúdo completo do ficheiro"),
   },
   async ({ nome, conteudo }) => {
     try {
+      // Garante que subpastas são criadas se necessário
       const caminho = path.join(__dirname, nome);
+      const pasta = path.dirname(caminho);
+      if (!fs.existsSync(pasta)) fs.mkdirSync(pasta, { recursive: true });
+
       fs.writeFileSync(caminho, conteudo, "utf-8");
       return {
-        content: [
-          {
-            type: "text",
-            text: `✅ Ficheiro **${nome}** criado com sucesso!\nLocalização: \`${caminho}\`\nTamanho: ${conteudo.length} caracteres`,
-          },
-        ],
+        content: [{ type: "text", text: `✅ Ficheiro **${nome}** criado!\nLocalização: \`${caminho}\`\nTamanho: ${conteudo.length} caracteres` }],
       };
     } catch (erro) {
       return {
@@ -133,12 +128,7 @@ server.tool(
       }
       const conteudo = fs.readFileSync(caminho, "utf-8");
       return {
-        content: [
-          {
-            type: "text",
-            text: `📄 **${nome}**\n\n\`\`\`\n${conteudo}\n\`\`\``,
-          },
-        ],
+        content: [{ type: "text", text: `📄 **${nome}**\n\n\`\`\`\n${conteudo}\n\`\`\`` }],
       };
     } catch (erro) {
       return {
@@ -162,18 +152,16 @@ server.tool(
       );
       const lista = itens
         .map((item) => {
-          const stat = fs.statSync(path.join(__dirname, item));
-          return `${stat.isDirectory() ? "📁" : "📄"} ${item}`;
+          try {
+            const stat = fs.statSync(path.join(__dirname, item));
+            return `${stat.isDirectory() ? "📁" : "📄"} ${item}`;
+          } catch {
+            return `📄 ${item}`;
+          }
         })
         .join("\n");
-
       return {
-        content: [
-          {
-            type: "text",
-            text: `📂 **Projecto em:** ${__dirname}\n\n${lista}`,
-          },
-        ],
+        content: [{ type: "text", text: `📂 **Projecto em:** \`${__dirname}\`\n\n${lista}` }],
       };
     } catch (erro) {
       return {
@@ -198,21 +186,13 @@ server.tool(
       const pasta = path.join(__dirname, "notas");
       if (!fs.existsSync(pasta)) fs.mkdirSync(pasta, { recursive: true });
 
-      const nomeArquivo = titulo
-        .replace(/[<>:"/\\|?*]/g, "")
-        .replace(/\s+/g, "_")
-        .slice(0, 80);
+      const nomeArquivo = titulo.replace(/[<>:"/\\|?*]/g, "").replace(/\s+/g, "_").slice(0, 80);
       const caminho = path.join(pasta, `${nomeArquivo}.md`);
       const texto = `# ${titulo}\n\n${conteudo}\n\n---\n_Guardado em: ${new Date().toLocaleString("pt-BR")}_\n`;
 
       fs.writeFileSync(caminho, texto, "utf-8");
       return {
-        content: [
-          {
-            type: "text",
-            text: `✅ Nota **"${titulo}"** guardada em:\n\`${caminho}\``,
-          },
-        ],
+        content: [{ type: "text", text: `✅ Nota **"${titulo}"** guardada em:\n\`${caminho}\`` }],
       };
     } catch (erro) {
       return {
@@ -229,10 +209,7 @@ server.tool(
   "ler_obsidian",
   "Lê as notas da vault do Obsidian. Pode listar todas as notas ou ler uma nota específica pelo nome.",
   {
-    nota: z
-      .string()
-      .optional()
-      .describe("Nome (parcial) de uma nota específica. Se omitido, lista todas as notas disponíveis."),
+    nota: z.string().optional().describe("Nome (parcial) de uma nota específica. Se omitido, lista todas as notas disponíveis."),
   },
   async ({ nota }) => {
     try {
@@ -240,12 +217,10 @@ server.tool(
 
       if (!fs.existsSync(pastaVault)) {
         return {
-          content: [
-            {
-              type: "text",
-              text: `❌ Vault do Obsidian não encontrada em:\n${pastaVault}\n\nConfigura o caminho no ficheiro .env:\nOBSIDIAN_PATH=C:\\Users\\R E N A T O\\Documents\\ObsidianVault`,
-            },
-          ],
+          content: [{
+            type: "text",
+            text: `❌ Vault do Obsidian não encontrada em:\n${pastaVault}\n\nConfigura o caminho no ficheiro .env:\nOBSIDIAN_PATH=C:\\Users\\SEU_NOME\\Documents\\ObsidianVault`,
+          }],
           isError: true,
         };
       }
@@ -254,72 +229,40 @@ server.tool(
       function lerRecursivo(pasta) {
         for (const item of fs.readdirSync(pasta)) {
           const caminho = path.join(pasta, item);
-          const stat = fs.statSync(caminho);
-          if (stat.isDirectory() && !item.startsWith(".")) lerRecursivo(caminho);
-          else if (item.endsWith(".md")) {
-            notas.push({
-              nome: item.replace(".md", ""),
-              conteudo: fs.readFileSync(caminho, "utf-8"),
-            });
-          }
+          try {
+            const stat = fs.statSync(caminho);
+            if (stat.isDirectory() && !item.startsWith(".")) lerRecursivo(caminho);
+            else if (item.endsWith(".md")) {
+              notas.push({ nome: item.replace(".md", ""), conteudo: fs.readFileSync(caminho, "utf-8") });
+            }
+          } catch { /* ignora ficheiros inacessíveis */ }
         }
       }
       lerRecursivo(pastaVault);
 
       if (notas.length === 0) {
-        return {
-          content: [{ type: "text", text: "❌ Nenhuma nota .md encontrada na vault." }],
-          isError: true,
-        };
+        return { content: [{ type: "text", text: "❌ Nenhuma nota .md encontrada na vault." }], isError: true };
       }
 
       if (nota) {
-        const encontrada = notas.find((n) =>
-          n.nome.toLowerCase().includes(nota.toLowerCase())
-        );
+        const encontrada = notas.find((n) => n.nome.toLowerCase().includes(nota.toLowerCase()));
         if (!encontrada) {
           const lista = notas.map((n) => `- ${n.nome}`).join("\n");
-          return {
-            content: [
-              {
-                type: "text",
-                text: `❌ Nota "${nota}" não encontrada.\n\nNotas disponíveis:\n${lista}`,
-              },
-            ],
-            isError: true,
-          };
+          return { content: [{ type: "text", text: `❌ Nota "${nota}" não encontrada.\n\nNotas disponíveis:\n${lista}` }], isError: true };
         }
-        return {
-          content: [
-            {
-              type: "text",
-              text: `📝 **${encontrada.nome}**\n\n${encontrada.conteudo}`,
-            },
-          ],
-        };
+        return { content: [{ type: "text", text: `📝 **${encontrada.nome}**\n\n${encontrada.conteudo}` }] };
       }
 
-      // Lista todas com prévia
-      const lista = notas
-        .map((n) => {
-          const previa = n.conteudo.split("\n").filter((l) => l.trim()).slice(0, 2).join(" — ");
-          return `**${n.nome}**: ${previa.slice(0, 100)}...`;
-        })
-        .join("\n\n");
+      const lista = notas.map((n) => {
+        const previa = n.conteudo.split("\n").filter((l) => l.trim()).slice(0, 2).join(" — ");
+        return `**${n.nome}**: ${previa.slice(0, 100)}...`;
+      }).join("\n\n");
 
       return {
-        content: [
-          {
-            type: "text",
-            text: `📚 **${notas.length} nota(s) na vault:**\n\n${lista}\n\n_Usa a ferramenta com o nome de uma nota para ver o conteúdo completo._`,
-          },
-        ],
+        content: [{ type: "text", text: `📚 **${notas.length} nota(s) na vault:**\n\n${lista}\n\n_Usa a ferramenta com o nome de uma nota para ver o conteúdo completo._` }],
       };
     } catch (erro) {
-      return {
-        content: [{ type: "text", text: `❌ Erro ao ler Obsidian: ${erro.message}` }],
-        isError: true,
-      };
+      return { content: [{ type: "text", text: `❌ Erro ao ler Obsidian: ${erro.message}` }], isError: true };
     }
   }
 );
@@ -333,13 +276,15 @@ server.tool(
     tarefa: z.string().describe("Descrição detalhada da tarefa para o agente executar"),
   },
   async ({ tarefa }) => {
+    if (!openai) {
+      return {
+        content: [{ type: "text", text: "❌ Chave OPENAI_API_KEY não configurada no ficheiro .env" }],
+        isError: true,
+      };
+    }
     try {
       const mensagens = [
-        {
-          role: "system",
-          content:
-            "Você é um agente autónomo especialista em programação. Execute a tarefa passo a passo, criando os ficheiros necessários. Responda em português.",
-        },
+        { role: "system", content: "Você é um agente autónomo especialista em programação. Execute a tarefa passo a passo, criando os ficheiros necessários. Responda em português." },
         { role: "user", content: tarefa },
       ];
 
@@ -393,14 +338,14 @@ server.tool(
 
             let resultado = "";
             if (chamada.function.name === "criar_ficheiro") {
-              fs.writeFileSync(path.join(__dirname, args.nome), args.conteudo, "utf-8");
+              const caminho = path.join(__dirname, args.nome);
+              const pasta = path.dirname(caminho);
+              if (!fs.existsSync(pasta)) fs.mkdirSync(pasta, { recursive: true });
+              fs.writeFileSync(caminho, args.conteudo, "utf-8");
               resultado = `✅ Ficheiro "${args.nome}" criado.`;
               log += `   ${resultado}\n`;
             } else if (chamada.function.name === "listar_ficheiros") {
-              resultado = fs
-                .readdirSync(__dirname)
-                .filter((f) => f !== "node_modules")
-                .join(", ");
+              resultado = fs.readdirSync(__dirname).filter((f) => f !== "node_modules").join(", ");
             }
             mensagens.push({ role: "tool", tool_call_id: chamada.id, content: resultado });
           }
@@ -416,10 +361,7 @@ server.tool(
 
       return { content: [{ type: "text", text: log }] };
     } catch (erro) {
-      return {
-        content: [{ type: "text", text: `❌ Erro no agente: ${erro.message}` }],
-        isError: true,
-      };
+      return { content: [{ type: "text", text: `❌ Erro no agente: ${erro.message}` }], isError: true };
     }
   }
 );
