@@ -568,27 +568,43 @@ Vault do Obsidian: ${VAULT || "não configurado"}`,
         {
           type: "function",
           function: {
-            name: "salvar_no_obsidian",
-            description: "Guarda uma nota ou memória no Obsidian.",
+            name: "ler_obsidian",
+            description: "Lê notas do Obsidian. Pode listar todas as notas, ler uma nota específica pelo nome, ou fazer uma busca semântica por conteúdo relevante para um tema.",
             parameters: {
               type: "object",
               properties: {
-                titulo: { type: "string" },
-                conteudo: { type: "string" },
-                pasta: { type: "string", description: "Subpasta dentro da vault, ex: Memórias" },
+                modo: {
+                  type: "string",
+                  enum: ["listar", "ler", "buscar"],
+                  description: "'listar' → lista todas as notas; 'ler' → lê uma nota pelo nome; 'buscar' → busca notas relevantes para um tema",
+                },
+                nome: { type: "string", description: "Nome parcial da nota (para modo 'ler')" },
+                tema: { type: "string", description: "Tema ou pergunta para busca semântica (para modo 'buscar')" },
+                pasta: { type: "string", description: "Subpasta específica para filtrar, ex: Memórias, Projectos" },
               },
-              required: ["titulo", "conteudo"],
+              required: ["modo"],
             },
           },
         },
         {
           type: "function",
           function: {
-            name: "ler_obsidian",
-            description: "Lê todas as notas do Obsidian ou uma nota específica.",
+            name: "escrever_obsidian",
+            description: "Cria ou actualiza uma nota no Obsidian. Pode criar nova nota, adicionar conteúdo ao fim de uma nota existente, ou substituir o conteúdo completo.",
             parameters: {
               type: "object",
-              properties: { nome: { type: "string", description: "Nome parcial da nota. Se omitido, lista todas." } },
+              properties: {
+                titulo: { type: "string", description: "Título da nota" },
+                conteudo: { type: "string", description: "Conteúdo a escrever" },
+                modo: {
+                  type: "string",
+                  enum: ["criar", "adicionar", "substituir"],
+                  description: "'criar' → cria nota nova; 'adicionar' → acrescenta ao fim; 'substituir' → reescreve tudo",
+                },
+                pasta: { type: "string", description: "Subpasta dentro da vault, ex: Memórias, Projectos, Diário" },
+                tags: { type: "string", description: "Tags separadas por vírgula, ex: ia, projecto, decisão" },
+              },
+              required: ["titulo", "conteudo", "modo"],
             },
           },
         },
@@ -632,29 +648,99 @@ Vault do Obsidian: ${VAULT || "não configurado"}`,
             } else if (chamada.function.name === "listar_ficheiros") {
               resultado = fs.readdirSync(__dirname).filter((f) => f !== "node_modules" && !f.startsWith(".")).join(", ");
 
-            } else if (chamada.function.name === "salvar_no_obsidian") {
-              if (!VAULT) {
-                resultado = "❌ OBSIDIAN_PATH não configurado.";
-              } else {
-                const subpasta = args.pasta || "Memórias";
-                const destino = path.join(VAULT, subpasta);
-                if (!fs.existsSync(destino)) fs.mkdirSync(destino, { recursive: true });
-                const nomeArquivo = args.titulo.replace(/[<>:"/\\|?*]/g, "").replace(/\s+/g, "_").slice(0, 80);
-                const caminho = path.join(destino, `${nomeArquivo}.md`);
-                fs.writeFileSync(caminho, `# ${args.titulo}\n\n${args.conteudo}\n`, "utf-8");
-                resultado = `✅ Nota "${args.titulo}" guardada no Obsidian.`;
-              }
-
             } else if (chamada.function.name === "ler_obsidian") {
               if (!VAULT) {
-                resultado = "❌ OBSIDIAN_PATH não configurado.";
+                resultado = "❌ OBSIDIAN_PATH não configurado no .env.";
               } else {
-                const notas = lerTodasNotas(VAULT);
-                if (args.nome) {
+                const baseVault = args.pasta ? path.join(VAULT, args.pasta) : VAULT;
+                const notas = lerTodasNotas(baseVault);
+
+                if (notas.length === 0) {
+                  resultado = `❌ Nenhuma nota encontrada${args.pasta ? ` na pasta "${args.pasta}"` : " na vault"}.`;
+
+                } else if (args.modo === "listar") {
+                  resultado = `📚 ${notas.length} nota(s):\n` + notas.map((n) => {
+                    const rel = path.relative(VAULT, n.caminho);
+                    return `- ${rel}`;
+                  }).join("\n");
+
+                } else if (args.modo === "ler" && args.nome) {
                   const encontrada = notas.find((n) => n.nome.toLowerCase().includes(args.nome.toLowerCase()));
-                  resultado = encontrada ? `# ${encontrada.nome}\n\n${encontrada.conteudo}` : `❌ Nota "${args.nome}" não encontrada.`;
+                  if (encontrada) {
+                    resultado = `📝 **${encontrada.nome}**\n\n${encontrada.conteudo}`;
+                  } else {
+                    const lista = notas.slice(0, 20).map((n) => `- ${n.nome}`).join("\n");
+                    resultado = `❌ Nota "${args.nome}" não encontrada.\n\nNotas disponíveis:\n${lista}`;
+                  }
+
+                } else if (args.modo === "buscar" && args.tema) {
+                  // Busca semântica: envia índice ao GPT para seleccionar notas relevantes
+                  const indice = notas.map((n, i) => `[${i}] ${n.nome}: ${n.conteudo.slice(0, 150)}`).join("\n");
+                  try {
+                    const selecao = await openai.chat.completions.create({
+                      model: "gpt-4o-mini",
+                      messages: [
+                        { role: "system", content: "Analisa as notas e devolve APENAS os índices das mais relevantes para o tema, separados por vírgula. Ex: 0,3,7" },
+                        { role: "user", content: `Tema: ${args.tema}\n\nNotas:\n${indice.slice(0, 8000)}` },
+                      ],
+                      max_tokens: 50,
+                    });
+                    const indices = selecao.choices[0].message.content
+                      .split(",").map((s) => parseInt(s.trim())).filter((n) => !isNaN(n) && n < notas.length);
+                    if (indices.length === 0) {
+                      resultado = `Nenhuma nota relevante encontrada para: "${args.tema}"`;
+                    } else {
+                      resultado = indices.map((i) => `📝 **${notas[i].nome}**\n\n${notas[i].conteudo}`).join("\n\n---\n\n");
+                    }
+                  } catch {
+                    // Fallback: busca por texto simples
+                    const tema = args.tema.toLowerCase();
+                    const relevantes = notas.filter((n) =>
+                      n.nome.toLowerCase().includes(tema) || n.conteudo.toLowerCase().includes(tema)
+                    ).slice(0, 5);
+                    resultado = relevantes.length > 0
+                      ? relevantes.map((n) => `📝 **${n.nome}**\n\n${n.conteudo}`).join("\n\n---\n\n")
+                      : `Nenhuma nota encontrada para: "${args.tema}"`;
+                  }
+
                 } else {
-                  resultado = notas.map((n) => `- ${n.nome}`).join("\n");
+                  // Modo padrão: lista tudo
+                  resultado = `📚 ${notas.length} nota(s):\n` + notas.map((n) => `- ${n.nome}`).join("\n");
+                }
+              }
+
+            } else if (chamada.function.name === "escrever_obsidian") {
+              if (!VAULT) {
+                resultado = "❌ OBSIDIAN_PATH não configurado no .env.";
+              } else {
+                try {
+                  const subpasta = args.pasta || "Memórias";
+                  const destino = path.join(VAULT, subpasta);
+                  if (!fs.existsSync(destino)) fs.mkdirSync(destino, { recursive: true });
+
+                  const nomeArquivo = args.titulo.replace(/[<>:"/\\|?*]/g, "").replace(/\s+/g, "_").slice(0, 80);
+                  const caminho = path.join(destino, `${nomeArquivo}.md`);
+                  const timestamp = new Date().toLocaleString("pt-BR");
+                  const tagStr = args.tags ? `\ntags: [${args.tags}]` : "";
+
+                  if (args.modo === "criar" || !fs.existsSync(caminho)) {
+                    const texto = `---\ncriado: ${new Date().toISOString()}${tagStr}\n---\n\n# ${args.titulo}\n\n${args.conteudo}\n`;
+                    fs.writeFileSync(caminho, texto, "utf-8");
+                    resultado = `✅ Nota "${args.titulo}" criada em: ${caminho}`;
+
+                  } else if (args.modo === "adicionar") {
+                    const existente = fs.readFileSync(caminho, "utf-8");
+                    const novoConteudo = `${existente}\n\n---\n_Actualizado em: ${timestamp}_\n\n${args.conteudo}\n`;
+                    fs.writeFileSync(caminho, novoConteudo, "utf-8");
+                    resultado = `✅ Conteúdo adicionado à nota "${args.titulo}".`;
+
+                  } else if (args.modo === "substituir") {
+                    const texto = `---\nactualizado: ${new Date().toISOString()}${tagStr}\n---\n\n# ${args.titulo}\n\n${args.conteudo}\n`;
+                    fs.writeFileSync(caminho, texto, "utf-8");
+                    resultado = `✅ Nota "${args.titulo}" substituída em: ${caminho}`;
+                  }
+                } catch (e) {
+                  resultado = `❌ Erro ao escrever no Obsidian: ${e.message}`;
                 }
               }
             }
