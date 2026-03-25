@@ -55,6 +55,51 @@ try {
 // Caminho da vault do Obsidian
 const VAULT = process.env.OBSIDIAN_PATH || "";
 
+// ─── SISTEMA DE LOGGING DE TOKENS ────────────────────────────────────────────
+
+const LOG_DIR  = path.join(__dirname, "logs");
+const LOG_FILE = path.join(LOG_DIR, "tokens.jsonl");
+
+// Preços por 1M tokens (USD) — actualizados Março 2025
+const PRECOS = {
+  "gpt-4o":              { input: 2.50,  output: 10.00 },
+  "gpt-4o-mini":         { input: 0.15,  output: 0.60  },
+  "gpt-4o-2024-11-20":   { input: 2.50,  output: 10.00 },
+  "gpt-4o-mini-2024-07-18": { input: 0.15, output: 0.60 },
+  "claude-opus-4-5":     { input: 15.00, output: 75.00 },
+  "claude-sonnet-4-5":   { input: 3.00,  output: 15.00 },
+  "claude-haiku-3-5":    { input: 0.80,  output: 4.00  },
+};
+
+function calcularCusto(modelo, tokensIn, tokensOut) {
+  const base = Object.keys(PRECOS).find((k) => modelo.startsWith(k)) || "gpt-4o";
+  const p = PRECOS[base];
+  return ((tokensIn / 1_000_000) * p.input) + ((tokensOut / 1_000_000) * p.output);
+}
+
+function logTokens({ ferramenta, modelo, tokensIn, tokensOut, custo, duracao }) {
+  const entrada = {
+    ts:         new Date().toISOString(),
+    ferramenta,
+    modelo,
+    tokens_in:  tokensIn,
+    tokens_out: tokensOut,
+    total:      tokensIn + tokensOut,
+    custo_usd:  parseFloat(custo.toFixed(6)),
+    duracao_ms: duracao,
+  };
+  try {
+    if (!fs.existsSync(LOG_DIR)) fs.mkdirSync(LOG_DIR, { recursive: true });
+    fs.appendFileSync(LOG_FILE, JSON.stringify(entrada) + "\n", "utf-8");
+  } catch {}
+  // Mostra no stderr (visível no Claude Code com /mcp)
+  process.stderr.write(
+    `[TOKEN LOG] ${entrada.ts} | ${ferramenta} | ${modelo} | ` +
+    `in:${tokensIn} out:${tokensOut} total:${tokensIn + tokensOut} | ` +
+    `$${entrada.custo_usd} | ${duracao}ms\n`
+  );
+}
+
 // ─── HELPERS ───────────────────────────────────────────────────────────────
 
 function semOpenAI() {
@@ -93,8 +138,14 @@ function lerTodasNotas(pasta) {
   return notas;
 }
 
-async function gpt(mensagens, modelo = "gpt-4o") {
+async function gpt(mensagens, modelo = "gpt-4o", ferramenta = "desconhecida") {
+  const inicio = Date.now();
   const r = await openai.chat.completions.create({ model: modelo, messages: mensagens, temperature: 0.7 });
+  const duracao = Date.now() - inicio;
+  const tokensIn  = r.usage?.prompt_tokens     || 0;
+  const tokensOut = r.usage?.completion_tokens || 0;
+  const custo = calcularCusto(r.model, tokensIn, tokensOut);
+  logTokens({ ferramenta, modelo: r.model, tokensIn, tokensOut, custo, duracao });
   return r.choices[0].message.content;
 }
 
@@ -158,7 +209,7 @@ server.tool(
       const selecao = await gpt([
         { role: "system", content: "Você é um assistente de recuperação de memória. Analise as notas e identifique quais são relevantes para a pergunta. Responda APENAS com os índices separados por vírgula, ex: 0,3,7" },
         { role: "user", content: `Pergunta: ${pergunta}\n\nNotas disponíveis:\n${indice.slice(0, 12000)}` },
-      ]);
+      ], "gpt-4o-mini", "recuperar_memoria_selecao");
 
       const indices = selecao.split(",").map((s) => parseInt(s.trim())).filter((n) => !isNaN(n) && n < notas.length);
 
@@ -171,7 +222,7 @@ server.tool(
       const resposta = await gpt([
         { role: "system", content: "Você é um assistente de memória pessoal. Com base nas notas fornecidas, responda à pergunta de forma clara e directa. Cite as notas relevantes pelo nome." },
         { role: "user", content: `Pergunta: ${pergunta}\n\nNotas relevantes:\n${notasRelevantes}` },
-      ]);
+      ], "gpt-4o", "recuperar_memoria");
 
       return { content: [{ type: "text", text: `📚 **Memórias recuperadas** (${indices.length} nota(s) relevante(s)):\n\n${resposta}` }] };
     } catch (erro) {
@@ -289,7 +340,7 @@ server.tool(
       const resposta = await gpt([
         { role: "system", content: `Você é um especialista em síntese de informação. ${instrucao} Responda em português.` },
         { role: "user", content: texto },
-      ]);
+      ], "gpt-4o", "resumir_texto");
       return { content: [{ type: "text", text: `📋 **Resumo:**\n\n${resposta}` }] };
     } catch (erro) {
       return { content: [{ type: "text", text: `❌ Erro: ${erro.message}` }], isError: true };
@@ -312,7 +363,7 @@ server.tool(
       const resposta = await gpt([
         { role: "system", content: `Você é um programador sénior especialista em ${lang}. Gere código limpo, comentado e funcional. Responda APENAS com o código, sem explicações antes ou depois.` },
         { role: "user", content: descricao },
-      ]);
+      ], "gpt-4o", "gerar_codigo");
 
       if (guardar_em) {
         const caminho = path.join(__dirname, guardar_em);
@@ -345,7 +396,7 @@ server.tool(
       const resposta = await gpt([
         { role: "system", content: `${instrucao} Responda em português.` },
         { role: "user", content: codigo },
-      ]);
+      ], "gpt-4o", "explicar_codigo");
       return { content: [{ type: "text", text: `💡 **Explicação:**\n\n${resposta}` }] };
     } catch (erro) {
       return { content: [{ type: "text", text: `❌ Erro: ${erro.message}` }], isError: true };
@@ -370,7 +421,7 @@ server.tool(
       const resposta = await gpt([
         { role: "system", content: "Você é um code reviewer sénior. Analisa o código e fornece: 1) Bugs encontrados, 2) Melhorias de performance, 3) Boas práticas em falta, 4) Sugestões de refactoring. Seja directo e prático. Responda em português." },
         { role: "user", content: `Ficheiro: ${ficheiro}\n\n${codigo}` },
-      ]);
+      ], "gpt-4o", "revisar_codigo");
       return { content: [{ type: "text", text: `🔍 **Revisão de \`${ficheiro}\`:**\n\n${resposta}` }] };
     } catch (erro) {
       return { content: [{ type: "text", text: `❌ Erro: ${erro.message}` }], isError: true };
@@ -392,7 +443,7 @@ server.tool(
       const resposta = await gpt([
         { role: "system", content: `Você é um tradutor profissional. Traduz o texto para ${idioma} mantendo o tom e estilo original. Responda APENAS com a tradução.` },
         { role: "user", content: texto },
-      ]);
+      ], "gpt-4o", "traduzir_texto");
       return { content: [{ type: "text", text: `🌐 **Tradução para ${idioma}:**\n\n${resposta}` }] };
     } catch (erro) {
       return { content: [{ type: "text", text: `❌ Erro: ${erro.message}` }], isError: true };
@@ -414,7 +465,7 @@ server.tool(
       const resposta = await gpt([
         { role: "system", content: "Você é um especialista em planeamento e gestão de projectos. Cria planos de acção claros, com passos numerados, estimativas de tempo e critérios de sucesso. Responda em português." },
         { role: "user", content: contexto ? `Objectivo: ${objetivo}\n\nContexto: ${contexto}` : `Objectivo: ${objetivo}` },
-      ]);
+      ], "gpt-4o", "criar_plano");
 
       if (guardar_no_obsidian && VAULT) {
         const titulo = `Plano - ${objetivo.slice(0, 60)}`;
@@ -446,7 +497,7 @@ server.tool(
       const resposta = await gpt([
         { role: "system", content: "Você é um assistente especialista. Responda de forma clara, directa e precisa. Responda em português." },
         { role: "user", content: contexto ? `Contexto: ${contexto}\n\nPergunta: ${pergunta}` : pergunta },
-      ]);
+      ], "gpt-4o", "responder_pergunta");
       return { content: [{ type: "text", text: resposta }] };
     } catch (erro) {
       return { content: [{ type: "text", text: `❌ Erro: ${erro.message}` }], isError: true };
