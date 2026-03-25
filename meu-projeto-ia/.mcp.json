@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "meu-projeto-ia": {
+      "command": "node",
+      "args": ["./mcp-server.js"],
+      "env": {
+        "OPENAI_API_KEY": "${OPENAI_API_KEY}",
+        "ANTHROPIC_API_KEY": "${ANTHROPIC_API_KEY}",
+        "OBSIDIAN_PATH": "${OBSIDIAN_PATH}"
+      }
+    }
+  }
+}
