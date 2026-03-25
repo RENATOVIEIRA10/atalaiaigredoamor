@@ -1,0 +1,19 @@
+{
+  "name": "meu-projeto-ia",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Assistente de IA local com OpenAI - gerador de código, agentes e leitor de Obsidian",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "agente": "node agente.js",
+    "obsidian": "node obsidian.js"
+  },
+  "dependencies": {
+    "openai": "^4.67.0",
+    "readline": "^1.3.0",
+    "dotenv": "^16.4.5",
+    "fs-extra": "^11.2.0",
+    "glob": "^11.0.0"
+  }
+}
