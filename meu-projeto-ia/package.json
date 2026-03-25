@@ -2,18 +2,20 @@
   "name": "meu-projeto-ia",
   "version": "1.0.0",
   "type": "module",
-  "description": "Assistente de IA local com OpenAI - gerador de código, agentes e leitor de Obsidian",
+  "description": "Assistente de IA local com OpenAI e Claude",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
     "agente": "node agente.js",
-    "obsidian": "node obsidian.js"
+    "obsidian": "node obsidian.js",
+    "claude": "node claude.js",
+    "claude-agente": "node claude-agente.js",
+    "dual": "node ia-dual.js"
   },
   "dependencies": {
     "openai": "^4.67.0",
-    "readline": "^1.3.0",
+    "@anthropic-ai/sdk": "^0.80.0",
     "dotenv": "^16.4.5",
-    "fs-extra": "^11.2.0",
-    "glob": "^11.0.0"
+    "fs-extra": "^11.2.0"
   }
 }
