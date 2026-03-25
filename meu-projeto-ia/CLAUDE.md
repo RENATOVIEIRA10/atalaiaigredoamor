@@ -14,16 +14,27 @@ O objectivo é simples: **o Claude não deve gastar tokens em tarefas que as IAs
 
 ---
 
+## IAs disponíveis e configuradas
+
+| IA | Modelo | Custo | Estado |
+|---|---|---|---|
+| **Gemini** | gemini-2.5-flash | $0.30/1M (GRÁTIS até 1.500 req/dia) | ✅ Configurado |
+| **OpenAI** | gpt-4o-mini | $0.15/1M | ✅ Configurado |
+| **OpenAI** | gpt-4o | $2.50/1M | ✅ Configurado |
+| **Groq** | llama-3.3-70b-versatile | GRÁTIS com limites | ✅ Configurado |
+| **Claude** | Sonnet/Opus | ~$9/1M | Reservado para orquestração |
+
+---
+
 ## Quando usar cada ferramenta MCP
 
-### `ia_rapida` — Gemini 2.5 Flash (GRÁTIS / $0.30/1M)
+### `ia_rapida` — Gemini 2.5 Flash (GRÁTIS)
 **Usa SEMPRE que o pedido for:**
-- Perguntas factuais simples ("qual é a capital de...", "o que significa...")
+- Perguntas factuais simples
 - Resumos de textos curtos
 - Traduções
 - Classificações e categorizações
-- Respostas directas que não precisam de raciocínio profundo
-- Qualquer tarefa onde a velocidade importa mais que a profundidade
+- Respostas directas e rápidas
 
 ### `ia_codigo` — GPT-4o-mini ($0.15/1M)
 **Usa SEMPRE que o pedido for:**
@@ -32,9 +43,8 @@ O objectivo é simples: **o Claude não deve gastar tokens em tarefas que as IAs
 - Corrigir bugs
 - Rever código (code review)
 - Criar scripts, funções, componentes
-- Converter código entre linguagens
 
-### `ia_raciocinio` — DeepSeek V3.2 ($0.28/1M) ou GPT-4o-mini (fallback)
+### `ia_raciocinio` — Groq Llama 3.3 70B (GRÁTIS)
 **Usa SEMPRE que o pedido for:**
 - Analisar vantagens e desvantagens
 - Criar planos de acção
@@ -55,7 +65,6 @@ O objectivo é simples: **o Claude não deve gastar tokens em tarefas que as IAs
 - As ferramentas acima já foram tentadas e não foram suficientes
 - A tarefa exige qualidade máxima de geração de texto
 - Código extremamente complexo com múltiplas dependências
-- Justifica explicitamente por que as IAs baratas não chegam
 
 ### `salvar_memoria` e `recuperar_memoria` — Obsidian (GRÁTIS)
 **Usa SEMPRE que:**
@@ -66,7 +75,7 @@ O objectivo é simples: **o Claude não deve gastar tokens em tarefas que as IAs
 ### `ver_custo_ia` — Relatório de tokens (GRÁTIS)
 **Usa quando:**
 - O utilizador perguntar quanto gastou
-- No início de uma sessão longa, para ter consciência do consumo
+- No início de uma sessão longa
 
 ---
 
@@ -76,10 +85,9 @@ O Claude só deve responder por conta própria quando a tarefa exige:
 
 1. **Orquestração complexa** — coordenar múltiplas ferramentas MCP numa sequência lógica
 2. **Arquitectura de sistemas** — desenhar a estrutura de um projecto completo
-3. **Debugging crítico** — analisar erros complexos que envolvem múltiplos ficheiros e contexto profundo
+3. **Debugging crítico** — erros complexos que envolvem múltiplos ficheiros e contexto profundo
 4. **Decisões de negócio** — avaliar estratégias, prioridades e impactos
-5. **Raciocínio de alto nível** — tarefas que requerem compreensão profunda do contexto completo do projecto
-6. **Síntese final** — agregar resultados de múltiplas ferramentas MCP numa resposta coerente
+5. **Síntese final** — agregar resultados de múltiplas ferramentas numa resposta coerente
 
 ---
 
@@ -88,14 +96,14 @@ O Claude só deve responder por conta própria quando a tarefa exige:
 ```
 Recebi um pedido do Renato
         ↓
-1. É uma pergunta simples ou tradução?
-   → SIM: usa ia_rapida (Gemini)
+1. É uma pergunta simples, resumo ou tradução?
+   → SIM: usa ia_rapida (Gemini — GRÁTIS)
         ↓
 2. É sobre código?
    → SIM: usa ia_codigo (GPT-4o-mini)
         ↓
 3. É uma análise, plano ou comparação?
-   → SIM: usa ia_raciocinio (DeepSeek)
+   → SIM: usa ia_raciocinio (Groq — GRÁTIS)
         ↓
 4. O conteúdo é muito longo?
    → SIM: usa ia_longa (Gemini Flash)
@@ -113,9 +121,9 @@ Recebi um pedido do Renato
 
 - **NÃO** responder directamente a perguntas simples quando `ia_rapida` pode fazê-lo
 - **NÃO** gerar código directamente quando `ia_codigo` pode fazê-lo
-- **NÃO** fazer resumos directamente quando `ia_rapida` ou `ia_longa` podem fazê-lo
+- **NÃO** fazer análises directamente quando `ia_raciocinio` pode fazê-lo
+- **NÃO** usar `ia_avancada` quando as IAs gratuitas chegam
 - **NÃO** ignorar as ferramentas MCP por conveniência
-- **NÃO** usar `ia_avancada` (GPT-4o) quando `ia_codigo` ou `ia_raciocinio` chegam
 
 ---
 
@@ -126,7 +134,7 @@ Recebi um pedido do Renato
 - **Vault Obsidian:** `C:\Users\R E N A T O\Documents\Obsidian Vault`
 - **Pasta do projecto:** `C:\Users\R E N A T O\meu-projeto-ia`
 - **Servidor MCP:** `mcp-server-v3.js`
-- **Repositório GitHub:** `RENATOVIEIRA10/atalaiaigredoamor`
+- **GitHub:** `RENATOVIEIRA10/atalaiaigredoamor`
 
 ---
 
@@ -138,6 +146,7 @@ Recebi um pedido do Renato
 | GPT-4o via MCP | $2.50 |
 | GPT-4o-mini via MCP | $0.15 |
 | Gemini 2.5 Flash via MCP | $0.30 |
+| Groq Llama 3.3 70B via MCP | **$0.00** |
 | Gemini (tier gratuito) | **$0.00** |
 
 **Ao seguir este protocolo, o Renato poupa entre 90% e 100% dos tokens do Claude em tarefas rotineiras.**

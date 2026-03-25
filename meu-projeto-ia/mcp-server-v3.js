@@ -71,16 +71,8 @@ try {
   }
 } catch {}
 
-// DeepSeek via API compatível com OpenAI
+// DeepSeek — não configurado, substituído por Groq
 let deepseek = null;
-try {
-  if (process.env.DEEPSEEK_API_KEY && !process.env.DEEPSEEK_API_KEY.includes("COLE")) {
-    deepseek = new OpenAI({
-      apiKey: process.env.DEEPSEEK_API_KEY,
-      baseURL: "https://api.deepseek.com/v1",
-    });
-  }
-} catch {}
 
 // Groq via API compatível com OpenAI
 let groq = null;
@@ -291,11 +283,11 @@ server.tool(
   },
   async ({ tarefa, contexto, guardar_no_obsidian, pasta_obsidian }) => {
     // Fallback para GPT-4o-mini se DeepSeek não estiver configurado
-    const cliente = deepseek || openai;
-    const modelo  = deepseek ? "deepseek-chat" : "gpt-4o-mini";
-    const nomeIA  = deepseek ? "DeepSeek V3.2" : "GPT-4o-mini (fallback)";
+  const cliente = groq || openai;
+  const modelo  = groq ? "llama-3.3-70b-versatile" : "gpt-4o-mini";
+  const nomeIA  = groq ? "Groq Llama 3.3 70B" : "GPT-4o-mini (fallback)";
 
-    if (!cliente) return semIA("DeepSeek", "DEEPSEEK_API_KEY");
+    if (!cliente) return semIA("Groq", "GROQ_API_KEY");
     try {
       const resposta = await chamarIA(cliente, modelo, [
         { role: "system", content: "Você é um especialista em análise e raciocínio lógico. Pensa passo a passo, considera múltiplas perspectivas e fornece conclusões claras e accionáveis. Responda em português." },
