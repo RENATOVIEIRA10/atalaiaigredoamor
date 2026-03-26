@@ -19,9 +19,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout>;
+
+    // Safety timeout: never stay loading forever (8s max)
+    timeoutId = setTimeout(() => {
+      if (isLoading) {
+        console.warn('[Auth] Loading timeout reached — forcing ready state');
+        setIsLoading(false);
+      }
+    }, 8000);
+
     // Set up auth state listener BEFORE checking session
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         setIsLoading(false);
@@ -29,26 +39,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
 
     // Check for existing session
-    const initializeAuth = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        if (error) {
-          console.error('Error getting session:', error);
-          setIsLoading(false);
-          return;
-        }
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        console.error('Error getting session:', error);
+      } else {
         setSession(session);
         setUser(session?.user ?? null);
-      } catch (error) {
-        console.error('Error initializing auth:', error);
-      } finally {
-        setIsLoading(false);
       }
+      setIsLoading(false);
+    }).catch((error) => {
+      console.error('Error initializing auth:', error);
+      setIsLoading(false);
+    });
+
+    return () => {
+      clearTimeout(timeoutId);
+      subscription.unsubscribe();
     };
-
-    initializeAuth();
-
-    return () => subscription.unsubscribe();
   }, []);
 
   // Detect if running on Lovable infrastructure (where /~oauth routes exist)
