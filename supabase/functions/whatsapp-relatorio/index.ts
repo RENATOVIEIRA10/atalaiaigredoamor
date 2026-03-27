@@ -1,112 +1,146 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "jsr:@supabase/supabase-js@2";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-webhook-secret",
-};
+function matchCelula(celulas: Record<string, unknown>[], searchTerm: string) {
+  // 1. match exato
+  const exato = celulas.find((c) => {
+    const n = ((c.name || c.nome) as string || "").toLowerCase();
+    return n === searchTerm;
+  });
+  if (exato) return exato;
+  // 2. match parcial (fallback)
+  return celulas.find((c) => {
+    const n = ((c.name || c.nome) as string || "").toLowerCase();
+    return n.includes(searchTerm) || searchTerm.includes(n);
+  });
+}
 
-// Chave secreta para autenticar o agente-celulas
-const WEBHOOK_SECRET = Deno.env.get("WHATSAPP_WEBHOOK_SECRET") || "";
-
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+Deno.serve(async (req) => {
+  const WEBHOOK_SECRET = Deno.env.get("ATALAIA_WEBHOOK_SECRET");
+  const secret = req.headers.get("x-webhook-secret");
+  if (WEBHOOK_SECRET && secret !== WEBHOOK_SECRET) {
+    return new Response(JSON.stringify({ error: "Nao autorizado" }), { status: 401, headers: { "Content-Type": "application/json" } });
   }
 
-  try {
-    // Verifica a chave secreta
-    const secret = req.headers.get("x-webhook-secret");
-    if (WEBHOOK_SECRET && secret !== WEBHOOK_SECRET) {
-      return new Response(
-        JSON.stringify({ error: "Não autorizado" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+  const supabase = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+  );
 
-    const body = await req.json();
-    const { celula, lider, membros, visitantes, criancas, lideres_treinamento, discipulados, data } = body;
+  let body: Record<string, unknown>;
+  try { body = await req.json(); } catch { body = {}; }
+
+  const headers = { "Content-Type": "application/json" };
+
+  // ── ACTION: delete ──────────────────────────────────────────────────────────
+  if (body.action === "delete") {
+    const { celula, semana_inicio, relatorio_id } = body as Record<string, unknown>;
+
+    if (relatorio_id) {
+      const { error } = await supabase.from("weekly_reports").delete().eq("id", relatorio_id as string);
+      if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500, headers });
+      return new Response(JSON.stringify({ sucesso: true, excluido_por: "id", relatorio_id }), { status: 200, headers });
+    }
 
     if (!celula) {
-      return new Response(
-        JSON.stringify({ error: "Nome da célula é obrigatório" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ error: "Informe celula ou relatorio_id para excluir" }), { status: 400, headers });
     }
 
-    // Cliente Supabase com service role (permissão total)
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-    );
-
-    // Busca a célula pelo nome (case insensitive)
-    const { data: celulaData, error: celulaError } = await supabase
-      .from("celulas")
-      .select("id, name, rede_id, campo_id")
-      .ilike("name", `%${celula}%`)
-      .limit(1)
-      .single();
-
-    if (celulaError || !celulaData) {
-      return new Response(
-        JSON.stringify({ error: `Célula "${celula}" não encontrada no Atalaia`, detalhes: celulaError?.message }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    // Normaliza nome da celula
+    const { data: celulas } = await supabase.from("celulas").select("id, name, nome").neq("is_test_data", true).limit(200);
+    let celula_nome = (celula as string).trim();
+    if (celulas) {
+      const searchTerm = celula_nome.toLowerCase();
+      const found = matchCelula(celulas as Record<string, unknown>[], searchTerm);
+      if (found) celula_nome = (found.name || found.nome) as string || celula_nome;
     }
 
-    // Calcula o início da semana (segunda-feira)
-    const meetingDate = data ? new Date(data.split("/").reverse().join("-")) : new Date();
-    const dayOfWeek = meetingDate.getDay();
-    const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-    const weekStart = new Date(meetingDate);
-    weekStart.setDate(meetingDate.getDate() - daysToMonday);
-    const weekStartStr = weekStart.toISOString().split("T")[0];
-    const meetingDateStr = meetingDate.toISOString().split("T")[0];
+    // Calcula semana se nao informada
+    let semana = semana_inicio as string;
+    if (!semana) {
+      const hoje = new Date();
+      const diaSemana = hoje.getDay();
+      const diffSegunda = diaSemana === 0 ? -6 : 1 - diaSemana;
+      const segunda = new Date(hoje);
+      segunda.setDate(hoje.getDate() + diffSegunda);
+      semana = segunda.toISOString().split("T")[0];
+    }
 
-    // Insere ou atualiza o relatório semanal
-    const { data: report, error: reportError } = await supabase
+    const { data: found_rows, error: findErr } = await supabase
       .from("weekly_reports")
-      .upsert({
-        celula_id: celulaData.id,
-        rede_id: celulaData.rede_id,
-        campo_id: celulaData.campo_id,
-        week_start: weekStartStr,
-        meeting_date: meetingDateStr,
-        members_present: membros || 0,
-        visitors: visitantes || 0,
-        children: criancas || 0,
-        leaders_in_training: lideres_treinamento || 0,
-        discipleships: discipulados || 0,
-        notes: `Relatório via WhatsApp — Líder: ${lider || "Não informado"}`,
-      }, {
-        onConflict: "celula_id,week_start",
-        ignoreDuplicates: false,
-      })
-      .select()
-      .single();
+      .select("id, celula, semana_inicio")
+      .eq("celula", celula_nome)
+      .eq("semana_inicio", semana);
 
-    if (reportError) {
-      return new Response(
-        JSON.stringify({ error: "Erro ao salvar relatório", detalhes: reportError.message }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    if (findErr) return new Response(JSON.stringify({ error: findErr.message }), { status: 500, headers });
+    if (!found_rows || found_rows.length === 0) {
+      return new Response(JSON.stringify({ error: "Relatorio nao encontrado", celula: celula_nome, semana }), { status: 404, headers });
     }
 
-    return new Response(
-      JSON.stringify({
-        sucesso: true,
-        celula: celulaData.name,
-        relatorio_id: report.id,
-        semana: weekStartStr,
-      }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    const { error: delErr } = await supabase
+      .from("weekly_reports")
+      .delete()
+      .eq("celula", celula_nome)
+      .eq("semana_inicio", semana);
 
-  } catch (err) {
-    return new Response(
-      JSON.stringify({ error: "Erro interno", detalhes: (err as Error).message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    if (delErr) return new Response(JSON.stringify({ error: delErr.message }), { status: 500, headers });
+    return new Response(JSON.stringify({ sucesso: true, excluido: celula_nome, semana, registros: found_rows.length }), { status: 200, headers });
   }
+
+  // ── ACTION: save/upsert (padrao) ────────────────────────────────────────────
+  const { celula, lider, membros, visitantes, criancas, lideres_treinamento, discipulados, data } = body as Record<string, unknown>;
+
+  let celula_nome = (celula as string || "").trim();
+  let cell_id: string | null = null;
+
+  if (celula_nome) {
+    const { data: celulas } = await supabase
+      .from("celulas")
+      .select("id, name, nome")
+      .neq("is_test_data", true)
+      .limit(200);
+
+    if (celulas) {
+      const searchTerm = celula_nome.toLowerCase();
+      const found = matchCelula(celulas as Record<string, unknown>[], searchTerm);
+      if (found) {
+        cell_id = found.id as string;
+        celula_nome = (found.name || found.nome) as string || celula_nome;
+      }
+    }
+  }
+
+  const hoje = new Date();
+  const diaSemana = hoje.getDay();
+  const diffSegunda = diaSemana === 0 ? -6 : 1 - diaSemana;
+  const segunda = new Date(hoje);
+  segunda.setDate(hoje.getDate() + diffSegunda);
+  const semana_inicio = segunda.toISOString().split("T")[0];
+
+  const total = (membros as number || 0) + (visitantes as number || 0) + (criancas as number || 0);
+
+  const { data: saved, error } = await supabase.from("weekly_reports").upsert({
+    cell_id: cell_id || null,
+    celula: celula_nome,
+    lider: lider || null,
+    membros: membros || 0,
+    visitantes: visitantes || 0,
+    criancas: criancas || 0,
+    lideres_treinamento: lideres_treinamento || 0,
+    discipulados: discipulados || 0,
+    total_presentes: total,
+    data: data || hoje.toISOString().split("T")[0],
+    semana_inicio,
+  }, { onConflict: "celula,semana_inicio", ignoreDuplicates: false }).select().single();
+
+  if (error) {
+    return new Response(JSON.stringify({ error: error.message }), { status: 500, headers });
+  }
+
+  return new Response(JSON.stringify({
+    sucesso: true,
+    celula: celula_nome,
+    relatorio_id: (saved as Record<string, unknown>)?.id,
+    semana: semana_inicio,
+  }), { status: 200, headers });
 });
