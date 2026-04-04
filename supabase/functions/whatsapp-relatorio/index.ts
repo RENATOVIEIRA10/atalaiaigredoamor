@@ -8,11 +8,23 @@ function matchCelula(celulas: Record<string, unknown>[], searchTerm: string) {
     return n === searchTerm;
   });
   if (exato) return exato;
-  // 2. match parcial (fallback)
-  return celulas.find((c) => {
+
+  // 2. match parcial — preferir o nome MAIS LONGO (mais especifico)
+  // "Videira Verdadeira" deve ganhar de "Videira"
+  // "Transformados Pela Graca" deve ganhar de "A Graca"
+  let bestMatch: Record<string, unknown> | null = null;
+  let bestLen = 0;
+  for (const c of celulas) {
     const n = ((c.name || c.nome) as string || "").toLowerCase();
-    return n.includes(searchTerm) || searchTerm.includes(n);
-  });
+    if (n.includes(searchTerm) || searchTerm.includes(n)) {
+      const matchLen = n.length;
+      if (matchLen > bestLen) {
+        bestLen = matchLen;
+        bestMatch = c;
+      }
+    }
+  }
+  return bestMatch;
 }
 
 Deno.serve(async (req) => {
