@@ -1,3 +1,59 @@
+# atalaiaigredoamor — contrato de sessao
+
+> Este bloco e committed. Qualquer Claude em qualquer maquina (notebook, VPS, code-server) le isto na primeira tool call. A documentacao tecnica do projeto esta abaixo.
+
+## Identidade do projeto
+
+- **Nome:** atalaiaigredoamor (Atalaia OS — Sistema Operacional Pastoral da Rede Amor a Dois / Igreja do Amor)
+- **Supabase (produto):** `yjwdlsjatqafzofgdyob` (Lovable Cloud)
+- **Supabase (sync/comando):** `zwnlpumonvkrghoxnddd` (agentes-hub — painel multi-projeto, NAO e o banco do produto)
+- **Repo:** github.com/RENATOVIEIRA10/atalaiaigredoamor (branch `main`)
+- **Deploy:** Lovable Cloud (redeploy automatico a partir do push em `main`)
+- **VPS (ops/push):** 104.131.187.118, `/root/atalaiaigredoamor`
+
+## Abertura de sessao (OBRIGATORIO)
+
+Na primeira resposta de TODA sessao nesta pasta, ANTES de qualquer outra coisa:
+
+1. Ler ultimos 5 registros de `sync_context` no agentes-hub:
+   ```sql
+   SELECT source, event_type, content, created_at
+   FROM sync_context
+   WHERE metadata->>'project' = 'atalaia'
+   ORDER BY created_at DESC
+   LIMIT 5
+   ```
+2. Mostrar resumo em 3-5 linhas: o que foi feito na ultima sessao, commits pendentes, alertas.
+3. So depois responder ao pedido.
+
+## Fechamento de sessao (OBRIGATORIO)
+
+1. `git commit` + `git push` (Lovable redeploya a partir do push).
+2. Edge functions alteradas: `npx supabase functions deploy <nome> --project-ref yjwdlsjatqafzofgdyob`.
+3. Migrations SQL: aplicar via `apply_migration` E commitar arquivo em `supabase/migrations/`.
+4. Se notebook bloquear HTTPS push (403), usar VPS como intermediario (`/root/atalaiaigredoamor` ja tem PAT no remote).
+5. Escrever session_summary no agentes-hub:
+   ```sql
+   INSERT INTO sync_context (source, event_type, content, metadata)
+   VALUES (
+     '<notebook|vps|code-server>',
+     'session_summary',
+     '<resumo do que foi feito>',
+     jsonb_build_object(
+       'project', 'atalaia',
+       'tasks_done', '[...]'::jsonb,
+       'commits', '[...]'::jsonb,
+       'next_candidates', '[...]'::jsonb
+     )
+   )
+   ```
+
+## Idioma
+
+Portugues. Codigo e termos tecnicos em ingles.
+
+---
+
 # CLAUDE.md — Atalaia OS: Guia para Assistentes de IA
 
 > **Atualizado:** Março 2026
