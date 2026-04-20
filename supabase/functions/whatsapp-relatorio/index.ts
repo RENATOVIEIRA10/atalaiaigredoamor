@@ -61,6 +61,29 @@ Deno.serve(async (req) => {
 
   const headers = { "Content-Type": "application/json" };
 
+  // ── ACTION: list ────────────────────────────────────────────────────────────
+  if (body.action === "list") {
+    const { semana_inicio, semana_fim, celula } = body as Record<string, unknown>;
+
+    let query = supabase
+      .from("weekly_reports")
+      .select("id, celula, lider, membros, visitantes, criancas, lideres_treinamento, discipulados, total_presentes, data, semana_inicio, created_at")
+      .order("semana_inicio", { ascending: false })
+      .order("celula", { ascending: true })
+      .limit(100);
+
+    if (semana_inicio) query = query.gte("semana_inicio", semana_inicio as string);
+    if (semana_fim) query = query.lte("semana_inicio", semana_fim as string);
+    if (celula) {
+      const celula_nome = (celula as string).trim();
+      query = query.ilike("celula", `%${celula_nome}%`);
+    }
+
+    const { data: rows, error: listErr } = await query;
+    if (listErr) return new Response(JSON.stringify({ error: listErr.message }), { status: 500, headers });
+    return new Response(JSON.stringify({ sucesso: true, total: (rows || []).length, relatorios: rows || [] }), { status: 200, headers });
+  }
+
   // ── ACTION: delete ──────────────────────────────────────────────────────────
   if (body.action === "delete") {
     const { celula, semana_inicio, relatorio_id } = body as Record<string, unknown>;
