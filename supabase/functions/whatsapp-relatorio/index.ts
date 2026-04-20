@@ -1,6 +1,23 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
+// Aceita DD/MM/AAAA, DD-MM-AAAA, YYYY-MM-DD — normaliza para YYYY-MM-DD.
+// Retorna null se vazio/invalido (callee usa fallback = hoje).
+function normalizarData(raw: unknown): string | null {
+  if (!raw || typeof raw !== "string") return null;
+  const s = raw.trim();
+  if (!s) return null;
+  // YYYY-MM-DD — ja no formato certo
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  // DD/MM/AAAA ou DD-MM-AAAA
+  const m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+  if (m) {
+    const [, dd, mm, yyyy] = m;
+    return `${yyyy}-${mm.padStart(2, "0")}-${dd.padStart(2, "0")}`;
+  }
+  return null;
+}
+
 function matchCelula(celulas: Record<string, unknown>[], searchTerm: string) {
   // 1. match exato
   const exato = celulas.find((c) => {
@@ -141,7 +158,7 @@ Deno.serve(async (req) => {
     lideres_treinamento: lideres_treinamento || 0,
     discipulados: discipulados || 0,
     total_presentes: total,
-    data: data || hoje.toISOString().split("T")[0],
+    data: normalizarData(data) || hoje.toISOString().split("T")[0],
     semana_inicio,
   }, { onConflict: "celula,semana_inicio", ignoreDuplicates: false }).select().single();
 
