@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables, TablesInsert } from '@/integrations/supabase/types';
 import { useToast } from '@/hooks/use-toast';
+import { emitToAuriosHQ } from '@/lib/aurios-bridge';
 
 export type Meeting = Tables<'meetings'> & {
   celula?: { id: string; name: string } | null;
@@ -125,9 +126,16 @@ export function useCreateMeeting() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['meetings'] });
       toast({ title: 'Reunião criada com sucesso!' });
+      // AUR.IOs HQ telemetry — contagem culto iniciada
+      emitToAuriosHQ('contagem_culto_iniciada', {
+        meeting_id: (data as any)?.id,
+        celula_id: (data as any)?.celula_id,
+        date: (data as any)?.date,
+        summary: 'Contagem de culto iniciada',
+      }).catch(() => {});
     },
     onError: (error) => {
       toast({ title: 'Erro ao criar reunião', description: error.message, variant: 'destructive' });
@@ -159,10 +167,18 @@ export function useSaveAttendances() {
         if (error) throw error;
       }
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['attendances'] });
       queryClient.invalidateQueries({ queryKey: ['meetings'] });
       toast({ title: 'Presenças salvas com sucesso!' });
+      // AUR.IOs HQ telemetry — contagem culto encerrada
+      const presentes = variables.attendances.filter((a) => a.present).length;
+      emitToAuriosHQ('contagem_culto_encerrada', {
+        meeting_id: variables.meetingId,
+        total_marcados: variables.attendances.length,
+        total_presentes: presentes,
+        summary: 'Contagem de culto encerrada — ' + presentes + ' presentes',
+      }).catch(() => {});
     },
     onError: (error) => {
       toast({ title: 'Erro ao salvar presenças', description: error.message, variant: 'destructive' });

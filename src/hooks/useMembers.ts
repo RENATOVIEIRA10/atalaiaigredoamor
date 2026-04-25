@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 import { useToast } from '@/hooks/use-toast';
+import { emitToAuriosHQ } from '@/lib/aurios-bridge';
 import { useDemoScope } from '@/hooks/useDemoScope';
 
 export type Member = Tables<'members'> & {
@@ -75,10 +76,17 @@ export function useCreateMember() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['members'] });
       queryClient.invalidateQueries({ queryKey: ['celulas'] });
       toast({ title: 'Membro adicionado com sucesso!' });
+      // AUR.IOs HQ telemetry — fire-and-forget
+      emitToAuriosHQ('vida_cadastrada', {
+        vida_id: data?.id,
+        celula_id: data?.celula_id,
+        campo_id: data?.campo_id,
+        summary: 'Nova vida cadastrada',
+      }).catch(() => {});
     },
     onError: (error) => {
       toast({ title: 'Erro ao adicionar membro', description: error.message, variant: 'destructive' });

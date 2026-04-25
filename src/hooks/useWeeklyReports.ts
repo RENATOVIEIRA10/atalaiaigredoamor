@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useDemoScope } from '@/hooks/useDemoScope';
+import { emitToAuriosHQ } from '@/lib/aurios-bridge';
 
 export interface WeeklyReport {
   id: string;
@@ -256,10 +257,19 @@ export function useCreateWeeklyReport() {
         return data;
       }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['weekly-reports'] });
       queryClient.invalidateQueries({ queryKey: ['weekly-reports-coordenacao'] });
       queryClient.invalidateQueries({ queryKey: ['weekly-reports-rede'] });
+      // AUR.IOs HQ telemetry — fire-and-forget
+      emitToAuriosHQ('relatorio_semanal_enviado', {
+        report_id: (data as any)?.id,
+        celula_id: (data as any)?.celula_id,
+        week_start: (data as any)?.week_start,
+        members_present: (data as any)?.members_present,
+        visitors: (data as any)?.visitors,
+        summary: 'Relatorio semanal enviado',
+      }).catch(() => {});
     },
   });
 }
