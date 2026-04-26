@@ -9,11 +9,7 @@
 // Padrao fire-and-forget — falha de telemetria nao deve quebrar o fluxo do usuario.
 
 const BRIDGE_URL = 'https://zwnlpumonvkrghoxnddd.supabase.co/functions/v1/ingest-event';
-// NOTE: hardcoded por decisao do usuario (frontend bundle ja exporia VITE_*).
-// Se precisar rotacionar, troque aqui ou migre para edge function.
-const BRIDGE_SECRET =
-  (import.meta.env?.VITE_AURIOS_HQ_BRIDGE_SECRET as string | undefined) ??
-  '0b1f8015513d475f200f545c1d8038eb875f3ee89183f6255ee75f67217e4e6f';
+const BRIDGE_SECRET = import.meta.env?.VITE_AURIOS_HQ_BRIDGE_SECRET as string | undefined;
 
 export async function emitToAuriosHQ(
   eventType: string,
