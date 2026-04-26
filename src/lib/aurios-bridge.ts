@@ -1,6 +1,6 @@
-// AUR.IOs HQ Event Bridge — emit eventos para a edge function ingest-event
-// no agentes-hub Supabase. Configuracao via env Vite VITE_AURIOS_HQ_BRIDGE_SECRET
-// (Lovable Cloud secret).
+// AUR.IOs HQ Event Bridge — chama a edge function aurios-bridge-emit
+// no Supabase do Atalaia, que adiciona o x-bridge-secret server-side
+// e reenvia para o agentes-hub. O segredo nunca vai para o bundle do browser.
 //
 // Uso:
 //   import { emitToAuriosHQ } from '@/lib/aurios-bridge';
@@ -8,40 +8,38 @@
 //
 // Padrao fire-and-forget — falha de telemetria nao deve quebrar o fluxo do usuario.
 
-const BRIDGE_URL = 'https://zwnlpumonvkrghoxnddd.supabase.co/functions/v1/ingest-event';
-const BRIDGE_SECRET = import.meta.env?.VITE_AURIOS_HQ_BRIDGE_SECRET as string | undefined;
+import { supabase } from '@/integrations/supabase/client';
 
 export async function emitToAuriosHQ(
   eventType: string,
   payload: Record<string, unknown> = {},
   sessionId?: string,
 ): Promise<void> {
-  if (!BRIDGE_SECRET) {
-    if (typeof console !== 'undefined') {
-      console.warn('[aurios-bridge] VITE_AURIOS_HQ_BRIDGE_SECRET nao definido — skip');
-    }
-    return;
-  }
-
   try {
-    const res = await fetch(BRIDGE_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-bridge-secret': BRIDGE_SECRET,
+    const { data, error } = await supabase.functions.invoke(
+      'aurios-bridge-emit',
+      {
+        body: {
+          event_type: eventType,
+          payload,
+          session_id: sessionId,
+        },
       },
-      body: JSON.stringify({
-        station_slug: 'atalaia',
-        event_type: eventType,
-        session_id: sessionId,
-        payload,
-        timestamp: new Date().toISOString(),
-      }),
-    });
+    );
 
-    if (!res.ok && typeof console !== 'undefined') {
-      const body = await res.text().catch(() => '');
-      console.warn('[aurios-bridge] emit failed', res.status, body);
+    if (error && typeof console !== 'undefined') {
+      console.warn('[aurios-bridge] emit failed', error);
+      return;
+    }
+
+    if (
+      data &&
+      typeof data === 'object' &&
+      'ok' in data &&
+      (data as { ok: boolean }).ok !== true &&
+      typeof console !== 'undefined'
+    ) {
+      console.warn('[aurios-bridge] hq rejected', data);
     }
   } catch (err) {
     if (typeof console !== 'undefined') {
