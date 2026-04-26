@@ -15,6 +15,8 @@ export async function emitToAuriosHQ(
   payload: Record<string, unknown> = {},
   sessionId?: string,
 ): Promise<void> {
+  // DEBUG TEMP: log dispatch + outcome (remover apos confirmar funcionando)
+  console.log("[aurios-bridge] emitToAuriosHQ START", { eventType, hasSessionId: !!sessionId });
   try {
     const { data, error } = await supabase.functions.invoke(
       'aurios-bridge-emit',
@@ -28,7 +30,7 @@ export async function emitToAuriosHQ(
     );
 
     if (error && typeof console !== 'undefined') {
-      console.warn('[aurios-bridge] emit failed', error);
+      console.error('[aurios-bridge] FAIL emit', error);
       return;
     }
 
@@ -39,11 +41,11 @@ export async function emitToAuriosHQ(
       (data as { ok: boolean }).ok !== true &&
       typeof console !== 'undefined'
     ) {
-      console.warn('[aurios-bridge] hq rejected', data);
+      console.error('[aurios-bridge] FAIL hq rejected', data);
     }
   } catch (err) {
     if (typeof console !== 'undefined') {
-      console.warn('[aurios-bridge] network error (silent):', err);
+      console.error('[aurios-bridge] FAIL network error:', err);
     }
   }
 }
