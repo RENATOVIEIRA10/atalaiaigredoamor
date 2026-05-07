@@ -18,6 +18,7 @@ import { usePulsoRede } from '@/hooks/usePulsoRede';
 import { useAniversariantesSemana, AniversarianteSemana } from '@/hooks/useAniversariantesSemana';
 import { useRole } from '@/contexts/RoleContext';
 import { useDemoScope } from '@/hooks/useDemoScope';
+import { openWhatsApp } from '@/lib/whatsapp';
 import { StatCard } from '@/components/ui/stat-card';
 import { MissionVerse } from '../MissionVerse';
 import { MissionBlock } from '@/components/dashboard/MissionBlock';
@@ -565,8 +566,7 @@ function BirthdayCard({ b }: { b: AniversarianteSemana }) {
                 size="sm"
                 className="h-10 text-green-600 border-green-600/30"
                 onClick={() => {
-                  const msg = encodeURIComponent(`Feliz aniversário, ${firstName}! 🎉\n\nQue Jesus te abençoe muito! ❤️\n\n— Rede Amor a 2`);
-                  window.location.href = `https://wa.me/${b.whatsapp?.replace(/\D/g, '')}?text=${msg}`;
+                  openWhatsApp(b.whatsapp, `Feliz aniversário, ${firstName}! 🎉\n\nQue Jesus te abençoe muito! ❤️\n\n— Rede Amor a 2`);
                 }}
               >
                 <MessageSquare className="h-4 w-4" />

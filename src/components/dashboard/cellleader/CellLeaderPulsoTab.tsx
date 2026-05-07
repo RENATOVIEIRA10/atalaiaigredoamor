@@ -6,6 +6,7 @@ import { Loader2, Users, GraduationCap, BookOpen, Baby, MessageSquare, Cake } fr
 import { useMembers } from '@/hooks/useMembers';
 import { MissionVerse } from '../MissionVerse';
 import { useIsPWA } from '@/hooks/useIsPWA';
+import { buildWhatsAppLink } from '@/lib/whatsapp';
 
 interface CellLeaderPulsoTabProps {
   celulaId: string;
@@ -19,9 +20,8 @@ function buildBirthdayMessage(name: string): string {
 function openWhatsAppBirthday(name: string, whatsapp: string | null, isPWA: boolean) {
   const message = buildBirthdayMessage(name);
   const encoded = encodeURIComponent(message.replace(/\r\n/g, '\n').replace(/\r/g, '\n'));
-  const url = whatsapp
-    ? `https://wa.me/${whatsapp.replace(/\D/g, '')}?text=${encoded}`
-    : `https://wa.me/?text=${encoded}`;
+  const directUrl = whatsapp ? buildWhatsAppLink(whatsapp, message) : null;
+  const url = directUrl ?? `https://wa.me/?text=${encoded}`;
 
   if (isPWA) {
     window.location.href = url;

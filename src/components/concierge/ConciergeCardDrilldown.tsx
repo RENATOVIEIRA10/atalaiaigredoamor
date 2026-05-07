@@ -1,6 +1,7 @@
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { ArrowLeft, User, MapPin, Phone, Calendar, Clock } from 'lucide-react';
+import { buildWhatsAppLink } from '@/lib/whatsapp';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -123,9 +124,9 @@ function VidaList({ vidas }: { vidas: NovaVidaDetail[] | undefined }) {
                 <Calendar className="h-3 w-3" />
                 {format(new Date(vida.created_at), "dd/MM/yyyy", { locale: ptBR })}
               </span>
-              {vida.whatsapp && (
+              {vida.whatsapp && buildWhatsAppLink(vida.whatsapp) && (
                 <a
-                  href={`https://wa.me/${vida.whatsapp.replace(/\D/g, '')}`}
+                  href={buildWhatsAppLink(vida.whatsapp)!}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 text-success hover:underline"

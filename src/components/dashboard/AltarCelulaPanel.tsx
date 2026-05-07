@@ -12,6 +12,7 @@ import {
 import { useAltarCelulaFunnel, PeriodDays, FunnelStep, StalledLife } from '@/hooks/useAltarCelulaFunnel';
 import { SectionLabel } from './SectionLabel';
 import { cn } from '@/lib/utils';
+import { openWhatsApp } from '@/lib/whatsapp';
 
 interface AltarCelulaPanelProps {
   campoId?: string | null;
@@ -142,7 +143,7 @@ export function AltarCelulaPanel({ campoId, title }: AltarCelulaPanelProps) {
                               variant="ghost"
                               size="sm"
                               className="h-7 w-7 p-0"
-                              onClick={() => window.open(`https://wa.me/${life.whatsapp?.replace(/\D/g, '')}`, '_blank')}
+                              onClick={() => openWhatsApp(life.whatsapp)}
                             >
                               <MessageCircle className="h-4 w-4 text-green-600" />
                             </Button>

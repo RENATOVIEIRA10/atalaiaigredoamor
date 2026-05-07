@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, MessageSquare } from 'lucide-react';
 import { useAniversariantesSemana, AniversarianteSemana } from '@/hooks/useAniversariantesSemana';
 import { useDemoScope } from '@/hooks/useDemoScope';
+import { buildWhatsAppLink } from '@/lib/whatsapp';
 
 interface AniversariantesSemanaCardProps {
   scopeType: 'coordenacao' | 'rede';
@@ -21,9 +22,8 @@ function openWhatsAppBirthday(name: string, whatsapp: string | null) {
   const message = buildBirthdayMessage(name);
   const encoded = encodeURIComponent(message.replace(/\r\n/g, '\n').replace(/\r/g, '\n'));
   // If we have the phone, open a direct chat; otherwise open share picker
-  const url = whatsapp
-    ? `https://wa.me/${whatsapp.replace(/\D/g, '')}?text=${encoded}`
-    : `https://wa.me/?text=${encoded}`;
+  const directUrl = whatsapp ? buildWhatsAppLink(whatsapp, message) : null;
+  const url = directUrl ?? `https://wa.me/?text=${encoded}`;
   const tab = window.open(url, '_blank', 'noopener,noreferrer');
   if (!tab || tab.closed || typeof tab.closed === 'undefined') {
     window.location.href = url;
