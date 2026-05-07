@@ -80,6 +80,19 @@ describe("normalizePhone", () => {
     expect(normalizePhone("0912345678")).toBeNull();
   });
 
+  it("returns null for DDD 20 (unassigned)", () => {
+    expect(normalizePhone("2012345678")).toBeNull();
+  });
+  it("returns null for DDD 30 (unassigned)", () => {
+    expect(normalizePhone("3012345678")).toBeNull();
+  });
+  it("returns null for DDD 60 (unassigned)", () => {
+    expect(normalizePhone("6012345678")).toBeNull();
+  });
+  it("returns null for DDD 90 (unassigned)", () => {
+    expect(normalizePhone("9012345678")).toBeNull();
+  });
+
   // --- too short ---
   it("returns null for a 9-digit number (no DDD)", () => {
     expect(normalizePhone("912345678")).toBeNull();
