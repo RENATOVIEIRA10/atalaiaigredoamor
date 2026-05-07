@@ -25,14 +25,19 @@ export function normalizePhone(raw: string | null | undefined): string | null {
 
   if (digits.startsWith('55') && digits.length >= 12 && digits.length <= 13) {
     normalized = digits;
+  } else if (digits.startsWith('0') && (digits.length === 11 || digits.length === 12)) {
+    // Bug fix: check 0DDD branch BEFORE the bare-length branch so that a
+    // leading trunk-prefix zero is stripped and not treated as part of the DDD.
+    normalized = `55${digits.slice(1)}`;
+  } else if (digits.startsWith('55') && (digits.length < 12 || digits.length > 13)) {
+    // Has DDI 55 but wrong length — reject before the bare-length branch would
+    // re-prefix it (e.g. '55912345678' → 11 digits → would become '5555912345678').
+    return null;
   } else if (digits.length === 10 || digits.length === 11) {
     // DDD + number without DDI
     normalized = `55${digits}`;
-  } else if (digits.startsWith('0') && (digits.length === 11 || digits.length === 12)) {
-    // 0DDD + number
-    normalized = `55${digits.slice(1)}`;
   } else if (digits.startsWith('55') && digits.length > 13) {
-    // Too many digits, try trimming
+    // Too many digits
     return null;
   } else {
     return null;
@@ -40,6 +45,12 @@ export function normalizePhone(raw: string | null | undefined): string | null {
 
   // Final validation: must be 12 or 13 digits
   if (normalized.length < 12 || normalized.length > 13) return null;
+
+  // Bug fix: validate DDD — all valid Brazilian DDDs are >= 11.
+  // Without this check, DDDs 00-09 would produce a structurally valid but
+  // non-existent phone number.
+  const ddd = parseInt(normalized.slice(2, 4), 10);
+  if (ddd < 11) return null;
 
   return normalized;
 }
