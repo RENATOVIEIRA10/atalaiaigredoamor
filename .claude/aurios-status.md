@@ -1,7 +1,9 @@
-# AUR.IOs Engineering Governance — Atalaia
+# AUR.IOS Engineering Governance — Atalaia
 
 > Leia este arquivo no início de toda sessão neste repo.
 > Atualizar ao fechar cada ciclo.
+
+> 🪨 **Protocolo vinculante:** [Casa Firmada na Rocha](https://github.com/RENATOVIEIRA10/aurios-agents-workspace/blob/main/shared/protocols/casa-firmada-na-rocha.md) (ATIVO desde 2026-05-08). Fase atual = **fundação, não venda**. ATALAIA NÃO é vendido como SaaS — é setup interno Igreja do Amor. Foco: fechar capítulo WhatsApp (Ciclo 002), instaurar testes em `useDemoScope.ts` (49 dependentes), RLS testada. Transição comercial requer frase explícita do CEO.
 
 ---
 
@@ -52,6 +54,9 @@
 **Status:** PENDENTE
 **Tamanho:** trivial (< 5 min, 1 arquivo, 1 linha)
 **Risco:** BAIXO
+**Owner:** Renato + Claude
+**Target date:** 2026-05-15 (D8 do War Room casa-firmada — encerra capítulo WhatsApp)
+**Justificativa de fundação:** baixo risco, mas fecha o último ponto residual WhatsApp. Após este ciclo, ATALAIA não tem risco residual documentado em integração WhatsApp.
 
 **Problema:** `BoasVindasWhatsApp.tsx` normaliza o número na linha 48, mas passa o valor raw (não normalizado) para `openWhatsApp` na linha 63. Se o número raw for inválido em um formato que `normalizePhone()` rejeitaria, o segundo call pode abrir wa.me errado.
 
@@ -113,4 +118,4 @@ Para qualquer mudança que toque `wa.me`, `whatsapp`, `supabase/client`, `auth`,
 
 ---
 
-*Governança AUR.IOs — Atalaia. Última atualização: 2026-05-07 (Ciclo 001 fechado).*
+*Governança AUR.IOS — Atalaia. Última atualização: 2026-05-07 (Ciclo 001 fechado).*
