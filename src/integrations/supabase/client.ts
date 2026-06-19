@@ -1,8 +1,21 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || "https://yjwdlsjatqafzofgdyob.supabase.co";
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlqd2Rsc2phdHFhZnpvZmdkeW9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzNzM3NzEsImV4cCI6MjA4NTk0OTc3MX0.qb7oiEOwFYiaJRAyM2Ekg_pEgDHcFl8E0VELVW02tvE";
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY =
+  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+if (!SUPABASE_URL) {
+  throw new Error(
+    'Missing VITE_SUPABASE_URL. Configure it in the deployment environment or local .env file.',
+  );
+}
+
+if (!SUPABASE_ANON_KEY) {
+  throw new Error(
+    'Missing VITE_SUPABASE_PUBLISHABLE_KEY or VITE_SUPABASE_ANON_KEY. Configure it in the deployment environment or local .env file.',
+  );
+}
 
 export const supabase = createClient<Database>(
   SUPABASE_URL,
@@ -12,6 +25,6 @@ export const supabase = createClient<Database>(
       storage: localStorage,
       persistSession: true,
       autoRefreshToken: true,
-    }
-  }
+    },
+  },
 );
