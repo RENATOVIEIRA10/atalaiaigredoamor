@@ -113,14 +113,17 @@ export function AppSidebar() {
       { title: 'Membros', href: '/membros', icon: Users },
     ],
     pastor_de_campo: [
+      { title: 'WhatsApp', href: '/whatsapp', icon: MessageSquare },
       { title: 'Início', href: '/home', icon: LayoutDashboard },
       { title: 'Dashboard', href: '/dashboard', icon: Activity },
     ],
     pastor_senior_global: [
+      { title: 'WhatsApp', href: '/whatsapp', icon: MessageSquare },
       { title: 'Início', href: '/home', icon: LayoutDashboard },
       { title: 'Dashboard', href: '/dashboard', icon: Activity },
     ],
     admin: [
+      { title: 'WhatsApp', href: '/whatsapp', icon: MessageSquare },
       { title: 'Início', href: '/home', icon: LayoutDashboard },
       { title: 'Lideranças', href: '/organograma', icon: GitBranch },
       { title: 'Códigos', href: '/configuracoes?tab=leadership', icon: KeyRound },

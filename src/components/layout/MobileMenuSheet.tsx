@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle
 } from '@/components/ui/sheet';
-import { GitBranch, Settings, Network, FolderTree, LogOut, Moon, Sun, Heart, Eye, Home, FlaskConical, RefreshCw, PlayCircle, Repeat, HelpCircle, ClipboardCheck, Palette } from 'lucide-react';
+import { GitBranch, Settings, Network, FolderTree, LogOut, Moon, Sun, Heart, Eye, Home, FlaskConical, RefreshCw, PlayCircle, Repeat, HelpCircle, ClipboardCheck, Palette, MessageSquare } from 'lucide-react';
 import { useServiceWorkerUpdate } from '@/hooks/useServiceWorkerUpdate';
 import { useRole } from '@/contexts/RoleContext';
 import { useDemoMode } from '@/contexts/DemoModeContext';
@@ -119,6 +119,7 @@ export function MobileMenuSheet({ open, onOpenChange }: MobileMenuSheetProps) {
             ) : isAdmin ? (
               // Admin: full access
               <>
+                <MenuButton icon={MessageSquare} label="Central WhatsApp" onClick={() => goTo('/whatsapp')} />
                 <MenuButton icon={GitBranch} label="Organograma" onClick={() => goTo('/organograma')} />
                 <MenuButton icon={Home} label="Células" onClick={() => goTo('/celulas')} />
                 <div className="border-t border-border/30 my-2" />

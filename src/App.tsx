@@ -37,6 +37,7 @@ const Redes = lazy(() => import("./pages/Redes"));
 const Coordenacoes = lazy(() => import("./pages/Coordenacoes"));
 const Configuracoes = lazy(() => import("./pages/Configuracoes"));
 const Dados = lazy(() => import("./pages/Dados"));
+const CentralWhatsapp = lazy(() => import("./pages/CentralWhatsapp"));
 const Organograma = lazy(() => import("./pages/Organograma"));
 const PerfilCasal = lazy(() => import("./pages/PerfilCasal"));
 const PerfilMembro = lazy(() => import("./pages/PerfilMembro"));
@@ -109,6 +110,7 @@ function AppInner() {
           <Route path="/coordenacoes" element={<RoleProtectedRoute><Coordenacoes /></RoleProtectedRoute>} />
           <Route path="/configuracoes" element={<RoleProtectedRoute><Configuracoes /></RoleProtectedRoute>} />
           <Route path="/dados" element={<RoleProtectedRoute><Dados /></RoleProtectedRoute>} />
+          <Route path="/whatsapp" element={<RoleProtectedRoute><CentralWhatsapp /></RoleProtectedRoute>} />
           <Route path="/organograma" element={<RoleProtectedRoute><Organograma /></RoleProtectedRoute>} />
           <Route path="/perfil/casal/:coupleId" element={<RoleProtectedRoute><PerfilCasal /></RoleProtectedRoute>} />
           <Route path="/perfil/membro/:memberId" element={<RoleProtectedRoute><PerfilMembro /></RoleProtectedRoute>} />
