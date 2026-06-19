@@ -3072,6 +3072,197 @@ export type Database = {
           },
         ]
       }
+      whatsapp_events: {
+        Row: {
+          campo_id: string | null
+          celula_id: string | null
+          created_at: string
+          description: string | null
+          event_type: string
+          id: string
+          message_id: string | null
+          payload: Json
+          phone: string | null
+          rede_id: string | null
+          severity: string
+          source: string
+          title: string
+          weekly_report_id: string | null
+        }
+        Insert: {
+          campo_id?: string | null
+          celula_id?: string | null
+          created_at?: string
+          description?: string | null
+          event_type: string
+          id?: string
+          message_id?: string | null
+          payload?: Json
+          phone?: string | null
+          rede_id?: string | null
+          severity?: string
+          source?: string
+          title: string
+          weekly_report_id?: string | null
+        }
+        Update: {
+          campo_id?: string | null
+          celula_id?: string | null
+          created_at?: string
+          description?: string | null
+          event_type?: string
+          id?: string
+          message_id?: string | null
+          payload?: Json
+          phone?: string | null
+          rede_id?: string | null
+          severity?: string
+          source?: string
+          title?: string
+          weekly_report_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_events_campo_id_fkey"
+            columns: ["campo_id"]
+            isOneToOne: false
+            referencedRelation: "campos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_events_celula_id_fkey"
+            columns: ["celula_id"]
+            isOneToOne: false
+            referencedRelation: "celulas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_events_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_events_rede_id_fkey"
+            columns: ["rede_id"]
+            isOneToOne: false
+            referencedRelation: "redes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_events_weekly_report_id_fkey"
+            columns: ["weekly_report_id"]
+            isOneToOne: false
+            referencedRelation: "weekly_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_messages: {
+        Row: {
+          campo_id: string | null
+          celula_id: string | null
+          channel: string
+          classification: string
+          confidence: number | null
+          confirmed_at: string | null
+          created_at: string
+          direction: string
+          error_message: string | null
+          extracted_payload: Json
+          id: string
+          message_text: string | null
+          metadata: Json
+          phone: string | null
+          processed_at: string | null
+          rede_id: string | null
+          remote_jid: string | null
+          sender_name: string | null
+          source: string
+          status: string
+          updated_at: string
+          weekly_report_id: string | null
+        }
+        Insert: {
+          campo_id?: string | null
+          celula_id?: string | null
+          channel?: string
+          classification?: string
+          confidence?: number | null
+          confirmed_at?: string | null
+          created_at?: string
+          direction?: string
+          error_message?: string | null
+          extracted_payload?: Json
+          id?: string
+          message_text?: string | null
+          metadata?: Json
+          phone?: string | null
+          processed_at?: string | null
+          rede_id?: string | null
+          remote_jid?: string | null
+          sender_name?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+          weekly_report_id?: string | null
+        }
+        Update: {
+          campo_id?: string | null
+          celula_id?: string | null
+          channel?: string
+          classification?: string
+          confidence?: number | null
+          confirmed_at?: string | null
+          created_at?: string
+          direction?: string
+          error_message?: string | null
+          extracted_payload?: Json
+          id?: string
+          message_text?: string | null
+          metadata?: Json
+          phone?: string | null
+          processed_at?: string | null
+          rede_id?: string | null
+          remote_jid?: string | null
+          sender_name?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+          weekly_report_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_messages_campo_id_fkey"
+            columns: ["campo_id"]
+            isOneToOne: false
+            referencedRelation: "campos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_messages_celula_id_fkey"
+            columns: ["celula_id"]
+            isOneToOne: false
+            referencedRelation: "celulas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_messages_rede_id_fkey"
+            columns: ["rede_id"]
+            isOneToOne: false
+            referencedRelation: "redes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_messages_weekly_report_id_fkey"
+            columns: ["weekly_report_id"]
+            isOneToOne: false
+            referencedRelation: "weekly_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       whatsapp_sessions: {
         Row: {
           access_key_code: string
