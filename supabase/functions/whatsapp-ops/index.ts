@@ -43,6 +43,14 @@ function json(data: unknown, status = 200) {
   });
 }
 
+function currentWeekStartISO() {
+  const now = new Date();
+  const day = now.getUTCDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  const monday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + diff));
+  return monday.toISOString().slice(0, 10);
+}
+
 function agentBase(): string | null {
   const baseUrl = Deno.env.get("AGENTE_CELULAS_BASE_URL");
   if (!baseUrl) return null;
@@ -177,7 +185,7 @@ Deno.serve(async (req) => {
 
   // ---- BOT QR ----
   if (action === "bot_qr") {
-    const res = await agentFetch("/qr", {}, 6000);
+    const res = await agentFetch("/qr.json", {}, 6000);
     return json({ ok: res.ok, qr: (res.body as any)?.qr ?? null, raw: res.body });
   }
 
@@ -356,8 +364,24 @@ Deno.serve(async (req) => {
     .limit(80);
   if (campoId) eventsQuery = eventsQuery.eq("campo_id", campoId);
 
-  const [{ data: messages, error: messagesError }, { data: events, error: eventsError }] =
-    await Promise.all([messagesQuery, eventsQuery]);
+  let cellsQuery = supabase
+    .from("celulas")
+    .select("id")
+    .eq("is_test_data", false);
+  if (campoId) cellsQuery = cellsQuery.eq("campo_id", campoId);
+
+  let weeklyReportsQuery = supabase
+    .from("weekly_reports")
+    .select("celula_id")
+    .eq("week_start", currentWeekStartISO());
+  if (campoId) weeklyReportsQuery = weeklyReportsQuery.eq("campo_id", campoId);
+
+  const [
+    { data: messages, error: messagesError },
+    { data: events, error: eventsError },
+    { data: cells },
+    { data: weeklyReports },
+  ] = await Promise.all([messagesQuery, eventsQuery, cellsQuery, weeklyReportsQuery]);
 
   if (messagesError) return json({ error: messagesError.message }, 500);
   if (eventsError) return json({ error: eventsError.message }, 500);
@@ -365,6 +389,9 @@ Deno.serve(async (req) => {
   const pending = (messages || []).filter((m) =>
     ["received", "pending", "pending_confirmation", "failed"].includes(String(m.status))
   );
+  const since24h = Date.now() - 24 * 60 * 60 * 1000;
+  const reportedCells = new Set((weeklyReports || []).map((r) => r.celula_id).filter(Boolean));
+  const missingReportsTotal = cells ? Math.max(0, cells.length - reportedCells.size) : null;
 
   return json({
     bot,
@@ -373,6 +400,12 @@ Deno.serve(async (req) => {
       pending_total: pending.length,
       failed_total: (messages || []).filter((m) => m.status === "failed").length,
       reports_total: (messages || []).filter((m) => m.classification === "report").length,
+      pending_confirmation_total: (messages || []).filter((m) => m.status === "pending_confirmation").length,
+      manual_sent_total: (messages || []).filter((m) => m.classification === "manual" && m.status === "sent").length,
+      last_24h_total: (messages || []).filter((m) => new Date(m.created_at).getTime() >= since24h).length,
+      cells_total: cells?.length ?? null,
+      reports_current_week_total: reportedCells.size,
+      missing_reports_total: missingReportsTotal,
       events_total: events?.length || 0,
     },
     messages: messages || [],

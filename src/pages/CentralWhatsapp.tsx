@@ -143,10 +143,12 @@ export default function CentralWhatsapp() {
           </Card>
         )}
 
-        <div className="grid gap-4 md:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
           <StatCard icon={Bot} label="Conexão" value={connectionLabel} subtitle={bot.whatsapp_user || 'WhatsApp não identificado'} color={bot.ok ? 'vida' : 'ruby'} />
           <StatCard icon={Inbox} label="Pendências" value={data?.metrics.pending_total || 0} subtitle="Inbox pastoral" color={(data?.metrics.pending_total || 0) > 0 ? 'gold' : 'vida'} />
           <StatCard icon={MessageSquare} label="Relatórios" value={data?.metrics.reports_total || 0} subtitle="Mensagens classificadas" />
+          <StatCard icon={CheckCircle2} label="Confirmar" value={data?.metrics.pending_confirmation_total || 0} subtitle="Aguardando resposta" color={(data?.metrics.pending_confirmation_total || 0) > 0 ? 'gold' : 'vida'} />
+          <StatCard icon={AlertTriangle} label="Sem relatório" value={data?.metrics.missing_reports_total ?? '--'} subtitle="Semana atual" color={(data?.metrics.missing_reports_total || 0) > 0 ? 'ruby' : 'vida'} />
           <StatCard icon={Clock3} label="Última msg" value={bot.mudo_ha_min ?? '--'} unit="min" subtitle={relativeTime(bot.last_message_at)} color={(bot.mudo_ha_min || 0) > 1440 ? 'ruby' : 'vida'} />
         </div>
 
@@ -166,6 +168,10 @@ export default function CentralWhatsapp() {
               <InfoRow label="Rate limit streak" value={String(bot.queue_rate_limit_streak ?? 0)} />
               <InfoRow label="Backoff até" value={bot.queue_backoff_until || 'sem backoff'} />
               <InfoRow label="Último envio" value={relativeTime(bot.last_sent_at)} icon={Send} />
+              <InfoRow label="Último relatório salvo" value={relativeTime(bot.last_report_saved_at)} icon={CheckCircle2} />
+              <InfoRow label="Banco" value={bot.database_write_ok === false ? `falha em ${relativeTime(bot.database_write_at)}` : `ok ${relativeTime(bot.database_write_at)}`} />
+              <InfoRow label="Último erro" value={relativeTime(bot.last_error_at)} icon={AlertTriangle} />
+              <InfoRow label="Commit" value={bot.commit_sha || 'não informado'} />
               <InfoRow label="Versão" value={bot.versao || 'não informada'} />
             </CardContent>
           </Card>
