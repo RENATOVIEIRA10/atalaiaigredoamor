@@ -66,6 +66,12 @@ export interface WhatsappOpsOverview {
   events: WhatsappEvent[];
 }
 
+function useBaseArgs() {
+  const { campoId } = useDemoScope();
+  const { accessKeyId } = useRole();
+  return { campoId, accessKeyId };
+}
+
 export function useWhatsappOps() {
   const { campoId, isMissingCampo, queryKeyExtra } = useDemoScope();
   const { accessKeyId } = useRole();
@@ -86,20 +92,85 @@ export function useWhatsappOps() {
 
 export function useSetWhatsappMessageStatus() {
   const queryClient = useQueryClient();
-  const { accessKeyId } = useRole();
+  const { campoId, accessKeyId } = useBaseArgs();
 
   return useMutation({
-    mutationFn: async ({ messageId, status, note }: { messageId: string; status: string; note?: string }) => {
+    mutationFn: async ({ messageId, status, note }: { messageId: string; status: string; note: string }) => {
       if (!accessKeyId) throw new Error('Sessao sem funcao ativa.');
-
+      if (!note || note.trim().length < 3) throw new Error('Nota obrigatoria (min 3 caracteres).');
       const { data, error } = await supabase.functions.invoke('whatsapp-ops', {
-        body: { action: 'set_message_status', message_id: messageId, status, note, access_key_id: accessKeyId },
+        body: { action: 'set_message_status', message_id: messageId, status, note, access_key_id: accessKeyId, campo_id: campoId },
       });
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['whatsapp-ops'] });
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['whatsapp-ops'] }),
+  });
+}
+
+export function useWhatsappBotQR() {
+  const { campoId, accessKeyId } = useBaseArgs();
+  return useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.functions.invoke<{ ok: boolean; qr: string | null; raw: unknown }>('whatsapp-ops', {
+        body: { action: 'bot_qr', access_key_id: accessKeyId, campo_id: campoId },
+      });
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
+export function useWhatsappBotReconnect() {
+  const queryClient = useQueryClient();
+  const { campoId, accessKeyId } = useBaseArgs();
+  return useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.functions.invoke('whatsapp-ops', {
+        body: { action: 'bot_reconnect', access_key_id: accessKeyId, campo_id: campoId },
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['whatsapp-ops'] }),
+  });
+}
+
+export function useSendWhatsappMessage() {
+  const queryClient = useQueryClient();
+  const { campoId, accessKeyId } = useBaseArgs();
+  return useMutation({
+    mutationFn: async ({ phone, text, celulaId }: { phone: string; text: string; celulaId?: string | null }) => {
+      if (!accessKeyId) throw new Error('Sessao sem funcao ativa.');
+      const { data, error } = await supabase.functions.invoke('whatsapp-ops', {
+        body: { action: 'send_message', phone, text, celula_id: celulaId ?? null, access_key_id: accessKeyId, campo_id: campoId },
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['whatsapp-ops'] }),
+  });
+}
+
+export interface WhatsappMessageDetail {
+  message: WhatsappMessage & { metadata?: Record<string, unknown> | null; sender_name?: string | null };
+  celula: { id: string; nome: string; dia_semana?: string; horario?: string; endereco?: string } | null;
+  weekly_report: Record<string, unknown> | null;
+  history: Array<Pick<WhatsappMessage, 'id' | 'created_at' | 'direction' | 'classification' | 'status' | 'message_text'>>;
+  events: WhatsappEvent[];
+}
+
+export function useWhatsappMessageDetail(messageId: string | null) {
+  const { campoId, accessKeyId } = useBaseArgs();
+  return useQuery({
+    queryKey: ['whatsapp-message-detail', messageId, campoId ?? 'global'],
+    enabled: !!messageId && !!accessKeyId,
+    queryFn: async () => {
+      const { data, error } = await supabase.functions.invoke<WhatsappMessageDetail>('whatsapp-ops', {
+        body: { action: 'message_detail', message_id: messageId, access_key_id: accessKeyId, campo_id: campoId },
+      });
+      if (error) throw error;
+      return data;
     },
   });
 }
